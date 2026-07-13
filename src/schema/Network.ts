@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { Caip2Namespace, Caip2Reference, NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
+import { Caip2Namespace, Caip2Reference, networkBySlug, NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
@@ -13,8 +13,10 @@ export enum NetworkSelector {
 }
 export const Network = entity({
 	entityType: EntityType.Network,
-	label: 'Network',
-	labelPlural: 'networks',
+	labels: {
+		singular: 'Network',
+		plural: 'networks',
+	},
 	description: 'A blockchain, ledger, or protocol network with its own identity and supporting metadata.',
 })({
 	caip2: {
@@ -28,7 +30,7 @@ export const Network = entity({
 		label: 'Slug',
 		description: 'A stable short name used by catalogs and URLs.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: (type.enumerated(...Object.keys(networkBySlug))),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
@@ -697,8 +699,7 @@ export const Network = entity({
 				'namespace',
 			],
 			is: 'BitcoinCash',
-		})({
-		}),
+		})({}),
 		Zcash: facet({
 			path: [
 				'executionModels',

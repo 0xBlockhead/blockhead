@@ -9,8 +9,10 @@ export enum YoutubeVideo_TimestampSelector {
 }
 export const YoutubeVideo_Timestamp = entity({
 	entityType: EntityType.YoutubeVideo_Timestamp,
-	label: 'YouTube video observation',
-	labelPlural: 'YouTube video observations',
+	labels: {
+		singular: 'YouTube video observation',
+		plural: 'YouTube video observations',
+	},
 })({
 	$video: {
 		label: 'Video',
@@ -21,7 +23,7 @@ export const YoutubeVideo_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	viewCount: {

@@ -9,8 +9,10 @@ export enum StellarTrustline_TimestampSelector {
 }
 export const StellarTrustline_Timestamp = entity({
 	entityType: EntityType.StellarTrustline_Timestamp,
-	label: 'stellar trustline timestamp',
-	labelPlural: 'stellar trustline observations',
+	labels: {
+		singular: 'stellar trustline timestamp',
+		plural: 'stellar trustline observations',
+	},
 })({
 	$trustline: {
 		label: 'trustline',

@@ -12,8 +12,10 @@ export enum AcpAgentProgramSelector {
 }
 export const AcpAgentProgram = entity({
 	entityType: EntityType.AcpAgentProgram,
-	label: 'ACP agent program',
-	labelPlural: 'ACP agent programs',
+	labels: {
+		singular: 'ACP agent program',
+		plural: 'ACP agent programs',
+	},
 })({
 	registryAgentId: {
 		label: 'registry agent ID',

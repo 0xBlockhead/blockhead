@@ -9,8 +9,10 @@ export enum AccountSelector {
 }
 export const Account = entity({
 	entityType: EntityType.Account,
-	label: 'account',
-	labelPlural: 'accounts',
+	labels: {
+		singular: 'account',
+		plural: 'accounts',
+	},
 	description: 'A cross-chain account identity expressed with CAIP namespace, reference, and address fields.',
 })({
 	caip10: {

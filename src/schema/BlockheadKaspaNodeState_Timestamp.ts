@@ -10,8 +10,10 @@ export enum BlockheadKaspaNodeState_TimestampSelector {
 }
 export const BlockheadKaspaNodeState_Timestamp = entity({
 	entityType: EntityType.BlockheadKaspaNodeState_Timestamp,
-	label: 'blockhead kaspa node state timestamp',
-	labelPlural: 'blockhead kaspa node state observations',
+	labels: {
+		singular: 'blockhead kaspa node state timestamp',
+		plural: 'blockhead kaspa node state observations',
+	},
 })({
 	$nodeState: {
 		label: 'node state',

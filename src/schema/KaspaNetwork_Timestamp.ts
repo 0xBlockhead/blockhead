@@ -9,8 +9,10 @@ export enum KaspaNetwork_TimestampSelector {
 }
 export const KaspaNetwork_Timestamp = entity({
 	entityType: EntityType.KaspaNetwork_Timestamp,
-	label: 'kaspa network timestamp',
-	labelPlural: 'kaspa network observations',
+	labels: {
+		singular: 'kaspa network timestamp',
+		plural: 'kaspa network observations',
+	},
 })({
 	$network: {
 		label: 'network',

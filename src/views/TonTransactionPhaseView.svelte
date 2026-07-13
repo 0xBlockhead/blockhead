@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const phaseKind = selection.entitySelector.phaseKind ?? prefetched.phaseKind}
+							{@const phaseKind = pendingEntity.phaseKind}
 							{#if phaseKind !== undefined && phaseKind !== null}
 								{String((phaseKind) ?? '')}
 							{/if}
@@ -128,7 +128,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const success = prefetched.success}
+					{@const success = pendingEntity.success}
 					{#if success !== undefined && success !== null}
 						<div>
 							<dt>success</dt>
@@ -163,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const exitCode = prefetched.exitCode}
+					{@const exitCode = pendingEntity.exitCode}
 					{#if exitCode !== undefined && exitCode !== null}
 						<div>
 							<dt>exit code</dt>
@@ -198,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>gas used</dt>
@@ -233,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasFeesNano = prefetched.gasFeesNano}
+					{@const gasFeesNano = pendingEntity.gasFeesNano}
 					{#if gasFeesNano !== undefined && gasFeesNano !== null}
 						<div>
 							<dt>gas fees nano</dt>
@@ -268,7 +268,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageFeesNano = prefetched.storageFeesNano}
+					{@const storageFeesNano = pendingEntity.storageFeesNano}
 					{#if storageFeesNano !== undefined && storageFeesNano !== null}
 						<div>
 							<dt>storage fees nano</dt>
@@ -303,7 +303,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const actionResultCode = prefetched.actionResultCode}
+					{@const actionResultCode = pendingEntity.actionResultCode}
 					{#if actionResultCode !== undefined && actionResultCode !== null}
 						<div>
 							<dt>action result code</dt>
@@ -338,7 +338,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const skippedReason = prefetched.skippedReason}
+					{@const skippedReason = pendingEntity.skippedReason}
 					{#if skippedReason !== undefined && skippedReason !== null}
 						<div>
 							<dt>skipped reason</dt>

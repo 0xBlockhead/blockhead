@@ -118,8 +118,8 @@
 						selection={select(EntityType.MevRelay, mevRelay[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mevRelayFields}
 						href={
-							(mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.caip2 !== undefined && mevRelayHrefFields.$network.caip2.namespace !== undefined && mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.caip2 !== undefined && mevRelayHrefFields.$network.caip2.reference !== undefined && mevRelayHrefFields.host !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]', {
-								caip2: `${String(mevRelayHrefFields.$network.caip2.namespace ?? '')}:${String(mevRelayHrefFields.$network.caip2.reference ?? '')}`,
+							(mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.slug !== undefined && mevRelayHrefFields.host !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+								network: String(mevRelayHrefFields.$network.slug ?? ''),
 								host: String(mevRelayHrefFields.host ?? ''),
 							}) : undefined)
 						}

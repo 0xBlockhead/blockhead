@@ -10,8 +10,10 @@ export enum CctpAttestation_TimestampSelector {
 }
 export const CctpAttestation_Timestamp = entity({
 	entityType: EntityType.CctpAttestation_Timestamp,
-	label: 'CCTP attestation timestamp',
-	labelPlural: 'CCTP attestation observations',
+	labels: {
+		singular: 'CCTP attestation timestamp',
+		plural: 'CCTP attestation observations',
+	},
 })({
 	$message: {
 		label: 'Message',

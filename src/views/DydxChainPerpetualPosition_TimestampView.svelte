@@ -51,7 +51,7 @@
 			side: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain perpetual position timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain perpetual position timestamp')
 	const viewDomId = $derived('dydx-chain-perpetual-position-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={dydxChainPerpetualPositionTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainPerpetualPositionTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.side) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain perpetual position timestamp'}
+				{[String((pendingEntity.side) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain perpetual position timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -143,7 +143,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -173,7 +173,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -200,7 +200,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>block height</dt>
@@ -237,7 +237,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const side = prefetched.side}
+					{@const side = pendingEntity.side}
 					{#if side !== undefined && side !== null}
 						<div>
 							<dt>side</dt>
@@ -272,7 +272,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const size = prefetched.size}
+					{@const size = pendingEntity.size}
 					{#if size !== undefined && size !== null}
 						<div>
 							<dt>size</dt>
@@ -307,7 +307,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const entryPrice = prefetched.entryPrice}
+					{@const entryPrice = pendingEntity.entryPrice}
 					{#if entryPrice !== undefined && entryPrice !== null}
 						<div>
 							<dt>entry price</dt>
@@ -342,7 +342,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unrealizedPnl = prefetched.unrealizedPnl}
+					{@const unrealizedPnl = pendingEntity.unrealizedPnl}
 					{#if unrealizedPnl !== undefined && unrealizedPnl !== null}
 						<div>
 							<dt>unrealized pnl</dt>
@@ -377,7 +377,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const realizedPnl = prefetched.realizedPnl}
+					{@const realizedPnl = pendingEntity.realizedPnl}
 					{#if realizedPnl !== undefined && realizedPnl !== null}
 						<div>
 							<dt>realized pnl</dt>
@@ -412,7 +412,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fundingIndex = prefetched.fundingIndex}
+					{@const fundingIndex = pendingEntity.fundingIndex}
 					{#if fundingIndex !== undefined && fundingIndex !== null}
 						<div>
 							<dt>funding index</dt>

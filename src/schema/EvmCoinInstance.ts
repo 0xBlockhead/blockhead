@@ -15,8 +15,10 @@ export enum EvmCoinInstanceSelector {
 }
 export const EvmCoinInstance = entity({
 	entityType: EntityType.EvmCoinInstance,
-	label: 'EVM coin instance',
-	labelPlural: 'EVM coin instances',
+	labels: {
+		singular: 'EVM coin instance',
+		plural: 'EVM coin instances',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -129,5 +131,20 @@ export const EvmCoinInstance = entity({
 			'type',
 			'$contract',
 		],
+	},
+
+	facets: {
+		NativeCurrency: facet({
+			path: [
+				'type',
+			],
+			is: 'NativeCurrency',
+		})({}),
+		Erc20Token: facet({
+			path: [
+				'type',
+			],
+			is: 'Erc20Token',
+		})({}),
 	},
 })

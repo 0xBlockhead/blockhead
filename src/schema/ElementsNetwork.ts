@@ -10,8 +10,10 @@ export enum ElementsNetworkSelector {
 }
 export const ElementsNetwork = entity({
 	entityType: EntityType.ElementsNetwork,
-	label: 'Elements network',
-	labelPlural: 'Elements networks',
+	labels: {
+		singular: 'Elements network',
+		plural: 'Elements networks',
+	},
 	description: 'Elements/Liquid-specific view over a canonical Network row, including federation metadata, settlement network, native asset, and registry assets.',
 })({
 	$network: {

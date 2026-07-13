@@ -58,7 +58,7 @@
 			$repostedArticle: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost')
+	const titleFallback = $derived([String((pendingEntity.repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost')
 	const viewDomId = $derived('nostr-repost-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -84,7 +84,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrRepost}>
 			{#snippet Pending()}
-				{@const repostedEventId0 = prefetched.repostedEventId}
+				{@const repostedEventId0 = pendingEntity.repostedEventId}
 				{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
 					<TruncatedValue value={String((repostedEventId0) ?? '')} />
 				{/if}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nostrRepost}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventId = selection.entitySelector.eventId ?? prefetched.eventId}
+							{@const eventId = pendingEntity.eventId}
 							{#if eventId !== undefined && eventId !== null}
 								<TruncatedValue value={String((eventId) ?? '')} />
 							{/if}
@@ -181,7 +181,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -223,7 +223,7 @@
 							}
 						>
 							{#snippet Pending()}
-								{@const kind = prefetched.kind}
+								{@const kind = pendingEntity.kind}
 								{#if kind !== undefined && kind !== null}
 									{String((kind) ?? '')}
 								{/if}
@@ -258,7 +258,7 @@
 							}
 						>
 							{#snippet Pending()}
-								{@const pubkey = prefetched.pubkey}
+								{@const pubkey = pendingEntity.pubkey}
 								{#if pubkey !== undefined && pubkey !== null}
 									<TruncatedValue value={String((pubkey) ?? '')} />
 								{/if}
@@ -286,6 +286,8 @@
 						})
 					}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(nostrProfile)}
 						{#if nostrProfile != null && nostrProfile[EntityMetaKey.Selector] != null}
 							<div>
@@ -318,7 +320,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const repostedEventId = prefetched.repostedEventId}
+						{@const repostedEventId = pendingEntity.repostedEventId}
 						{#if repostedEventId !== undefined && repostedEventId !== null}
 							<div>
 								<dt>Reposted event ID</dt>
@@ -354,6 +356,8 @@
 						})
 					}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(nostrNote)}
 						{#if nostrNote != null && nostrNote[EntityMetaKey.Selector] != null}
 							<div>
@@ -382,6 +386,8 @@
 						})
 					}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(nostrArticle)}
 						{#if nostrArticle != null && nostrArticle[EntityMetaKey.Selector] != null}
 							<div>

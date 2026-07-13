@@ -9,8 +9,10 @@ export enum Erc4337AccountFactory_TimestampSelector {
 }
 export const Erc4337AccountFactory_Timestamp = entity({
 	entityType: EntityType.Erc4337AccountFactory_Timestamp,
-	label: 'ERC-4337 account factory timestamp',
-	labelPlural: 'ERC-4337 account factory observations',
+	labels: {
+		singular: 'ERC-4337 account factory timestamp',
+		plural: 'ERC-4337 account factory observations',
+	},
 })({
 	$factory: {
 		label: 'Factory',
@@ -22,7 +24,7 @@ export const Erc4337AccountFactory_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

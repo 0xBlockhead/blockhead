@@ -17,11 +17,44 @@
 		params,
 	}: PageProps = $props()
 
+	const pageSelection = $derived(select(EntityType.EvmActorCoinAllowance, {
+		$actor: {
+			interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.owner),
+		},
+		$contract: {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: params.chainId,
+				},
+			},
+			address: params.coin,
+		},
+		$spender: {
+			interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.spender),
+		},
+		interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.owner),
+	}, {
+		sources: [
+			Source.Voltaire_JsonRpc,
+		],
+		fields: {
+			$actorCoin: true,
+			$spenderContract: true,
+		},
+	}))
+	const pageEntityTitle = $derived((pageSelection.entity == null ? 'allowance' : 'allowance'))
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmActorCoinAllowanceView from '$/views/EvmActorCoinAllowanceView.svelte'
 </script>
+
+
+<svelte:head>
+	<title>{pageEntityTitle} • allowance • Blockhead</title>
+</svelte:head>
 
 
 <Page>
@@ -34,33 +67,6 @@
 				spender: params.spender,
 			})
 		}
-		selection={
-			select(EntityType.EvmActorCoinAllowance, {
-				$actor: {
-					interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.owner),
-				},
-				$contract: {
-					$network: {
-						caip2: {
-							namespace: 'eip155',
-							reference: params.chainId,
-						},
-					},
-					address: params.coin,
-				},
-				$spender: {
-					interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.spender),
-				},
-				interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.owner),
-			}, {
-				sources: [
-					Source.Voltaire_JsonRpc,
-				],
-				fields: {
-					$actorCoin: true,
-					$spenderContract: true,
-				},
-			})
-		}
+		selection={pageSelection}
 	/>
 </Page>

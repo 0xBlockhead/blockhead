@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo}
+					{@const memo = pendingEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>memo</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const autoRenewAccountId = prefetched.autoRenewAccountId}
+					{@const autoRenewAccountId = pendingEntity.autoRenewAccountId}
 					{#if autoRenewAccountId !== undefined && autoRenewAccountId !== null}
 						<div>
 							<dt>auto renew account ID</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const autoRenewPeriodSeconds = prefetched.autoRenewPeriodSeconds}
+					{@const autoRenewPeriodSeconds = pendingEntity.autoRenewPeriodSeconds}
 					{#if autoRenewPeriodSeconds !== undefined && autoRenewPeriodSeconds !== null}
 						<div>
 							<dt>auto renew period seconds</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequenceNumber = prefetched.sequenceNumber}
+					{@const sequenceNumber = pendingEntity.sequenceNumber}
 					{#if sequenceNumber !== undefined && sequenceNumber !== null}
 						<div>
 							<dt>sequence number</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const runningHash = prefetched.runningHash}
+					{@const runningHash = pendingEntity.runningHash}
 					{#if runningHash !== undefined && runningHash !== null}
 						<div>
 							<dt>running hash</dt>

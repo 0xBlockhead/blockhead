@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiProviderCatalogEntryTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -115,7 +115,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiProviderCatalogEntryTimestamp}>
 			{#snippet Pending()}
-				{@const availabilityStatus0 = prefetched.availabilityStatus}
+				{@const availabilityStatus0 = pendingEntity.availabilityStatus}
 				{#if availabilityStatus0 !== undefined && availabilityStatus0 !== null}
 					<span data-text="muted">
 						{String((availabilityStatus0) ?? '')}
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -191,7 +191,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -218,7 +218,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const availabilityStatus = prefetched.availabilityStatus}
+					{@const availabilityStatus = pendingEntity.availabilityStatus}
 					{#if availabilityStatus !== undefined && availabilityStatus !== null}
 						<div>
 							<dt>availability status</dt>

@@ -9,8 +9,10 @@ export enum NetworkUpgrade_TimestampSelector {
 }
 export const NetworkUpgrade_Timestamp = entity({
 	entityType: EntityType.NetworkUpgrade_Timestamp,
-	label: 'network upgrade observation',
-	labelPlural: 'network upgrade observations',
+	labels: {
+		singular: 'network upgrade observation',
+		plural: 'network upgrade observations',
+	},
 })({
 	$upgrade: {
 		label: 'Upgrade',

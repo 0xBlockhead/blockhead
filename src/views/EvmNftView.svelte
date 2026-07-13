@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -56,7 +57,7 @@
 			image: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.tokenId ?? prefetched.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT')
 	const viewDomId = $derived('evm-nft-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,10 +76,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$contract !== undefined && pendingEntity.$contract.$network !== undefined && pendingEntity.$contract.$network.caip2 !== undefined && pendingEntity.$contract.$network.caip2.reference !== undefined && pendingEntity.$contract !== undefined && pendingEntity.$contract.address !== undefined && pendingEntity.tokenId !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]', {
+		href ?? (pendingEntity.tokenId !== undefined && pendingEntity.$contract !== undefined && pendingEntity.$contract.$network !== undefined && pendingEntity.$contract.$network.caip2 !== undefined && pendingEntity.$contract.$network.caip2.reference !== undefined && pendingEntity.$contract.address !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
+			tokenId: String(pendingEntity.tokenId ?? ''),
 			chainId: String(pendingEntity.$contract.$network.caip2.reference ?? ''),
 			contractAddress: String(pendingEntity.$contract.address ?? ''),
-			tokenId: String(pendingEntity.tokenId ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -103,7 +104,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmNft}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.tokenId ?? prefetched.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -133,8 +134,8 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract, {})}
 						href={
-							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.namespace !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$contract.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$contract.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 								address: String(selection.entitySelector.$contract.address ?? ''),
 							}) : undefined)
 						}
@@ -157,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tokenId = selection.entitySelector.tokenId ?? prefetched.tokenId}
+							{@const tokenId = pendingEntity.tokenId}
 							{#if tokenId !== undefined && tokenId !== null}
 								{String((tokenId) ?? '')}
 							{/if}
@@ -187,7 +188,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const standard = prefetched.standard}
+							{@const standard = pendingEntity.standard}
 							{#if standard !== undefined && standard !== null}
 								{String((standard) ?? '')}
 							{/if}
@@ -217,7 +218,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const format = prefetched.format}
+							{@const format = pendingEntity.format}
 							{#if format !== undefined && format !== null}
 								{String((format) ?? '')}
 							{/if}
@@ -236,221 +237,187 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							agentRegistry: true,
-						},
-					})
-				}
+			<ProjectionBoundary
+				resource={selection.Eip8004Registration}
 			>
-				{#snippet Pending()}
-					{@const agentRegistry = prefetched.agentRegistry}
-					{#if agentRegistry !== undefined && agentRegistry !== null}
-						<div>
-							<dt>Agent registry</dt>
-							<dd>
-								{String((agentRegistry) ?? '')}
-							</dd>
-						</div>
-					{/if}
+				{#snippet Applicable(projection)}
+					<div>
+						<dt>Agent registry</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection.agentRegistry({
+										fields: {
+											agentRegistry: true,
+										},
+									})
+								}
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(agentRegistry)}
+									{#if agentRegistry !== undefined && agentRegistry !== null}
+										{String((agentRegistry) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
 				{/snippet}
+			</ProjectionBoundary>
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const agentRegistry = resolvedEntity.agentRegistry}
-					{#if agentRegistry !== undefined && agentRegistry !== null}
-						<div>
-							<dt>Agent registry</dt>
-							<dd>
-								{String((agentRegistry) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							agentId: true,
-						},
-					})
-				}
+			<ProjectionBoundary
+				resource={selection.Eip8004Registration}
 			>
-				{#snippet Pending()}
-					{@const agentId = prefetched.agentId}
-					{#if agentId !== undefined && agentId !== null}
-						<div>
-							<dt>Agent ID</dt>
-							<dd>
-								{String((agentId) ?? '')}
-							</dd>
-						</div>
-					{/if}
+				{#snippet Applicable(projection)}
+					<div>
+						<dt>Agent ID</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection.agentId({
+										fields: {
+											agentId: true,
+										},
+									})
+								}
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(agentId)}
+									{#if agentId !== undefined && agentId !== null}
+										{String((agentId) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
 				{/snippet}
+			</ProjectionBoundary>
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const agentId = resolvedEntity.agentId}
-					{#if agentId !== undefined && agentId !== null}
-						<div>
-							<dt>Agent ID</dt>
-							<dd>
-								{String((agentId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							agentUri: true,
-						},
-					})
-				}
+			<ProjectionBoundary
+				resource={selection.Eip8004Registration}
 			>
-				{#snippet Pending()}
-					{@const agentUri = prefetched.agentUri}
-					{#if agentUri !== undefined && agentUri !== null}
-						<div>
-							<dt>Agent URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(agentUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(agentUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={
+							projection.agentUri({
+								fields: {
+									agentUri: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(agentUri)}
+							{#if agentUri !== undefined && agentUri !== null}
+								<div>
+									<dt>Agent URI</dt>
+									<dd>
+										<svelte:element
+											this={'a'}
+											href={String(agentUri)}
+											target="_blank"
+											rel="noreferrer noopener"
+										>
+											<TruncatedValue value={String(agentUri)} />
+										</svelte:element>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
+			</ProjectionBoundary>
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const agentUri = resolvedEntity.agentUri}
-					{#if agentUri !== undefined && agentUri !== null}
-						<div>
-							<dt>Agent URI</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(agentUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(agentUri)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							contactEndpoint: true,
-						},
-					})
-				}
+			<ProjectionBoundary
+				resource={selection.Eip8004Registration}
 			>
-				{#snippet Pending()}
-					{@const contactEndpoint = prefetched.contactEndpoint}
-					{#if contactEndpoint !== undefined && contactEndpoint !== null}
-						<div>
-							<dt>Contact endpoint</dt>
-							<dd>
-								{String((contactEndpoint) ?? '')}
-							</dd>
-						</div>
-					{/if}
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={
+							projection.contactEndpoint({
+								fields: {
+									contactEndpoint: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(contactEndpoint)}
+							{#if contactEndpoint !== undefined && contactEndpoint !== null}
+								<div>
+									<dt>Contact endpoint</dt>
+									<dd>
+										{String((contactEndpoint) ?? '')}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
+			</ProjectionBoundary>
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contactEndpoint = resolvedEntity.contactEndpoint}
-					{#if contactEndpoint !== undefined && contactEndpoint !== null}
-						<div>
-							<dt>Contact endpoint</dt>
-							<dd>
-								{String((contactEndpoint) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$agentWallet}
+			<ProjectionBoundary
+				resource={selection.Eip8004Registration}
 			>
-				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>Agent wallet</dt>
-							<dd>
-								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
-									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							</dd>
-						</div>
-					{/if}
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={projection.$agentWallet}
+					>
+						{#snippet Pending()}{/snippet}
+
+						{#snippet children(evmAccount)}
+							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+								<div>
+									<dt>Agent wallet</dt>
+									<dd>
+										<EvmAccountView
+											selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+											prefetched={evmAccount}
+											href={
+												(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+													address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
+												}) : undefined)
+											}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
-			</ResourceBoundary>
+			</ProjectionBoundary>
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							x402Support: true,
-						},
-					})
-				}
+			<ProjectionBoundary
+				resource={selection.Eip8004Registration}
 			>
-				{#snippet Pending()}
-					{@const x402Support = prefetched.x402Support}
-					{#if x402Support !== undefined && x402Support !== null}
-						<div>
-							<dt>x402 support</dt>
-							<dd>
-								{x402Support ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={
+							projection.x402Support({
+								fields: {
+									x402Support: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(x402Support)}
+							{#if x402Support !== undefined && x402Support !== null}
+								<div>
+									<dt>x402 support</dt>
+									<dd>
+										{x402Support ? 'Yes' : 'No'}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const x402Support = resolvedEntity.x402Support}
-					{#if x402Support !== undefined && x402Support !== null}
-						<div>
-							<dt>x402 support</dt>
-							<dd>
-								{x402Support ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			</ProjectionBoundary>
 
 			<ResourceBoundary
 				resource={
@@ -462,7 +429,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>Active</dt>
@@ -487,110 +454,89 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							supportedTrust: true,
-						},
-					})
-				}
+			<ProjectionBoundary
+				resource={selection.Eip8004Registration}
 			>
-				{#snippet Pending()}
-					{@const supportedTrust = prefetched.supportedTrust}
-					{#if supportedTrust !== undefined && supportedTrust !== null}
-						<div>
-							<dt>Supported trust</dt>
-							<dd>
-								{supportedTrust == null ? '' : String(((supportedTrust).join(', ')) ?? '')}
-							</dd>
-						</div>
-					{/if}
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={
+							projection.supportedTrust({
+								fields: {
+									supportedTrust: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(supportedTrust)}
+							{#if supportedTrust !== undefined && supportedTrust !== null}
+								<div>
+									<dt>Supported trust</dt>
+									<dd>
+										{supportedTrust == null ? '' : String(((supportedTrust).join(', ')) ?? '')}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
+			</ProjectionBoundary>
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const supportedTrust = resolvedEntity.supportedTrust}
-					{#if supportedTrust !== undefined && supportedTrust !== null}
-						<div>
-							<dt>Supported trust</dt>
-							<dd>
-								{supportedTrust == null ? '' : String(((supportedTrust).join(', ')) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							registrationTypeIri: true,
-						},
-					})
-				}
+			<ProjectionBoundary
+				resource={selection.Eip8004Registration}
 			>
-				{#snippet Pending()}
-					{@const registrationTypeIri = prefetched.registrationTypeIri}
-					{#if registrationTypeIri !== undefined && registrationTypeIri !== null}
-						<div>
-							<dt>Registration type IRI</dt>
-							<dd>
-								{String((registrationTypeIri) ?? '')}
-							</dd>
-						</div>
-					{/if}
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={
+							projection.registrationTypeIri({
+								fields: {
+									registrationTypeIri: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(registrationTypeIri)}
+							{#if registrationTypeIri !== undefined && registrationTypeIri !== null}
+								<div>
+									<dt>Registration type IRI</dt>
+									<dd>
+										{String((registrationTypeIri) ?? '')}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
+			</ProjectionBoundary>
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registrationTypeIri = resolvedEntity.registrationTypeIri}
-					{#if registrationTypeIri !== undefined && registrationTypeIri !== null}
-						<div>
-							<dt>Registration type IRI</dt>
-							<dd>
-								{String((registrationTypeIri) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							fetchedAt: true,
-						},
-					})
-				}
+			<ProjectionBoundary
+				resource={selection.Eip8004Registration}
 			>
-				{#snippet Pending()}
-					{@const fetchedAt = prefetched.fetchedAt}
-					{#if fetchedAt !== undefined && fetchedAt !== null}
-						<div>
-							<dt>Fetched at</dt>
-							<dd>
-								<Timestamp timestamp={Number(fetchedAt)} />
-							</dd>
-						</div>
-					{/if}
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={
+							projection.fetchedAt({
+								fields: {
+									fetchedAt: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(fetchedAt)}
+							{#if fetchedAt !== undefined && fetchedAt !== null}
+								<div>
+									<dt>Fetched at</dt>
+									<dd>
+										<Timestamp timestamp={Number(fetchedAt)} />
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fetchedAt = resolvedEntity.fetchedAt}
-					{#if fetchedAt !== undefined && fetchedAt !== null}
-						<div>
-							<dt>Fetched at</dt>
-							<dd>
-								<Timestamp timestamp={Number(fetchedAt)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			</ProjectionBoundary>
 		</dl>
 
 		<ResourceBoundary

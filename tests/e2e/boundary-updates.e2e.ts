@@ -19,13 +19,14 @@ import {
 	installBoundaryProbe,
 	installChainlistRpcsJsonStub,
 	jsonStringifyForExpectMessage,
+	requestFailureIsResourceCancellation,
 	resetBoundaryProbe,
+	snapshotBoundaryMain,
 	type RouteBoundaryReport,
 	summarizeRouteBoundaryReport,
 	waitForBoundarySettle,
 } from '../_e2eBrowserHelpers.ts'
 
-import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
 import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
@@ -59,18 +60,24 @@ type RoutePageDiagnostics = NonNullable<RouteBoundaryReport['diagnostics']> & {
 	flush: () => Promise<void>
 }
 
-const requestFailureIsTransientDevModuleAbort = (
+/** Chromium cancels same-origin Vite module loads when a dev navigation replaces the document. */
+const requestFailureIsViteNavigationModuleAbort = (
 	url: string,
+	frameUrl: string,
 	failure: string | null
-) => (
-	failure === 'net::ERR_ABORTED'
-	&& (
-		url.includes('/src/')
-		|| url.includes('/node_modules/')
-		|| url.includes('/.svelte-kit/')
-		|| url.includes('/@id/virtual:')
+) => {
+	const requestUrl = new URL(url)
+	return (
+		failure === 'net::ERR_ABORTED'
+		&& requestUrl.origin === new URL(frameUrl).origin
+		&& (
+			requestUrl.pathname.startsWith('/src/')
+			|| requestUrl.pathname.startsWith('/node_modules/')
+			|| requestUrl.pathname.startsWith('/.svelte-kit/')
+			|| requestUrl.pathname.startsWith('/@id/virtual:')
+		)
 	)
-)
+}
 
 const installRoutePageDiagnostics = (page: import('@playwright/test').Page) => {
 	const pendingConsoleReads: Promise<void>[] = []
@@ -129,7 +136,14 @@ const installRoutePageDiagnostics = (page: import('@playwright/test').Page) => {
 
 	page.on('requestfailed', (request) => {
 		const failure = request.failure()?.errorText ?? null
-		if (requestFailureIsTransientDevModuleAbort(request.url(), failure))
+		if (requestFailureIsResourceCancellation(request.resourceType(), failure))
+			return
+
+		if (requestFailureIsViteNavigationModuleAbort(
+			request.url(),
+			request.frame().url(),
+			failure
+		))
 			return
 
 		diagnostics.requestFailures.push({
@@ -258,7 +272,7 @@ const attachBoundaryArtifacts = async (
 	testInfo: import('@playwright/test').TestInfo,
 	reports: RouteBoundaryReport[]
 ) => {
-	const summary = formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
+	const summary = formatBoundaryReportSummary(reports)
 	console.log(`\n--- boundary updates ---\n${summary}`)
 
 	await testInfo.attach('boundary-updates-summary.txt', {
@@ -340,15 +354,12 @@ const attachClientTraceArtifact = async (
 }
 
 const assertBoundaryReports = (reports: RouteBoundaryReport[]) => {
-	const issueRoutes = reports.filter((report) => (
-		report.issues.length > 0
-		&& !e2eBoundaryLiveOptionalPathnames.has(report.pathname)
-	))
+	const issueRoutes = reports.filter((report) => report.issues.length > 0)
 	expect(
 		issueRoutes.map((report) => (
 			`${report.pathname}\n  ${report.issues.join('\n  ')}`
 		)),
-		formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
+		formatBoundaryReportSummary(reports)
 	).toEqual([])
 }
 
@@ -361,6 +372,73 @@ const routePathnames = await (async () => {
 
 test.describe('boundary updates (every +page route)', () => {
 	test.describe.configure({ mode: 'parallel' })
+
+	test('boundary snapshot identifies section, heading, and entity field owner', async ({ page }) => {
+		await page.setContent(`
+			<main id="main">
+				<section
+					id="network-transactions"
+					data-scroll-marker-label="Transactions"
+					data-entity-field-type="Network"
+					data-entity-field-name="$$transactions"
+				>
+					<h2>Latest transactions</h2>
+					<dl>
+						<div>
+							<dt>Transactions</dt>
+							<dd><span class="loading" aria-busy="true" aria-label="Loading…">•••</span></dd>
+						</div>
+					</dl>
+				</section>
+			</main>
+		`)
+
+		expect((await snapshotBoundaryMain(page)).loading).toEqual([
+			expect.objectContaining({
+				context: expect.stringMatching(
+					/field=Transactions.*resource=Network\.\$\$transactions.*section=Transactions.*id=#network-transactions.*heading=Latest transactions/
+				),
+			}),
+		])
+	})
+
+	test('diagnostic ownership stays fail-closed with source error context', () => {
+		const report = summarizeRouteBoundaryReport(
+			'/network/eip155:1',
+			'http://127.0.0.1:5173/network/eip155:1',
+			true,
+			[],
+			{
+				failed: [],
+				loading: [{
+					key: null,
+					state: 'loading',
+					message: 'Loading…',
+					context: 'section=Transactions > resource=Network.$$transactions > heading=Latest transactions',
+				}],
+				empty: false,
+				emptyReason: null,
+				textLength: 24,
+				contentMarkerCount: 1,
+			},
+			{
+				console: [{
+					type: 'error',
+					text: 'Source.Voltaire_JsonRpc resolver Network.$$transactions failed',
+				}],
+				pageErrors: [],
+				badResponses: [],
+				requestFailures: [],
+				lifecycle: [],
+			}
+		)
+
+		expect(report.issues).toEqual([
+			'still-loading:section=Transactions > resource=Network.$$transactions > heading=Latest transactions:Loading…',
+			'console-error:Source.Voltaire_JsonRpc resolver Network.$$transactions failed',
+		])
+		expect(report.issues.join('\n')).not.toContain('unknown')
+	})
 
 	test('probe route', async ({ page }, testInfo) => {
 		test.skip(probePath == null || probePath === '', 'set E2E_PROBE_PATH')

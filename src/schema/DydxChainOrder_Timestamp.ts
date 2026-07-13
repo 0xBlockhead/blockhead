@@ -9,8 +9,10 @@ export enum DydxChainOrder_TimestampSelector {
 }
 export const DydxChainOrder_Timestamp = entity({
 	entityType: EntityType.DydxChainOrder_Timestamp,
-	label: 'dydx chain order timestamp',
-	labelPlural: 'dydx chain order observations',
+	labels: {
+		singular: 'dydx chain order timestamp',
+		plural: 'dydx chain order observations',
+	},
 })({
 	$order: {
 		label: 'order',

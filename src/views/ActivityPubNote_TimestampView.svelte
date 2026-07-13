@@ -66,10 +66,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$note !== undefined && pendingEntity.$note.instanceOrigin !== undefined && pendingEntity.$note !== undefined && pendingEntity.$note.localStatusId !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/(note)/observations/[timestampMs=nonNegativeInteger]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$note !== undefined && pendingEntity.$note.instanceOrigin !== undefined && pendingEntity.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			instanceOrigin: String(pendingEntity.$note.instanceOrigin ?? ''),
 			localStatusId: String(pendingEntity.$note.localStatusId ?? ''),
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -82,7 +82,7 @@
 				<ActivityPubNoteView
 					selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
 					href={
-						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
+						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
 							instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),
 							localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
 						}) : undefined)
@@ -97,7 +97,7 @@
 				<ActivityPubNoteView
 					selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
 					href={
-						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
+						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
 							instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),
 							localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
 						}) : undefined)
@@ -112,7 +112,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubNoteTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -136,7 +136,7 @@
 					<ActivityPubNoteView
 						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note, {})}
 						href={
-							(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
+							(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
 								instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),
 								localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
 							}) : undefined)
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const favouriteCount = prefetched.favouriteCount}
+					{@const favouriteCount = pendingEntity.favouriteCount}
 					{#if favouriteCount !== undefined && favouriteCount !== null}
 						<div>
 							<dt>Favourites</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reblogCount = prefetched.reblogCount}
+					{@const reblogCount = pendingEntity.reblogCount}
 					{#if reblogCount !== undefined && reblogCount !== null}
 						<div>
 							<dt>Reblogs</dt>
@@ -265,7 +265,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const replyCount = prefetched.replyCount}
+					{@const replyCount = pendingEntity.replyCount}
 					{#if replyCount !== undefined && replyCount !== null}
 						<div>
 							<dt>Replies</dt>

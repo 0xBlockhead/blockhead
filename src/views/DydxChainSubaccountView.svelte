@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -54,14 +53,16 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
+	import CosmosAccountView from '$/views/CosmosAccountView.svelte'
 	import DydxChainPerpetualPosition_TimestampsView from '$/views/DydxChainPerpetualPosition_TimestampsView.svelte'
 	import DydxChainOrdersView from '$/views/DydxChainOrdersView.svelte'
 	import DydxChainSubaccount_TimestampsView from '$/views/DydxChainSubaccount_TimestampsView.svelte'
-	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
-	import CosmosAccountView from '$/views/CosmosAccountView.svelte'
 </script>
 
 
@@ -80,12 +81,6 @@
 			{#snippet Pending()}
 				<CosmosAccountView
 					selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
-					href={
-						(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
-							caip2: `${String(selection.entitySelector.$account.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$account.$network.caip2.reference ?? '')}`,
-							address: String(selection.entitySelector.$account.address ?? ''),
-						}) : undefined)
-					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -95,12 +90,6 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<CosmosAccountView
 					selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
-					href={
-						(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
-							caip2: `${String(selection.entitySelector.$account.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$account.$network.caip2.reference ?? '')}`,
-							address: String(selection.entitySelector.$account.address ?? ''),
-						}) : undefined)
-					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -111,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainSubaccount}>
 			{#snippet Pending()}
-				{@const subaccountNumber0 = selection.entitySelector.subaccountNumber ?? prefetched.subaccountNumber}
+				{@const subaccountNumber0 = pendingEntity.subaccountNumber}
 				{#if subaccountNumber0 !== undefined && subaccountNumber0 !== null}
 					<NumberValue value={Number(subaccountNumber0)} />
 				{/if}
@@ -145,12 +134,6 @@
 				<dd>
 					<CosmosAccountView
 						selection={select(EntityType.CosmosAccount, selection.entitySelector.$account, {})}
-						href={
-							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
-								caip2: `${String(selection.entitySelector.$account.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$account.$network.caip2.reference ?? '')}`,
-								address: String(selection.entitySelector.$account.address ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -170,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subaccountNumber = selection.entitySelector.subaccountNumber ?? prefetched.subaccountNumber}
+							{@const subaccountNumber = pendingEntity.subaccountNumber}
 							{#if subaccountNumber !== undefined && subaccountNumber !== null}
 								<NumberValue value={Number(subaccountNumber)} />
 							{/if}
@@ -191,26 +174,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<DydxChainPerpetualPosition_TimestampsView
-				selection={selection.$$positions}
-				title='positions'
-				emptyText='No dYdX position observations.'
-				id='DydxChainPerpetualPosition_TimestampsView-positions'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-dydx-subaccount-trading'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'dydx-subaccount-positions',
+							label: 'Positions',
+						},
+						{
+							id: 'dydx-subaccount-orders',
+							label: 'Orders',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-trading'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Trading</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<DydxChainOrdersView
-				selection={selection.$$orders}
-				title='orders'
-				emptyText='No dYdX orders.'
-				id='DydxChainOrdersView-orders'
-			/>
+				{#snippet SectionDydxSubaccountPositions({ id, label, open })}
+					<DydxChainPerpetualPosition_TimestampsView
+						selection={selection.$$positions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No dYdX position observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<DydxChainSubaccount_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No dYdX subaccount observations.'
-				id='DydxChainSubaccount_TimestampsView-timestamps'
-			/>
+				{#snippet SectionDydxSubaccountOrders({ id, label, open })}
+					<DydxChainOrdersView
+						selection={selection.$$orders}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No dYdX orders.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-dydx-subaccount-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'dydx-subaccount-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionDydxSubaccountTimestamps({ id, label, open })}
+					<DydxChainSubaccount_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No dYdX subaccount observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

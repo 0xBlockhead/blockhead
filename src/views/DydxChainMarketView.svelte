@@ -52,7 +52,7 @@
 			baseAsset: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.ticker ?? prefetched.ticker) ?? '')].filter(Boolean).join(' ') || 'dydx chain market')
+	const titleFallback = $derived([String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || 'dydx chain market')
 	const viewDomId = $derived('dydx-chain-market-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={dydxChainMarket}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.ticker ?? prefetched.ticker) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain market'}
+				{[String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain market'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainMarket}>
 			{#snippet Pending()}
-				{[String((prefetched.marketKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.ticker ?? prefetched.ticker) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain market'}
+				{[String((pendingEntity.marketKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain market'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={dydxChainMarket}>
 			{#snippet Pending()}
-				{@const baseAsset0 = prefetched.baseAsset}
+				{@const baseAsset0 = pendingEntity.baseAsset}
 				{#if baseAsset0 !== undefined && baseAsset0 !== null}
 					<span data-text="muted">
 						{String((baseAsset0) ?? '')}
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ticker = selection.entitySelector.ticker ?? prefetched.ticker}
+							{@const ticker = pendingEntity.ticker}
 							{#if ticker !== undefined && ticker !== null}
 								{String((ticker) ?? '')}
 							{/if}
@@ -175,7 +175,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseAsset = prefetched.baseAsset}
+					{@const baseAsset = pendingEntity.baseAsset}
 					{#if baseAsset !== undefined && baseAsset !== null}
 						<div>
 							<dt>base asset</dt>
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quoteAsset = prefetched.quoteAsset}
+					{@const quoteAsset = pendingEntity.quoteAsset}
 					{#if quoteAsset !== undefined && quoteAsset !== null}
 						<div>
 							<dt>quote asset</dt>
@@ -248,7 +248,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const marketKind = prefetched.marketKind}
+							{@const marketKind = pendingEntity.marketKind}
 							{#if marketKind !== undefined && marketKind !== null}
 								{String((marketKind) ?? '')}
 							{/if}

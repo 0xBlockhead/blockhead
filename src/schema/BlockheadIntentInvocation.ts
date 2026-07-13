@@ -10,8 +10,10 @@ export enum BlockheadIntentInvocationSelector {
 }
 export const BlockheadIntentInvocation = entity({
 	entityType: EntityType.BlockheadIntentInvocation,
-	label: 'blockhead intent invocation',
-	labelPlural: 'blockhead intent invocations',
+	labels: {
+		singular: 'blockhead intent invocation',
+		plural: 'blockhead intent invocations',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

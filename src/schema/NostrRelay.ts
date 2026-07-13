@@ -10,8 +10,10 @@ export enum NostrRelaySelector {
 }
 export const NostrRelay = entity({
 	entityType: EntityType.NostrRelay,
-	label: 'Nostr relay',
-	labelPlural: 'Nostr relays',
+	labels: {
+		singular: 'Nostr relay',
+		plural: 'Nostr relays',
+	},
 	description: 'A Nostr relay is a WebSocket endpoint that can publish, store, and serve signed events; relay metadata is optional NIP-11 source data.',
 })({
 	relayUrl: {

@@ -9,8 +9,10 @@ export enum _GlobalRssNetwork_TimestampSelector {
 }
 export const _GlobalRssNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalRssNetwork_Timestamp,
-	label: 'global RSS network timestamp',
-	labelPlural: 'global RSS network observations',
+	labels: {
+		singular: 'global RSS network timestamp',
+		plural: 'global RSS network observations',
+	},
 })({
 	$hub: {
 		label: 'hub',

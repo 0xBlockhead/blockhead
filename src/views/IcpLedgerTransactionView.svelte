@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionIndex = selection.entitySelector.transactionIndex ?? prefetched.transactionIndex}
+							{@const transactionIndex = pendingEntity.transactionIndex}
 							{#if transactionIndex !== undefined && transactionIndex !== null}
 								{String((transactionIndex) ?? '')}
 							{/if}
@@ -130,7 +130,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>transaction hash</dt>
@@ -165,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const operationKind = prefetched.operationKind}
+					{@const operationKind = pendingEntity.operationKind}
 					{#if operationKind !== undefined && operationKind !== null}
 						<div>
 							<dt>operation kind</dt>
@@ -200,7 +200,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fromAccount = prefetched.fromAccount}
+					{@const fromAccount = pendingEntity.fromAccount}
 					{#if fromAccount !== undefined && fromAccount !== null}
 						<div>
 							<dt>from account</dt>
@@ -235,7 +235,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toAccount = prefetched.toAccount}
+					{@const toAccount = pendingEntity.toAccount}
 					{#if toAccount !== undefined && toAccount !== null}
 						<div>
 							<dt>to account</dt>
@@ -270,7 +270,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spenderAccount = prefetched.spenderAccount}
+					{@const spenderAccount = pendingEntity.spenderAccount}
 					{#if spenderAccount !== undefined && spenderAccount !== null}
 						<div>
 							<dt>spender account</dt>
@@ -305,7 +305,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -340,7 +340,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fee = prefetched.fee}
+					{@const fee = pendingEntity.fee}
 					{#if fee !== undefined && fee !== null}
 						<div>
 							<dt>fee</dt>
@@ -375,7 +375,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo}
+					{@const memo = pendingEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>memo</dt>
@@ -410,7 +410,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAtTimeNs = prefetched.createdAtTimeNs}
+					{@const createdAtTimeNs = pendingEntity.createdAtTimeNs}
 					{#if createdAtTimeNs !== undefined && createdAtTimeNs !== null}
 						<div>
 							<dt>created AT time ns</dt>
@@ -438,6 +438,8 @@
 			<ResourceBoundary
 				resource={selection.$ledger}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(icpLedgerCanister)}
 					{#if icpLedgerCanister != null && icpLedgerCanister[EntityMetaKey.Selector] != null}
 						<div>

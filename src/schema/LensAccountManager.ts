@@ -10,8 +10,10 @@ export enum LensAccountManagerSelector {
 }
 export const LensAccountManager = entity({
 	entityType: EntityType.LensAccountManager,
-	label: 'Lens account manager',
-	labelPlural: 'Lens account managers',
+	labels: {
+		singular: 'Lens account manager',
+		plural: 'Lens account managers',
+	},
 })({
 	$account: {
 		label: 'Account',

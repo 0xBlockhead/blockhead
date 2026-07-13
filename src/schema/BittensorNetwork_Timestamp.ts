@@ -9,8 +9,10 @@ export enum BittensorNetwork_TimestampSelector {
 }
 export const BittensorNetwork_Timestamp = entity({
 	entityType: EntityType.BittensorNetwork_Timestamp,
-	label: 'Bittensor network observation',
-	labelPlural: 'Bittensor network observations',
+	labels: {
+		singular: 'Bittensor network observation',
+		plural: 'Bittensor network observations',
+	},
 	description: 'A point-in-time runtime and subsystem observation for a Bittensor network.',
 })({
 	$network: {

@@ -42,7 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosAccountResource = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.resourceType ?? prefetched.resourceType) ?? '')].filter(Boolean).join(' ') || 'aptos account resource')
+	const titleFallback = $derived([String((pendingEntity.resourceType) ?? '')].filter(Boolean).join(' ') || 'aptos account resource')
 	const viewDomId = $derived('aptos-account-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosAccountResource}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.resourceType ?? prefetched.resourceType) ?? '')].filter(Boolean).join(' ') || title || 'aptos account resource'}
+				{[String((pendingEntity.resourceType) ?? '')].filter(Boolean).join(' ') || title || 'aptos account resource'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -124,7 +124,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const resourceType = selection.entitySelector.resourceType ?? prefetched.resourceType}
+							{@const resourceType = pendingEntity.resourceType}
 							{#if resourceType !== undefined && resourceType !== null}
 								{String((resourceType) ?? '')}
 							{/if}

@@ -10,8 +10,10 @@ export enum A2aTaskSelector {
 }
 export const A2aTask = entity({
 	entityType: EntityType.A2aTask,
-	label: 'a2a task',
-	labelPlural: 'a2a tasks',
+	labels: {
+		singular: 'a2a task',
+		plural: 'a2a tasks',
+	},
 })({
 	taskId: {
 		label: 'task ID',

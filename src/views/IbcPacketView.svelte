@@ -46,7 +46,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '') ? 'Packet #' + String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '') : '') || 'IBC packet')
+	const titleFallback = $derived((String((pendingEntity.sequence) ?? '') ? 'Packet #' + String((pendingEntity.sequence) ?? '') : '') || 'IBC packet')
 	const viewDomId = $derived('ibc-packet-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -63,14 +63,14 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.sequence ?? prefetched.sequence ?? '')}
+	idDragPlainText={String(pendingEntity.sequence ?? '')}
 	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = selection.entitySelector.sequence ?? prefetched.sequence}
+		{@const serialValue = pendingEntity.sequence}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Packet </span>
@@ -82,7 +82,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = selection.entitySelector.sequence ?? prefetched.sequence}
+		{@const serialValue = pendingEntity.sequence}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -93,13 +93,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={ibcPacket}>
 			{#snippet Pending()}
-				{@const direction0 = selection.entitySelector.direction ?? prefetched.direction}
+				{@const direction0 = pendingEntity.direction}
 				{#if direction0 !== undefined && direction0 !== null}
 					<span data-text="muted">
 						{String((direction0) ?? '')}
 					</span>
 				{/if}
-				{@const status1 = prefetched.status}
+				{@const status1 = pendingEntity.status}
 				{#if status1 !== undefined && status1 !== null}
 					<span data-text="muted">
 						{String((status1) ?? '')}
@@ -140,7 +140,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sequence = selection.entitySelector.sequence ?? prefetched.sequence}
+							{@const sequence = pendingEntity.sequence}
 							{#if sequence !== undefined && sequence !== null}
 								{String((sequence) ?? '')}
 							{/if}
@@ -170,7 +170,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const direction = selection.entitySelector.direction ?? prefetched.direction}
+							{@const direction = pendingEntity.direction}
 							{#if direction !== undefined && direction !== null}
 								{String((direction) ?? '')}
 							{/if}
@@ -197,7 +197,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>
@@ -232,7 +232,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const receiptExists = prefetched.receiptExists}
+					{@const receiptExists = pendingEntity.receiptExists}
 					{#if receiptExists !== undefined && receiptExists !== null}
 						<div>
 							<dt>Receipt exists</dt>
@@ -267,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timeoutTimestampNs = prefetched.timeoutTimestampNs}
+					{@const timeoutTimestampNs = pendingEntity.timeoutTimestampNs}
 					{#if timeoutTimestampNs !== undefined && timeoutTimestampNs !== null}
 						<div>
 							<dt>Timeout timestamp ns</dt>
@@ -304,7 +304,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourcePort = prefetched.sourcePort}
+					{@const sourcePort = pendingEntity.sourcePort}
 					{#if sourcePort !== undefined && sourcePort !== null}
 						<div>
 							<dt>Source port</dt>
@@ -339,7 +339,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceChannel = prefetched.sourceChannel}
+					{@const sourceChannel = pendingEntity.sourceChannel}
 					{#if sourceChannel !== undefined && sourceChannel !== null}
 						<div>
 							<dt>Source channel</dt>
@@ -374,7 +374,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const destinationPort = prefetched.destinationPort}
+					{@const destinationPort = pendingEntity.destinationPort}
 					{#if destinationPort !== undefined && destinationPort !== null}
 						<div>
 							<dt>Destination port</dt>
@@ -409,7 +409,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const destinationChannel = prefetched.destinationChannel}
+					{@const destinationChannel = pendingEntity.destinationChannel}
 					{#if destinationChannel !== undefined && destinationChannel !== null}
 						<div>
 							<dt>Destination channel</dt>
@@ -446,7 +446,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataHash = prefetched.dataHash}
+					{@const dataHash = pendingEntity.dataHash}
 					{#if dataHash !== undefined && dataHash !== null}
 						<div>
 							<dt>Data hash</dt>
@@ -481,7 +481,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commitmentHash = prefetched.commitmentHash}
+					{@const commitmentHash = pendingEntity.commitmentHash}
 					{#if commitmentHash !== undefined && commitmentHash !== null}
 						<div>
 							<dt>Commitment hash</dt>
@@ -516,7 +516,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const acknowledgementHash = prefetched.acknowledgementHash}
+					{@const acknowledgementHash = pendingEntity.acknowledgementHash}
 					{#if acknowledgementHash !== undefined && acknowledgementHash !== null}
 						<div>
 							<dt>Acknowledgement hash</dt>
@@ -553,7 +553,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sendTxHash = prefetched.sendTxHash}
+					{@const sendTxHash = pendingEntity.sendTxHash}
 					{#if sendTxHash !== undefined && sendTxHash !== null}
 						<div>
 							<dt>Send transaction hash</dt>
@@ -588,7 +588,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const receiveTxHash = prefetched.receiveTxHash}
+					{@const receiveTxHash = pendingEntity.receiveTxHash}
 					{#if receiveTxHash !== undefined && receiveTxHash !== null}
 						<div>
 							<dt>Receive transaction hash</dt>
@@ -623,7 +623,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const acknowledgeTxHash = prefetched.acknowledgeTxHash}
+					{@const acknowledgeTxHash = pendingEntity.acknowledgeTxHash}
 					{#if acknowledgeTxHash !== undefined && acknowledgeTxHash !== null}
 						<div>
 							<dt>Acknowledge transaction hash</dt>
@@ -658,7 +658,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timeoutTxHash = prefetched.timeoutTxHash}
+					{@const timeoutTxHash = pendingEntity.timeoutTxHash}
 					{#if timeoutTxHash !== undefined && timeoutTxHash !== null}
 						<div>
 							<dt>Timeout transaction hash</dt>

@@ -10,8 +10,10 @@ export enum EvmNetworkBridgeSelector {
 }
 export const EvmNetworkBridge = entity({
 	entityType: EntityType.EvmNetworkBridge,
-	label: 'EVM network bridge',
-	labelPlural: 'EVM network bridges',
+	labels: {
+		singular: 'EVM network bridge',
+		plural: 'EVM network bridges',
+	},
 })({
 	$fromNetwork: {
 		label: 'From network',

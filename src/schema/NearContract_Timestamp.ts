@@ -10,8 +10,10 @@ export enum NearContract_TimestampSelector {
 }
 export const NearContract_Timestamp = entity({
 	entityType: EntityType.NearContract_Timestamp,
-	label: 'near contract timestamp',
-	labelPlural: 'near contract observations',
+	labels: {
+		singular: 'near contract timestamp',
+		plural: 'near contract observations',
+	},
 })({
 	$contract: {
 		label: 'Contract',

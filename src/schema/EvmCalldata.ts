@@ -10,8 +10,10 @@ export enum EvmCalldataSelector {
 }
 export const EvmCalldata = entity({
 	entityType: EntityType.EvmCalldata,
-	label: 'EVM calldata',
-	labelPlural: 'EVM calldata',
+	labels: {
+		singular: 'EVM calldata',
+		plural: 'EVM calldata',
+	},
 })({
 	hex: {
 		label: 'Hex',

@@ -10,8 +10,10 @@ export enum AiRelationshipClaimSelector {
 }
 export const AiRelationshipClaim = entity({
 	entityType: EntityType.AiRelationshipClaim,
-	label: 'AI relationship claim',
-	labelPlural: 'AI relationship claims',
+	labels: {
+		singular: 'AI relationship claim',
+		plural: 'AI relationship claims',
+	},
 })({
 	subjectKind: {
 		label: 'subject kind',

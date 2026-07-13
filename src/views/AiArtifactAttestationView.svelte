@@ -49,7 +49,7 @@
 			Source.Ipfs_Rest,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.attestationKind ?? prefetched.attestationKind) ?? '')].filter(Boolean).join(' ') || 'AI artifact attestation')
+	const titleFallback = $derived([String((pendingEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || 'AI artifact attestation')
 	const viewDomId = $derived('ai-artifact-attestation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiArtifactAttestation}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.attestationKind ?? prefetched.attestationKind) ?? '')].filter(Boolean).join(' ') || title || 'AI artifact attestation'}
+				{[String((pendingEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || title || 'AI artifact attestation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiArtifactAttestation}>
 			{#snippet Pending()}
-				{@const logEntryId0 = prefetched.logEntryId}
+				{@const logEntryId0 = pendingEntity.logEntryId}
 				{#if logEntryId0 !== undefined && logEntryId0 !== null}
 					<span data-text="muted">
 						{String((logEntryId0) ?? '')}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const attestationKind = selection.entitySelector.attestationKind ?? prefetched.attestationKind}
+							{@const attestationKind = pendingEntity.attestationKind}
 							{#if attestationKind !== undefined && attestationKind !== null}
 								{String((attestationKind) ?? '')}
 							{/if}
@@ -182,7 +182,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const logEntryId = prefetched.logEntryId}
+					{@const logEntryId = pendingEntity.logEntryId}
 					{#if logEntryId !== undefined && logEntryId !== null}
 						<div>
 							<dt>log entry ID</dt>
@@ -217,7 +217,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signatureHashAlgorithm = prefetched.signatureHashAlgorithm}
+					{@const signatureHashAlgorithm = pendingEntity.signatureHashAlgorithm}
 					{#if signatureHashAlgorithm !== undefined && signatureHashAlgorithm !== null}
 						<div>
 							<dt>signature hash algorithm</dt>
@@ -252,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signatureHash = prefetched.signatureHash}
+					{@const signatureHash = pendingEntity.signatureHash}
 					{#if signatureHash !== undefined && signatureHash !== null}
 						<div>
 							<dt>signature hash</dt>
@@ -289,7 +289,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const certificateIdentity = prefetched.certificateIdentity}
+					{@const certificateIdentity = pendingEntity.certificateIdentity}
 					{#if certificateIdentity !== undefined && certificateIdentity !== null}
 						<div>
 							<dt>certificate identity</dt>
@@ -324,7 +324,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const certificateIssuer = prefetched.certificateIssuer}
+					{@const certificateIssuer = pendingEntity.certificateIssuer}
 					{#if certificateIssuer !== undefined && certificateIssuer !== null}
 						<div>
 							<dt>certificate issuer</dt>
@@ -359,7 +359,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const logIndex = prefetched.logIndex}
+					{@const logIndex = pendingEntity.logIndex}
 					{#if logIndex !== undefined && logIndex !== null}
 						<div>
 							<dt>log index</dt>
@@ -394,7 +394,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const integratedTime = prefetched.integratedTime}
+					{@const integratedTime = pendingEntity.integratedTime}
 					{#if integratedTime !== undefined && integratedTime !== null}
 						<div>
 							<dt>integrated time</dt>

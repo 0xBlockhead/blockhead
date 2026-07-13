@@ -118,9 +118,9 @@
 						selection={select(EntityType.LensAccount_Timestamp, lensAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lensAccountTimestampFields}
 						href={
-							(lensAccountTimestampHrefFields.$account !== undefined && lensAccountTimestampHrefFields.$account.address !== undefined && lensAccountTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(lens)/lens/account/[address=evmAddress]/(account)/observations/[timestampMs=nonNegativeInteger]', {
-								address: String(lensAccountTimestampHrefFields.$account.address ?? ''),
+							(lensAccountTimestampHrefFields.timestampMs !== undefined && lensAccountTimestampHrefFields.$account !== undefined && lensAccountTimestampHrefFields.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]', {
 								timestampMs: String(lensAccountTimestampHrefFields.timestampMs ?? ''),
+								address: String(lensAccountTimestampHrefFields.$account.address ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

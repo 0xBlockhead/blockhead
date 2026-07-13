@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const methodId = prefetched.methodId}
+					{@const methodId = pendingEntity.methodId}
 					{#if methodId !== undefined && methodId !== null}
 						<div>
 							<dt>method ID</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const exitCode = prefetched.exitCode}
+					{@const exitCode = pendingEntity.exitCode}
 					{#if exitCode !== undefined && exitCode !== null}
 						<div>
 							<dt>exit code</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>gas used</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resultHash = prefetched.resultHash}
+					{@const resultHash = pendingEntity.resultHash}
 					{#if resultHash !== undefined && resultHash !== null}
 						<div>
 							<dt>result hash</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockSeqno = prefetched.blockSeqno}
+					{@const blockSeqno = pendingEntity.blockSeqno}
 					{#if blockSeqno !== undefined && blockSeqno !== null}
 						<div>
 							<dt>block seqno</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastTransactionLt = prefetched.lastTransactionLt}
+					{@const lastTransactionLt = pendingEntity.lastTransactionLt}
 					{#if lastTransactionLt !== undefined && lastTransactionLt !== null}
 						<div>
 							<dt>last transaction lt</dt>

@@ -110,7 +110,7 @@
 					<GlobalEnsNetworkView
 						selection={select(EntityType._GlobalEnsNetwork, globalEnsNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalEnsNetworkFields}
-						href={resolve('/(explore)/(ens)/ens')}
+						href={resolve('/ens')}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

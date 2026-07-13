@@ -9,8 +9,10 @@ export enum BlockheadCashuWalletStateSelector {
 }
 export const BlockheadCashuWalletState = entity({
 	entityType: EntityType.BlockheadCashuWalletState,
-	label: 'blockhead Cashu wallet state',
-	labelPlural: 'blockhead Cashu wallet states',
+	labels: {
+		singular: 'blockhead Cashu wallet state',
+		plural: 'blockhead Cashu wallet states',
+	},
 })({
 	walletId: {
 		label: 'wallet ID',

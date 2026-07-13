@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const adminAddress = prefetched.adminAddress}
+					{@const adminAddress = pendingEntity.adminAddress}
 					{#if adminAddress !== undefined && adminAddress !== null}
 						<div>
 							<dt>admin address</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const codeHash = prefetched.codeHash}
+					{@const codeHash = pendingEntity.codeHash}
 					{#if codeHash !== undefined && codeHash !== null}
 						<div>
 							<dt>code hash</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataHash = prefetched.dataHash}
+					{@const dataHash = pendingEntity.dataHash}
 					{#if dataHash !== undefined && dataHash !== null}
 						<div>
 							<dt>data hash</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const walletCodeHash = prefetched.walletCodeHash}
+					{@const walletCodeHash = pendingEntity.walletCodeHash}
 					{#if walletCodeHash !== undefined && walletCodeHash !== null}
 						<div>
 							<dt>wallet code hash</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const symbol = prefetched.symbol}
+					{@const symbol = pendingEntity.symbol}
 					{#if symbol !== undefined && symbol !== null}
 						<div>
 							<dt>Symbol</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -404,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -439,7 +439,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const imageUrl = prefetched.imageUrl}
+					{@const imageUrl = pendingEntity.imageUrl}
 					{#if imageUrl !== undefined && imageUrl !== null}
 						<div>
 							<dt>image URL</dt>
@@ -488,7 +488,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataUri = prefetched.metadataUri}
+					{@const metadataUri = pendingEntity.metadataUri}
 					{#if metadataUri !== undefined && metadataUri !== null}
 						<div>
 							<dt>metadata URI</dt>
@@ -537,7 +537,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalSupplyNano = prefetched.totalSupplyNano}
+					{@const totalSupplyNano = pendingEntity.totalSupplyNano}
 					{#if totalSupplyNano !== undefined && totalSupplyNano !== null}
 						<div>
 							<dt>total supply nano</dt>
@@ -572,7 +572,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mintable = prefetched.mintable}
+					{@const mintable = pendingEntity.mintable}
 					{#if mintable !== undefined && mintable !== null}
 						<div>
 							<dt>mintable</dt>
@@ -607,7 +607,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const holderCount = prefetched.holderCount}
+					{@const holderCount = pendingEntity.holderCount}
 					{#if holderCount !== undefined && holderCount !== null}
 						<div>
 							<dt>holder count</dt>
@@ -642,7 +642,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verification = prefetched.verification}
+					{@const verification = pendingEntity.verification}
 					{#if verification !== undefined && verification !== null}
 						<div>
 							<dt>verification</dt>
@@ -677,7 +677,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastTransactionLt = prefetched.lastTransactionLt}
+					{@const lastTransactionLt = pendingEntity.lastTransactionLt}
 					{#if lastTransactionLt !== undefined && lastTransactionLt !== null}
 						<div>
 							<dt>last transaction lt</dt>

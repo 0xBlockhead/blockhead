@@ -1,0 +1,282 @@
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+import test from 'node:test'
+
+import {
+	app,
+	Source,
+} from '../../APP.ts'
+import { renderSourcesMarkdown } from './generate.ts'
+
+const sourceBindingRows = app.sources.sources.flatMap((source) => [
+	...(source.binding == null ? [] : [source.binding]),
+	...(source.bindings ?? []),
+].map((binding) => ({
+	binding,
+	provider: source.provider,
+	source: source.source,
+})))
+
+const domainTargetBySource = {
+	[Source.ChainlinkDataFeeds_AddressCatalog]: {
+		kind: 'Global',
+		key: 'chainlink-data-feeds-address-catalog',
+	},
+	[Source.ChainlinkDataFeeds_Contracts]: {
+		kind: 'Global',
+		key: 'chainlink-data-feeds-contract-catalog',
+	},
+	[Source.CircleCctpContracts_Evm]: {
+		kind: 'Global',
+		key: 'circle-cctp-evm-contract-catalog',
+	},
+	[Source.EasContracts_Evm]: {
+		kind: 'Global',
+		key: 'eas-evm-contract-catalog',
+	},
+	[Source.EigenLayerContracts_Evm]: {
+		kind: 'Global',
+		key: 'eigenlayer-evm-contract-catalog',
+	},
+	[Source.Erigon_JsonRpc]: {
+		kind: 'LocalDevice',
+		key: 'erigon-node',
+	},
+	[Source.Fedi_Rest]: {
+		kind: 'LocalDevice',
+		key: 'fedi-rest-service',
+	},
+	[Source.FedimintClient_Rpc]: {
+		kind: 'LocalDevice',
+		key: 'fedimint-client',
+	},
+	[Source.FedimintGatewayd_Rest]: {
+		kind: 'LocalDevice',
+		key: 'fedimint-gatewayd',
+	},
+	[Source.InternetComputer_Canister]: {
+		kind: 'Canister',
+		key: 'application-canister',
+	},
+	[Source.LibtorrentSession_Rest]: {
+		kind: 'LocalDevice',
+		key: 'libtorrent-session',
+	},
+	[Source.LightningLnd_Grpc]: {
+		kind: 'LocalDevice',
+		key: 'lnd',
+	},
+	[Source.McpDeclared_Protocol]: {
+		kind: 'LocalDevice',
+		key: 'declared-mcp-server',
+	},
+	[Source.Mlflow_Rest]: {
+		kind: 'Global',
+		key: 'mlflow-tracking-server',
+	},
+	[Source.Pyth_EvmContract]: {
+		kind: 'Global',
+		key: 'pyth-evm-contract-catalog',
+	},
+	[Source.qBittorrentWebUi_Rest]: {
+		kind: 'LocalDevice',
+		key: 'qbittorrent-client',
+	},
+	[Source.QuilibriumNodeMetrics_Prometheus]: {
+		kind: 'LocalDevice',
+		key: 'quilibrium-node',
+	},
+	[Source.Radicle_Local]: {
+		kind: 'GitRepository',
+		key: 'radicle-repository',
+	},
+	[Source.Radicle_Remote]: {
+		kind: 'GitRepository',
+		key: 'radicle-repository',
+	},
+	[Source.Reth_JsonRpc]: {
+		kind: 'LocalDevice',
+		key: 'reth-node',
+	},
+	[Source.TezosDappetizer_Postgres]: {
+		kind: 'SqlDataset',
+		key: 'tezos-dappetizer-dataset',
+	},
+	[Source.TransmissionRpc_JsonRpc]: {
+		kind: 'LocalDevice',
+		key: 'transmission-client',
+	},
+} as const
+
+const tableAfterHeading = (source: string, heading: string) => {
+	const headingIndex = source.indexOf(`${heading}\n`)
+	const nextHeadingIndex = source.indexOf('\n## ', headingIndex + heading.length)
+	const tableLines = source.slice(
+		headingIndex + heading.length,
+		nextHeadingIndex < 0 ? undefined : nextHeadingIndex
+	).split('\n').filter((line) => line.startsWith('| '))
+	const decodeCell = (value: string) => value
+		.replaceAll('<br>', '\n')
+		.replaceAll('&gt;', '>')
+		.replaceAll('&lt;', '<')
+		.replaceAll('&#124;', '|')
+		.replaceAll('&amp;', '&')
+
+	return {
+		headings: tableLines[0]?.slice(2, -2).split(' | ').map(decodeCell),
+		rows: tableLines.slice(2).map((line) => line.slice(2, -2).split(' | ').map(decodeCell)),
+	}
+}
+
+
+test('owns every provider, source, and binding in APP', () => {
+	assert.equal(app.sources.providers.length, 263)
+	assert.equal(app.sources.sources.length, 314)
+	assert.equal(sourceBindingRows.length, 423)
+	assert.equal(sourceBindingRows.flatMap(({ binding }) => binding.endpoints).length, 480)
+	assert.equal(sourceBindingRows.flatMap(({ binding }) => binding.credentials).length, 423)
+	assert.equal(sourceBindingRows.flatMap(({ binding }) => binding.artifacts ?? []).length, 306)
+	assert.equal(app.sources.providers.filter((provider) => provider.env != null).length, 15)
+	assert.equal(app.sources.sources.filter((source) => source.env != null).length, 14)
+	assert.equal(sourceBindingRows.flatMap(({ binding }) => binding.credentials).filter((credential) => credential.env != null).length, 23)
+})
+
+test('owns Esplora target identities without object stringification', () => {
+	assert.deepEqual(
+		sourceBindingRows
+			.filter(({ source }) => source === Source.Esplora_Rest)
+			.map(({ binding }) => binding.target.key),
+		[
+			'bip122:000000000019d6689c085ae165831e93',
+			'bitcoin',
+			'liquid',
+		]
+	)
+})
+
+test('owns domain target identities instead of configuration prose', () => {
+	assert.deepEqual(
+		Object.fromEntries(sourceBindingRows
+			.filter(({ source }) => source in domainTargetBySource)
+			.map(({ binding, source }) => [
+				source,
+				binding.target,
+			])),
+		domainTargetBySource
+	)
+	assert.equal(
+		sourceBindingRows.some(({ binding }) => binding.target.key.includes('configured')),
+		false
+	)
+})
+
+test('renders SOURCES.md exactly from APP', async () => {
+	const sourceDoc = await readFile('SOURCES.md', 'utf8')
+	const bindings = sourceBindingRows.map((sourceBinding, index) => ({
+		...sourceBinding,
+		bindingNumber: String(index + 1),
+	}))
+
+	assert.equal(
+		sourceDoc,
+		`${renderSourcesMarkdown(app)}\n`
+	)
+	assert.deepEqual(tableAfterHeading(sourceDoc, '## Providers'), {
+		headings: [
+			'Provider',
+			'Label',
+		],
+		rows: app.sources.providers.map((provider) => [
+			provider.provider,
+			provider.label,
+		]),
+	})
+	assert.deepEqual(tableAfterHeading(sourceDoc, '## Sources'), {
+		headings: [
+			'Source',
+			'Provider',
+			'Label',
+		],
+		rows: app.sources.sources.map((source) => [
+			source.source,
+			source.provider,
+			source.label,
+		]),
+	})
+	assert.deepEqual(tableAfterHeading(sourceDoc, '## Bindings'), {
+		headings: [
+			'Binding',
+			'Provider',
+			'Source',
+			'Target kind',
+			'Target key',
+			'Wire protocol',
+			'API family',
+			'Operation groups',
+			'Delivery',
+		],
+		rows: bindings.map(({ binding, bindingNumber, provider, source }) => [
+			bindingNumber,
+			provider,
+			String(source),
+			binding.target.kind,
+			binding.target.key,
+			binding.wireProtocol,
+			binding.apiFamily,
+			binding.operationGroups.join(', '),
+			binding.delivery,
+		]),
+	})
+	assert.deepEqual(tableAfterHeading(sourceDoc, '## Endpoints'), {
+		headings: [
+			'Binding',
+			'Endpoint',
+			'Kind',
+			'Locator',
+			'Origin',
+			'CORS',
+		],
+		rows: bindings.flatMap(({ binding, bindingNumber }) => binding.endpoints.map((endpoint, index) => [
+			bindingNumber,
+			String(index + 1),
+			endpoint.endpointKind,
+			endpoint.locator,
+			endpoint.origin ?? '',
+			endpoint.corsEnabled == null ? '' : String(endpoint.corsEnabled),
+		])),
+	})
+	assert.deepEqual(tableAfterHeading(sourceDoc, '## Credentials'), {
+		headings: [
+			'Binding',
+			'Credential',
+			'Scope',
+			'Environment schema',
+			'Keys',
+		],
+		rows: bindings.flatMap(({ binding, bindingNumber }) => binding.credentials.map((credential, index) => [
+			bindingNumber,
+			String(index + 1),
+			credential.scope,
+			credential.env == null ? 'no' : 'yes',
+			(credential.keys ?? []).join(', '),
+		])),
+	})
+	assert.deepEqual(tableAfterHeading(sourceDoc, '## Artifacts'), {
+		headings: [
+			'Binding',
+			'Artifact',
+			'Kind',
+			'Path',
+			'Generated',
+			'Official URL',
+		],
+		rows: bindings.flatMap(({ binding, bindingNumber }) => (binding.artifacts ?? []).map((artifact, index) => [
+			bindingNumber,
+			String(index + 1),
+			artifact.kind,
+			artifact.path,
+			artifact.generated ? 'yes' : 'no',
+			artifact.officialUrl ?? '',
+		])),
+	})
+})

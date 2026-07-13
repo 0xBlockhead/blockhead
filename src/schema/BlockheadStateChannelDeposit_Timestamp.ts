@@ -9,8 +9,10 @@ export enum BlockheadStateChannelDeposit_TimestampSelector {
 }
 export const BlockheadStateChannelDeposit_Timestamp = entity({
 	entityType: EntityType.BlockheadStateChannelDeposit_Timestamp,
-	label: 'blockhead state channel deposit timestamp',
-	labelPlural: 'blockhead state channel deposit observations',
+	labels: {
+		singular: 'blockhead state channel deposit timestamp',
+		plural: 'blockhead state channel deposit observations',
+	},
 })({
 	$deposit: {
 		label: 'deposit',

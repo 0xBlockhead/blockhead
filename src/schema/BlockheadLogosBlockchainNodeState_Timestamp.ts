@@ -9,8 +9,10 @@ export enum BlockheadLogosBlockchainNodeState_TimestampSelector {
 }
 export const BlockheadLogosBlockchainNodeState_Timestamp = entity({
 	entityType: EntityType.BlockheadLogosBlockchainNodeState_Timestamp,
-	label: 'blockhead Logos blockchain node state timestamp',
-	labelPlural: 'blockhead Logos blockchain node state observations',
+	labels: {
+		singular: 'blockhead Logos blockchain node state timestamp',
+		plural: 'blockhead Logos blockchain node state observations',
+	},
 })({
 	$nodeState: {
 		label: 'node state',

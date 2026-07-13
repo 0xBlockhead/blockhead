@@ -10,8 +10,10 @@ export enum BlockheadAvalancheNodeStateSelector {
 }
 export const BlockheadAvalancheNodeState = entity({
 	entityType: EntityType.BlockheadAvalancheNodeState,
-	label: 'blockhead avalanche node state',
-	labelPlural: 'blockhead avalanche node states',
+	labels: {
+		singular: 'blockhead avalanche node state',
+		plural: 'blockhead avalanche node states',
+	},
 })({
 	nodeId: {
 		label: 'node ID',

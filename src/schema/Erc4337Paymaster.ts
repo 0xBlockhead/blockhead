@@ -10,8 +10,10 @@ export enum Erc4337PaymasterSelector {
 }
 export const Erc4337Paymaster = entity({
 	entityType: EntityType.Erc4337Paymaster,
-	label: 'ERC-4337 paymaster',
-	labelPlural: 'ERC-4337 paymasters',
+	labels: {
+		singular: 'ERC-4337 paymaster',
+		plural: 'ERC-4337 paymasters',
+	},
 })({
 	$network: {
 		label: 'Network',

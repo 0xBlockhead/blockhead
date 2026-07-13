@@ -10,8 +10,10 @@ export enum MoneroTransactionSelector {
 }
 export const MoneroTransaction = entity({
 	entityType: EntityType.MoneroTransaction,
-	label: 'monero transaction',
-	labelPlural: 'monero transactions',
+	labels: {
+		singular: 'monero transaction',
+		plural: 'monero transactions',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -10,8 +10,10 @@ export enum PythPriceFeedSelector {
 }
 export const PythPriceFeed = entity({
 	entityType: EntityType.PythPriceFeed,
-	label: 'Pyth price feed',
-	labelPlural: 'Pyth price feeds',
+	labels: {
+		singular: 'Pyth price feed',
+		plural: 'Pyth price feeds',
+	},
 })({
 	priceFeedId: {
 		label: 'Price feed ID',

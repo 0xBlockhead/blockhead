@@ -47,7 +47,7 @@
 			score: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit comment timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit comment timestamp')
 	const viewDomId = $derived('reddit-comment-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -65,10 +65,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$comment !== undefined && pendingEntity.$comment.fullname !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(social)/(reddit)/reddit/comment/[fullname]/(comment)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			fullname: String(pendingEntity.$comment.fullname ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$comment !== undefined && pendingEntity.$comment.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			fullname: String(pendingEntity.$comment.fullname ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={redditCommentTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -97,7 +97,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={redditCommentTimestamp}>
 			{#snippet Pending()}
-				{@const score0 = prefetched.score}
+				{@const score0 = pendingEntity.score}
 				{#if score0 !== undefined && score0 !== null}
 					<NumberValue value={Number(score0)} />
 				{/if}
@@ -116,7 +116,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={redditCommentTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const score = prefetched.score}
+					{@const score = pendingEntity.score}
 					{#if score !== undefined && score !== null}
 						<div>
 							<dt>Score</dt>

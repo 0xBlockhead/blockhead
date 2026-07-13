@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registryVersion = prefetched.registryVersion}
+					{@const registryVersion = pendingEntity.registryVersion}
 					{#if registryVersion !== undefined && registryVersion !== null}
 						<div>
 							<dt>registry version</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subnetCount = prefetched.subnetCount}
+					{@const subnetCount = pendingEntity.subnetCount}
 					{#if subnetCount !== undefined && subnetCount !== null}
 						<div>
 							<dt>subnet count</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canisterCount = prefetched.canisterCount}
+					{@const canisterCount = pendingEntity.canisterCount}
 					{#if canisterCount !== undefined && canisterCount !== null}
 						<div>
 							<dt>canister count</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const boundaryNodeCount = prefetched.boundaryNodeCount}
+					{@const boundaryNodeCount = pendingEntity.boundaryNodeCount}
 					{#if boundaryNodeCount !== undefined && boundaryNodeCount !== null}
 						<div>
 							<dt>boundary node count</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rootKeyHash = prefetched.rootKeyHash}
+					{@const rootKeyHash = pendingEntity.rootKeyHash}
 					{#if rootKeyHash !== undefined && rootKeyHash !== null}
 						<div>
 							<dt>root key hash</dt>

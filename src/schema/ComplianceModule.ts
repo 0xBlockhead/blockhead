@@ -9,8 +9,10 @@ export enum ComplianceModuleSelector {
 }
 export const ComplianceModule = entity({
 	entityType: EntityType.ComplianceModule,
-	label: 'compliance module',
-	labelPlural: 'compliance modules',
+	labels: {
+		singular: 'compliance module',
+		plural: 'compliance modules',
+	},
 })({
 	$profile: {
 		label: 'profile',

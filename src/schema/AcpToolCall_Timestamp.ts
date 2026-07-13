@@ -9,8 +9,10 @@ export enum AcpToolCall_TimestampSelector {
 }
 export const AcpToolCall_Timestamp = entity({
 	entityType: EntityType.AcpToolCall_Timestamp,
-	label: 'acp tool call timestamp',
-	labelPlural: 'acp tool call observations',
+	labels: {
+		singular: 'acp tool call timestamp',
+		plural: 'acp tool call observations',
+	},
 })({
 	$toolCall: {
 		label: 'tool call',

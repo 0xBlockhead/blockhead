@@ -48,7 +48,7 @@
 			latestRoundId: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'oracle feed timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'oracle feed timestamp')
 	const viewDomId = $derived('oracle-feed-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={oracleFeedTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={oracleFeedTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.description) ?? ''), String((prefetched.latestRoundId) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'oracle feed timestamp'}
+				{[String((pendingEntity.description) ?? ''), String((pendingEntity.latestRoundId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'oracle feed timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +106,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={oracleFeedTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -152,7 +152,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -182,7 +182,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -211,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -281,7 +281,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -316,7 +316,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const typeAndVersion = prefetched.typeAndVersion}
+					{@const typeAndVersion = pendingEntity.typeAndVersion}
 					{#if typeAndVersion !== undefined && typeAndVersion !== null}
 						<div>
 							<dt>type and version</dt>
@@ -353,7 +353,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const aggregatorAddress = prefetched.aggregatorAddress}
+					{@const aggregatorAddress = pendingEntity.aggregatorAddress}
 					{#if aggregatorAddress !== undefined && aggregatorAddress !== null}
 						<div>
 							<dt>aggregator address</dt>
@@ -388,7 +388,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestRoundId = prefetched.latestRoundId}
+					{@const latestRoundId = pendingEntity.latestRoundId}
 					{#if latestRoundId !== undefined && latestRoundId !== null}
 						<div>
 							<dt>latest round ID</dt>
@@ -423,7 +423,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestUpdatedAtMs = prefetched.latestUpdatedAtMs}
+					{@const latestUpdatedAtMs = pendingEntity.latestUpdatedAtMs}
 					{#if latestUpdatedAtMs !== undefined && latestUpdatedAtMs !== null}
 						<div>
 							<dt>latest updated AT ms</dt>
@@ -460,7 +460,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const configDigest = prefetched.configDigest}
+					{@const configDigest = pendingEntity.configDigest}
 					{#if configDigest !== undefined && configDigest !== null}
 						<div>
 							<dt>config digest</dt>
@@ -495,7 +495,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const configBlockNumber = prefetched.configBlockNumber}
+					{@const configBlockNumber = pendingEntity.configBlockNumber}
 					{#if configBlockNumber !== undefined && configBlockNumber !== null}
 						<div>
 							<dt>config block number</dt>

@@ -54,7 +54,7 @@
 			$feed: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? ''), String((selection.entitySelector.guid ?? prefetched.guid) ?? '')].filter(Boolean).join(' ') || 'RSS item')
+	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.guid) ?? '')].filter(Boolean).join(' ') || 'RSS item')
 	const viewDomId = $derived('rss-item-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={rssItem}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? ''), String((selection.entitySelector.guid ?? prefetched.guid) ?? '')].filter(Boolean).join(' ') || title || 'RSS item'}
+				{[String((pendingEntity.title) ?? ''), String((pendingEntity.guid) ?? '')].filter(Boolean).join(' ') || title || 'RSS item'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={rssItem}>
 			{#snippet Pending()}
-				{@const guid0 = selection.entitySelector.guid ?? prefetched.guid}
+				{@const guid0 = pendingEntity.guid}
 				{#if guid0 !== undefined && guid0 !== null}
 					<TruncatedValue value={String((guid0) ?? '')} />
 				{/if}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={rssItem}>
 			{#snippet Pending()}
-				{@const publishedAt0 = prefetched.publishedAt}
+				{@const publishedAt0 = pendingEntity.publishedAt}
 				{#if publishedAt0 !== undefined && publishedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(publishedAt0)} />
@@ -136,6 +136,8 @@
 			<ResourceBoundary
 				resource={selection.$feed}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(rssFeed)}
 					{#if rssFeed != null && rssFeed[EntityMetaKey.Selector] != null}
 						<div>
@@ -165,7 +167,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const author = prefetched.author}
+					{@const author = pendingEntity.author}
 					{#if author !== undefined && author !== null}
 						<div>
 							<dt>Author</dt>
@@ -202,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const link = prefetched.link}
+					{@const link = pendingEntity.link}
 					{#if link !== undefined && link !== null}
 						<div>
 							<dt>Link</dt>
@@ -253,7 +255,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publishedAt = prefetched.publishedAt}
+					{@const publishedAt = pendingEntity.publishedAt}
 					{#if publishedAt !== undefined && publishedAt !== null}
 						<div>
 							<dt>Published</dt>
@@ -290,7 +292,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>
@@ -327,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const enclosureUrl = prefetched.enclosureUrl}
+					{@const enclosureUrl = pendingEntity.enclosureUrl}
 					{#if enclosureUrl !== undefined && enclosureUrl !== null}
 						<div>
 							<dt>Enclosure URL</dt>
@@ -378,7 +380,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commentsUrl = prefetched.commentsUrl}
+					{@const commentsUrl = pendingEntity.commentsUrl}
 					{#if commentsUrl !== undefined && commentsUrl !== null}
 						<div>
 							<dt>Comments URL</dt>

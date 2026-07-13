@@ -46,17 +46,19 @@
 			did: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle node state')
+	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle node state')
 	const viewDomId = $derived('blockhead-radicle-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import BlockheadRadicleNodeState_TimestampsView from '$/views/BlockheadRadicleNodeState_TimestampsView.svelte'
 	import BlockheadRadiclePeersView from '$/views/BlockheadRadiclePeersView.svelte'
+	import BlockheadRadicleSyncSessionsView from '$/views/BlockheadRadicleSyncSessionsView.svelte'
 	import BlockheadRadicleNodeInventory_TimestampsView from '$/views/BlockheadRadicleNodeInventory_TimestampsView.svelte'
 	import BlockheadRadicleSeedObservation_TimestampsView from '$/views/BlockheadRadicleSeedObservation_TimestampsView.svelte'
-	import BlockheadRadicleSyncSessionsView from '$/views/BlockheadRadicleSyncSessionsView.svelte'
+	import BlockheadRadicleNodeState_TimestampsView from '$/views/BlockheadRadicleNodeState_TimestampsView.svelte'
 </script>
 
 
@@ -73,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadRadicleNodeState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle node state'}
+				{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle node state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadicleNodeState}>
 			{#snippet Pending()}
-				{[String((prefetched.did) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle node state'}
+				{[String((pendingEntity.did) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle node state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,7 +101,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadRadicleNodeState}>
 			{#snippet Pending()}
-				{@const connectionId0 = selection.entitySelector.connectionId ?? prefetched.connectionId}
+				{@const connectionId0 = pendingEntity.connectionId}
 				{#if connectionId0 !== undefined && connectionId0 !== null}
 					<span data-text="muted">
 						{String((connectionId0) ?? '')}
@@ -134,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const connectionId = selection.entitySelector.connectionId ?? prefetched.connectionId}
+							{@const connectionId = pendingEntity.connectionId}
 							{#if connectionId !== undefined && connectionId !== null}
 								{String((connectionId) ?? '')}
 							{/if}
@@ -164,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nodeId = selection.entitySelector.nodeId ?? prefetched.nodeId}
+							{@const nodeId = pendingEntity.nodeId}
 							{#if nodeId !== undefined && nodeId !== null}
 								{String((nodeId) ?? '')}
 							{/if}
@@ -191,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const did = prefetched.did}
+					{@const did = pendingEntity.did}
 					{#if did !== undefined && did !== null}
 						<div>
 							<dt>DID</dt>
@@ -226,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publicKey = prefetched.publicKey}
+					{@const publicKey = pendingEntity.publicKey}
 					{#if publicKey !== undefined && publicKey !== null}
 						<div>
 							<dt>public key</dt>
@@ -261,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const homePath = prefetched.homePath}
+					{@const homePath = pendingEntity.homePath}
 					{#if homePath !== undefined && homePath !== null}
 						<div>
 							<dt>home path</dt>
@@ -290,40 +292,143 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BlockheadRadicleNodeState_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Radicle node-state observations.'
-				id='BlockheadRadicleNodeState_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-radicle-node-network'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'radicle-peers',
+							label: 'Peers',
+						},
+						{
+							id: 'radicle-sync-sessions',
+							label: 'Sync sessions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-network'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Network</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BlockheadRadiclePeersView
-				selection={selection.$$peers}
-				title='peers'
-				emptyText='No peers.'
-				id='BlockheadRadiclePeersView-peers'
-			/>
+				{#snippet SectionRadiclePeers({ id, label, open })}
+					<BlockheadRadiclePeersView
+						selection={selection.$$peers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No peers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadRadicleNodeInventory_TimestampsView
-				selection={selection.$$inventoryTimestamps}
-				title='inventory timestamps'
-				emptyText='No inventory observations.'
-				id='BlockheadRadicleNodeInventory_TimestampsView-inventory-timestamps'
-			/>
+				{#snippet SectionRadicleSyncSessions({ id, label, open })}
+					<BlockheadRadicleSyncSessionsView
+						selection={selection.$$syncSessions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No sync sessions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadRadicleSeedObservation_TimestampsView
-				selection={selection.$$seedObservations}
-				title='seed observations'
-				emptyText='No seed observations.'
-				id='BlockheadRadicleSeedObservation_TimestampsView-seed-observations'
-			/>
+			</CollapsibleTabs>
 
-			<BlockheadRadicleSyncSessionsView
-				selection={selection.$$syncSessions}
-				title='sync sessions'
-				emptyText='No sync sessions.'
-				id='BlockheadRadicleSyncSessionsView-sync-sessions'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-radicle-node-inventory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'radicle-inventory',
+							label: 'Inventory',
+						},
+						{
+							id: 'radicle-seeds',
+							label: 'Seed observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-inventory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Inventory and seeds</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRadicleInventory({ id, label, open })}
+					<BlockheadRadicleNodeInventory_TimestampsView
+						selection={selection.$$inventoryTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No inventory observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionRadicleSeeds({ id, label, open })}
+					<BlockheadRadicleSeedObservation_TimestampsView
+						selection={selection.$$seedObservations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No seed observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-radicle-node-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'radicle-node-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRadicleNodeTimestamps({ id, label, open })}
+					<BlockheadRadicleNodeState_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Radicle node-state observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

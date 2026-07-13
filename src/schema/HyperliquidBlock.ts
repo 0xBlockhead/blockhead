@@ -9,8 +9,10 @@ export enum HyperliquidBlockSelector {
 }
 export const HyperliquidBlock = entity({
 	entityType: EntityType.HyperliquidBlock,
-	label: 'hyperliquid block',
-	labelPlural: 'hyperliquid blocks',
+	labels: {
+		singular: 'hyperliquid block',
+		plural: 'hyperliquid blocks',
+	},
 })({
 	$network: {
 		label: 'network',

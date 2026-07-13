@@ -42,7 +42,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const celestiaBlob = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.commitment ?? prefetched.commitment) ?? '')].filter(Boolean).join(' ') || 'celestia blob')
+	const titleFallback = $derived([String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || 'celestia blob')
 	const viewDomId = $derived('celestia-blob-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,7 +68,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={celestiaBlob}>
 			{#snippet Pending()}
-				{@const commitment0 = selection.entitySelector.commitment ?? prefetched.commitment}
+				{@const commitment0 = pendingEntity.commitment}
 				{#if commitment0 !== undefined && commitment0 !== null}
 					<TruncatedValue value={String((commitment0) ?? '')} />
 				{/if}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={celestiaBlob}>
 			{#snippet Pending()}
-				{@const height0 = selection.entitySelector.height ?? prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<NumberValue value={Number(height0)} />
 				{/if}
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const height = selection.entitySelector.height ?? prefetched.height}
+							{@const height = pendingEntity.height}
 							{#if height !== undefined && height !== null}
 								<NumberValue value={Number(height)} />
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const commitment = selection.entitySelector.commitment ?? prefetched.commitment}
+							{@const commitment = pendingEntity.commitment}
 							{#if commitment !== undefined && commitment !== null}
 								<TruncatedValue value={String((commitment) ?? '')} />
 							{/if}
@@ -213,7 +213,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataHash = prefetched.dataHash}
+					{@const dataHash = pendingEntity.dataHash}
 					{#if dataHash !== undefined && dataHash !== null}
 						<div>
 							<dt>data hash</dt>
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const shareVersion = prefetched.shareVersion}
+					{@const shareVersion = pendingEntity.shareVersion}
 					{#if shareVersion !== undefined && shareVersion !== null}
 						<div>
 							<dt>share version</dt>
@@ -283,7 +283,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const index = prefetched.index}
+					{@const index = pendingEntity.index}
 					{#if index !== undefined && index !== null}
 						<div>
 							<dt>index</dt>
@@ -318,7 +318,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sizeBytes = prefetched.sizeBytes}
+					{@const sizeBytes = pendingEntity.sizeBytes}
 					{#if sizeBytes !== undefined && sizeBytes !== null}
 						<div>
 							<dt>size bytes</dt>
@@ -355,7 +355,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signer = prefetched.signer}
+					{@const signer = pendingEntity.signer}
 					{#if signer !== undefined && signer !== null}
 						<div>
 							<dt>signer</dt>
@@ -390,7 +390,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const txHash = prefetched.txHash}
+					{@const txHash = pendingEntity.txHash}
 					{#if txHash !== undefined && txHash !== null}
 						<div>
 							<dt>Transaction hash</dt>
@@ -418,6 +418,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(celestiaBlock)}
 					{#if celestiaBlock != null && celestiaBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -445,7 +447,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const shareProofAvailable = prefetched.shareProofAvailable}
+					{@const shareProofAvailable = pendingEntity.shareProofAvailable}
 					{#if shareProofAvailable !== undefined && shareProofAvailable !== null}
 						<div>
 							<dt>share proof available</dt>
@@ -480,7 +482,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadRequested = prefetched.payloadRequested}
+					{@const payloadRequested = pendingEntity.payloadRequested}
 					{#if payloadRequested !== undefined && payloadRequested !== null}
 						<div>
 							<dt>payload requested</dt>

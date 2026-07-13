@@ -118,8 +118,8 @@
 						selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={erc4337BundlerFields}
 						href={
-							(erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.caip2 !== undefined && erc4337BundlerHrefFields.$network.caip2.namespace !== undefined && erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.caip2 !== undefined && erc4337BundlerHrefFields.$network.caip2.reference !== undefined && erc4337BundlerHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]', {
-								caip2: `${String(erc4337BundlerHrefFields.$network.caip2.namespace ?? '')}:${String(erc4337BundlerHrefFields.$network.caip2.reference ?? '')}`,
+							(erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.slug !== undefined && erc4337BundlerHrefFields.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
+								network: String(erc4337BundlerHrefFields.$network.slug ?? ''),
 								address: String(erc4337BundlerHrefFields.address ?? ''),
 							}) : undefined)
 						}

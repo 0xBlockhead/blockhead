@@ -9,8 +9,10 @@ export enum RssItemSelector {
 }
 export const RssItem = entity({
 	entityType: EntityType.RssItem,
-	label: 'RSS item',
-	labelPlural: 'RSS items',
+	labels: {
+		singular: 'RSS item',
+		plural: 'RSS items',
+	},
 })({
 	feedUrl: {
 		label: 'Feed URL',

@@ -42,7 +42,7 @@
 			allowanceUsdc: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'CCTP fast burn allowance timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'CCTP fast burn allowance timestamp')
 	const viewDomId = $derived('cctp-fast-burn-allowance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -65,7 +65,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cctpFastBurnAllowanceTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -84,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cctpFastBurnAllowanceTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.allowanceUsdc) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'CCTP fast burn allowance timestamp'}
+				{[String((pendingEntity.allowanceUsdc) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'CCTP fast burn allowance timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -97,7 +97,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cctpFastBurnAllowanceTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -189,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const allowanceUsdc = prefetched.allowanceUsdc}
+					{@const allowanceUsdc = pendingEntity.allowanceUsdc}
 					{#if allowanceUsdc !== undefined && allowanceUsdc !== null}
 						<div>
 							<dt>Allowance USDC</dt>
@@ -224,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastUpdatedMs = prefetched.lastUpdatedMs}
+					{@const lastUpdatedMs = pendingEntity.lastUpdatedMs}
 					{#if lastUpdatedMs !== undefined && lastUpdatedMs !== null}
 						<div>
 							<dt>Last updated ms</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestId = prefetched.requestId}
+					{@const requestId = pendingEntity.requestId}
 					{#if requestId !== undefined && requestId !== null}
 						<div>
 							<dt>Request ID</dt>

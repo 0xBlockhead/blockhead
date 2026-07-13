@@ -99,7 +99,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const level = prefetched.level}
+					{@const level = pendingEntity.level}
 					{#if level !== undefined && level !== null}
 						<div>
 							<dt>level</dt>
@@ -134,7 +134,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hash = prefetched.hash}
+					{@const hash = pendingEntity.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>
@@ -169,7 +169,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolHash = prefetched.protocolHash}
+					{@const protocolHash = pendingEntity.protocolHash}
 					{#if protocolHash !== undefined && protocolHash !== null}
 						<div>
 							<dt>protocol hash</dt>
@@ -239,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const predecessorHash = prefetched.predecessorHash}
+					{@const predecessorHash = pendingEntity.predecessorHash}
 					{#if predecessorHash !== undefined && predecessorHash !== null}
 						<div>
 							<dt>predecessor hash</dt>
@@ -274,7 +274,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bakerAddress = prefetched.bakerAddress}
+					{@const bakerAddress = pendingEntity.bakerAddress}
 					{#if bakerAddress !== undefined && bakerAddress !== null}
 						<div>
 							<dt>baker address</dt>
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const round = prefetched.round}
+					{@const round = pendingEntity.round}
 					{#if round !== undefined && round !== null}
 						<div>
 							<dt>round</dt>
@@ -344,7 +344,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cycle = prefetched.cycle}
+					{@const cycle = pendingEntity.cycle}
 					{#if cycle !== undefined && cycle !== null}
 						<div>
 							<dt>cycle</dt>
@@ -379,7 +379,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadHash = prefetched.payloadHash}
+					{@const payloadHash = pendingEntity.payloadHash}
 					{#if payloadHash !== undefined && payloadHash !== null}
 						<div>
 							<dt>payload hash</dt>
@@ -414,7 +414,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const operationsHash = prefetched.operationsHash}
+					{@const operationsHash = pendingEntity.operationsHash}
 					{#if operationsHash !== undefined && operationsHash !== null}
 						<div>
 							<dt>operations hash</dt>

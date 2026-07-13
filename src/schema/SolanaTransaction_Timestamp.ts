@@ -10,8 +10,10 @@ export enum SolanaTransaction_TimestampSelector {
 }
 export const SolanaTransaction_Timestamp = entity({
 	entityType: EntityType.SolanaTransaction_Timestamp,
-	label: 'solana transaction timestamp',
-	labelPlural: 'Solana transaction observations',
+	labels: {
+		singular: 'solana transaction timestamp',
+		plural: 'Solana transaction observations',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',

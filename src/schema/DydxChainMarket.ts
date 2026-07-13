@@ -9,8 +9,10 @@ export enum DydxChainMarketSelector {
 }
 export const DydxChainMarket = entity({
 	entityType: EntityType.DydxChainMarket,
-	label: 'dydx chain market',
-	labelPlural: 'dydx chain markets',
+	labels: {
+		singular: 'dydx chain market',
+		plural: 'dydx chain markets',
+	},
 })({
 	$network: {
 		label: 'network',

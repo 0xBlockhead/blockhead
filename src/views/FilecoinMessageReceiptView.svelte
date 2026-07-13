@@ -51,7 +51,7 @@
 			gasUsed: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.tipsetKey ?? prefetched.tipsetKey) ?? '')].filter(Boolean).join(' ') || 'filecoin message receipt')
+	const titleFallback = $derived([String((pendingEntity.tipsetKey) ?? '')].filter(Boolean).join(' ') || 'filecoin message receipt')
 	const viewDomId = $derived('filecoin-message-receipt-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={filecoinMessageReceipt}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.tipsetKey ?? prefetched.tipsetKey) ?? '')].filter(Boolean).join(' ') || title || 'filecoin message receipt'}
+				{[String((pendingEntity.tipsetKey) ?? '')].filter(Boolean).join(' ') || title || 'filecoin message receipt'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={filecoinMessageReceipt}>
 			{#snippet Pending()}
-				{@const exitCode0 = prefetched.exitCode}
+				{@const exitCode0 = pendingEntity.exitCode}
 				{#if exitCode0 !== undefined && exitCode0 !== null}
 					<NumberValue value={Number(exitCode0)} />
 				{/if}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinMessageReceipt}>
 			{#snippet Pending()}
-				{@const gasUsed0 = prefetched.gasUsed}
+				{@const gasUsed0 = pendingEntity.gasUsed}
 				{#if gasUsed0 !== undefined && gasUsed0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(gasUsed0)} />
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tipsetKey = selection.entitySelector.tipsetKey ?? prefetched.tipsetKey}
+							{@const tipsetKey = pendingEntity.tipsetKey}
 							{#if tipsetKey !== undefined && tipsetKey !== null}
 								{String((tipsetKey) ?? '')}
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -205,6 +205,8 @@
 			<ResourceBoundary
 				resource={selection.$tipset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinTipset)}
 					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
 						<div>
@@ -232,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const height = prefetched.height}
+					{@const height = pendingEntity.height}
 					{#if height !== undefined && height !== null}
 						<div>
 							<dt>Height</dt>
@@ -267,7 +269,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockCid = prefetched.blockCid}
+					{@const blockCid = pendingEntity.blockCid}
 					{#if blockCid !== undefined && blockCid !== null}
 						<div>
 							<dt>Block CID</dt>
@@ -302,7 +304,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const exitCode = prefetched.exitCode}
+					{@const exitCode = pendingEntity.exitCode}
 					{#if exitCode !== undefined && exitCode !== null}
 						<div>
 							<dt>Exit code</dt>
@@ -337,7 +339,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const returnData = prefetched.returnData}
+					{@const returnData = pendingEntity.returnData}
 					{#if returnData !== undefined && returnData !== null}
 						<div>
 							<dt>Return data</dt>
@@ -372,7 +374,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>Gas used</dt>
@@ -407,7 +409,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const replacedMessageCid = prefetched.replacedMessageCid}
+					{@const replacedMessageCid = pendingEntity.replacedMessageCid}
 					{#if replacedMessageCid !== undefined && replacedMessageCid !== null}
 						<div>
 							<dt>Replaced message CID</dt>

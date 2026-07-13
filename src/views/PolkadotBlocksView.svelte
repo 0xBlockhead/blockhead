@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -120,8 +119,11 @@
 						selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotBlockFields}
 						href={
-							(polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.caip2 !== undefined && polkadotBlockHrefFields.$network.caip2.namespace !== undefined && polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.caip2 !== undefined && polkadotBlockHrefFields.$network.caip2.reference !== undefined && polkadotBlockHrefFields.blockNumber !== undefined && polkadotBlockHrefFields.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]', {
-								networkSlug: String(networkByCaip2[String(String(polkadotBlockHrefFields.$network.caip2.namespace) + ':' + String(polkadotBlockHrefFields.$network.caip2.reference))].slug ?? ''),
+							(polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.slug !== undefined && polkadotBlockHrefFields.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+								network: String(polkadotBlockHrefFields.$network.slug ?? ''),
+								blockNumber: String(polkadotBlockHrefFields.blockNumber ?? ''),
+							}) : polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.slug !== undefined && polkadotBlockHrefFields.blockNumber !== undefined && polkadotBlockHrefFields.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								network: String(polkadotBlockHrefFields.$network.slug ?? ''),
 								blockNumber: String(polkadotBlockHrefFields.blockNumber ?? ''),
 								hash: String(polkadotBlockHrefFields.hash ?? ''),
 							}) : undefined)

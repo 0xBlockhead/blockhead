@@ -42,7 +42,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.infoHash ?? prefetched.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent DHT lookup timestamp')
+	const titleFallback = $derived([String((pendingEntity.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent DHT lookup timestamp')
 	const viewDomId = $derived('bit-torrent-dht-lookup-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bitTorrentDhtLookupTimestamp}>
 			{#snippet Pending()}
-				{@const infoHash0 = selection.entitySelector.infoHash ?? prefetched.infoHash}
+				{@const infoHash0 = pendingEntity.infoHash}
 				{#if infoHash0 !== undefined && infoHash0 !== null}
 					<TruncatedValue value={String((infoHash0) ?? '')} />
 				{/if}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentDhtLookupTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.infoHash ?? prefetched.infoHash) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent DHT lookup timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.infoHash) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent DHT lookup timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,7 +99,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bitTorrentDhtLookupTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const infoHash = selection.entitySelector.infoHash ?? prefetched.infoHash}
+							{@const infoHash = pendingEntity.infoHash}
 							{#if infoHash !== undefined && infoHash !== null}
 								<TruncatedValue value={String((infoHash) ?? '')} />
 							{/if}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const observerKey = selection.entitySelector.observerKey ?? prefetched.observerKey}
+							{@const observerKey = pendingEntity.observerKey}
 							{#if observerKey !== undefined && observerKey !== null}
 								{String((observerKey) ?? '')}
 							{/if}
@@ -194,7 +194,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -224,7 +224,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -253,7 +253,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const queriedNodeCount = prefetched.queriedNodeCount}
+					{@const queriedNodeCount = pendingEntity.queriedNodeCount}
 					{#if queriedNodeCount !== undefined && queriedNodeCount !== null}
 						<div>
 							<dt>queried node count</dt>
@@ -288,7 +288,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const responsiveNodeCount = prefetched.responsiveNodeCount}
+					{@const responsiveNodeCount = pendingEntity.responsiveNodeCount}
 					{#if responsiveNodeCount !== undefined && responsiveNodeCount !== null}
 						<div>
 							<dt>responsive node count</dt>
@@ -323,7 +323,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>peer count</dt>

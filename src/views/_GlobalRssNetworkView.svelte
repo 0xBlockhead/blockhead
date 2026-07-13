@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -50,7 +51,12 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import RssFeedsView from '$/views/RssFeedsView.svelte'
+	import RssItemsView from '$/views/RssItemsView.svelte'
+	import GlobalRssNetwork_TimestampsView from '$/views/_GlobalRssNetwork_TimestampsView.svelte'
 </script>
 
 
@@ -80,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalRssNetwork}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.scope ?? prefetched.scope) ?? '')].filter(Boolean).join(' ') || title || 'global RSS network'}
+				{[String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || title || 'global RSS network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -88,5 +94,98 @@
 				{[String((resolvedEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-rss-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'rss-feeds',
+							label: 'Feeds',
+						},
+						{
+							id: 'rss-items',
+							label: 'Items',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Feeds and items</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRssFeeds({ id, label, open })}
+					<RssFeedsView
+						selection={selection.$$observedFeeds}
+						href={resolve('/rss/feeds')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No RSS feeds in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionRssItems({ id, label, open })}
+					<RssItemsView
+						selection={selection.$$observedItems}
+						href={resolve('/rss/items')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No RSS items in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-rss-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'rss-hub-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRssHubObservations({ id, label, open })}
+					<GlobalRssNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No RSS observed observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

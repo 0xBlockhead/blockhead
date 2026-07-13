@@ -2,6 +2,7 @@
 
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CurrencySelector {
@@ -9,8 +10,10 @@ export enum CurrencySelector {
 }
 export const Currency = entity({
 	entityType: EntityType.Currency,
-	label: 'currency',
-	labelPlural: 'currencies',
+	labels: {
+		singular: 'currency',
+		plural: 'currencies',
+	},
 	description: 'A currency unit used for quoting values, balances, and market data.',
 })({
 	iso4217: {
@@ -56,12 +59,18 @@ export const Currency = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$marketsWithCurrencyAsQuote: {
 		label: 'Markets with currency as quote',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 })({
 	selectors: {

@@ -122,10 +122,10 @@
 						selection={select(EntityType.FarcasterCastEmbed, farcasterCastEmbed[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={farcasterCastEmbedFields}
 						href={
-							(farcasterCastEmbedHrefFields.$cast !== undefined && farcasterCastEmbedHrefFields.$cast.fid !== undefined && farcasterCastEmbedHrefFields.$cast !== undefined && farcasterCastEmbedHrefFields.$cast.hash !== undefined && farcasterCastEmbedHrefFields.indexInCast !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]/embed/[indexInCast=nonNegativeInteger]', {
+							(farcasterCastEmbedHrefFields.indexInCast !== undefined && farcasterCastEmbedHrefFields.$cast !== undefined && farcasterCastEmbedHrefFields.$cast.fid !== undefined && farcasterCastEmbedHrefFields.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
+								indexInCast: String(farcasterCastEmbedHrefFields.indexInCast ?? ''),
 								fid: String(farcasterCastEmbedHrefFields.$cast.fid ?? ''),
 								hash: String(farcasterCastEmbedHrefFields.$cast.hash ?? ''),
-								indexInCast: String(farcasterCastEmbedHrefFields.indexInCast ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

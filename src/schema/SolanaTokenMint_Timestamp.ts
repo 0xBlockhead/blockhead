@@ -10,8 +10,10 @@ export enum SolanaTokenMint_TimestampSelector {
 }
 export const SolanaTokenMint_Timestamp = entity({
 	entityType: EntityType.SolanaTokenMint_Timestamp,
-	label: 'solana token mint timestamp',
-	labelPlural: 'Solana token mint observations',
+	labels: {
+		singular: 'solana token mint timestamp',
+		plural: 'Solana token mint observations',
+	},
 })({
 	$mint: {
 		label: 'Mint',

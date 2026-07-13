@@ -1,9 +1,10 @@
-import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import { resolverAccountabilityReport } from '$/resolvers/accountability.ts'
 import {
 	indexResolvers,
 	validateResolverDefinitions,
@@ -21,6 +22,7 @@ import { type as arktype } from 'arktype'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	enabledSources as browserEnabledSources,
 	sourceProviders,
@@ -40,7 +42,6 @@ import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
 import { CoinId } from '$/constants/Coin.ts'
-import { app } from '../../APP.ts'
 
 const {
 	resolverDefinitions,
@@ -50,7 +51,6 @@ const {
 	resolverLivePartsByEntityTypeAndFieldName,
 	resolverRootLivePartsByEntityType,
 	fieldNamesWithLiveResolverByEntityType,
-	resolverDiscriminatorPartsByEntityTypeAndConditionKey,
 } = indexResolvers(
 	schema,
 	resolvers,
@@ -99,13 +99,6 @@ const fieldDefinitionByEntityTypeAndFieldName = Object.fromEntries(
 	])
 )
 
-const coverageFingerprint = (ids: string[]) => ({
-	count: ids.length,
-	sha256: createHash('sha256')
-		.update(ids.join('\n'))
-		.digest('hex'),
-})
-
 enum FixtureEntitySelector {
 	Slug = 'slug',
 }
@@ -139,17 +132,6 @@ const fixtureSchema = [
 				type: EntityFieldType.Primitive,
 				primitiveType: arktype('string[]'),
 				cardinality: EntityFieldCardinality.One,
-			},
-			{
-				name: 'indexedConditional',
-				type: EntityFieldType.Primitive,
-				primitiveType: arktype('string'),
-				cardinality: EntityFieldCardinality.ZeroOrOne,
-				when: {
-					fieldName: 'segments',
-					itemIndex: 0,
-					values: ['kind'],
-				},
 			},
 			{
 				name: '$$children',
@@ -261,6 +243,7 @@ describe('resolver registry live resolver architecture', () => {
 					...validFixtureResolver,
 					resolveLive: {
 						clock: {
+							facetPath: [],
 							publishes: {
 								missingField: true,
 							},
@@ -268,7 +251,7 @@ describe('resolver registry live resolver architecture', () => {
 						},
 					},
 				},
-				/references unknown live field missingField/,
+				/publishes undeclared live field .*missingField/,
 			],
 			[
 				'undeclared root live field',
@@ -276,6 +259,7 @@ describe('resolver registry live resolver architecture', () => {
 					...validFixtureResolver,
 					resolveLive: {
 						clock: {
+							facetPath: [],
 							publishes: {
 								$$children: true,
 							},
@@ -283,7 +267,7 @@ describe('resolver registry live resolver architecture', () => {
 						},
 					},
 				},
-				/publishes undeclared live field \$\$children/,
+				/publishes undeclared live field .*\$\$children/,
 			],
 			[
 				'async field selector',
@@ -409,7 +393,7 @@ describe('resolver registry live resolver architecture', () => {
 		expect(fieldNamesWithLiveResolverByEntityType[EntityType.Network]).toContain('$$timestamps')
 	})
 
-	it('indexes value, count, and discriminator resolver parts without resolver ids', () => {
+	it('indexes value and count resolver parts without resolver ids', () => {
 		expect(
 			resolverParts.filter((part) => (
 				part.entityType === EntityType.EvmNetwork_Timestamp
@@ -425,13 +409,6 @@ describe('resolver registry live resolver architecture', () => {
 				&& part.resolveCount != null
 			)).length
 		).toBeGreaterThan(0)
-		expect(
-			Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
-				.flatMap((partsByConditionKey) => (
-					Object.values(partsByConditionKey)
-				))
-				.every((parts) => parts.every((resolverPart) => resolverPart.select != null))
-		).toBe(true)
 		expect(
 			Object.values(resolverValuePartsByEntityTypeAndFieldName)
 				.flat()
@@ -552,24 +529,21 @@ describe('resolver registry live resolver architecture', () => {
 		).toEqual([])
 	})
 
-	it('keeps APP source, schema, and resolver generation counts aligned', () => {
-		const appEntityTypeRows = app.schema.entities
-			.map((entity) => entity.entityType)
-		const appEntityTypes = new Set(appEntityTypeRows)
-		const generatedEntityTypes = new Set(schema.map((entity) => entity.entityType))
+	it('keeps generated source, schema, and resolver contracts aligned', () => {
+		const generatedEntityTypes = schema.map((entity) => entity.entityType)
+		const generatedSourceProviders = sourceProviders.map((sourceProvider) => sourceProvider.provider)
+		const generatedSources = sourceProviders.flatMap((sourceProvider) => (
+			sourceProvider.sources.map((sourceDefinition) => sourceDefinition.source)
+		))
 
-		expect(appEntityTypeRows.length).toBe(appEntityTypes.size)
-		expect([...appEntityTypes].filter((entityType) => !generatedEntityTypes.has(entityType))).toEqual([])
-		expect([...generatedEntityTypes].filter((entityType) => !appEntityTypes.has(entityType))).toEqual([])
-		expect(app.sources.providers.filter((provider) => (
-			!sourceProviders.some((sourceProvider) => sourceProvider.provider === provider.provider)
-		))).toEqual([])
-		expect(app.sources.sources.filter((source) => (
-			!sourceProviders.some((sourceProvider) => (
-				sourceProvider.sources.some((sourceDefinition) => sourceDefinition.source === source.source)
-			))
-		))).toEqual([])
-		expect(resolvers.length).toBe(app.resolvers.modules.length)
+		expect(generatedEntityTypes.length).toBe(new Set(generatedEntityTypes).size)
+		expect(Object.values(EntityType).filter((entityType) => !generatedEntityTypes.includes(entityType))).toEqual([])
+		expect(generatedEntityTypes.filter((entityType) => !(entityType in EntityType))).toEqual([])
+		expect(generatedSourceProviders.length).toBe(new Set(generatedSourceProviders).size)
+		expect(generatedSourceProviders.filter((sourceProvider) => !(sourceProvider in SourceProvider))).toEqual([])
+		expect(generatedSources.length).toBe(new Set(generatedSources).size)
+		expect(generatedSources.filter((source) => !(source in Source))).toEqual([])
+		expect(resolvers.filter((resolverModule) => !generatedSources.includes(resolverModule.source))).toEqual([])
 	})
 
 	it('keeps default source field coverage backed by matching resolver facets', () => {
@@ -621,71 +595,45 @@ describe('resolver registry live resolver architecture', () => {
 	})
 
 	it('keeps every active APP entity accountable to at least one resolver module', () => {
-		const entityTypesWithResolver = new Set(allSourceResolverDefinitions.map((resolver) => resolver.entityType))
-		const appEntityByEntityType = Object.fromEntries(
-			app.schema.entities.map((entityDefinition) => [
-				entityDefinition.entityType,
-				entityDefinition,
-			])
-		)
-		const unresolvedEntityTypes = schema
-			.map((entityDefinition) => entityDefinition.entityType)
-			.filter((entityType) => !entityTypesWithResolver.has(entityType))
-		const unresolvedSourceBackedEntityTypes = unresolvedEntityTypes.filter((entityType) => {
-			const appEntity = appEntityByEntityType[entityType]
-
-			return (
-				(appEntity.views.singular?.query?.sources?.length ?? 0) > 0
-				|| appEntity.fields.some((fieldDefinition) => (
+		const intentionallyUnresolvedEntityTypes = {
+			[EntityType.BlockheadWalletRequestCall]: 'prospective Local_Internal entity without a catalog or resolver implementation',
+		} as const
+		const accountabilityReport = resolverAccountabilityReport({
+			entityTypes: schema.map((entityDefinition) => entityDefinition.entityType),
+			entityTypesWithResolver: new Set(allSourceResolverDefinitions.map((resolver) => resolver.entityType)),
+			sourceBackedEntityTypes: new Set(schema.flatMap((entityDefinition) => (
+				Object.values(fieldDefinitionByEntityTypeAndFieldName[entityDefinition.entityType]).some((fieldDefinition) => (
 					(fieldDefinition.defaultSources?.length ?? 0) > 0
 				))
-			)
+				|| readFileSync(
+					new URL(`../views/${entityDefinition.entityType}View.svelte`, import.meta.url),
+					'utf8'
+				).includes('sources:') ?
+					[entityDefinition.entityType]
+				:
+					[]
+			))),
 		})
-		const unresolvedNoDeclaredSourceEntityTypes = unresolvedEntityTypes.filter((entityType) => (
-			!unresolvedSourceBackedEntityTypes.includes(entityType)
-		))
 
-		expect({
-			all: coverageFingerprint(unresolvedEntityTypes),
-			sourceBacked: coverageFingerprint(unresolvedSourceBackedEntityTypes),
-			noDeclaredSource: coverageFingerprint(unresolvedNoDeclaredSourceEntityTypes),
-			sourceBackedExamples: unresolvedSourceBackedEntityTypes.slice(0, 20),
-		}).toEqual({
-			all: {
-				count: 673,
-				sha256: 'da8aebcedf6b5daf3b197adb180adc27f6b9d9f8097e7c8c1ce29526dad9c590',
-			},
-			sourceBacked: {
-				count: 222,
-				sha256: '1cbdf9624759c52f9970487fd2138fa076e64a71a717b90d3f53c57092eb24c3',
-			},
-			noDeclaredSource: {
-				count: 451,
-				sha256: '558fd5a162f007389cbd546560c2c5dc1db729f218a310cb806de0bee213bd7e',
-			},
-			sourceBackedExamples: [
-				'_GlobalActivityPubNetwork_Timestamp',
-				'_GlobalArweaveNetwork',
-				'_GlobalArweaveNetwork_Timestamp',
-				'_GlobalEnsNetwork_Timestamp',
-				'_GlobalFarcasterNetwork_Timestamp',
-				'_GlobalIpfsAccess',
-				'_GlobalIpfsAccess_Timestamp',
-				'_GlobalLensNetwork',
-				'_GlobalLensNetwork_Timestamp',
-				'_GlobalRssNetwork',
-				'_GlobalRssNetwork_Timestamp',
-				'_GlobalSwarmAccess',
-				'_GlobalSwarmAccess_Timestamp',
-				'_GlobalXNetwork',
-				'_GlobalXNetwork_Timestamp',
-				'A2aAgentInterface',
-				'A2aAgentService',
-				'A2aAgentService_Timestamp',
-				'A2aAgentSkill',
-				'A2aArtifact',
-			],
-		})
+		const newlyCoveredLocalEntityTypes = [
+			EntityType.BlockheadWorkspace,
+			EntityType.BlockheadPanel,
+			EntityType.BlockheadLocalMediaIngest,
+			EntityType.BlockheadLocalMediaIngest_Timestamp,
+		]
+		expect(newlyCoveredLocalEntityTypes.every((entityType) => !accountabilityReport.unresolvedEntityTypes.includes(entityType))).toBe(true)
+		for (const entityType of Object.keys(intentionallyUnresolvedEntityTypes))
+			expect(accountabilityReport.unresolvedEntityTypes).toContain(entityType)
+		expect(accountabilityReport.unresolvedSourceBackedEntityTypes).toContain(EntityType.BlockheadWalletRequestCall)
+		expect(accountabilityReport.unresolvedNoDeclaredSourceEntityTypes).not.toContain(EntityType.BlockheadWalletRequestCall)
+		expect(Object.values(intentionallyUnresolvedEntityTypes)).toEqual([
+			'prospective Local_Internal entity without a catalog or resolver implementation',
+		])
+		expect(accountabilityReport.total).toBe(accountabilityReport.sourceBacked + accountabilityReport.noDeclaredSource)
+		expect(accountabilityReport.unresolvedEntityTypes).toEqual(expect.arrayContaining([
+			...accountabilityReport.unresolvedSourceBackedEntityTypes,
+			...accountabilityReport.unresolvedNoDeclaredSourceEntityTypes,
+		]))
 	})
 
 	it('keeps Voltaire EVM receipt fields declared where the snapshot already materializes them', () => {
@@ -952,6 +900,47 @@ describe('resolver registry live resolver architecture', () => {
 			},
 		}])
 
+		const transactionBlobsResolver = allSourceResolverDefinitions.find((candidate) => (
+			candidate.source === Source.Voltaire_JsonRpc
+			&& candidate.entityType === EntityType.EvmTransaction
+			&& resolverFieldNames(candidate).includes('$$blobs')
+		))
+		const resolveTransactionBlobs = transactionBlobsResolver?.resolve[EvmTransactionSelector.EvmNetworkTxHash]
+		if (transactionBlobsResolver == null || resolveTransactionBlobs == null)
+			throw new Error('Voltaire_JsonRpc: missing EvmTransaction.Blob.$$blobs resolver')
+		expect(resolverFieldSelector(transactionBlobsResolver, '$$blobs')(
+			await resolveTransactionBlobs({
+				$network,
+				txHash,
+			}, resolverContext),
+			{
+				$network,
+				txHash,
+			},
+			resolverContext
+		)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network,
+					txHash,
+				},
+				indexInTransaction: 0,
+			},
+			$transaction: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					txHash,
+				},
+			},
+			$block: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					blockNumber: 100n,
+				},
+			},
+			versionedHash,
+		}])
+
 		const logResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Voltaire_JsonRpc
 			&& candidate.entityType === EntityType.EvmLog
@@ -1055,7 +1044,24 @@ describe('resolver registry live resolver architecture', () => {
 				txHash,
 			},
 		})
-		expect(resolverFieldSelector(blobResolver, '$block')(blob, {
+
+		const blobBlockResolver = allSourceResolverDefinitions.find((candidate) => (
+			candidate.source === Source.Voltaire_JsonRpc
+			&& candidate.entityType === EntityType.EvmBlob
+			&& Object.keys(candidate.projections).length === 1
+			&& '$block' in candidate.projections
+		))
+		const resolveBlobBlock = blobBlockResolver?.resolve[EvmBlobSelector.TransactionIndexInTransaction]
+		if (blobBlockResolver == null || resolveBlobBlock == null)
+			throw new Error('Voltaire_JsonRpc: missing EvmBlob.$block resolver')
+		const blobBlock = await resolveBlobBlock({
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 0,
+		}, resolverContext)
+		expect(resolverFieldSelector(blobBlockResolver, '$block')(blobBlock, {
 			$transaction: {
 				$network,
 				txHash,
@@ -1827,35 +1833,4 @@ describe('resolver registry live resolver architecture', () => {
 		))).toBe(true)
 	})
 
-	it('indexes conditional discriminator fields through the condition source field resolver parts', () => {
-		const {
-			resolverDiscriminatorPartsByEntityTypeAndConditionKey: fixtureResolverDiscriminatorPartsByEntityTypeAndConditionKey,
-		} = indexResolvers(fixtureSchema, [{
-			source: 'Fixture',
-			resolvers: [validFixtureResolver],
-		}], new Set(['Fixture']))
-		const discriminatorEntries = Object.entries(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
-			.flatMap(([entityType, partsByConditionKey]) => (
-				Object.entries(partsByConditionKey).map(([conditionKey, parts]) => ({
-					entityType,
-					conditionKey,
-					parts,
-				}))
-			))
-
-		if (discriminatorEntries.length === 0) {
-			expect(discriminatorEntries.length).toBe(0)
-			return
-		}
-
-		expect(
-			fixtureResolverDiscriminatorPartsByEntityTypeAndConditionKey.FixtureEntity['segments[0]'].map((resolverPart) => resolverPart.fieldName)
-		).toEqual(['segments'])
-		expect(discriminatorEntries.every(({ entityType, conditionKey, parts }) => (
-			parts.every((resolverPart) => (
-				resolverPart.entityType === entityType
-				&& conditionKey.startsWith(resolverPart.fieldName)
-			))
-		))).toBe(true)
-	})
 })

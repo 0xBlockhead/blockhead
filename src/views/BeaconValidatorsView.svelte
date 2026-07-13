@@ -119,9 +119,9 @@
 						selection={select(EntityType.BeaconValidator, beaconValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconValidatorFields}
 						href={
-							(beaconValidatorHrefFields.$network !== undefined && beaconValidatorHrefFields.$network.caip2 !== undefined && beaconValidatorHrefFields.$network.caip2.namespace !== undefined && beaconValidatorHrefFields.$network !== undefined && beaconValidatorHrefFields.$network.caip2 !== undefined && beaconValidatorHrefFields.$network.caip2.reference !== undefined && beaconValidatorHrefFields.indexInNetwork !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
-								caip2: `${String(beaconValidatorHrefFields.$network.caip2.namespace ?? '')}:${String(beaconValidatorHrefFields.$network.caip2.reference ?? '')}`,
-								validatorIndex: String(beaconValidatorHrefFields.indexInNetwork ?? ''),
+							(beaconValidatorHrefFields.$network !== undefined && beaconValidatorHrefFields.$network.slug !== undefined && beaconValidatorHrefFields.indexInNetwork !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+								network: String(beaconValidatorHrefFields.$network.slug ?? ''),
+								validatorId: String(beaconValidatorHrefFields.indexInNetwork ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

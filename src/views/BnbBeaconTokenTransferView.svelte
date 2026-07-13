@@ -47,7 +47,7 @@
 			amount: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.symbol) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token transfer')
+	const titleFallback = $derived([String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token transfer')
 	const viewDomId = $derived('bnb-beacon-token-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bnbBeaconTokenTransfer}>
 			{#snippet Pending()}
-				{[String((prefetched.symbol) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token transfer'}
+				{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token transfer'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconTokenTransfer}>
 			{#snippet Pending()}
-				{@const amount0 = prefetched.amount}
+				{@const amount0 = pendingEntity.amount}
 				{#if amount0 !== undefined && amount0 !== null}
 					<NumberValue value={Number(amount0)} />
 				{/if}
@@ -152,7 +152,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transferIndex = selection.entitySelector.transferIndex ?? prefetched.transferIndex}
+							{@const transferIndex = pendingEntity.transferIndex}
 							{#if transferIndex !== undefined && transferIndex !== null}
 								<NumberValue value={Number(transferIndex)} />
 							{/if}
@@ -182,7 +182,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const symbol = prefetched.symbol}
+							{@const symbol = pendingEntity.symbol}
 							{#if symbol !== undefined && symbol !== null}
 								{String((symbol) ?? '')}
 							{/if}
@@ -211,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fromAddress = prefetched.fromAddress}
+					{@const fromAddress = pendingEntity.fromAddress}
 					{#if fromAddress !== undefined && fromAddress !== null}
 						<div>
 							<dt>from address</dt>
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toAddress = prefetched.toAddress}
+					{@const toAddress = pendingEntity.toAddress}
 					{#if toAddress !== undefined && toAddress !== null}
 						<div>
 							<dt>to address</dt>
@@ -284,7 +284,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const amount = prefetched.amount}
+							{@const amount = pendingEntity.amount}
 							{#if amount !== undefined && amount !== null}
 								<NumberValue value={Number(amount)} />
 							{/if}

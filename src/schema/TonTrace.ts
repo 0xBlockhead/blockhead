@@ -10,8 +10,10 @@ export enum TonTraceSelector {
 }
 export const TonTrace = entity({
 	entityType: EntityType.TonTrace,
-	label: 'ton trace',
-	labelPlural: 'ton traces',
+	labels: {
+		singular: 'ton trace',
+		plural: 'ton traces',
+	},
 })({
 	$network: {
 		label: 'network',

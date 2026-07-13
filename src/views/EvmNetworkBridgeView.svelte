@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -49,7 +49,7 @@
 			relationshipType: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.url ?? prefetched.url) ?? '')].filter(Boolean).join(' ') || 'EVM network bridge')
+	const titleFallback = $derived([String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || 'EVM network bridge')
 	const viewDomId = $derived('evm-network-bridge-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,9 +66,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.caip2 !== undefined && pendingEntity.$fromNetwork.caip2.namespace !== undefined && pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.caip2 !== undefined && pendingEntity.$fromNetwork.caip2.reference !== undefined && pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.$toNetwork.caip2.namespace !== undefined && pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.$toNetwork.caip2.reference !== undefined && pendingEntity.url !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/bridges/[toCaip2=eip155NetworkCaip2]/[url]', {
-			caip2: `${String(pendingEntity.$fromNetwork.caip2.namespace ?? '')}:${String(pendingEntity.$fromNetwork.caip2.reference ?? '')}`,
-			toCaip2: `${String(pendingEntity.$toNetwork.caip2.namespace ?? '')}:${String(pendingEntity.$toNetwork.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.slug !== undefined && pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.url !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
+			network: String(pendingEntity.$fromNetwork.slug ?? ''),
+			toCaip2: String(caip2StringFromValue(pendingEntity.$toNetwork.caip2) ?? ''),
 			url: String(pendingEntity.url ?? ''),
 		}) : undefined)
 	}
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmNetworkBridge}>
 			{#snippet Pending()}
-				{@const url0 = selection.entitySelector.url ?? prefetched.url}
+				{@const url0 = pendingEntity.url}
 				{#if url0 !== undefined && url0 !== null}
 					<svelte:element
 						this={'a'}
@@ -112,7 +112,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkBridge}>
 			{#snippet Pending()}
-				{@const url0 = selection.entitySelector.url ?? prefetched.url}
+				{@const url0 = pendingEntity.url}
 				{#if url0 !== undefined && url0 !== null}
 					<TruncatedValue value={String((url0) ?? '')} />
 				{/if}
@@ -131,7 +131,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={evmNetworkBridge}>
 			{#snippet Pending()}
-				{@const relationshipType0 = prefetched.relationshipType}
+				{@const relationshipType0 = pendingEntity.relationshipType}
 				{#if relationshipType0 !== undefined && relationshipType0 !== null}
 					<span data-text="muted">
 						{String((relationshipType0) ?? '')}
@@ -166,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const url = selection.entitySelector.url ?? prefetched.url}
+							{@const url = pendingEntity.url}
 							{#if url !== undefined && url !== null}
 								<svelte:element
 									this={'a'}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const relationshipType = prefetched.relationshipType}
+					{@const relationshipType = pendingEntity.relationshipType}
 					{#if relationshipType !== undefined && relationshipType !== null}
 						<div>
 							<dt>Relationship type</dt>
@@ -240,22 +240,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$fromNetwork, {})}
 						href={
-							(selection.entitySelector.$fromNetwork.executionModels !== undefined && selection.entitySelector.$fromNetwork.executionModels.values.includes('Evm') && selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.namespace !== undefined && selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$fromNetwork.caip2.namespace ?? '')}:${String(selection.entitySelector.$fromNetwork.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$fromNetwork.executionModels !== undefined && selection.entitySelector.$fromNetwork.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.namespace !== undefined && selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$fromNetwork.caip2.namespace ?? '')}:${String(selection.entitySelector.$fromNetwork.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$fromNetwork.executionModels !== undefined && selection.entitySelector.$fromNetwork.executionModels.values.includes('Evm') && selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.namespace !== undefined && selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$fromNetwork.caip2.namespace) + ':' + String(selection.entitySelector.$fromNetwork.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$fromNetwork.executionModels !== undefined && selection.entitySelector.$fromNetwork.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$fromNetwork.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$fromNetwork.slug ?? ''),
-							}) : selection.entitySelector.$fromNetwork.executionModels !== undefined && selection.entitySelector.$fromNetwork.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$fromNetwork.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$fromNetwork.slug ?? ''),
-							}) : selection.entitySelector.$fromNetwork.ledgerModels !== undefined && selection.entitySelector.$fromNetwork.ledgerModels.values.includes('Utxo') && selection.entitySelector.$fromNetwork.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$fromNetwork.slug ?? ''),
-							}) : selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.namespace !== undefined && selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$fromNetwork.caip2.namespace ?? '')}:${String(selection.entitySelector.$fromNetwork.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$fromNetwork.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$fromNetwork.slug ?? ''),
+							(selection.entitySelector.$fromNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$fromNetwork.caip2) ?? ''),
+							}) : selection.entitySelector.$fromNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$fromNetwork.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -270,22 +258,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$toNetwork, {})}
 						href={
-							(selection.entitySelector.$toNetwork.executionModels !== undefined && selection.entitySelector.$toNetwork.executionModels.values.includes('Evm') && selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.namespace !== undefined && selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$toNetwork.caip2.namespace ?? '')}:${String(selection.entitySelector.$toNetwork.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$toNetwork.executionModels !== undefined && selection.entitySelector.$toNetwork.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.namespace !== undefined && selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$toNetwork.caip2.namespace ?? '')}:${String(selection.entitySelector.$toNetwork.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$toNetwork.executionModels !== undefined && selection.entitySelector.$toNetwork.executionModels.values.includes('Evm') && selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.namespace !== undefined && selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$toNetwork.caip2.namespace) + ':' + String(selection.entitySelector.$toNetwork.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$toNetwork.executionModels !== undefined && selection.entitySelector.$toNetwork.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$toNetwork.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$toNetwork.slug ?? ''),
-							}) : selection.entitySelector.$toNetwork.executionModels !== undefined && selection.entitySelector.$toNetwork.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$toNetwork.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$toNetwork.slug ?? ''),
-							}) : selection.entitySelector.$toNetwork.ledgerModels !== undefined && selection.entitySelector.$toNetwork.ledgerModels.values.includes('Utxo') && selection.entitySelector.$toNetwork.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$toNetwork.slug ?? ''),
-							}) : selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.namespace !== undefined && selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$toNetwork.caip2.namespace ?? '')}:${String(selection.entitySelector.$toNetwork.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$toNetwork.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$toNetwork.slug ?? ''),
+							(selection.entitySelector.$toNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$toNetwork.caip2) ?? ''),
+							}) : selection.entitySelector.$toNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$toNetwork.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

@@ -47,7 +47,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.remoteName ?? prefetched.remoteName) ?? '')].filter(Boolean).join(' ') || 'Git fetch observation')
+	const titleFallback = $derived([String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || 'Git fetch observation')
 	const viewDomId = $derived('git-fetch-observation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitFetchObservation}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.remoteName ?? prefetched.remoteName) ?? '')].filter(Boolean).join(' ') || title || 'Git fetch observation'}
+				{[String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || 'Git fetch observation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitFetchObservation}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.remoteName ?? prefetched.remoteName) ?? '')].filter(Boolean).join(' ') || title || 'Git fetch observation'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || 'Git fetch observation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,13 +99,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitFetchObservation}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
 					</span>
 				{/if}
-				{@const source1 = selection.entitySelector.source ?? prefetched.source}
+				{@const source1 = pendingEntity.source}
 				{#if source1 !== undefined && source1 !== null}
 					<span data-text="muted">
 						{String((source1) ?? '')}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const remoteName = selection.entitySelector.remoteName ?? prefetched.remoteName}
+							{@const remoteName = pendingEntity.remoteName}
 							{#if remoteName !== undefined && remoteName !== null}
 								{String((remoteName) ?? '')}
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -217,7 +217,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -247,7 +247,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -276,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>
@@ -311,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const advertisedRefs = prefetched.advertisedRefs}
+					{@const advertisedRefs = pendingEntity.advertisedRefs}
 					{#if advertisedRefs !== undefined && advertisedRefs !== null}
 						<div>
 							<dt>advertised refs</dt>
@@ -346,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const wantedObjects = prefetched.wantedObjects}
+					{@const wantedObjects = pendingEntity.wantedObjects}
 					{#if wantedObjects !== undefined && wantedObjects !== null}
 						<div>
 							<dt>wanted objects</dt>
@@ -381,7 +381,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const receivedObjects = prefetched.receivedObjects}
+					{@const receivedObjects = pendingEntity.receivedObjects}
 					{#if receivedObjects !== undefined && receivedObjects !== null}
 						<div>
 							<dt>received objects</dt>
@@ -416,7 +416,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packfileHash = prefetched.packfileHash}
+					{@const packfileHash = pendingEntity.packfileHash}
 					{#if packfileHash !== undefined && packfileHash !== null}
 						<div>
 							<dt>packfile hash</dt>
@@ -451,7 +451,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

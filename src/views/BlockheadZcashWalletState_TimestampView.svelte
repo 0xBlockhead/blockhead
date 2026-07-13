@@ -54,7 +54,7 @@
 			recoveryState: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash wallet state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash wallet state timestamp')
 	const viewDomId = $derived('blockhead-zcash-wallet-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadZcashWalletStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZcashWalletStateTimestamp}>
 			{#snippet Pending()}
-				{@const balanceZatoshis0 = prefetched.balanceZatoshis}
+				{@const balanceZatoshis0 = pendingEntity.balanceZatoshis}
 				{#if balanceZatoshis0 !== undefined && balanceZatoshis0 !== null}
 					<NumberValue value={Number(balanceZatoshis0)} />
 				{/if}
@@ -117,7 +117,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZcashWalletStateTimestamp}>
 			{#snippet Pending()}
-				{@const recoveryState0 = prefetched.recoveryState}
+				{@const recoveryState0 = pendingEntity.recoveryState}
 				{#if recoveryState0 !== undefined && recoveryState0 !== null}
 					<span data-text="muted">
 						{String((recoveryState0) ?? '')}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -193,7 +193,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -220,7 +220,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const recoveryState = prefetched.recoveryState}
+					{@const recoveryState = pendingEntity.recoveryState}
 					{#if recoveryState !== undefined && recoveryState !== null}
 						<div>
 							<dt>recovery state</dt>
@@ -257,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceZatoshis = prefetched.balanceZatoshis}
+					{@const balanceZatoshis = pendingEntity.balanceZatoshis}
 					{#if balanceZatoshis !== undefined && balanceZatoshis !== null}
 						<div>
 							<dt>balance zatoshis</dt>
@@ -292,7 +292,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedBalanceZatoshis = prefetched.verifiedBalanceZatoshis}
+					{@const verifiedBalanceZatoshis = pendingEntity.verifiedBalanceZatoshis}
 					{#if verifiedBalanceZatoshis !== undefined && verifiedBalanceZatoshis !== null}
 						<div>
 							<dt>verified balance zatoshis</dt>
@@ -327,7 +327,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spendableBalanceZatoshis = prefetched.spendableBalanceZatoshis}
+					{@const spendableBalanceZatoshis = pendingEntity.spendableBalanceZatoshis}
 					{#if spendableBalanceZatoshis !== undefined && spendableBalanceZatoshis !== null}
 						<div>
 							<dt>spendable balance zatoshis</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unshieldedBalanceZatoshis = prefetched.unshieldedBalanceZatoshis}
+					{@const unshieldedBalanceZatoshis = pendingEntity.unshieldedBalanceZatoshis}
 					{#if unshieldedBalanceZatoshis !== undefined && unshieldedBalanceZatoshis !== null}
 						<div>
 							<dt>unshielded balance zatoshis</dt>
@@ -399,7 +399,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const saplingBalanceZatoshis = prefetched.saplingBalanceZatoshis}
+					{@const saplingBalanceZatoshis = pendingEntity.saplingBalanceZatoshis}
 					{#if saplingBalanceZatoshis !== undefined && saplingBalanceZatoshis !== null}
 						<div>
 							<dt>sapling balance zatoshis</dt>
@@ -434,7 +434,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const orchardBalanceZatoshis = prefetched.orchardBalanceZatoshis}
+					{@const orchardBalanceZatoshis = pendingEntity.orchardBalanceZatoshis}
 					{#if orchardBalanceZatoshis !== undefined && orchardBalanceZatoshis !== null}
 						<div>
 							<dt>orchard balance zatoshis</dt>
@@ -471,7 +471,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const changePendingConfirmationZatoshis = prefetched.changePendingConfirmationZatoshis}
+					{@const changePendingConfirmationZatoshis = pendingEntity.changePendingConfirmationZatoshis}
 					{#if changePendingConfirmationZatoshis !== undefined && changePendingConfirmationZatoshis !== null}
 						<div>
 							<dt>change pending confirmation zatoshis</dt>
@@ -506,7 +506,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valuePendingSpendabilityZatoshis = prefetched.valuePendingSpendabilityZatoshis}
+					{@const valuePendingSpendabilityZatoshis = pendingEntity.valuePendingSpendabilityZatoshis}
 					{#if valuePendingSpendabilityZatoshis !== undefined && valuePendingSpendabilityZatoshis !== null}
 						<div>
 							<dt>value pending spendability zatoshis</dt>
@@ -541,7 +541,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uneconomicValueZatoshis = prefetched.uneconomicValueZatoshis}
+					{@const uneconomicValueZatoshis = pendingEntity.uneconomicValueZatoshis}
 					{#if uneconomicValueZatoshis !== undefined && uneconomicValueZatoshis !== null}
 						<div>
 							<dt>uneconomic value zatoshis</dt>
@@ -578,7 +578,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastScannedHeight = prefetched.lastScannedHeight}
+					{@const lastScannedHeight = pendingEntity.lastScannedHeight}
 					{#if lastScannedHeight !== undefined && lastScannedHeight !== null}
 						<div>
 							<dt>last scanned height</dt>
@@ -613,7 +613,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chainTipHeight = prefetched.chainTipHeight}
+					{@const chainTipHeight = pendingEntity.chainTipHeight}
 					{#if chainTipHeight !== undefined && chainTipHeight !== null}
 						<div>
 							<dt>chain tip height</dt>
@@ -648,7 +648,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>

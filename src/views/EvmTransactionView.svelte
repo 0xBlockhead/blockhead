@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -48,6 +49,7 @@
 	const evmTransaction = $derived(selection({
 		sources: [
 			Source.Blockscout_Rest,
+			Source.Voltaire_JsonRpc,
 		],
 		fields: {
 			kind: true,
@@ -60,24 +62,26 @@
 			$contract: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || 'EVM transaction')
+	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'EVM transaction')
 	const viewDomId = $derived('evm-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
-	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
-	import EvmLogsView from '$/views/EvmLogsView.svelte'
-	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
-	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
-	import Eip7702AuthorizationsView from '$/views/Eip7702AuthorizationsView.svelte'
-	import EvmTracesView from '$/views/EvmTracesView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
+	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
+	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
+	import EvmLogsView from '$/views/EvmLogsView.svelte'
+	import EvmTracesView from '$/views/EvmTracesView.svelte'
+	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
+	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
+	import Eip7702AuthorizationsView from '$/views/Eip7702AuthorizationsView.svelte'
 </script>
 
 
@@ -87,8 +91,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.txHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			transactionId: String(pendingEntity.txHash ?? ''),
 		}) : undefined)
 	}
@@ -99,7 +103,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmTransaction}>
 			{#snippet Pending()}
-				{@const txHash0 = selection.entitySelector.txHash ?? prefetched.txHash}
+				{@const txHash0 = pendingEntity.txHash}
 				{#if txHash0 !== undefined && txHash0 !== null}
 					<TruncatedValue value={String((txHash0) ?? '')} />
 				{/if}
@@ -118,7 +122,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmTransaction}>
 			{#snippet Pending()}
-				{@const txHash0 = selection.entitySelector.txHash ?? prefetched.txHash}
+				{@const txHash0 = pendingEntity.txHash}
 				{#if txHash0 !== undefined && txHash0 !== null}
 					<TruncatedValue value={String((txHash0) ?? '')} />
 				{/if}
@@ -145,6 +149,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmBlock)}
 					{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -154,8 +160,8 @@
 									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 									prefetched={evmBlock}
 									href={
-										(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-											caip2: `${String(evmBlock[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmBlock[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+											network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
 											blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
 										}) : undefined)
 									}
@@ -175,12 +181,12 @@
 						resource={selection.$from}
 					>
 						{#snippet children(evmAccount)}
-							{#if evmAccount[EntityMetaKey.Selector] != null}
+							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -196,6 +202,8 @@
 			<ResourceBoundary
 				resource={selection.$to}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -205,7 +213,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -221,6 +229,8 @@
 			<ResourceBoundary
 				resource={selection.$contract}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -230,8 +240,8 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmContract[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -259,7 +269,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const kind = prefetched.kind}
+							{@const kind = pendingEntity.kind}
 							{#if kind !== undefined && kind !== null}
 								{String((kind) ?? '')}
 							{/if}
@@ -289,7 +299,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const value = prefetched.value}
+							{@const value = pendingEntity.value}
 							{#if value !== undefined && value !== null}
 								<NumberValue value={Number(value)} />
 							{/if}
@@ -316,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const executionStatus = prefetched.executionStatus}
+					{@const executionStatus = pendingEntity.executionStatus}
 					{#if executionStatus !== undefined && executionStatus !== null}
 						<div>
 							<dt>Status</dt>
@@ -351,7 +361,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>Gas used</dt>
@@ -387,7 +397,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const gas = prefetched.gas}
+						{@const gas = pendingEntity.gas}
 						{#if gas !== undefined && gas !== null}
 							<div>
 								<dt>Gas limit</dt>
@@ -424,7 +434,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const gasPrice = prefetched.gasPrice}
+						{@const gasPrice = pendingEntity.gasPrice}
 						{#if gasPrice !== undefined && gasPrice !== null}
 							<div>
 								<dt>Gas price</dt>
@@ -461,7 +471,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const effectiveGasPrice = prefetched.effectiveGasPrice}
+						{@const effectiveGasPrice = pendingEntity.effectiveGasPrice}
 						{#if effectiveGasPrice !== undefined && effectiveGasPrice !== null}
 							<div>
 								<dt>Effective gas price</dt>
@@ -487,79 +497,65 @@
 				</ResourceBoundary>
 			{/if}
 
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={
-						selection({
-							fields: {
-								maxFeePerGas: true,
-							},
-						})
-					}
-				>
-					{#snippet Pending()}
-						{@const maxFeePerGas = prefetched.maxFeePerGas}
-						{#if maxFeePerGas !== undefined && maxFeePerGas !== null}
-							<div>
-								<dt>Max fee</dt>
-								<dd>
-									<NumberValue value={Number(maxFeePerGas)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
+			<ProjectionBoundary
+				resource={selection.FeeMarket}
+			>
+				{#snippet Applicable(projection)}
+					{#if contentOpen}
+						<ResourceBoundary
+							resource={
+								projection.maxFeePerGas({
+									fields: {
+										maxFeePerGas: true,
+									},
+								})
+							}
+						>
+							{#snippet Pending()}{/snippet}
+							{#snippet children(maxFeePerGas)}
+								{#if maxFeePerGas !== undefined && maxFeePerGas !== null}
+									<div>
+										<dt>Max fee</dt>
+										<dd>
+											<NumberValue value={Number(maxFeePerGas)} />
+										</dd>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
+				{/snippet}
+			</ProjectionBoundary>
 
-					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const maxFeePerGas = resolvedEntity.maxFeePerGas}
-						{#if maxFeePerGas !== undefined && maxFeePerGas !== null}
-							<div>
-								<dt>Max fee</dt>
-								<dd>
-									<NumberValue value={Number(maxFeePerGas)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={
-						selection({
-							fields: {
-								maxPriorityFeePerGas: true,
-							},
-						})
-					}
-				>
-					{#snippet Pending()}
-						{@const maxPriorityFeePerGas = prefetched.maxPriorityFeePerGas}
-						{#if maxPriorityFeePerGas !== undefined && maxPriorityFeePerGas !== null}
-							<div>
-								<dt>Priority fee</dt>
-								<dd>
-									<NumberValue value={Number(maxPriorityFeePerGas)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
-					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const maxPriorityFeePerGas = resolvedEntity.maxPriorityFeePerGas}
-						{#if maxPriorityFeePerGas !== undefined && maxPriorityFeePerGas !== null}
-							<div>
-								<dt>Priority fee</dt>
-								<dd>
-									<NumberValue value={Number(maxPriorityFeePerGas)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
+			<ProjectionBoundary
+				resource={selection.FeeMarket}
+			>
+				{#snippet Applicable(projection)}
+					{#if contentOpen}
+						<ResourceBoundary
+							resource={
+								projection.maxPriorityFeePerGas({
+									fields: {
+										maxPriorityFeePerGas: true,
+									},
+								})
+							}
+						>
+							{#snippet Pending()}{/snippet}
+							{#snippet children(maxPriorityFeePerGas)}
+								{#if maxPriorityFeePerGas !== undefined && maxPriorityFeePerGas !== null}
+									<div>
+										<dt>Priority fee</dt>
+										<dd>
+											<NumberValue value={Number(maxPriorityFeePerGas)} />
+										</dd>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
+				{/snippet}
+			</ProjectionBoundary>
 
 			{#if contentOpen}
 				<ResourceBoundary
@@ -572,7 +568,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const cumulativeGasUsed = prefetched.cumulativeGasUsed}
+						{@const cumulativeGasUsed = pendingEntity.cumulativeGasUsed}
 						{#if cumulativeGasUsed !== undefined && cumulativeGasUsed !== null}
 							<div>
 								<dt>Cumulative gas used</dt>
@@ -612,7 +608,7 @@
 							}
 						>
 							{#snippet Pending()}
-								{@const envelopeType = prefetched.envelopeType}
+								{@const envelopeType = pendingEntity.envelopeType}
 								{#if envelopeType !== undefined && envelopeType !== null}
 									{String((envelopeType) ?? '')}
 								{/if}
@@ -641,7 +637,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const nonce = prefetched.nonce}
+						{@const nonce = pendingEntity.nonce}
 						{#if nonce !== undefined && nonce !== null}
 							<div>
 								<dt>Nonce</dt>
@@ -678,7 +674,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const indexInBlock = prefetched.indexInBlock}
+						{@const indexInBlock = pendingEntity.indexInBlock}
 						{#if indexInBlock !== undefined && indexInBlock !== null}
 							<div>
 								<dt>Index in block</dt>
@@ -717,7 +713,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const input = prefetched.input}
+						{@const input = pendingEntity.input}
 						{#if input !== undefined && input !== null}
 							<div>
 								<dt>Input data</dt>
@@ -754,7 +750,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const r = prefetched.r}
+						{@const r = pendingEntity.r}
 						{#if r !== undefined && r !== null}
 							<div>
 								<dt>Signature r</dt>
@@ -791,7 +787,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const s = prefetched.s}
+						{@const s = pendingEntity.s}
 						{#if s !== undefined && s !== null}
 							<div>
 								<dt>Signature s</dt>
@@ -828,7 +824,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const v = prefetched.v}
+						{@const v = pendingEntity.v}
 						{#if v !== undefined && v !== null}
 							<div>
 								<dt>Signature v</dt>
@@ -854,125 +850,243 @@
 				</ResourceBoundary>
 			{/if}
 
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={
-						selection({
-							fields: {
-								blobGasUsed: true,
-							},
-						})
-					}
-				>
-					{#snippet Pending()}
-						{@const blobGasUsed = prefetched.blobGasUsed}
-						{#if blobGasUsed !== undefined && blobGasUsed !== null}
-							<div>
-								<dt>Blob gas used</dt>
-								<dd>
-									<NumberValue value={Number(blobGasUsed)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
+			<ProjectionBoundary
+				resource={selection.Blob}
+			>
+				{#snippet Applicable(projection)}
+					{#if contentOpen}
+						<ResourceBoundary
+							resource={
+								projection.blobGasUsed({
+									fields: {
+										blobGasUsed: true,
+									},
+								})
+							}
+						>
+							{#snippet Pending()}{/snippet}
+							{#snippet children(blobGasUsed)}
+								{#if blobGasUsed !== undefined && blobGasUsed !== null}
+									<div>
+										<dt>Blob gas used</dt>
+										<dd>
+											<NumberValue value={Number(blobGasUsed)} />
+										</dd>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
+				{/snippet}
+			</ProjectionBoundary>
 
-					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const blobGasUsed = resolvedEntity.blobGasUsed}
-						{#if blobGasUsed !== undefined && blobGasUsed !== null}
-							<div>
-								<dt>Blob gas used</dt>
-								<dd>
-									<NumberValue value={Number(blobGasUsed)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={
-						selection({
-							fields: {
-								maxFeePerBlobGas: true,
-							},
-						})
-					}
-				>
-					{#snippet Pending()}
-						{@const maxFeePerBlobGas = prefetched.maxFeePerBlobGas}
-						{#if maxFeePerBlobGas !== undefined && maxFeePerBlobGas !== null}
-							<div>
-								<dt>Max fee per blob gas</dt>
-								<dd>
-									<NumberValue value={Number(maxFeePerBlobGas)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
-					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const maxFeePerBlobGas = resolvedEntity.maxFeePerBlobGas}
-						{#if maxFeePerBlobGas !== undefined && maxFeePerBlobGas !== null}
-							<div>
-								<dt>Max fee per blob gas</dt>
-								<dd>
-									<NumberValue value={Number(maxFeePerBlobGas)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
+			<ProjectionBoundary
+				resource={selection.Blob}
+			>
+				{#snippet Applicable(projection)}
+					{#if contentOpen}
+						<ResourceBoundary
+							resource={
+								projection.maxFeePerBlobGas({
+									fields: {
+										maxFeePerBlobGas: true,
+									},
+								})
+							}
+						>
+							{#snippet Pending()}{/snippet}
+							{#snippet children(maxFeePerBlobGas)}
+								{#if maxFeePerBlobGas !== undefined && maxFeePerBlobGas !== null}
+									<div>
+										<dt>Max fee per blob gas</dt>
+										<dd>
+											<NumberValue value={Number(maxFeePerBlobGas)} />
+										</dd>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
+				{/snippet}
+			</ProjectionBoundary>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<EvmTokenTransfersView
-				selection={selection.$$tokenTransfers}
-				title='Token transfers'
-				id='EvmTokenTransfersView-token-transfers'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-evm-tx-transfers'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'evm-tx-token-transfers',
+							label: 'Token transfers',
+						},
+						{
+							id: 'evm-tx-internal-transfers',
+							label: 'Internal transfers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-transfers'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Transfers</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<EvmInternalTransfersView
-				selection={selection.$$internalTransfers}
-				title='Internal transfers'
-				id='EvmInternalTransfersView-internal-transfers'
-			/>
+				{#snippet SectionEvmTxTokenTransfers({ id, label, open })}
+					<EvmTokenTransfersView
+						selection={selection.$$tokenTransfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No token transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<EvmLogsView
-				selection={selection.$$logs}
-				title='Receipt logs'
-				id='EvmLogsView-logs'
-			/>
+				{#snippet SectionEvmTxInternalTransfers({ id, label, open })}
+					<EvmInternalTransfersView
+						selection={selection.$$internalTransfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No internal transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<EvmBlobsView
-				selection={selection.$$blobs}
-				title='Blobs'
-				id='EvmBlobsView-blobs'
-			/>
+			</CollapsibleTabs>
 
-			<EvmUserOperationsView
-				selection={selection.$$userOperations}
-				title='User operations'
-				id='EvmUserOperationsView-user-operations'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-evm-tx-execution'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'evm-tx-logs',
+							label: 'Logs',
+						},
+						{
+							id: 'evm-tx-traces',
+							label: 'Traces',
+						},
+						{
+							id: 'evm-tx-blobs',
+							label: 'Blobs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-execution'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Execution</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<Eip7702AuthorizationsView
-				selection={selection.$$authorizations}
-				title='EIP-7702 authorizations'
-				id='Eip7702AuthorizationsView-authorizations'
-			/>
+				{#snippet SectionEvmTxLogs({ id, label, open })}
+					<EvmLogsView
+						selection={selection.$$logs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No logs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<EvmTracesView
-				selection={selection.$$traces}
-				title='Traces'
-				id='EvmTracesView-traces'
-			/>
+				{#snippet SectionEvmTxTraces({ id, label, open })}
+					<EvmTracesView
+						selection={selection.$$traces}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No traces.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionEvmTxBlobs({ id, label, open })}
+					<ProjectionBoundary
+						resource={selection.Blob}
+					>
+						{#snippet Applicable(projection)}
+							<EvmBlobsView
+								selection={projection.$$blobs}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No blobs.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+					</ProjectionBoundary>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-evm-tx-account-abstraction'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'evm-tx-user-operations',
+							label: 'User operations',
+						},
+						{
+							id: 'evm-tx-authorizations',
+							label: 'Authorizations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-account-abstraction'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Account abstraction</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionEvmTxUserOperations({ id, label, open })}
+					<EvmUserOperationsView
+						selection={selection.$$userOperations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No user operations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionEvmTxAuthorizations({ id, label, open })}
+					<Eip7702AuthorizationsView
+						selection={selection.$$authorizations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No authorizations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const liquidityPoolId = selection.entitySelector.liquidityPoolId ?? prefetched.liquidityPoolId}
+							{@const liquidityPoolId = pendingEntity.liquidityPoolId}
 							{#if liquidityPoolId !== undefined && liquidityPoolId !== null}
 								{String((liquidityPoolId) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const poolType = prefetched.poolType}
+					{@const poolType = pendingEntity.poolType}
 					{#if poolType !== undefined && poolType !== null}
 						<div>
 							<dt>pool type</dt>
@@ -157,6 +157,8 @@
 			<ResourceBoundary
 				resource={selection.$assetA}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -177,6 +179,8 @@
 			<ResourceBoundary
 				resource={selection.$assetB}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -204,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeBps = prefetched.feeBps}
+					{@const feeBps = pendingEntity.feeBps}
 					{#if feeBps !== undefined && feeBps !== null}
 						<div>
 							<dt>fee bps</dt>

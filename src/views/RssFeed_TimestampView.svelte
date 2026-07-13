@@ -67,10 +67,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$feed !== undefined && pendingEntity.$feed.feedUrl !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(social)/(rss)/rss/feed/[feedKey]/(feed)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			feedKey: String(pendingEntity.$feed.feedUrl ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$feed !== undefined && pendingEntity.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			feedKey: String(pendingEntity.$feed.feedUrl ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -101,7 +101,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={rssFeedTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -177,7 +177,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -206,7 +206,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedItemCount = prefetched.observedItemCount}
+					{@const observedItemCount = pendingEntity.observedItemCount}
 					{#if observedItemCount !== undefined && observedItemCount !== null}
 						<div>
 							<dt>Observed items</dt>
@@ -280,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fetchWindowKind = prefetched.fetchWindowKind}
+					{@const fetchWindowKind = pendingEntity.fetchWindowKind}
 					{#if fetchWindowKind !== undefined && fetchWindowKind !== null}
 						<div>
 							<dt>Fetch window</dt>

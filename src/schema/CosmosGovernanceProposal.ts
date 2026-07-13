@@ -9,8 +9,10 @@ export enum CosmosGovernanceProposalSelector {
 }
 export const CosmosGovernanceProposal = entity({
 	entityType: EntityType.CosmosGovernanceProposal,
-	label: 'Cosmos governance proposal',
-	labelPlural: 'Cosmos governance proposals',
+	labels: {
+		singular: 'Cosmos governance proposal',
+		plural: 'Cosmos governance proposals',
+	},
 })({
 	$network: {
 		label: 'Network',

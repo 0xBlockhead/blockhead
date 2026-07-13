@@ -9,8 +9,10 @@ export enum _GlobalIpfsAccessSelector {
 }
 export const _GlobalIpfsAccess = entity({
 	entityType: EntityType._GlobalIpfsAccess,
-	label: 'global IPFS access',
-	labelPlural: 'global IPFS accesses',
+	labels: {
+		singular: 'global IPFS access',
+		plural: 'global IPFS accesses',
+	},
 })({
 	scope: {
 		label: 'Scope',

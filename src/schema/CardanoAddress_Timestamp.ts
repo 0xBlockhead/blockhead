@@ -9,8 +9,10 @@ export enum CardanoAddress_TimestampSelector {
 }
 export const CardanoAddress_Timestamp = entity({
 	entityType: EntityType.CardanoAddress_Timestamp,
-	label: 'cardano address timestamp',
-	labelPlural: 'cardano address observations',
+	labels: {
+		singular: 'cardano address timestamp',
+		plural: 'cardano address observations',
+	},
 })({
 	$address: {
 		label: 'Address',

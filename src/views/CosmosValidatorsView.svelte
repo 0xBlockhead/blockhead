@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -114,16 +113,9 @@
 
 				{#snippet Item({ item: cosmosValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosValidator> })}
 					{@const cosmosValidatorFields = { ...cosmosValidator[EntityMetaKey.Selector], ...cosmosValidator }}
-					{@const cosmosValidatorHrefFields = { ...cosmosValidator, ...cosmosValidator[EntityMetaKey.Selector] }}
 					<CosmosValidatorView
 						selection={select(EntityType.CosmosValidator, cosmosValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosValidatorFields}
-						href={
-							(cosmosValidatorHrefFields.$network !== undefined && cosmosValidatorHrefFields.$network.caip2 !== undefined && cosmosValidatorHrefFields.$network.caip2.namespace !== undefined && cosmosValidatorHrefFields.$network !== undefined && cosmosValidatorHrefFields.$network.caip2 !== undefined && cosmosValidatorHrefFields.$network.caip2.reference !== undefined && cosmosValidatorHrefFields.operatorAddress !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]', {
-								caip2: `${String(cosmosValidatorHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosValidatorHrefFields.$network.caip2.reference ?? '')}`,
-								operatorAddress: String(cosmosValidatorHrefFields.operatorAddress ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

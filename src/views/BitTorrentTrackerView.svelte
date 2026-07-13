@@ -42,7 +42,7 @@
 			trackerKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.trackerUrl ?? prefetched.trackerUrl) ?? '')].filter(Boolean).join(' ') || 'bit torrent tracker')
+	const titleFallback = $derived([String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || 'bit torrent tracker')
 	const viewDomId = $derived('bit-torrent-tracker-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bitTorrentTracker}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.trackerUrl ?? prefetched.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent tracker'}
+				{[String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent tracker'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -80,7 +80,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentTracker}>
 			{#snippet Pending()}
-				{[String((prefetched.trackerKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.trackerUrl ?? prefetched.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent tracker'}
+				{[String((pendingEntity.trackerKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent tracker'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const trackerUrl = selection.entitySelector.trackerUrl ?? prefetched.trackerUrl}
+							{@const trackerUrl = pendingEntity.trackerUrl}
 							{#if trackerUrl !== undefined && trackerUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -149,7 +149,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const trackerKind = prefetched.trackerKind}
+							{@const trackerKind = pendingEntity.trackerKind}
 							{#if trackerKind !== undefined && trackerKind !== null}
 								{String((trackerKind) ?? '')}
 							{/if}

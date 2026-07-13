@@ -10,8 +10,10 @@ export enum A2aAgentInterfaceSelector {
 }
 export const A2aAgentInterface = entity({
 	entityType: EntityType.A2aAgentInterface,
-	label: 'a2a agent interface',
-	labelPlural: 'a2a agent interfaces',
+	labels: {
+		singular: 'a2a agent interface',
+		plural: 'a2a agent interfaces',
+	},
 })({
 	$cardSnapshot: {
 		label: 'card snapshot',

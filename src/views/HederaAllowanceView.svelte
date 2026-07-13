@@ -114,7 +114,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const allowanceKind = selection.entitySelector.allowanceKind ?? prefetched.allowanceKind}
+							{@const allowanceKind = pendingEntity.allowanceKind}
 							{#if allowanceKind !== undefined && allowanceKind !== null}
 								{String((allowanceKind) ?? '')}
 							{/if}
@@ -141,7 +141,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenId = selection.entitySelector.tokenId ?? prefetched.tokenId}
+					{@const tokenId = pendingEntity.tokenId}
 					{#if tokenId !== undefined && tokenId !== null}
 						<div>
 							<dt>Token ID</dt>
@@ -176,7 +176,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const serialNumber = selection.entitySelector.serialNumber ?? prefetched.serialNumber}
+					{@const serialNumber = pendingEntity.serialNumber}
 					{#if serialNumber !== undefined && serialNumber !== null}
 						<div>
 							<dt>serial number</dt>
@@ -204,6 +204,8 @@
 			<ResourceBoundary
 				resource={selection.$token}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaToken)}
 					{#if hederaToken != null && hederaToken[EntityMetaKey.Selector] != null}
 						<div>
@@ -224,6 +226,8 @@
 			<ResourceBoundary
 				resource={selection.$nft}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaNft)}
 					{#if hederaNft != null && hederaNft[EntityMetaKey.Selector] != null}
 						<div>

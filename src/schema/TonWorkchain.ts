@@ -9,8 +9,10 @@ export enum TonWorkchainSelector {
 }
 export const TonWorkchain = entity({
 	entityType: EntityType.TonWorkchain,
-	label: 'ton workchain',
-	labelPlural: 'ton workchains',
+	labels: {
+		singular: 'ton workchain',
+		plural: 'ton workchains',
+	},
 })({
 	$network: {
 		label: 'network',

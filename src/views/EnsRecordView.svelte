@@ -49,7 +49,7 @@
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.recordKey ?? prefetched.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record')
+	const titleFallback = $derived([String((pendingEntity.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record')
 	const viewDomId = $derived('ens-record-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={ensRecord}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.recordKey ?? prefetched.recordKey) ?? '')].filter(Boolean).join(' ') || title || 'ENS record'}
+				{[String((pendingEntity.recordKey) ?? '')].filter(Boolean).join(' ') || title || 'ENS record'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 				<EnsNameView
 					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 					href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 							ensName: String(selection.entitySelector.$name.name ?? ''),
 						}) : undefined)
 					}
@@ -103,7 +103,7 @@
 				<EnsNameView
 					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 					href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 							ensName: String(selection.entitySelector.$name.name ?? ''),
 						}) : undefined)
 					}
@@ -122,7 +122,7 @@
 					<EnsNameView
 						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
 						href={
-							(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+							(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 								ensName: String(selection.entitySelector.$name.name ?? ''),
 							}) : undefined)
 						}
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const recordKey = selection.entitySelector.recordKey ?? prefetched.recordKey}
+							{@const recordKey = pendingEntity.recordKey}
 							{#if recordKey !== undefined && recordKey !== null}
 								{String((recordKey) ?? '')}
 							{/if}
@@ -179,7 +179,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const recordKind = prefetched.recordKind}
+							{@const recordKind = pendingEntity.recordKind}
 							{#if recordKind !== undefined && recordKind !== null}
 								{String((recordKind) ?? '')}
 							{/if}
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const coinType = prefetched.coinType}
+					{@const coinType = pendingEntity.coinType}
 					{#if coinType !== undefined && coinType !== null}
 						<div>
 							<dt>Coin type</dt>

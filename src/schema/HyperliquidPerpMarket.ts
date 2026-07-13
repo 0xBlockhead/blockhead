@@ -9,8 +9,10 @@ export enum HyperliquidPerpMarketSelector {
 }
 export const HyperliquidPerpMarket = entity({
 	entityType: EntityType.HyperliquidPerpMarket,
-	label: 'hyperliquid perp market',
-	labelPlural: 'hyperliquid perp markets',
+	labels: {
+		singular: 'hyperliquid perp market',
+		plural: 'hyperliquid perp markets',
+	},
 })({
 	$network: {
 		label: 'network',

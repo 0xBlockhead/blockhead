@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const epoch = selection.entitySelector.epoch ?? prefetched.epoch}
+							{@const epoch = pendingEntity.epoch}
 							{#if epoch !== undefined && epoch !== null}
 								{String((epoch) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>slot</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pledge = prefetched.pledge}
+					{@const pledge = pendingEntity.pledge}
 					{#if pledge !== undefined && pledge !== null}
 						<div>
 							<dt>pledge</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const margin = prefetched.margin}
+					{@const margin = pendingEntity.margin}
 					{#if margin !== undefined && margin !== null}
 						<div>
 							<dt>margin</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fixedCostLovelace = prefetched.fixedCostLovelace}
+					{@const fixedCostLovelace = pendingEntity.fixedCostLovelace}
 					{#if fixedCostLovelace !== undefined && fixedCostLovelace !== null}
 						<div>
 							<dt>fixed cost lovelace</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardAccount = prefetched.rewardAccount}
+					{@const rewardAccount = pendingEntity.rewardAccount}
 					{#if rewardAccount !== undefined && rewardAccount !== null}
 						<div>
 							<dt>reward account</dt>
@@ -372,7 +372,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const owners = prefetched.owners}
+							{@const owners = pendingEntity.owners}
 							{#if owners !== undefined && owners !== null}
 								{owners.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -399,7 +399,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataUrl = prefetched.metadataUrl}
+					{@const metadataUrl = pendingEntity.metadataUrl}
 					{#if metadataUrl !== undefined && metadataUrl !== null}
 						<div>
 							<dt>metadata URL</dt>
@@ -448,7 +448,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataHash = prefetched.metadataHash}
+					{@const metadataHash = pendingEntity.metadataHash}
 					{#if metadataHash !== undefined && metadataHash !== null}
 						<div>
 							<dt>metadata hash</dt>
@@ -483,7 +483,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const liveStake = prefetched.liveStake}
+					{@const liveStake = pendingEntity.liveStake}
 					{#if liveStake !== undefined && liveStake !== null}
 						<div>
 							<dt>live stake</dt>
@@ -518,7 +518,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activeStake = prefetched.activeStake}
+					{@const activeStake = pendingEntity.activeStake}
 					{#if activeStake !== undefined && activeStake !== null}
 						<div>
 							<dt>active stake</dt>
@@ -553,7 +553,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatorCount = prefetched.delegatorCount}
+					{@const delegatorCount = pendingEntity.delegatorCount}
 					{#if delegatorCount !== undefined && delegatorCount !== null}
 						<div>
 							<dt>delegator count</dt>
@@ -588,7 +588,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockCount = prefetched.blockCount}
+					{@const blockCount = pendingEntity.blockCount}
 					{#if blockCount !== undefined && blockCount !== null}
 						<div>
 							<dt>block count</dt>
@@ -623,7 +623,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const saturation = prefetched.saturation}
+					{@const saturation = pendingEntity.saturation}
 					{#if saturation !== undefined && saturation !== null}
 						<div>
 							<dt>saturation</dt>
@@ -658,7 +658,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const retired = prefetched.retired}
+					{@const retired = pendingEntity.retired}
 					{#if retired !== undefined && retired !== null}
 						<div>
 							<dt>retired</dt>

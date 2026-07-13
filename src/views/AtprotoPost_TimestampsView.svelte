@@ -120,9 +120,9 @@
 						selection={select(EntityType.AtprotoPost_Timestamp, atprotoPostTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoPostTimestampFields}
 						href={
-							(atprotoPostTimestampHrefFields.$post !== undefined && atprotoPostTimestampHrefFields.$post.uri !== undefined && atprotoPostTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]/(post)/observations/[timestampMs=nonNegativeInteger]', {
-								uri: String(atprotoPostTimestampHrefFields.$post.uri ?? ''),
+							(atprotoPostTimestampHrefFields.timestampMs !== undefined && atprotoPostTimestampHrefFields.$post !== undefined && atprotoPostTimestampHrefFields.$post.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 								timestampMs: String(atprotoPostTimestampHrefFields.timestampMs ?? ''),
+								uri: String(atprotoPostTimestampHrefFields.$post.uri ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

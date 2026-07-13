@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const contentIndex = selection.entitySelector.contentIndex ?? prefetched.contentIndex}
+							{@const contentIndex = pendingEntity.contentIndex}
 							{#if contentIndex !== undefined && contentIndex !== null}
 								{String((contentIndex) ?? '')}
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operationKind = prefetched.operationKind}
+							{@const operationKind = pendingEntity.operationKind}
 							{#if operationKind !== undefined && operationKind !== null}
 								{String((operationKind) ?? '')}
 							{/if}
@@ -160,7 +160,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceAddress = prefetched.sourceAddress}
+					{@const sourceAddress = pendingEntity.sourceAddress}
 					{#if sourceAddress !== undefined && sourceAddress !== null}
 						<div>
 							<dt>source address</dt>
@@ -195,7 +195,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const destinationAddress = prefetched.destinationAddress}
+					{@const destinationAddress = pendingEntity.destinationAddress}
 					{#if destinationAddress !== undefined && destinationAddress !== null}
 						<div>
 							<dt>destination address</dt>
@@ -230,7 +230,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegateAddress = prefetched.delegateAddress}
+					{@const delegateAddress = pendingEntity.delegateAddress}
 					{#if delegateAddress !== undefined && delegateAddress !== null}
 						<div>
 							<dt>delegate address</dt>
@@ -265,7 +265,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractAddress = prefetched.contractAddress}
+					{@const contractAddress = pendingEntity.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>contract address</dt>
@@ -300,7 +300,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const counter = prefetched.counter}
+					{@const counter = pendingEntity.counter}
 					{#if counter !== undefined && counter !== null}
 						<div>
 							<dt>counter</dt>
@@ -335,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeMutez = prefetched.feeMutez}
+					{@const feeMutez = pendingEntity.feeMutez}
 					{#if feeMutez !== undefined && feeMutez !== null}
 						<div>
 							<dt>fee mutez</dt>
@@ -370,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasLimit = prefetched.gasLimit}
+					{@const gasLimit = pendingEntity.gasLimit}
 					{#if gasLimit !== undefined && gasLimit !== null}
 						<div>
 							<dt>gas limit</dt>
@@ -405,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageLimit = prefetched.storageLimit}
+					{@const storageLimit = pendingEntity.storageLimit}
 					{#if storageLimit !== undefined && storageLimit !== null}
 						<div>
 							<dt>storage limit</dt>
@@ -440,7 +440,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountMutez = prefetched.amountMutez}
+					{@const amountMutez = pendingEntity.amountMutez}
 					{#if amountMutez !== undefined && amountMutez !== null}
 						<div>
 							<dt>amount mutez</dt>
@@ -475,7 +475,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -510,7 +510,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consumedGas = prefetched.consumedGas}
+					{@const consumedGas = pendingEntity.consumedGas}
 					{#if consumedGas !== undefined && consumedGas !== null}
 						<div>
 							<dt>consumed gas</dt>
@@ -545,7 +545,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageSize = prefetched.storageSize}
+					{@const storageSize = pendingEntity.storageSize}
 					{#if storageSize !== undefined && storageSize !== null}
 						<div>
 							<dt>storage size</dt>
@@ -580,7 +580,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paidStorageSizeDiff = prefetched.paidStorageSizeDiff}
+					{@const paidStorageSizeDiff = pendingEntity.paidStorageSizeDiff}
 					{#if paidStorageSizeDiff !== undefined && paidStorageSizeDiff !== null}
 						<div>
 							<dt>paid storage size diff</dt>
@@ -618,7 +618,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const originatedContractAddresses = prefetched.originatedContractAddresses}
+							{@const originatedContractAddresses = pendingEntity.originatedContractAddresses}
 							{#if originatedContractAddresses !== undefined && originatedContractAddresses !== null}
 								<TruncatedValue value={originatedContractAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -638,6 +638,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosBlock)}
 					{#if tezosBlock != null && tezosBlock[EntityMetaKey.Selector] != null}
 						<div>

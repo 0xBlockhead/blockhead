@@ -118,8 +118,8 @@
 						selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mevBuilderFields}
 						href={
-							(mevBuilderHrefFields.$network !== undefined && mevBuilderHrefFields.$network.caip2 !== undefined && mevBuilderHrefFields.$network.caip2.namespace !== undefined && mevBuilderHrefFields.$network !== undefined && mevBuilderHrefFields.$network.caip2 !== undefined && mevBuilderHrefFields.$network.caip2.reference !== undefined && mevBuilderHrefFields.builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
-								caip2: `${String(mevBuilderHrefFields.$network.caip2.namespace ?? '')}:${String(mevBuilderHrefFields.$network.caip2.reference ?? '')}`,
+							(mevBuilderHrefFields.$network !== undefined && mevBuilderHrefFields.$network.slug !== undefined && mevBuilderHrefFields.builderPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+								network: String(mevBuilderHrefFields.$network.slug ?? ''),
 								builderPubkey: String(mevBuilderHrefFields.builderPubkey ?? ''),
 							}) : undefined)
 						}

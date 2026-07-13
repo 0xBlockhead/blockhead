@@ -9,8 +9,10 @@ export enum AssetFormatSupport_TimestampSelector {
 }
 export const AssetFormatSupport_Timestamp = entity({
 	entityType: EntityType.AssetFormatSupport_Timestamp,
-	label: 'asset format support timestamp',
-	labelPlural: 'asset format support observations',
+	labels: {
+		singular: 'asset format support timestamp',
+		plural: 'asset format support observations',
+	},
 })({
 	$assetInstance: {
 		label: 'Asset instance',

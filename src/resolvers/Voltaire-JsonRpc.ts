@@ -248,6 +248,7 @@ const evmLogEntityFromIdAndWire = (
 				hex,
 			},
 		} satisfies Entity<typeof schema, EntityType.EvmTopic>)),
+		...(topics.at(0) != null && { topic0: topics.at(0) }),
 		...(data != null && { data }),
 		...(log.removed != null && { removed: log.removed }),
 		...(address != null && {
@@ -718,11 +719,7 @@ export default {
 					entityType: EntityType.EvmBlob,
 					resolve: {
 						[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector) => {
-							const {
-								getTransactionByHashForRpcUrl,
-								getTransactionReceiptForRpcUrl,
-							} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-							const { getRpcReceipt } = await import('$/sources/Voltaire/JsonRpc/types.ts')
+							const { getTransactionByHashForRpcUrl } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 							const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
 							const jsonRpcTransport = (await voltaireJsonRpcTransportWithOriginsByChainId())[chainId]
 							const tx = await getTransactionByHashForRpcUrl({
@@ -731,49 +728,28 @@ export default {
 							})
 							if (tx == null) throw new Error('Voltaire_JsonRpc: blob transaction not found')
 							const bvh = tx.blobVersionedHashes
-						if (!Array.isArray(bvh) || typeof bvh[entitySelector.indexInTransaction] !== 'string')
-							throw new Error('Voltaire_JsonRpc: blob index missing on transaction')
+							if (!Array.isArray(bvh) || typeof bvh[entitySelector.indexInTransaction] !== 'string')
+								throw new Error('Voltaire_JsonRpc: blob index missing on transaction')
 							const versionedHash = hexLowerOfByteSize(bvh[entitySelector.indexInTransaction], 32)
 							if (versionedHash == null || !versionedHash.startsWith('0x01')) throw new Error('Voltaire_JsonRpc: invalid blob versioned hash')
-							const transactionBlockNumber = nonNegativeBigIntFromHex(tx.blockNumber)
-							const receiptBlockNumber = await (async () => {
-								if (transactionBlockNumber != null) return undefined
-								const receiptWire = await getTransactionReceiptForRpcUrl({
-									...jsonRpcTransport,
-									txHash: entitySelector.$transaction.txHash,
-								})
-								const receipt = receiptWire == null ? null : getRpcReceipt(receiptWire)
-								return nonNegativeBigIntFromHex(receipt?.blockNumber)
-							})()
-							const blockNumber = transactionBlockNumber ?? receiptBlockNumber
-							if (blockNumber == null) throw new Error('Voltaire_JsonRpc: blob transaction missing block')
 							return {
 								[EntityMetaKey.Selector]: entitySelector,
 								versionedHash: versionedHash as `0x01${string}`,
 								$transaction: {
 									[EntityMetaKey.Selector]: {
-									$network: evmNetworkIdFromChainId(chainId),
+										$network: evmNetworkIdFromChainId(chainId),
 										txHash: entitySelector.$transaction.txHash,
 									},
 								} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
-								$block: {
-									[EntityMetaKey.Selector]: {
-										$network: evmNetworkIdFromChainId(chainId),
-										blockNumber,
-									},
-								} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 							}
 						}
 					},
 				})({
 					indexInTransaction: (entity) => entity[EntityMetaKey.Selector].indexInTransaction,
 					versionedHash: (entity) => entity.versionedHash,
-						$transaction: (entity) => ({
-							[EntityMetaKey.Selector]: entity.$transaction[EntityMetaKey.Selector],
-						}),
-						$block: (entity) => ({
-							[EntityMetaKey.Selector]: entity.$block[EntityMetaKey.Selector],
-						}),
+					$transaction: (entity) => ({
+						[EntityMetaKey.Selector]: entity.$transaction[EntityMetaKey.Selector],
+					}),
 					}),
 
 			defineResolver(Source.Voltaire_JsonRpc, {
@@ -1303,10 +1279,14 @@ export default {
 				gasUsed: (entity) => entity.gasUsed,
 				cumulativeGasUsed: (entity) => entity.cumulativeGasUsed,
 				effectiveGasPrice: (entity) => entity.effectiveGasPrice,
-				maxFeePerGas: (entity) => entity.maxFeePerGas,
-				maxPriorityFeePerGas: (entity) => entity.maxPriorityFeePerGas,
-				blobGasUsed: (entity) => entity.blobGasUsed,
-				maxFeePerBlobGas: (entity) => entity.maxFeePerBlobGas,
+				FeeMarket: {
+					maxFeePerGas: (entity) => entity.maxFeePerGas,
+					maxPriorityFeePerGas: (entity) => entity.maxPriorityFeePerGas,
+				},
+				Blob: {
+					blobGasUsed: (entity) => entity.blobGasUsed,
+					maxFeePerBlobGas: (entity) => entity.maxFeePerBlobGas,
+				},
 				$$logs: (entity) => entity.$$logs.map((log) => ({
 					[EntityMetaKey.Selector]: log[EntityMetaKey.Selector],
 				})),
@@ -1372,6 +1352,9 @@ export default {
 			},
 			resolveLive: {
 				blockStream: {
+					facetPath: [
+						'Evm',
+					],
 					publishes: {
 						'$$timestamps': true,
 						'$$blocks': true,
@@ -1863,7 +1846,9 @@ export default {
 				}
 			},
 		})({
-				$$blobs: (entity) => entity,
+				Blob: {
+					$$blobs: (entity) => entity,
+				},
 			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {

@@ -9,8 +9,10 @@ export enum DogecoinAuxPowParentBlockHeaderSelector {
 }
 export const DogecoinAuxPowParentBlockHeader = entity({
 	entityType: EntityType.DogecoinAuxPowParentBlockHeader,
-	label: 'dogecoin aux pow parent block header',
-	labelPlural: 'dogecoin aux pow parent block headers',
+	labels: {
+		singular: 'dogecoin aux pow parent block header',
+		plural: 'dogecoin aux pow parent block headers',
+	},
 })({
 	$auxPow: {
 		label: 'AuxPoW',

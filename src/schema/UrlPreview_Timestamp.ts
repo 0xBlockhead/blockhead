@@ -10,8 +10,10 @@ export enum UrlPreview_TimestampSelector {
 }
 export const UrlPreview_Timestamp = entity({
 	entityType: EntityType.UrlPreview_Timestamp,
-	label: 'URL preview timestamp',
-	labelPlural: 'URL preview observations',
+	labels: {
+		singular: 'URL preview timestamp',
+		plural: 'URL preview observations',
+	},
 })({
 	$url: {
 		label: 'URL',
@@ -24,7 +26,7 @@ export const UrlPreview_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

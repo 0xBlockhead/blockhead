@@ -9,8 +9,10 @@ export enum BlockheadAgentConversationSelector {
 }
 export const BlockheadAgentConversation = entity({
 	entityType: EntityType.BlockheadAgentConversation,
-	label: 'agent conversation',
-	labelPlural: 'agent conversations',
+	labels: {
+		singular: 'agent conversation',
+		plural: 'agent conversations',
+	},
 })({
 	id: {
 		label: 'ID',

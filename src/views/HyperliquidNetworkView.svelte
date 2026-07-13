@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -49,8 +49,18 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
+	import HyperliquidBlocksView from '$/views/HyperliquidBlocksView.svelte'
+	import HyperliquidTransactionsView from '$/views/HyperliquidTransactionsView.svelte'
+	import HyperliquidValidatorsView from '$/views/HyperliquidValidatorsView.svelte'
+	import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
+	import HyperliquidSpotPairsView from '$/views/HyperliquidSpotPairsView.svelte'
+	import HyperliquidPerpMarketsView from '$/views/HyperliquidPerpMarketsView.svelte'
+	import HyperliquidVaultsView from '$/views/HyperliquidVaultsView.svelte'
 </script>
 
 
@@ -67,12 +77,47 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={hyperliquidNetwork}>
 			{#snippet Pending()}
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={hyperliquidNetwork}>
+			{#snippet Pending()}
 				{title || 'hyperliquid network'}
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
+				{titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -85,22 +130,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -109,5 +142,192 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hyperliquid-chain-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hyperliquid-chain-observations',
+							label: 'Observations',
+						},
+						{
+							id: 'hyperliquid-chain-blocks',
+							label: 'Blocks',
+						},
+						{
+							id: 'hyperliquid-chain-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-chain-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Chain activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHyperliquidChainObservations({ id, label, open })}
+					<HyperliquidNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hyperliquid network observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHyperliquidChainBlocks({ id, label, open })}
+					<HyperliquidBlocksView
+						selection={selection.$$blocks}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hyperliquid blocks.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHyperliquidChainTransactions({ id, label, open })}
+					<HyperliquidTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hyperliquid transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hyperliquid-validators'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hyperliquid-validator-list',
+							label: 'Validators',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-validators'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Validators</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHyperliquidValidatorList({ id, label, open })}
+					<HyperliquidValidatorsView
+						selection={selection.$$validators}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hyperliquid validators.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hyperliquid-markets'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hyperliquid-spot-assets',
+							label: 'Spot assets',
+						},
+						{
+							id: 'hyperliquid-spot-pairs',
+							label: 'Spot pairs',
+						},
+						{
+							id: 'hyperliquid-perp-markets',
+							label: 'Perp markets',
+						},
+						{
+							id: 'hyperliquid-vaults',
+							label: 'Vaults',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-markets'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Markets</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHyperliquidSpotAssets({ id, label, open })}
+					<HyperliquidSpotAssetsView
+						selection={selection.$$spotAssets}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hyperliquid spot assets.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHyperliquidSpotPairs({ id, label, open })}
+					<HyperliquidSpotPairsView
+						selection={selection.$$spotPairs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hyperliquid spot pairs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHyperliquidPerpMarkets({ id, label, open })}
+					<HyperliquidPerpMarketsView
+						selection={selection.$$perpMarkets}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hyperliquid perp markets.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHyperliquidVaults({ id, label, open })}
+					<HyperliquidVaultsView
+						selection={selection.$$vaults}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hyperliquid vaults.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

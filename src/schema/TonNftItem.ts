@@ -10,8 +10,10 @@ export enum TonNftItemSelector {
 }
 export const TonNftItem = entity({
 	entityType: EntityType.TonNftItem,
-	label: 'ton NFT item',
-	labelPlural: 'ton NFT items',
+	labels: {
+		singular: 'ton NFT item',
+		plural: 'ton NFT items',
+	},
 })({
 	$network: {
 		label: 'network',

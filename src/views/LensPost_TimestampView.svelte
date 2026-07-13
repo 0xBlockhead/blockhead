@@ -66,9 +66,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$post !== undefined && pendingEntity.$post.id !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(lens)/lens/post/[postId]/(post)/observations/[timestampMs=nonNegativeInteger]', {
-			postId: String(pendingEntity.$post.id ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$post !== undefined && pendingEntity.$post.id !== undefined ? resolve('/lens/post/[postId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			postId: String(pendingEntity.$post.id ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -99,7 +99,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensPostTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -143,7 +143,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -172,7 +172,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commentCount = prefetched.commentCount}
+					{@const commentCount = pendingEntity.commentCount}
 					{#if commentCount !== undefined && commentCount !== null}
 						<div>
 							<dt>Comments</dt>
@@ -209,7 +209,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const repostCount = prefetched.repostCount}
+					{@const repostCount = pendingEntity.repostCount}
 					{#if repostCount !== undefined && repostCount !== null}
 						<div>
 							<dt>Reposts</dt>
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quoteCount = prefetched.quoteCount}
+					{@const quoteCount = pendingEntity.quoteCount}
 					{#if quoteCount !== undefined && quoteCount !== null}
 						<div>
 							<dt>Quotes</dt>
@@ -283,7 +283,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bookmarkCount = prefetched.bookmarkCount}
+					{@const bookmarkCount = pendingEntity.bookmarkCount}
 					{#if bookmarkCount !== undefined && bookmarkCount !== null}
 						<div>
 							<dt>Bookmarks</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const collectCount = prefetched.collectCount}
+					{@const collectCount = pendingEntity.collectCount}
 					{#if collectCount !== undefined && collectCount !== null}
 						<div>
 							<dt>Collects</dt>
@@ -357,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reactionCount = prefetched.reactionCount}
+					{@const reactionCount = pendingEntity.reactionCount}
 					{#if reactionCount !== undefined && reactionCount !== null}
 						<div>
 							<dt>Reactions</dt>

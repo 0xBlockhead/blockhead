@@ -9,8 +9,10 @@ export enum IcpCanisterMethodSelector {
 }
 export const IcpCanisterMethod = entity({
 	entityType: EntityType.IcpCanisterMethod,
-	label: 'icp canister method',
-	labelPlural: 'icp canister methods',
+	labels: {
+		singular: 'icp canister method',
+		plural: 'icp canister methods',
+	},
 })({
 	$canister: {
 		label: 'canister',

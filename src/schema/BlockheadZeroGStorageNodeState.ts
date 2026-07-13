@@ -11,8 +11,10 @@ export enum BlockheadZeroGStorageNodeStateSelector {
 }
 export const BlockheadZeroGStorageNodeState = entity({
 	entityType: EntityType.BlockheadZeroGStorageNodeState,
-	label: 'blockhead zero g storage node state',
-	labelPlural: 'blockhead zero g storage node states',
+	labels: {
+		singular: 'blockhead zero g storage node state',
+		plural: 'blockhead zero g storage node states',
+	},
 })({
 	connectionId: {
 		label: 'connection ID',

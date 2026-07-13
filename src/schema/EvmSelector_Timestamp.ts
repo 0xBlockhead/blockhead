@@ -9,8 +9,10 @@ export enum EvmSelector_TimestampSelector {
 }
 export const EvmSelector_Timestamp = entity({
 	entityType: EntityType.EvmSelector_Timestamp,
-	label: 'EVM selector observation',
-	labelPlural: 'EVM selector observations',
+	labels: {
+		singular: 'EVM selector observation',
+		plural: 'EVM selector observations',
+	},
 })({
 	$selector: {
 		label: 'Selector',
@@ -22,7 +24,7 @@ export const EvmSelector_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

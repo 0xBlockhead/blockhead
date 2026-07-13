@@ -54,7 +54,7 @@
 			messageHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.nonce ?? prefetched.nonce) ?? '')].filter(Boolean).join(' ') || 'CCTP message')
+	const titleFallback = $derived([String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || 'CCTP message')
 	const viewDomId = $derived('cctp-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cctpMessage}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.nonce ?? prefetched.nonce) ?? '')].filter(Boolean).join(' ') || title || 'CCTP message'}
+				{[String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || 'CCTP message'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cctpMessage}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.sourceDomain ?? prefetched.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.nonce ?? prefetched.nonce) ?? '')].filter(Boolean).join(' ') || title || 'CCTP message'}
+				{[String((pendingEntity.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || 'CCTP message'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +106,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cctpMessage}>
 			{#snippet Pending()}
-				{@const messageHash0 = prefetched.messageHash}
+				{@const messageHash0 = pendingEntity.messageHash}
 				{#if messageHash0 !== undefined && messageHash0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((messageHash0) ?? '')} />
@@ -141,7 +141,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sourceDomain = selection.entitySelector.sourceDomain ?? prefetched.sourceDomain}
+							{@const sourceDomain = pendingEntity.sourceDomain}
 							{#if sourceDomain !== undefined && sourceDomain !== null}
 								{String((sourceDomain) ?? '')}
 							{/if}
@@ -171,7 +171,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nonce = selection.entitySelector.nonce ?? prefetched.nonce}
+							{@const nonce = pendingEntity.nonce}
 							{#if nonce !== undefined && nonce !== null}
 								{String((nonce) ?? '')}
 							{/if}
@@ -198,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cctpVersion = prefetched.cctpVersion}
+					{@const cctpVersion = pendingEntity.cctpVersion}
 					{#if cctpVersion !== undefined && cctpVersion !== null}
 						<div>
 							<dt>CCTP version</dt>
@@ -233,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const messageHash = prefetched.messageHash}
+					{@const messageHash = pendingEntity.messageHash}
 					{#if messageHash !== undefined && messageHash !== null}
 						<div>
 							<dt>Message hash</dt>
@@ -268,7 +268,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const messageBytes = prefetched.messageBytes}
+					{@const messageBytes = pendingEntity.messageBytes}
 					{#if messageBytes !== undefined && messageBytes !== null}
 						<div>
 							<dt>Message bytes</dt>
@@ -305,7 +305,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceTransactionHash = prefetched.sourceTransactionHash}
+					{@const sourceTransactionHash = pendingEntity.sourceTransactionHash}
 					{#if sourceTransactionHash !== undefined && sourceTransactionHash !== null}
 						<div>
 							<dt>Source transaction hash</dt>
@@ -340,7 +340,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceLogIndex = prefetched.sourceLogIndex}
+					{@const sourceLogIndex = pendingEntity.sourceLogIndex}
 					{#if sourceLogIndex !== undefined && sourceLogIndex !== null}
 						<div>
 							<dt>Source log index</dt>
@@ -368,6 +368,8 @@
 			<ResourceBoundary
 				resource={selection.$sourceDomain}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cctpDomainSupport)}
 					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
 						<div>
@@ -388,6 +390,8 @@
 			<ResourceBoundary
 				resource={selection.$destinationDomain}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cctpDomainSupport)}
 					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
 						<div>
@@ -415,7 +419,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const destinationDomain = prefetched.destinationDomain}
+					{@const destinationDomain = pendingEntity.destinationDomain}
 					{#if destinationDomain !== undefined && destinationDomain !== null}
 						<div>
 							<dt>Destination domain</dt>
@@ -452,7 +456,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sender = prefetched.sender}
+					{@const sender = pendingEntity.sender}
 					{#if sender !== undefined && sender !== null}
 						<div>
 							<dt>Sender</dt>
@@ -487,7 +491,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const recipient = prefetched.recipient}
+					{@const recipient = pendingEntity.recipient}
 					{#if recipient !== undefined && recipient !== null}
 						<div>
 							<dt>Recipient</dt>
@@ -522,7 +526,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const destinationCaller = prefetched.destinationCaller}
+					{@const destinationCaller = pendingEntity.destinationCaller}
 					{#if destinationCaller !== undefined && destinationCaller !== null}
 						<div>
 							<dt>Destination caller</dt>
@@ -557,7 +561,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const burnToken = prefetched.burnToken}
+					{@const burnToken = pendingEntity.burnToken}
 					{#if burnToken !== undefined && burnToken !== null}
 						<div>
 							<dt>Burn token</dt>
@@ -592,7 +596,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mintRecipient = prefetched.mintRecipient}
+					{@const mintRecipient = pendingEntity.mintRecipient}
 					{#if mintRecipient !== undefined && mintRecipient !== null}
 						<div>
 							<dt>Mint recipient</dt>
@@ -629,7 +633,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>Amount</dt>
@@ -664,7 +668,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const messageSender = prefetched.messageSender}
+					{@const messageSender = pendingEntity.messageSender}
 					{#if messageSender !== undefined && messageSender !== null}
 						<div>
 							<dt>Message sender</dt>
@@ -699,7 +703,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxFee = prefetched.maxFee}
+					{@const maxFee = pendingEntity.maxFee}
 					{#if maxFee !== undefined && maxFee !== null}
 						<div>
 							<dt>Max fee</dt>
@@ -734,7 +738,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeExecuted = prefetched.feeExecuted}
+					{@const feeExecuted = pendingEntity.feeExecuted}
 					{#if feeExecuted !== undefined && feeExecuted !== null}
 						<div>
 							<dt>Fee executed</dt>
@@ -769,7 +773,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expirationBlock = prefetched.expirationBlock}
+					{@const expirationBlock = pendingEntity.expirationBlock}
 					{#if expirationBlock !== undefined && expirationBlock !== null}
 						<div>
 							<dt>Expiration block</dt>
@@ -806,7 +810,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hookData = prefetched.hookData}
+					{@const hookData = pendingEntity.hookData}
 					{#if hookData !== undefined && hookData !== null}
 						<div>
 							<dt>Hook data</dt>
@@ -841,7 +845,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minFinalityThreshold = prefetched.minFinalityThreshold}
+					{@const minFinalityThreshold = pendingEntity.minFinalityThreshold}
 					{#if minFinalityThreshold !== undefined && minFinalityThreshold !== null}
 						<div>
 							<dt>Minimum finality threshold</dt>
@@ -876,7 +880,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const finalityThresholdExecuted = prefetched.finalityThresholdExecuted}
+					{@const finalityThresholdExecuted = pendingEntity.finalityThresholdExecuted}
 					{#if finalityThresholdExecuted !== undefined && finalityThresholdExecuted !== null}
 						<div>
 							<dt>Finality threshold executed</dt>

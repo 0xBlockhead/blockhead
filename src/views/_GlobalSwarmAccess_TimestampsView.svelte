@@ -119,7 +119,7 @@
 						selection={select(EntityType._GlobalSwarmAccess_Timestamp, globalSwarmAccessTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalSwarmAccessTimestampFields}
 						href={
-							(globalSwarmAccessTimestampHrefFields.timestampMs !== undefined && globalSwarmAccessTimestampHrefFields.source !== undefined ? resolve('/(explore)/(swarm)/swarm/access/observations/[timestampMs=nonNegativeInteger]/[source]', {
+							(globalSwarmAccessTimestampHrefFields.timestampMs !== undefined && globalSwarmAccessTimestampHrefFields.source !== undefined ? resolve('/swarm/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(globalSwarmAccessTimestampHrefFields.timestampMs ?? ''),
 								source: String(globalSwarmAccessTimestampHrefFields.source ?? ''),
 							}) : undefined)

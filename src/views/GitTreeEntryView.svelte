@@ -48,7 +48,7 @@
 			mode: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.path ?? prefetched.path) ?? '')].filter(Boolean).join(' ') || 'Git tree entry')
+	const titleFallback = $derived([String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || 'Git tree entry')
 	const viewDomId = $derived('git-tree-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitTreeEntry}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.path ?? prefetched.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree entry'}
+				{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree entry'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitTreeEntry}>
 			{#snippet Pending()}
-				{[String((prefetched.objectKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.path ?? prefetched.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree entry'}
+				{[String((pendingEntity.objectKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree entry'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,7 +99,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitTreeEntry}>
 			{#snippet Pending()}
-				{@const mode0 = prefetched.mode}
+				{@const mode0 = pendingEntity.mode}
 				{#if mode0 !== undefined && mode0 !== null}
 					<span data-text="muted">
 						{String((mode0) ?? '')}
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const path = selection.entitySelector.path ?? prefetched.path}
+							{@const path = pendingEntity.path}
 							{#if path !== undefined && path !== null}
 								{String((path) ?? '')}
 							{/if}
@@ -175,7 +175,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const mode = prefetched.mode}
+							{@const mode = pendingEntity.mode}
 							{#if mode !== undefined && mode !== null}
 								{String((mode) ?? '')}
 							{/if}
@@ -205,7 +205,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectId = prefetched.objectId}
+							{@const objectId = pendingEntity.objectId}
 							{#if objectId !== undefined && objectId !== null}
 								<TruncatedValue value={String((objectId) ?? '')} />
 							{/if}
@@ -235,7 +235,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectKind = prefetched.objectKind}
+							{@const objectKind = pendingEntity.objectKind}
 							{#if objectKind !== undefined && objectKind !== null}
 								{String((objectKind) ?? '')}
 							{/if}
@@ -255,6 +255,8 @@
 			<ResourceBoundary
 				resource={selection.$object}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>

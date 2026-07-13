@@ -11,8 +11,10 @@ export enum GitRepositorySelector {
 }
 export const GitRepository = entity({
 	entityType: EntityType.GitRepository,
-	label: 'Git repository',
-	labelPlural: 'Git repositories',
+	labels: {
+		singular: 'Git repository',
+		plural: 'Git repositories',
+	},
 })({
 	repositoryId: {
 		label: 'repository ID',

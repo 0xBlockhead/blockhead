@@ -47,9 +47,15 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import XrplNetworkView from '$/views/XrplNetworkView.svelte'
+	import XrplLedgerEntriesView from '$/views/XrplLedgerEntriesView.svelte'
+	import XrplTransactionsView from '$/views/XrplTransactionsView.svelte'
+	import XrplTrustlinesView from '$/views/XrplTrustlinesView.svelte'
+	import XrplAccount_TimestampsView from '$/views/XrplAccount_TimestampsView.svelte'
 </script>
 
 
@@ -102,7 +108,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const account = selection.entitySelector.account ?? prefetched.account}
+							{@const account = pendingEntity.account}
 							{#if account !== undefined && account !== null}
 								<TruncatedValue value={String((account) ?? '')} />
 							{/if}
@@ -119,5 +125,111 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-xrpl-account-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'xrpl-account-ledger-entries',
+							label: 'Ledger Entries',
+						},
+						{
+							id: 'xrpl-account-transactions',
+							label: 'Transactions',
+						},
+						{
+							id: 'xrpl-account-trustlines',
+							label: 'Trustlines',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionXrplAccountLedgerEntries({ id, label, open })}
+					<XrplLedgerEntriesView
+						selection={selection.$$ledgerEntries}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ledger entries.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionXrplAccountTransactions({ id, label, open })}
+					<XrplTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionXrplAccountTrustlines({ id, label, open })}
+					<XrplTrustlinesView
+						selection={selection.$$trustlines}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No trustlines.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-xrpl-account-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'xrpl-account-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionXrplAccountTimestamps({ id, label, open })}
+					<XrplAccount_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

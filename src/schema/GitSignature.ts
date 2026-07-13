@@ -11,8 +11,10 @@ export enum GitSignatureSelector {
 }
 export const GitSignature = entity({
 	entityType: EntityType.GitSignature,
-	label: 'Git signature',
-	labelPlural: 'Git signatures',
+	labels: {
+		singular: 'Git signature',
+		plural: 'Git signatures',
+	},
 })({
 	signatureId: {
 		label: 'signature ID',

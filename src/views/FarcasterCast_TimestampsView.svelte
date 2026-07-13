@@ -118,10 +118,10 @@
 						selection={select(EntityType.FarcasterCast_Timestamp, farcasterCastTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={farcasterCastTimestampFields}
 						href={
-							(farcasterCastTimestampHrefFields.$cast !== undefined && farcasterCastTimestampHrefFields.$cast.fid !== undefined && farcasterCastTimestampHrefFields.$cast !== undefined && farcasterCastTimestampHrefFields.$cast.hash !== undefined && farcasterCastTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]/observations/[timestampMs=nonNegativeInteger]', {
+							(farcasterCastTimestampHrefFields.timestampMs !== undefined && farcasterCastTimestampHrefFields.$cast !== undefined && farcasterCastTimestampHrefFields.$cast.fid !== undefined && farcasterCastTimestampHrefFields.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]', {
+								timestampMs: String(farcasterCastTimestampHrefFields.timestampMs ?? ''),
 								fid: String(farcasterCastTimestampHrefFields.$cast.fid ?? ''),
 								hash: String(farcasterCastTimestampHrefFields.$cast.hash ?? ''),
-								timestampMs: String(farcasterCastTimestampHrefFields.timestampMs ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

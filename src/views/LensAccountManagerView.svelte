@@ -47,7 +47,7 @@
 			isLensManager: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.manager ?? prefetched.manager) ?? '')].filter(Boolean).join(' ') || 'Lens account manager')
+	const titleFallback = $derived([String((pendingEntity.manager) ?? '')].filter(Boolean).join(' ') || 'Lens account manager')
 	const viewDomId = $derived('lens-account-manager-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensAccountManager}>
 			{#snippet Pending()}
-				{@const manager0 = selection.entitySelector.manager ?? prefetched.manager}
+				{@const manager0 = pendingEntity.manager}
 				{#if manager0 !== undefined && manager0 !== null}
 					<TruncatedValue value={String((manager0) ?? '')} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensAccountManager}>
 			{#snippet Pending()}
-				{@const manager0 = selection.entitySelector.manager ?? prefetched.manager}
+				{@const manager0 = pendingEntity.manager}
 				{#if manager0 !== undefined && manager0 !== null}
 					<TruncatedValue value={String((manager0) ?? '')} />
 				{/if}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensAccountManager}>
 			{#snippet Pending()}
-				{@const isLensManager0 = prefetched.isLensManager}
+				{@const isLensManager0 = pendingEntity.isLensManager}
 				{#if isLensManager0 !== undefined && isLensManager0 !== null}
 					<span data-text="muted">
 						{isLensManager0 ? 'Yes' : 'No'}
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const manager = selection.entitySelector.manager ?? prefetched.manager}
+							{@const manager = pendingEntity.manager}
 							{#if manager !== undefined && manager !== null}
 								<TruncatedValue value={String((manager) ?? '')} />
 							{/if}
@@ -172,7 +172,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const addedAt = prefetched.addedAt}
+					{@const addedAt = pendingEntity.addedAt}
 					{#if addedAt !== undefined && addedAt !== null}
 						<div>
 							<dt>Added at</dt>
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isLensManager = prefetched.isLensManager}
+					{@const isLensManager = pendingEntity.isLensManager}
 					{#if isLensManager !== undefined && isLensManager !== null}
 						<div>
 							<dt>Is Lens manager</dt>
@@ -244,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canExecuteTransactions = prefetched.canExecuteTransactions}
+					{@const canExecuteTransactions = pendingEntity.canExecuteTransactions}
 					{#if canExecuteTransactions !== undefined && canExecuteTransactions !== null}
 						<div>
 							<dt>Can execute transactions</dt>
@@ -279,7 +279,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canSetMetadataUri = prefetched.canSetMetadataUri}
+					{@const canSetMetadataUri = pendingEntity.canSetMetadataUri}
 					{#if canSetMetadataUri !== undefined && canSetMetadataUri !== null}
 						<div>
 							<dt>Can set metadata URI</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canTransferNative = prefetched.canTransferNative}
+					{@const canTransferNative = pendingEntity.canTransferNative}
 					{#if canTransferNative !== undefined && canTransferNative !== null}
 						<div>
 							<dt>Can transfer native</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canTransferTokens = prefetched.canTransferTokens}
+					{@const canTransferTokens = pendingEntity.canTransferTokens}
 					{#if canTransferTokens !== undefined && canTransferTokens !== null}
 						<div>
 							<dt>Can transfer tokens</dt>

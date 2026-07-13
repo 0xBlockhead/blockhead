@@ -75,7 +75,7 @@ export const seededMarketsWithCoinAsQuoteByQuoteCoinId = Object.fromEntries(
 	].map((quoteCoinId) => [
 		quoteCoinId,
 		seededSpotMarketsWithCoinAsQuote
-				.filter((catalogRow) => catalogRow.quoteCoinId === quoteCoinId),
+			.filter((catalogRow) => catalogRow.quoteCoinId === quoteCoinId),
 	])
 )
 

@@ -9,8 +9,10 @@ export enum TonShard_TimestampSelector {
 }
 export const TonShard_Timestamp = entity({
 	entityType: EntityType.TonShard_Timestamp,
-	label: 'ton shard timestamp',
-	labelPlural: 'ton shard observations',
+	labels: {
+		singular: 'ton shard timestamp',
+		plural: 'ton shard observations',
+	},
 })({
 	$workchain: {
 		label: 'workchain',

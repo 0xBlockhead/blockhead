@@ -47,11 +47,17 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TezosNetworkView from '$/views/TezosNetworkView.svelte'
 	import TezosAccountView from '$/views/TezosAccountView.svelte'
 	import TezosMichelsonScriptView from '$/views/TezosMichelsonScriptView.svelte'
+	import TezosEntrypointsView from '$/views/TezosEntrypointsView.svelte'
+	import TezosBigMapsView from '$/views/TezosBigMapsView.svelte'
+	import TezosOperationsView from '$/views/TezosOperationsView.svelte'
+	import TezosContract_TimestampsView from '$/views/TezosContract_TimestampsView.svelte'
 </script>
 
 
@@ -104,7 +110,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -131,7 +137,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const scriptHash = prefetched.scriptHash}
+					{@const scriptHash = pendingEntity.scriptHash}
 					{#if scriptHash !== undefined && scriptHash !== null}
 						<div>
 							<dt>script hash</dt>
@@ -166,7 +172,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const codeHash = prefetched.codeHash}
+					{@const codeHash = pendingEntity.codeHash}
 					{#if codeHash !== undefined && codeHash !== null}
 						<div>
 							<dt>code hash</dt>
@@ -194,6 +200,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null && tezosAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -214,6 +222,8 @@
 			<ResourceBoundary
 				resource={selection.$script}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosMichelsonScript)}
 					{#if tezosMichelsonScript != null && tezosMichelsonScript[EntityMetaKey.Selector] != null}
 						<div>
@@ -231,5 +241,111 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tezos-contract-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tezos-contract-entrypoints',
+							label: 'Entrypoints',
+						},
+						{
+							id: 'tezos-contract-big-maps',
+							label: 'Big Maps',
+						},
+						{
+							id: 'tezos-contract-operations',
+							label: 'Operations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTezosContractEntrypoints({ id, label, open })}
+					<TezosEntrypointsView
+						selection={selection.$$entrypoints}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No entrypoints.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTezosContractBigMaps({ id, label, open })}
+					<TezosBigMapsView
+						selection={selection.$$bigMaps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No big maps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTezosContractOperations({ id, label, open })}
+					<TezosOperationsView
+						selection={selection.$$operations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No operations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tezos-contract-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tezos-contract-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTezosContractTimestamps({ id, label, open })}
+					<TezosContract_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

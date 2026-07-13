@@ -9,8 +9,10 @@ export enum CosmosAccount_TimestampSelector {
 }
 export const CosmosAccount_Timestamp = entity({
 	entityType: EntityType.CosmosAccount_Timestamp,
-	label: 'Cosmos account timestamp',
-	labelPlural: 'Cosmos account observations',
+	labels: {
+		singular: 'Cosmos account timestamp',
+		plural: 'Cosmos account observations',
+	},
 })({
 	$account: {
 		label: 'Account',
@@ -22,7 +24,7 @@ export const CosmosAccount_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

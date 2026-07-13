@@ -121,8 +121,8 @@
 						selection={select(EntityType.MevRelay_Timestamp, mevRelayTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mevRelayTimestampFields}
 						href={
-							(mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2 !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2.namespace !== undefined && mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2 !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2.reference !== undefined && mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.host !== undefined && mevRelayTimestampHrefFields.timestampMs !== undefined && mevRelayTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(mevRelayTimestampHrefFields.$relay.$network.caip2.namespace ?? '')}:${String(mevRelayTimestampHrefFields.$relay.$network.caip2.reference ?? '')}`,
+							(mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.slug !== undefined && mevRelayTimestampHrefFields.$relay.host !== undefined && mevRelayTimestampHrefFields.timestampMs !== undefined && mevRelayTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								network: String(mevRelayTimestampHrefFields.$relay.$network.slug ?? ''),
 								host: String(mevRelayTimestampHrefFields.$relay.host ?? ''),
 								timestampMs: String(mevRelayTimestampHrefFields.timestampMs ?? ''),
 								source: String(mevRelayTimestampHrefFields.source ?? ''),

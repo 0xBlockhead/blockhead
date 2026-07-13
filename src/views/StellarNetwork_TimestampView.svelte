@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestLedger = prefetched.latestLedger}
+					{@const latestLedger = pendingEntity.latestLedger}
 					{#if latestLedger !== undefined && latestLedger !== null}
 						<div>
 							<dt>latest ledger</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseFee = prefetched.baseFee}
+					{@const baseFee = pendingEntity.baseFee}
 					{#if baseFee !== undefined && baseFee !== null}
 						<div>
 							<dt>base fee</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseReserve = prefetched.baseReserve}
+					{@const baseReserve = pendingEntity.baseReserve}
 					{#if baseReserve !== undefined && baseReserve !== null}
 						<div>
 							<dt>base reserve</dt>

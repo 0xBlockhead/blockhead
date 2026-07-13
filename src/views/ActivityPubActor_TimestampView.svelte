@@ -66,10 +66,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$actor !== undefined && pendingEntity.$actor.instanceOrigin !== undefined && pendingEntity.$actor !== undefined && pendingEntity.$actor.localAccountId !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/(actor)/observations/[timestampMs=nonNegativeInteger]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$actor !== undefined && pendingEntity.$actor.instanceOrigin !== undefined && pendingEntity.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			instanceOrigin: String(pendingEntity.$actor.instanceOrigin ?? ''),
 			localAccountId: String(pendingEntity.$actor.localAccountId ?? ''),
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -82,7 +82,7 @@
 				<ActivityPubActorView
 					selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
 					href={
-						(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+						(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
 							instanceOrigin: String(selection.entitySelector.$actor.instanceOrigin ?? ''),
 							localAccountId: String(selection.entitySelector.$actor.localAccountId ?? ''),
 						}) : undefined)
@@ -97,7 +97,7 @@
 				<ActivityPubActorView
 					selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
 					href={
-						(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+						(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
 							instanceOrigin: String(selection.entitySelector.$actor.instanceOrigin ?? ''),
 							localAccountId: String(selection.entitySelector.$actor.localAccountId ?? ''),
 						}) : undefined)
@@ -112,7 +112,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubActorTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -136,7 +136,7 @@
 					<ActivityPubActorView
 						selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor, {})}
 						href={
-							(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+							(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
 								instanceOrigin: String(selection.entitySelector.$actor.instanceOrigin ?? ''),
 								localAccountId: String(selection.entitySelector.$actor.localAccountId ?? ''),
 							}) : undefined)
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followersCount = prefetched.followersCount}
+					{@const followersCount = pendingEntity.followersCount}
 					{#if followersCount !== undefined && followersCount !== null}
 						<div>
 							<dt>Followers</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followingCount = prefetched.followingCount}
+					{@const followingCount = pendingEntity.followingCount}
 					{#if followingCount !== undefined && followingCount !== null}
 						<div>
 							<dt>Following</dt>
@@ -265,7 +265,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const statusesCount = prefetched.statusesCount}
+					{@const statusesCount = pendingEntity.statusesCount}
 					{#if statusesCount !== undefined && statusesCount !== null}
 						<div>
 							<dt>Statuses</dt>

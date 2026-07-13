@@ -97,7 +97,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetAccountTimestamp}>
 			{#snippet Pending()}
-				{@const blockNumber0 = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
+				{@const blockNumber0 = pendingEntity.blockNumber}
 				{#if blockNumber0 !== undefined && blockNumber0 !== null}
 					<NumberValue value={Number(blockNumber0)} />
 				{/if}
@@ -116,7 +116,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={starknetAccountTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockNumber = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
+							{@const blockNumber = pendingEntity.blockNumber}
 							{#if blockNumber !== undefined && blockNumber !== null}
 								<NumberValue value={Number(blockNumber)} />
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nonce = prefetched.nonce}
+					{@const nonce = pendingEntity.nonce}
 					{#if nonce !== undefined && nonce !== null}
 						<div>
 							<dt>nonce</dt>
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const classHash = prefetched.classHash}
+					{@const classHash = pendingEntity.classHash}
 					{#if classHash !== undefined && classHash !== null}
 						<div>
 							<dt>class hash</dt>
@@ -289,7 +289,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const found = prefetched.found}
+					{@const found = pendingEntity.found}
 					{#if found !== undefined && found !== null}
 						<div>
 							<dt>found</dt>

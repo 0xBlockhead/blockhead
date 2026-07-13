@@ -10,8 +10,10 @@ export enum PolkadotAccount_TimestampSelector {
 }
 export const PolkadotAccount_Timestamp = entity({
 	entityType: EntityType.PolkadotAccount_Timestamp,
-	label: 'Polkadot account timestamp',
-	labelPlural: 'Polkadot account observations',
+	labels: {
+		singular: 'Polkadot account timestamp',
+		plural: 'Polkadot account observations',
+	},
 })({
 	$account: {
 		label: 'Account',
@@ -23,7 +25,7 @@ export const PolkadotAccount_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

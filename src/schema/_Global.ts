@@ -2,6 +2,7 @@
 
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum _GlobalSelector {
@@ -9,8 +10,10 @@ export enum _GlobalSelector {
 }
 export const _Global = entity({
 	entityType: EntityType._Global,
-	label: 'global',
-	labelPlural: 'globals',
+	labels: {
+		singular: 'global',
+		plural: 'globals',
+	},
 	description: 'Root catalog and navigation scope for top-level networks, assets, markets, proposals, and local Blockhead state.',
 })({
 	scope: {
@@ -73,6 +76,9 @@ export const _Global = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$marketVenues: {
 		label: 'market venues',
@@ -164,10 +170,22 @@ export const _Global = entity({
 		entityType: EntityType.BlockheadSession,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$blockheadWorkspaces: {
+		label: 'blockhead workspaces',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.BlockheadWorkspace,
+		cardinality: EntityFieldCardinality.Many,
+	},
 	$$blockheadPanelTrees: {
 		label: 'blockhead panel trees',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BlockheadPanelTree,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$blockheadLocalMediaIngests: {
+		label: 'blockhead local media ingests',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.BlockheadLocalMediaIngest,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$blockheadFarcasterAccountConnections: {

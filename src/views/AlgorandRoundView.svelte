@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const round = selection.entitySelector.round ?? prefetched.round}
+							{@const round = pendingEntity.round}
 							{#if round !== undefined && round !== null}
 								{String((round) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hash = prefetched.hash}
+					{@const hash = pendingEntity.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>
@@ -168,7 +168,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -203,7 +203,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const genesisHash = prefetched.genesisHash}
+					{@const genesisHash = pendingEntity.genesisHash}
 					{#if genesisHash !== undefined && genesisHash !== null}
 						<div>
 							<dt>genesis hash</dt>
@@ -238,7 +238,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proposer = prefetched.proposer}
+					{@const proposer = pendingEntity.proposer}
 					{#if proposer !== undefined && proposer !== null}
 						<div>
 							<dt>proposer</dt>

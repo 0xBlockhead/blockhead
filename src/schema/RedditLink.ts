@@ -10,8 +10,10 @@ export enum RedditLinkSelector {
 }
 export const RedditLink = entity({
 	entityType: EntityType.RedditLink,
-	label: 'Reddit submission',
-	labelPlural: 'Reddit submissions',
+	labels: {
+		singular: 'Reddit submission',
+		plural: 'Reddit submissions',
+	},
 })({
 	fullname: {
 		label: 'Fullname',

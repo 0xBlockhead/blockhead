@@ -56,19 +56,21 @@
 			$parent: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.name ?? prefetched.name) ?? '')].filter(Boolean).join(' ') || 'ENS name')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'ENS name')
 	const viewDomId = $derived('ens-name-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EnsNamesView from '$/views/EnsNamesView.svelte'
-	import EnsRecordsView from '$/views/EnsRecordsView.svelte'
-	import EnsName_TimestampsView from '$/views/EnsName_TimestampsView.svelte'
 	import EnsNameView from '$/views/EnsNameView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import EnsNamesView from '$/views/EnsNamesView.svelte'
+	import EnsRecordsView from '$/views/EnsRecordsView.svelte'
+	import EnsName_TimestampsView from '$/views/EnsName_TimestampsView.svelte'
 </script>
 
 
@@ -78,7 +80,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+		href ?? (pendingEntity.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 			ensName: String(pendingEntity.name ?? ''),
 		}) : undefined)
 	}
@@ -89,7 +91,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={ensName}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.name ?? prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +104,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={ensName}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.name ?? prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -127,7 +129,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const name = selection.entitySelector.name ?? prefetched.name}
+							{@const name = pendingEntity.name}
 							{#if name !== undefined && name !== null}
 								{String((name) ?? '')}
 							{/if}
@@ -154,7 +156,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const normalizedName = prefetched.normalizedName}
+					{@const normalizedName = pendingEntity.normalizedName}
 					{#if normalizedName !== undefined && normalizedName !== null}
 						<div>
 							<dt>Normalized name</dt>
@@ -189,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const node = prefetched.node}
+					{@const node = pendingEntity.node}
 					{#if node !== undefined && node !== null}
 						<div>
 							<dt>Node</dt>
@@ -224,7 +226,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const labelName = prefetched.labelName}
+					{@const labelName = pendingEntity.labelName}
 					{#if labelName !== undefined && labelName !== null}
 						<div>
 							<dt>Label name</dt>
@@ -259,7 +261,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const labelhash = prefetched.labelhash}
+					{@const labelhash = pendingEntity.labelhash}
 					{#if labelhash !== undefined && labelhash !== null}
 						<div>
 							<dt>Label hash</dt>
@@ -289,6 +291,8 @@
 			<ResourceBoundary
 				resource={selection.$parent}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(ensName)}
 					{#if ensName != null && ensName[EntityMetaKey.Selector] != null}
 						<div>
@@ -298,7 +302,7 @@
 									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
 									prefetched={ensName}
 									href={
-										(ensName[EntityMetaKey.Selector].name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+										(ensName[EntityMetaKey.Selector].name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 											ensName: String(ensName[EntityMetaKey.Selector].name ?? ''),
 										}) : undefined)
 									}
@@ -314,6 +318,8 @@
 			<ResourceBoundary
 				resource={selection.$resolverContract}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -323,8 +329,8 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmContract[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -340,6 +346,8 @@
 			<ResourceBoundary
 				resource={selection.$subgraphResolvedActor}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -349,7 +357,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -365,6 +373,8 @@
 			<ResourceBoundary
 				resource={selection.$ownerActor}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -374,7 +384,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -391,26 +401,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<EnsNamesView
-				selection={selection.$$subdomains}
-				title='Subdomains'
-				emptyText='No subdomains for this ENS name yet.'
-				id='EnsNamesView-subdomains'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ens-name-records'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ens-name-subdomains',
+							label: 'Subdomains',
+						},
+						{
+							id: 'ens-name-record-list',
+							label: 'Records',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-records'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Records and subdomains</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<EnsRecordsView
-				selection={selection.$$records}
-				title='Records'
-				emptyText='No ENS records for this name yet.'
-				id='EnsRecordsView-records'
-			/>
+				{#snippet SectionEnsNameSubdomains({ id, label, open })}
+					<EnsNamesView
+						selection={selection.$$subdomains}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No subdomains for this ENS name yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<EnsName_TimestampsView
-				selection={selection.$$timestamps}
-				title='Observations'
-				emptyText='No ENS name observations yet.'
-				id='EnsName_TimestampsView-timestamps'
-			/>
+				{#snippet SectionEnsNameRecordList({ id, label, open })}
+					<EnsRecordsView
+						selection={selection.$$records}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ENS records for this name yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ens-name-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ens-name-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionEnsNameTimestamps({ id, label, open })}
+					<EnsName_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ENS name observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

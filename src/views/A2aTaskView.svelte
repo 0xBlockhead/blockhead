@@ -51,19 +51,21 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.taskId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task')
+	const titleFallback = $derived([String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task')
 	const viewDomId = $derived('a2a-task-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import A2aAgentServiceView from '$/views/A2aAgentServiceView.svelte'
 	import A2aTaskEventsView from '$/views/A2aTaskEventsView.svelte'
 	import A2aMessagesView from '$/views/A2aMessagesView.svelte'
 	import A2aArtifactsView from '$/views/A2aArtifactsView.svelte'
 	import A2aPushNotificationConfigsView from '$/views/A2aPushNotificationConfigsView.svelte'
 	import A2aTask_TimestampsView from '$/views/A2aTask_TimestampsView.svelte'
-	import A2aAgentServiceView from '$/views/A2aAgentServiceView.svelte'
 </script>
 
 
@@ -80,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aTask}>
 			{#snippet Pending()}
-				{[String((prefetched.taskId) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task'}
+				{[String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aTask}>
 			{#snippet Pending()}
-				{[String((prefetched.contextId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.taskId) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task'}
+				{[String((pendingEntity.contextId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.taskId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aTask}>
 			{#snippet Pending()}
-				{@const updatedAt0 = prefetched.updatedAt}
+				{@const updatedAt0 = pendingEntity.updatedAt}
 				{#if updatedAt0 !== undefined && updatedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(updatedAt0)} />
@@ -138,7 +140,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const taskId = prefetched.taskId}
+					{@const taskId = pendingEntity.taskId}
 					{#if taskId !== undefined && taskId !== null}
 						<div>
 							<dt>task ID</dt>
@@ -166,6 +168,8 @@
 			<ResourceBoundary
 				resource={selection.$service}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(a2aAgentService)}
 					{#if a2aAgentService != null && a2aAgentService[EntityMetaKey.Selector] != null}
 						<div>
@@ -193,7 +197,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerTaskId = prefetched.providerTaskId}
+					{@const providerTaskId = pendingEntity.providerTaskId}
 					{#if providerTaskId !== undefined && providerTaskId !== null}
 						<div>
 							<dt>provider task ID</dt>
@@ -228,7 +232,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contextId = prefetched.contextId}
+					{@const contextId = pendingEntity.contextId}
 					{#if contextId !== undefined && contextId !== null}
 						<div>
 							<dt>context ID</dt>
@@ -265,7 +269,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -300,7 +304,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>
@@ -335,7 +339,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cancelledAt = prefetched.cancelledAt}
+					{@const cancelledAt = pendingEntity.cancelledAt}
 					{#if cancelledAt !== undefined && cancelledAt !== null}
 						<div>
 							<dt>cancelled AT</dt>
@@ -370,7 +374,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const listed = prefetched.listed}
+					{@const listed = pendingEntity.listed}
 					{#if listed !== undefined && listed !== null}
 						<div>
 							<dt>listed</dt>
@@ -399,40 +403,122 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<A2aTaskEventsView
-				selection={selection.$$events}
-				title='events'
-				emptyText='No A2A task events.'
-				id='A2aTaskEventsView-events'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-a2a-task-conversation'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'a2a-task-events',
+							label: 'Events',
+						},
+						{
+							id: 'a2a-task-messages',
+							label: 'Messages',
+						},
+						{
+							id: 'a2a-task-artifacts',
+							label: 'Artifacts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-conversation'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Conversation</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<A2aMessagesView
-				selection={selection.$$messages}
-				title='messages'
-				emptyText='No A2A messages.'
-				id='A2aMessagesView-messages'
-			/>
+				{#snippet SectionA2aTaskEvents({ id, label, open })}
+					<A2aTaskEventsView
+						selection={selection.$$events}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No A2A task events.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<A2aArtifactsView
-				selection={selection.$$artifacts}
-				title='artifacts'
-				emptyText='No A2A artifacts.'
-				id='A2aArtifactsView-artifacts'
-			/>
+				{#snippet SectionA2aTaskMessages({ id, label, open })}
+					<A2aMessagesView
+						selection={selection.$$messages}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No A2A messages.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<A2aPushNotificationConfigsView
-				selection={selection.$$pushNotificationConfigs}
-				title='push notification configs'
-				emptyText='No A2A push notification configs.'
-				id='A2aPushNotificationConfigsView-push-notification-configs'
-			/>
+				{#snippet SectionA2aTaskArtifacts({ id, label, open })}
+					<A2aArtifactsView
+						selection={selection.$$artifacts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No A2A artifacts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<A2aTask_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No A2A task observations.'
-				id='A2aTask_TimestampsView-timestamps'
-			/>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-a2a-task-delivery'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'a2a-task-push',
+							label: 'Push notification configs',
+						},
+						{
+							id: 'a2a-task-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-delivery'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Delivery and observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionA2aTaskPush({ id, label, open })}
+					<A2aPushNotificationConfigsView
+						selection={selection.$$pushNotificationConfigs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No A2A push notification configs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionA2aTaskObservations({ id, label, open })}
+					<A2aTask_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No A2A task observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

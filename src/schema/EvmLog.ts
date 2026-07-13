@@ -10,14 +10,16 @@ export enum EvmLogSelector {
 }
 export const EvmLog = entity({
 	entityType: EntityType.EvmLog,
-	label: 'EVM log',
-	labelPlural: 'EVM logs',
+	labels: {
+		singular: 'EVM log',
+		plural: 'EVM logs',
+	},
 	description: 'An event log emitted by an EVM transaction receipt.',
 })({
 	indexInTransaction: {
 		label: 'Index in transaction',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transaction: {
@@ -38,6 +40,12 @@ export const EvmLog = entity({
 		entityType: EntityType.EvmTopic,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	topic0: {
+		label: 'Topic 0',
+		type: EntityFieldType.Primitive,
+		primitiveType: (ZeroExHex),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	data: {
 		label: 'Data',
 		type: EntityFieldType.Primitive,
@@ -56,17 +64,46 @@ export const EvmLog = entity({
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$$tokenTransfers: {
-		label: 'Token transfers',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.EvmTokenTransfer,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		TransactionIndexInTransaction: [
 			'$transaction',
 			'indexInTransaction',
 		],
+	},
+
+	facets: {
+		Event: facet({
+			path: [
+				'topic0',
+			],
+			isOneOf: [
+				'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+			],
+		})({
+			signatureHash: {
+				label: 'Signature hash',
+				type: EntityFieldType.Primitive,
+				primitiveType: (ZeroExHex),
+				cardinality: EntityFieldCardinality.One,
+			},
+		})({
+			facets: {
+				Erc20Transfer: facet({
+					path: [
+						'Event',
+						'signatureHash',
+					],
+					is: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+				})({
+					$$tokenTransfers: {
+						label: 'ERC-20 token transfers',
+						type: EntityFieldType.EntitiesReference,
+						entityType: EntityType.EvmTokenTransfer,
+						cardinality: EntityFieldCardinality.Many,
+					},
+				}),
+			},
+		}),
 	},
 })

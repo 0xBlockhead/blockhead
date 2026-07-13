@@ -9,8 +9,10 @@ export enum WalletConnectionMethodSelector {
 }
 export const WalletConnectionMethod = entity({
 	entityType: EntityType.WalletConnectionMethod,
-	label: 'wallet connection method',
-	labelPlural: 'wallet connection methods',
+	labels: {
+		singular: 'wallet connection method',
+		plural: 'wallet connection methods',
+	},
 })({
 	id: {
 		label: 'ID',

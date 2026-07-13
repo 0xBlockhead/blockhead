@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -80,9 +79,9 @@
 				<UtxoBlockView
 					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 					href={
-						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$block.$network.caip2.namespace) + ':' + String(selection.entitySelector.$block.$network.caip2.reference))].slug ?? ''),
-							height: String(selection.entitySelector.$block.height ?? ''),
+						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+							network: String(selection.entitySelector.$block.$network.slug ?? ''),
+							blockNumber: String(selection.entitySelector.$block.height ?? ''),
 							hash: String(selection.entitySelector.$block.hash ?? ''),
 						}) : undefined)
 					}
@@ -96,9 +95,9 @@
 				<UtxoBlockView
 					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 					href={
-						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$block.$network.caip2.namespace) + ':' + String(selection.entitySelector.$block.$network.caip2.reference))].slug ?? ''),
-							height: String(selection.entitySelector.$block.height ?? ''),
+						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+							network: String(selection.entitySelector.$block.$network.slug ?? ''),
+							blockNumber: String(selection.entitySelector.$block.height ?? ''),
 							hash: String(selection.entitySelector.$block.hash ?? ''),
 						}) : undefined)
 					}
@@ -112,7 +111,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={litecoinMwebBlock}>
 			{#snippet Pending()}
-				{[String((prefetched.hogExTransactionId) ?? '')].filter(Boolean).join(' ') || title || 'litecoin MWEB block'}
+				{[String((pendingEntity.hogExTransactionId) ?? '')].filter(Boolean).join(' ') || title || 'litecoin MWEB block'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -125,7 +124,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={litecoinMwebBlock}>
 			{#snippet Pending()}
-				{@const kernelRoot0 = prefetched.kernelRoot}
+				{@const kernelRoot0 = pendingEntity.kernelRoot}
 				{#if kernelRoot0 !== undefined && kernelRoot0 !== null}
 					<span data-text="muted">
 						{String((kernelRoot0) ?? '')}
@@ -153,9 +152,9 @@
 					<UtxoBlockView
 						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block, {})}
 						href={
-							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$block.$network.caip2.namespace) + ':' + String(selection.entitySelector.$block.$network.caip2.reference))].slug ?? ''),
-								height: String(selection.entitySelector.$block.height ?? ''),
+							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								network: String(selection.entitySelector.$block.$network.slug ?? ''),
+								blockNumber: String(selection.entitySelector.$block.height ?? ''),
 								hash: String(selection.entitySelector.$block.hash ?? ''),
 							}) : undefined)
 						}
@@ -175,7 +174,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hogExTransactionId = prefetched.hogExTransactionId}
+					{@const hogExTransactionId = pendingEntity.hogExTransactionId}
 					{#if hogExTransactionId !== undefined && hogExTransactionId !== null}
 						<div>
 							<dt>hog ex transaction ID</dt>
@@ -210,7 +209,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const kernelRoot = prefetched.kernelRoot}
+					{@const kernelRoot = pendingEntity.kernelRoot}
 					{#if kernelRoot !== undefined && kernelRoot !== null}
 						<div>
 							<dt>kernel root</dt>

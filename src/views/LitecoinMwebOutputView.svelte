@@ -50,7 +50,7 @@
 			commitment: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.commitment) ?? '')].filter(Boolean).join(' ') || 'litecoin MWEB output')
+	const titleFallback = $derived([String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || 'litecoin MWEB output')
 	const viewDomId = $derived('litecoin-mweb-output-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={litecoinMwebOutput}>
 			{#snippet Pending()}
-				{[String((prefetched.commitment) ?? '')].filter(Boolean).join(' ') || title || 'litecoin MWEB output'}
+				{[String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || title || 'litecoin MWEB output'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={litecoinMwebOutput}>
 			{#snippet Pending()}
-				{@const outputIndex0 = selection.entitySelector.outputIndex ?? prefetched.outputIndex}
+				{@const outputIndex0 = pendingEntity.outputIndex}
 				{#if outputIndex0 !== undefined && outputIndex0 !== null}
 					<NumberValue value={Number(outputIndex0)} />
 				{/if}
@@ -129,7 +129,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const outputIndex = selection.entitySelector.outputIndex ?? prefetched.outputIndex}
+							{@const outputIndex = pendingEntity.outputIndex}
 							{#if outputIndex !== undefined && outputIndex !== null}
 								<NumberValue value={Number(outputIndex)} />
 							{/if}
@@ -156,7 +156,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commitment = prefetched.commitment}
+					{@const commitment = pendingEntity.commitment}
 					{#if commitment !== undefined && commitment !== null}
 						<div>
 							<dt>commitment</dt>
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const senderPubkey = prefetched.senderPubkey}
+					{@const senderPubkey = pendingEntity.senderPubkey}
 					{#if senderPubkey !== undefined && senderPubkey !== null}
 						<div>
 							<dt>sender public key</dt>

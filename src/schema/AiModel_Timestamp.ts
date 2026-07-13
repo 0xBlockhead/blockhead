@@ -10,8 +10,10 @@ export enum AiModel_TimestampSelector {
 }
 export const AiModel_Timestamp = entity({
 	entityType: EntityType.AiModel_Timestamp,
-	label: 'AI model timestamp',
-	labelPlural: 'AI model observations',
+	labels: {
+		singular: 'AI model timestamp',
+		plural: 'AI model observations',
+	},
 })({
 	$model: {
 		label: 'model',

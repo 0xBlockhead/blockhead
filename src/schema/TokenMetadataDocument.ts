@@ -9,8 +9,10 @@ export enum TokenMetadataDocumentSelector {
 }
 export const TokenMetadataDocument = entity({
 	entityType: EntityType.TokenMetadataDocument,
-	label: 'token metadata document',
-	labelPlural: 'token metadata documents',
+	labels: {
+		singular: 'token metadata document',
+		plural: 'token metadata documents',
+	},
 })({
 	metadataSubjectKey: {
 		label: 'Metadata subject key',

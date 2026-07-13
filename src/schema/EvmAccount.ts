@@ -12,8 +12,10 @@ export enum EvmAccountSelector {
 }
 export const EvmAccount = entity({
 	entityType: EntityType.EvmAccount,
-	label: 'EVM account',
-	labelPlural: 'EVM accounts',
+	labels: {
+		singular: 'EVM account',
+		plural: 'EVM accounts',
+	},
 	description: 'An account address in the EVM address space, independent of any one chain.',
 })({
 	address: {

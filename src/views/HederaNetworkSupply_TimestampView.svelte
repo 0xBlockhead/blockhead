@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const releasedSupplyTinybar = prefetched.releasedSupplyTinybar}
+					{@const releasedSupplyTinybar = pendingEntity.releasedSupplyTinybar}
 					{#if releasedSupplyTinybar !== undefined && releasedSupplyTinybar !== null}
 						<div>
 							<dt>released supply tinybar</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalSupplyTinybar = prefetched.totalSupplyTinybar}
+					{@const totalSupplyTinybar = pendingEntity.totalSupplyTinybar}
 					{#if totalSupplyTinybar !== undefined && totalSupplyTinybar !== null}
 						<div>
 							<dt>total supply tinybar</dt>

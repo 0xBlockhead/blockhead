@@ -48,7 +48,7 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'IPFS protocol')
+	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'IPFS protocol')
 	const viewDomId = $derived('ipfs-protocol-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={ipfsProtocol}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'IPFS protocol'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'IPFS protocol'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -84,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={ipfsProtocol}>
 			{#snippet Pending()}
-				{[String((prefetched.relationshipModel) ?? '')].filter(Boolean).join(' ') || [String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'IPFS protocol'}
+				{[String((pendingEntity.relationshipModel) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'IPFS protocol'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolName = prefetched.protocolName}
+							{@const protocolName = pendingEntity.protocolName}
 							{#if protocolName !== undefined && protocolName !== null}
 								{String((protocolName) ?? '')}
 							{/if}
@@ -139,7 +139,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const registryName = prefetched.registryName}
+							{@const registryName = pendingEntity.registryName}
 							{#if registryName !== undefined && registryName !== null}
 								{String((registryName) ?? '')}
 							{/if}
@@ -169,7 +169,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const homeUrl = prefetched.homeUrl}
+							{@const homeUrl = pendingEntity.homeUrl}
 							{#if homeUrl !== undefined && homeUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const docsUrl = prefetched.docsUrl}
+					{@const docsUrl = pendingEntity.docsUrl}
 					{#if docsUrl !== undefined && docsUrl !== null}
 						<div>
 							<dt>Docs URL</dt>
@@ -262,7 +262,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const relationshipModel = prefetched.relationshipModel}
+							{@const relationshipModel = pendingEntity.relationshipModel}
 							{#if relationshipModel !== undefined && relationshipModel !== null}
 								{String((relationshipModel) ?? '')}
 							{/if}

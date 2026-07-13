@@ -86,53 +86,94 @@ test('ResourceBoundary updates from a mock TanStackLiveQueryResource snapshot', 
 	expectNoWarnings()
 })
 
-test('real selection scalar fields resolve through direct, native await, and boundary reads', async ({ page }) => {
+test('lazy real selection resolves through direct getter, promise, and ResourceBoundary reads', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await openRoute(page)
 	await expect(page.getByTestId('real-resource-boundary-scalars')).toHaveCount(0)
 
 	await page.getByTestId('show-real-selection-scalar-boundary').click()
-	await expect(page.getByTestId('real-resource-direct-scalars')).toHaveText(':Draft', {
+	await expect(page.getByTestId('real-resource-direct-scalars')).toHaveText('', {
 		timeout: 120_000,
 	})
-	await expect(page.getByTestId('real-resource-awaited-scalars')).toHaveText(':Draft', {
+	await expect(page.getByTestId('real-resource-awaited-scalars')).toHaveText('', {
 		timeout: 120_000,
 	})
-	await expect(page.getByTestId('real-resource-boundary-scalars')).toHaveText(':Draft', {
+	await expect(page.getByTestId('real-resource-boundary-scalars')).toHaveText('', {
 		timeout: 120_000,
 	})
 	await expect(sectionLoading(page, 'real-selection-boundary-section')).toHaveCount(0)
+
+	await page.getByTestId('seed-real-selection-scalar-field').click()
+	await expect(page.getByTestId('real-resource-direct-scalars')).toHaveText('Boundary Session', {
+		timeout: 120_000,
+	})
+	await expect(page.getByTestId('real-resource-awaited-scalars')).toHaveText('Boundary Session', {
+		timeout: 120_000,
+	})
+	await expect(page.getByTestId('real-resource-boundary-scalars')).toHaveText('Boundary Session', {
+		timeout: 120_000,
+	})
 	await page.getByTestId('update-real-selection-scalar-field').click()
-	await expect(page.getByTestId('real-resource-direct-scalars')).toHaveText(':Draft', {
+	await expect(page.getByTestId('real-resource-direct-scalars')).toHaveText('Updated Boundary Session', {
+		timeout: 120_000,
+	})
+	await expect(page.getByTestId('real-resource-awaited-scalars')).toHaveText('Updated Boundary Session', {
+		timeout: 120_000,
+	})
+	await expect(page.getByTestId('real-resource-boundary-scalars')).toHaveText('Updated Boundary Session', {
 		timeout: 120_000,
 	})
 	expectNoWarnings()
 })
 
-test('direct selection getters update without await or ResourceBoundary consumers', async ({ page }) => {
+test('getter-only direct getter observes real source notifications without route reload', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await openRoute(page)
-	const initialUrl = page.url()
-	await expect(page.getByTestId('real-resource-direct-only-current')).toHaveText('')
+	await expect(page.getByTestId('real-resource-direct-only-current')).toHaveCount(0)
+	await page.locator('body').evaluate((body) => {
+		body.dataset.resourceObservationRouteInstance = 'open'
+	})
 
-	await page.getByTestId('update-direct-only-live-subscription-field').click()
-	await expect(page.getByTestId('real-resource-direct-only-current')).toHaveText('Updated direct-only value', {
+	await page.getByTestId('show-direct-only-live-subscription-field').click()
+	await expect(page.getByTestId('real-resource-direct-only-current')).toHaveText('')
+	await expect(page.getByTestId('real-resource-direct-only-ready')).toHaveText('true', {
+		timeout: 120_000,
+	})
+
+	await page.getByTestId('seed-direct-only-live-subscription-field').click()
+	await expect(page.getByTestId('real-resource-direct-only-current')).toHaveText('Direct Only Session', {
 		timeout: 120_000,
 	})
 	await expect(page.getByTestId('real-resource-direct-only-ready')).toHaveText('true')
 	await expect(page.getByTestId('real-resource-direct-only-error')).toHaveText('')
-	await expect(page).toHaveURL(initialUrl)
+
+	await page.getByTestId('update-direct-only-live-subscription-field').click()
+	await expect(page.getByTestId('real-resource-direct-only-current')).toHaveText('Updated Direct Only Session', {
+		timeout: 120_000,
+	})
+	await expect(page.getByTestId('real-resource-direct-only-ready')).toHaveText('true')
+	await expect(page.getByTestId('real-resource-direct-only-error')).toHaveText('')
+	await expect(page.locator('body')).toHaveAttribute('data-resource-observation-route-instance', 'open')
 	expectNoWarnings()
 })
 
-test('ResourceBoundary resolves a real selection live subscription without companion getter reads', async ({ page }) => {
+test('ResourceBoundary updates from real source notifications without direct getter reads or route reload', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await openRoute(page)
 	await expect(page.getByTestId('real-resource-direct-scalars')).toHaveCount(0)
+	await page.locator('body').evaluate((body) => {
+		body.dataset.resourceObservationRouteInstance = 'open'
+	})
 
-	await expect(page.getByTestId('real-resource-boundary-only-scalars')).toHaveText(':Draft', {
+	await page.getByTestId('seed-boundary-only-live-subscription-field').click()
+	await expect(page.getByTestId('real-resource-boundary-only-value')).toHaveText('Boundary Only Session', {
 		timeout: 120_000,
 	})
+	await page.getByTestId('update-boundary-only-live-subscription-field').click()
+	await expect(page.getByTestId('real-resource-boundary-only-value')).toHaveText('Updated Boundary Only Session', {
+		timeout: 120_000,
+	})
+	await expect(page.locator('body')).toHaveAttribute('data-resource-observation-route-instance', 'open')
 	expectNoWarnings()
 })
 

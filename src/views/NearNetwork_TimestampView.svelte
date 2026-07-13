@@ -51,7 +51,7 @@
 			headHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'near network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'near network timestamp')
 	const viewDomId = $derived('near-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const headHeight0 = prefetched.headHeight}
+				{@const headHeight0 = pendingEntity.headHeight}
 				{#if headHeight0 !== undefined && headHeight0 !== null}
 					<NumberValue value={Number(headHeight0)} />
 				{/if}
@@ -115,7 +115,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const headHash0 = prefetched.headHash}
+				{@const headHash0 = pendingEntity.headHash}
 				{#if headHash0 !== undefined && headHash0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((headHash0) ?? '')} />
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -191,7 +191,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -221,7 +221,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const headHeight = prefetched.headHeight}
+					{@const headHeight = pendingEntity.headHeight}
 					{#if headHeight !== undefined && headHeight !== null}
 						<div>
 							<dt>Head height</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const headHash = prefetched.headHash}
+					{@const headHash = pendingEntity.headHash}
 					{#if headHash !== undefined && headHash !== null}
 						<div>
 							<dt>Head hash</dt>
@@ -297,7 +297,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epochId = prefetched.epochId}
+					{@const epochId = pendingEntity.epochId}
 					{#if epochId !== undefined && epochId !== null}
 						<div>
 							<dt>Epoch ID</dt>
@@ -335,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epochHeight = prefetched.epochHeight}
+					{@const epochHeight = pendingEntity.epochHeight}
 					{#if epochHeight !== undefined && epochHeight !== null}
 						<div>
 							<dt>Epoch height</dt>
@@ -373,7 +373,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epochStartHeight = prefetched.epochStartHeight}
+					{@const epochStartHeight = pendingEntity.epochStartHeight}
 					{#if epochStartHeight !== undefined && epochStartHeight !== null}
 						<div>
 							<dt>Epoch start height</dt>
@@ -411,7 +411,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasPriceYoctoNear = prefetched.gasPriceYoctoNear}
+					{@const gasPriceYoctoNear = pendingEntity.gasPriceYoctoNear}
 					{#if gasPriceYoctoNear !== undefined && gasPriceYoctoNear !== null}
 						<div>
 							<dt>Gas price yocto near</dt>
@@ -451,7 +451,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chunkCount = prefetched.chunkCount}
+					{@const chunkCount = pendingEntity.chunkCount}
 					{#if chunkCount !== undefined && chunkCount !== null}
 						<div>
 							<dt>Chunk count</dt>
@@ -489,7 +489,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const currentValidatorCount = prefetched.currentValidatorCount}
+					{@const currentValidatorCount = pendingEntity.currentValidatorCount}
 					{#if currentValidatorCount !== undefined && currentValidatorCount !== null}
 						<div>
 							<dt>Current validators</dt>
@@ -527,7 +527,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nextValidatorCount = prefetched.nextValidatorCount}
+					{@const nextValidatorCount = pendingEntity.nextValidatorCount}
 					{#if nextValidatorCount !== undefined && nextValidatorCount !== null}
 						<div>
 							<dt>Next validators</dt>
@@ -565,7 +565,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const currentProposalCount = prefetched.currentProposalCount}
+					{@const currentProposalCount = pendingEntity.currentProposalCount}
 					{#if currentProposalCount !== undefined && currentProposalCount !== null}
 						<div>
 							<dt>Current proposals</dt>
@@ -603,7 +603,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>Protocol version</dt>
@@ -641,7 +641,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestProtocolVersion = prefetched.latestProtocolVersion}
+					{@const latestProtocolVersion = pendingEntity.latestProtocolVersion}
 					{#if latestProtocolVersion !== undefined && latestProtocolVersion !== null}
 						<div>
 							<dt>Latest protocol version</dt>
@@ -679,7 +679,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeVersion = prefetched.nodeVersion}
+					{@const nodeVersion = pendingEntity.nodeVersion}
 					{#if nodeVersion !== undefined && nodeVersion !== null}
 						<div>
 							<dt>Node version</dt>
@@ -717,7 +717,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const syncing = prefetched.syncing}
+					{@const syncing = pendingEntity.syncing}
 					{#if syncing !== undefined && syncing !== null}
 						<div>
 							<dt>Syncing</dt>

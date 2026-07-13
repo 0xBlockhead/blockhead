@@ -9,8 +9,10 @@ export enum _GlobalRssNetworkSelector {
 }
 export const _GlobalRssNetwork = entity({
 	entityType: EntityType._GlobalRssNetwork,
-	label: 'global RSS network',
-	labelPlural: 'global RSS networks',
+	labels: {
+		singular: 'global RSS network',
+		plural: 'global RSS networks',
+	},
 })({
 	scope: {
 		label: 'Scope',

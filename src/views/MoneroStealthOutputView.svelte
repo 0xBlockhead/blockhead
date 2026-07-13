@@ -51,7 +51,7 @@
 			commitment: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.outputIndex ?? prefetched.outputIndex) ?? '')].filter(Boolean).join(' ') || 'monero stealth output')
+	const titleFallback = $derived([String((pendingEntity.outputIndex) ?? '')].filter(Boolean).join(' ') || 'monero stealth output')
 	const viewDomId = $derived('monero-stealth-output-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={moneroStealthOutput}>
 			{#snippet Pending()}
-				{@const outputIndex0 = selection.entitySelector.outputIndex ?? prefetched.outputIndex}
+				{@const outputIndex0 = pendingEntity.outputIndex}
 				{#if outputIndex0 !== undefined && outputIndex0 !== null}
 					<NumberValue value={Number(outputIndex0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={moneroStealthOutput}>
 			{#snippet Pending()}
-				{@const publicKey0 = prefetched.publicKey}
+				{@const publicKey0 = pendingEntity.publicKey}
 				{#if publicKey0 !== undefined && publicKey0 !== null}
 					<TruncatedValue value={String((publicKey0) ?? '')} />
 				{/if}
@@ -114,7 +114,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={moneroStealthOutput}>
 			{#snippet Pending()}
-				{@const commitment0 = prefetched.commitment}
+				{@const commitment0 = pendingEntity.commitment}
 				{#if commitment0 !== undefined && commitment0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((commitment0) ?? '')} />
@@ -160,7 +160,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const outputIndex = selection.entitySelector.outputIndex ?? prefetched.outputIndex}
+							{@const outputIndex = pendingEntity.outputIndex}
 							{#if outputIndex !== undefined && outputIndex !== null}
 								<NumberValue value={Number(outputIndex)} />
 							{/if}
@@ -190,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publicKey = prefetched.publicKey}
+					{@const publicKey = pendingEntity.publicKey}
 					{#if publicKey !== undefined && publicKey !== null}
 						<div>
 							<dt>Public key</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commitment = prefetched.commitment}
+					{@const commitment = pendingEntity.commitment}
 					{#if commitment !== undefined && commitment !== null}
 						<div>
 							<dt>Commitment</dt>

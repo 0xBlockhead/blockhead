@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -71,7 +70,6 @@
 					status: true,
 					tokens: true,
 					timestampMs: true,
-					$validator: true,
 				},
 			})
 		}
@@ -116,18 +114,9 @@
 
 				{#snippet Item({ item: cosmosValidatorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosValidator_Timestamp> })}
 					{@const cosmosValidatorTimestampFields = { ...cosmosValidatorTimestamp[EntityMetaKey.Selector], ...cosmosValidatorTimestamp }}
-					{@const cosmosValidatorTimestampHrefFields = { ...cosmosValidatorTimestamp, ...cosmosValidatorTimestamp[EntityMetaKey.Selector] }}
 					<CosmosValidator_TimestampView
 						selection={select(EntityType.CosmosValidator_Timestamp, cosmosValidatorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosValidatorTimestampFields}
-						href={
-							(cosmosValidatorTimestampHrefFields.$validator !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2 !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2.namespace !== undefined && cosmosValidatorTimestampHrefFields.$validator !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2 !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2.reference !== undefined && cosmosValidatorTimestampHrefFields.$validator !== undefined && cosmosValidatorTimestampHrefFields.$validator.operatorAddress !== undefined && cosmosValidatorTimestampHrefFields.timestampMs !== undefined && cosmosValidatorTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(cosmosValidatorTimestampHrefFields.$validator.$network.caip2.namespace ?? '')}:${String(cosmosValidatorTimestampHrefFields.$validator.$network.caip2.reference ?? '')}`,
-								operatorAddress: String(cosmosValidatorTimestampHrefFields.$validator.operatorAddress ?? ''),
-								timestampMs: String(cosmosValidatorTimestampHrefFields.timestampMs ?? ''),
-								source: String(cosmosValidatorTimestampHrefFields.source ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

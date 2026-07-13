@@ -49,10 +49,9 @@
 		fields: {
 			label: true,
 			credentialKind: true,
-			$connection: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.credentialId ?? prefetched.credentialId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent credential state')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.credentialId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent credential state')
 	const viewDomId = $derived('blockhead-agent-credential-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAgentCredentialState}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.credentialId ?? prefetched.credentialId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent credential state'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.credentialId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent credential state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentCredentialState}>
 			{#snippet Pending()}
-				{[String((prefetched.credentialKind) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.credentialId ?? prefetched.credentialId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent credential state'}
+				{[String((pendingEntity.credentialKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.credentialId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent credential state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -159,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const credentialId = selection.entitySelector.credentialId ?? prefetched.credentialId}
+							{@const credentialId = pendingEntity.credentialId}
 							{#if credentialId !== undefined && credentialId !== null}
 								<TruncatedValue value={String((credentialId) ?? '')} />
 							{/if}
@@ -179,6 +178,8 @@
 			<ResourceBoundary
 				resource={selection.$connection}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
 						<div>
@@ -206,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const credentialKind = prefetched.credentialKind}
+					{@const credentialKind = pendingEntity.credentialKind}
 					{#if credentialKind !== undefined && credentialKind !== null}
 						<div>
 							<dt>credential kind</dt>
@@ -241,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -278,7 +279,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -313,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>

@@ -9,8 +9,10 @@ export enum TezosBigMapKey_TimestampSelector {
 }
 export const TezosBigMapKey_Timestamp = entity({
 	entityType: EntityType.TezosBigMapKey_Timestamp,
-	label: 'tezos big map key timestamp',
-	labelPlural: 'tezos big map key observations',
+	labels: {
+		singular: 'tezos big map key timestamp',
+		plural: 'tezos big map key observations',
+	},
 })({
 	$bigMapKey: {
 		label: 'big map key',

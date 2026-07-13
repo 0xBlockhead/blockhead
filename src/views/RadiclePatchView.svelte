@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const patchId = selection.entitySelector.patchId ?? prefetched.patchId}
+							{@const patchId = pendingEntity.patchId}
 							{#if patchId !== undefined && patchId !== null}
 								{String((patchId) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorDid = prefetched.authorDid}
+					{@const authorDid = pendingEntity.authorDid}
 					{#if authorDid !== undefined && authorDid !== null}
 						<div>
 							<dt>author DID</dt>
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetRef = prefetched.targetRef}
+					{@const targetRef = pendingEntity.targetRef}
 					{#if targetRef !== undefined && targetRef !== null}
 						<div>
 							<dt>target ref</dt>
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const headObjectId = prefetched.headObjectId}
+					{@const headObjectId = pendingEntity.headObjectId}
 					{#if headObjectId !== undefined && headObjectId !== null}
 						<div>
 							<dt>head object ID</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseObjectId = prefetched.baseObjectId}
+					{@const baseObjectId = pendingEntity.baseObjectId}
 					{#if baseObjectId !== undefined && baseObjectId !== null}
 						<div>
 							<dt>base object ID</dt>
@@ -272,7 +272,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const state = prefetched.state}
+							{@const state = pendingEntity.state}
 							{#if state !== undefined && state !== null}
 								{String((state) ?? '')}
 							{/if}
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>
@@ -362,6 +362,8 @@
 			<ResourceBoundary
 				resource={selection.$headCommit}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitCommit)}
 					{#if gitCommit != null && gitCommit[EntityMetaKey.Selector] != null}
 						<div>
@@ -382,6 +384,8 @@
 			<ResourceBoundary
 				resource={selection.$baseCommit}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitCommit)}
 					{#if gitCommit != null && gitCommit[EntityMetaKey.Selector] != null}
 						<div>

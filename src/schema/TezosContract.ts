@@ -9,8 +9,10 @@ export enum TezosContractSelector {
 }
 export const TezosContract = entity({
 	entityType: EntityType.TezosContract,
-	label: 'tezos contract',
-	labelPlural: 'tezos contracts',
+	labels: {
+		singular: 'tezos contract',
+		plural: 'tezos contracts',
+	},
 })({
 	$network: {
 		label: 'network',

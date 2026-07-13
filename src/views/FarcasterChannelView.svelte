@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -56,16 +57,20 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel')
+	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel')
 	const viewDomId = $derived('farcaster-channel-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
+	import FarcasterChannel_TimestampsView from '$/views/FarcasterChannel_TimestampsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
 
@@ -104,7 +109,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterChannel}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster channel'}
+				{[String((pendingEntity.name) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster channel'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -117,7 +122,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterChannel}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster channel'}
+				{[String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster channel'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -130,7 +135,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={farcasterChannel}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -165,7 +170,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
 							{/if}
@@ -194,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const url = prefetched.url}
+					{@const url = pendingEntity.url}
 					{#if url !== undefined && url !== null}
 						<div>
 							<dt>URL</dt>
@@ -238,6 +243,8 @@
 			<ResourceBoundary
 				resource={selection.$lead}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(farcasterUser)}
 					{#if farcasterUser != null && farcasterUser[EntityMetaKey.Selector] != null}
 						<div>
@@ -260,6 +267,8 @@
 			<ResourceBoundary
 				resource={selection.$moderator}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(farcasterUser)}
 					{#if farcasterUser != null && farcasterUser[EntityMetaKey.Selector] != null}
 						<div>
@@ -289,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -326,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const externalLinkUrl = prefetched.externalLinkUrl}
+					{@const externalLinkUrl = pendingEntity.externalLinkUrl}
 					{#if externalLinkUrl !== undefined && externalLinkUrl !== null}
 						<div>
 							<dt>External link URL</dt>
@@ -383,5 +392,90 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-farcaster-channel-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'farcaster-channel-casts',
+							label: 'Casts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionFarcasterChannelCasts({ id, label, open })}
+					<FarcasterCastsView
+						selection={
+							selection.$$casts({
+								sources: [
+									Source.Farcaster_Rest,
+									Source.Neynar_Rest,
+									Source.Snapchain_Rest,
+								],
+							})
+						}
+						href={resolve('/farcaster/feed/trending')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster casts for this channel.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-farcaster-channel-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'farcaster-channel-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionFarcasterChannelTimestamps({ id, label, open })}
+					<FarcasterChannel_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster channel observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

@@ -9,8 +9,10 @@ export enum ZeroGNetworkSelector {
 }
 export const ZeroGNetwork = entity({
 	entityType: EntityType.ZeroGNetwork,
-	label: 'zero g network',
-	labelPlural: 'zero g networks',
+	labels: {
+		singular: 'zero g network',
+		plural: 'zero g networks',
+	},
 })({
 	slug: {
 		label: 'Slug',

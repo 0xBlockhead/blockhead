@@ -9,8 +9,10 @@ export enum HederaNodeSelector {
 }
 export const HederaNode = entity({
 	entityType: EntityType.HederaNode,
-	label: 'hedera node',
-	labelPlural: 'hedera nodes',
+	labels: {
+		singular: 'hedera node',
+		plural: 'hedera nodes',
+	},
 })({
 	$network: {
 		label: 'network',

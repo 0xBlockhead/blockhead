@@ -6,17 +6,11 @@ import {
 	marketOhlcDefaultLookbackDayCount,
 	marketOhlcDailyTimeInterval,
 	marketOhlcDayLookbackValues,
-	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
-import { Iso4217 } from '$/constants/Currency.ts'
 import {
 	seededCoinSpotUsdMarkets,
 	seededCoinSpotUsdMarketByCoinId,
-	seededSpotMarketsWithCoinAsQuote,
-	seededSpotMarketsWithCurrencyAsBase,
-	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
-	type CatalogCurrencyCurrencyMarket,
 } from '$/constants/MarketCatalog.ts'
 import {
 	defineResolver,
@@ -35,7 +29,6 @@ import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
 import { Market_TimeInterval_TimestampSelector } from '$/schema/Market_TimeInterval_Timestamp.ts'
 import { MarketSelector } from '$/schema/Market.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
-import { CurrencySelector } from '$/schema/Currency.ts'
 import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 
 const coingeckoOpenApiDerivativeTickerForMarket = async (
@@ -45,7 +38,7 @@ const coingeckoOpenApiDerivativeTickerForMarket = async (
 	const { coingeckoDerivativesExchangeIdByMarketVenueId } = await import(
 		'$/sources/Coingecko/Rest/constants.ts'
 	)
-	const { derivativeTickerMatchesMarket } = await import('$/sources/Coingecko/marketKind.ts')
+	const { derivativeTickerMatchesMarket } = await import('$/resolvers/Coingecko/marketKind.ts')
 	const exchangeId = (
 		coingeckoDerivativesExchangeIdByMarketVenueId[
 			market.$marketVenue.marketVenueId
@@ -56,10 +49,10 @@ const coingeckoOpenApiDerivativeTickerForMarket = async (
 			`Coingecko_OpenApi: derivatives exchange not mapped for venue ${market.$marketVenue.marketVenueId}`
 		)
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-	const { catalogCoinIdByCoingeckoId } = await import('$/sources/Coingecko/marketKind.ts')
+	const { catalogCoinIdByCoingeckoId } = await import('$/resolvers/Coingecko/marketKind.ts')
 	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
 	const { getDerivativesExchangeById } = await import(
-		'$/sources/Coingecko/OpenApi/queries.ts'
+		'$/resolvers/Coingecko/OpenApi/queries.ts'
 	)
 	const exchange = await getDerivativesExchangeById({
 		publicEnv: context.publicEnv,
@@ -83,59 +76,38 @@ const coingeckoOpenApiDerivativeTickerForMarket = async (
 const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinCurrencyMarket) => ({
 	$base: {
 		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.baseCoinId },
+		assetKey: catalogMarket.baseCoinId,
 	},
 	$quote: {
 		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.quoteIso4217 },
+		assetKey: catalogMarket.quoteIso4217,
 	},
 	$marketVenue: {
 		marketVenueId: catalogMarket.marketVenueId,
 	},
 	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
+}) satisfies EntitySelector<
+	typeof schema,
+	EntityType.Market
+>
 
 const catalogCoinCurrencyMarketMatchesMarket = (
-	catalogMarket: CatalogCoinCurrencyMarket,
 	market: EntitySelector<typeof schema, EntityType.Market>
-) => (
-	market.marketKind === catalogMarket.marketKind
-	&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
-	&& market.$base.kind === MarketAssetKind.Coin
-	&& market.$base.$coin.coinId === catalogMarket.baseCoinId
+): market is EntitySelector<typeof schema, EntityType.Market> & {
+	readonly $base: {
+		readonly kind: MarketAssetKind.Coin
+		readonly assetKey: CoinId
+	}
+} => (
+	market.$base.kind === MarketAssetKind.Coin
 	&& market.$quote.kind === MarketAssetKind.Currency
-	&& market.$quote.$currency.iso4217 === catalogMarket.quoteIso4217
+	&& seededCoinSpotUsdMarkets.some((catalogMarket) => (
+		market.marketKind === catalogMarket.marketKind
+		&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
+		&& market.$base.assetKey === catalogMarket.baseCoinId
+		&& market.$quote.assetKey === catalogMarket.quoteIso4217
+	))
 )
-
-const marketSelectorFromCatalogCoinCoinMarket = (catalogMarket: CatalogCoinCoinMarket) => ({
-	$base: {
-		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.baseCoinId },
-	},
-	$quote: {
-		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.quoteCoinId },
-	},
-	$marketVenue: {
-		marketVenueId: catalogMarket.marketVenueId,
-	},
-	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
-
-const marketSelectorFromCatalogCurrencyCurrencyMarket = (catalogMarket: CatalogCurrencyCurrencyMarket) => ({
-	$base: {
-		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.baseIso4217 },
-	},
-	$quote: {
-		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.quoteIso4217 },
-	},
-	$marketVenue: {
-		marketVenueId: catalogMarket.marketVenueId,
-	},
-	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
 
 export default {
 	source: Source.Coingecko_OpenApi,
@@ -175,6 +147,11 @@ export default {
 				lastTradedAtMs: (timestamp) => timestamp.lastTradedAtMs,
 				providerAssetId: (timestamp) => timestamp.providerAssetId,
 				transport: (timestamp) => timestamp.transport,
+				$parentMarket: (_timestamp, { $market }) => (
+					{
+						[EntityMetaKey.Selector]: $market,
+					}
+				),
 			}),
 
 		defineResolver(Source.Coingecko_OpenApi, {
@@ -185,11 +162,11 @@ export default {
 						throw new Error('Coingecko_OpenApi: Market_Timestamp is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket($market))
 						throw new Error('Coingecko_OpenApi: Market_Timestamp is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-					const { getCoinMarketSpot } = await import('$/sources/Coingecko/OpenApi/queries.ts')
-					const coinId = $market.$base.$coin.coinId
+					const { getCoinMarketSpot } = await import('$/resolvers/Coingecko/OpenApi/queries.ts')
+					const coinId = $market.$base.assetKey
 					const coingeckoId = idByCoinId[coinId]
 					if (coingeckoId == null) throw new Error('Coingecko_OpenApi: coin price not mapped')
 					if (feedKey !== coingeckoId)
@@ -225,13 +202,13 @@ export default {
 						throw new Error('Coingecko_OpenApi: OHLC is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket($market))
 						throw new Error('Coingecko_OpenApi: OHLC is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-					const { getCoinOhlc } = await import('$/sources/Coingecko/OpenApi/queries.ts')
+					const { getCoinOhlc } = await import('$/resolvers/Coingecko/OpenApi/queries.ts')
 					if (timeInterval.unit !== marketOhlcDailyTimeInterval.unit || timeInterval.value !== marketOhlcDailyTimeInterval.value)
 						throw new Error('Coingecko_OpenApi: OHLC timeInterval must be daily')
-					const coinId = $market.$base.$coin.coinId
+					const coinId = $market.$base.assetKey
 					const coingeckoId = idByCoinId[coinId]
 					if (coingeckoId == null) throw new Error('Coingecko_OpenApi: OHLC coin not mapped')
 
@@ -299,7 +276,11 @@ export default {
 				})
 			},
 		})({
-				$parentMarket: (timestamp) => timestamp,
+				$parentMarket: (_timestamp, { $market }) => (
+					{
+						[EntityMetaKey.Selector]: $market,
+					}
+				),
 			}),
 
 		defineResolver(Source.Coingecko_OpenApi, {
@@ -307,7 +288,7 @@ export default {
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector, context) => {
 					const { collectDerivativeMarketEntitySelectors } = await import(
-						'$/sources/Coingecko/OpenApi/queries.ts'
+						'$/resolvers/Coingecko/OpenApi/queries.ts'
 					)
 					const lim = resolverContextRowLimit(context)
 					const marketIds = await collectDerivativeMarketEntitySelectors({
@@ -334,18 +315,13 @@ export default {
 			resolve: {
 				[CoinSelector.CoinId]: async ({ coinId }, context) => {
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-					const spotMarketId = marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId])
 					const coingeckoId = idByCoinId[coinId]
 					if (coingeckoId == null)
-						return [
-							{
-								[EntityMetaKey.Selector]: spotMarketId,
-							},
-						]
+						return []
 					const {
 						collectDerivativeMarketEntitySelectors,
 						collectSpotMarketEntitySelectorsForCoin,
-					} = await import('$/sources/Coingecko/OpenApi/queries.ts')
+					} = await import('$/resolvers/Coingecko/OpenApi/queries.ts')
 					const lim = resolverContextRowLimit(context)
 					const spotVenueMarketIds = await collectSpotMarketEntitySelectorsForCoin({
 						publicEnv: context.publicEnv,
@@ -358,7 +334,6 @@ export default {
 					})
 					return (
 						[
-							spotMarketId,
 							...spotVenueMarketIds,
 							...derivativeMarketIds,
 						]
@@ -374,38 +349,12 @@ export default {
 			}),
 
 		defineResolver(Source.Coingecko_OpenApi, {
-			entityType: EntityType.Coin,
-				resolve: {
-					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>, context) => {
-						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-						const lim = resolverContextRowLimit(context)
-						return (
-						seededSpotMarketsWithCoinAsQuote
-							.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
-							.map(marketSelectorFromCatalogCoinCoinMarket)
-							.filter((marketId) => (
-							idByCoinId[marketId.$base.$coin.coinId] != null
-							))
-							.slice(0, lim)
-							.map((marketId) => (
-							{
-								[EntityMetaKey.Selector]: marketId,
-							}
-							))
-					)
-				}
-			},
-		})({
-				$$marketsWithCoinAsQuote: (coin) => coin,
-			}),
-
-		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
 					const { CoinId, coinById } = await import('$/constants/Coin.ts')
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-					const { getCoinMarketSpot } = await import('$/sources/Coingecko/OpenApi/queries.ts')
+					const { getCoinMarketSpot } = await import('$/resolvers/Coingecko/OpenApi/queries.ts')
 					const lim = resolverContextRowLimit(context)
 					return (
 						(await Promise.all(
@@ -448,11 +397,11 @@ export default {
 						return []
 					if (entitySelector.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector))
+					if (!catalogCoinCurrencyMarketMatchesMarket(entitySelector))
 						return []
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-					const { getCoinOhlc } = await import('$/sources/Coingecko/OpenApi/queries.ts')
-					const coinId = entitySelector.$base.$coin.coinId
+					const { getCoinOhlc } = await import('$/resolvers/Coingecko/OpenApi/queries.ts')
+					const coinId = entitySelector.$base.assetKey
 					if (idByCoinId[coinId] == null) throw new Error('Coingecko_OpenApi: OHLC coin not mapped')
 					const coingeckoId = idByCoinId[coinId]
 					const lim = resolverContextRowLimit(context)
@@ -484,47 +433,6 @@ export default {
 			}),
 
 		defineResolver(Source.Coingecko_OpenApi, {
-			entityType: EntityType.Currency,
-			resolve: {
-				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
-					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-					return (
-						(
-						iso4217 === Iso4217.USD ?
-							seededCoinSpotUsdMarkets.filter((catalogMarket) => (
-								idByCoinId[catalogMarket.baseCoinId] != null
-							))
-						:
-							[]
-						).map((catalogMarket) => ({
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
-						}))
-					)
-				}
-			},
-		})({
-				$$marketsWithCurrencyAsQuote: (currency) => currency,
-			}),
-
-		defineResolver(Source.Coingecko_OpenApi, {
-			entityType: EntityType.Currency,
-			resolve: {
-				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
-					const markets = seededSpotMarketsWithCurrencyAsBase
-						.filter((catalogMarket) => catalogMarket.baseIso4217 === iso4217)
-						.map((catalogMarket) => ({
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
-						}))
-					if (markets.length === 0)
-						throw new Error(`Coingecko_OpenApi: no catalog markets with ${iso4217} as base`)
-					return markets
-				}
-			},
-		})({
-				$$marketsWithCurrencyAsBase: (currency) => currency,
-			}),
-
-		defineResolver(Source.Coingecko_OpenApi, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[MarketPriceSelector.Market]: async ({ $market }, context) => {
@@ -532,11 +440,11 @@ export default {
 						return []
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket($market))
 						return []
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-					const { getCoinMarketSpot } = await import('$/sources/Coingecko/OpenApi/queries.ts')
-					const coinId = $market.$base.$coin.coinId
+					const { getCoinMarketSpot } = await import('$/resolvers/Coingecko/OpenApi/queries.ts')
+					const coinId = $market.$base.assetKey
 					const coingeckoId = idByCoinId[coinId]
 					if (coingeckoId == null) throw new Error('Coingecko_OpenApi: coin price not mapped')
 					const spot = await getCoinMarketSpot({

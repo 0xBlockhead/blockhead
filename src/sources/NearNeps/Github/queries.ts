@@ -16,7 +16,7 @@ export const getContents = (): Promise<NearNepsGithubContents> => (
 	getGithubContents({
 		endpoints: githubHttpEndpoints,
 		target: nearNepsGithubRepo,
-	}) as Promise<NearNepsGithubContents>
+	})
 )
 
 export const getMarkdownText = ({ number }: { number: number }) => (

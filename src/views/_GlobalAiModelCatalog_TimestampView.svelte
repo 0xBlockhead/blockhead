@@ -47,7 +47,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global AI model catalog timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global AI model catalog timestamp')
 	const viewDomId = $derived('-global-ai-model-catalog-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={globalAiModelCatalogTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalAiModelCatalogTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global AI model catalog timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global AI model catalog timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalAiModelCatalogTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>
@@ -280,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceReportedModelCount = prefetched.sourceReportedModelCount}
+					{@const sourceReportedModelCount = pendingEntity.sourceReportedModelCount}
 					{#if sourceReportedModelCount !== undefined && sourceReportedModelCount !== null}
 						<div>
 							<dt>sourceReportedModelCount</dt>
@@ -315,7 +315,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededModelCount = prefetched.seededModelCount}
+					{@const seededModelCount = pendingEntity.seededModelCount}
 					{#if seededModelCount !== undefined && seededModelCount !== null}
 						<div>
 							<dt>seededModelCount</dt>
@@ -350,7 +350,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const searchResultCount = prefetched.searchResultCount}
+					{@const searchResultCount = pendingEntity.searchResultCount}
 					{#if searchResultCount !== undefined && searchResultCount !== null}
 						<div>
 							<dt>searchResultCount</dt>
@@ -387,7 +387,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const declaredEndpointCount = prefetched.declaredEndpointCount}
+					{@const declaredEndpointCount = pendingEntity.declaredEndpointCount}
 					{#if declaredEndpointCount !== undefined && declaredEndpointCount !== null}
 						<div>
 							<dt>declaredEndpointCount</dt>
@@ -422,7 +422,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachableEndpointCount = prefetched.reachableEndpointCount}
+					{@const reachableEndpointCount = pendingEntity.reachableEndpointCount}
 					{#if reachableEndpointCount !== undefined && reachableEndpointCount !== null}
 						<div>
 							<dt>reachableEndpointCount</dt>
@@ -457,7 +457,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rateLimitRemaining = prefetched.rateLimitRemaining}
+					{@const rateLimitRemaining = pendingEntity.rateLimitRemaining}
 					{#if rateLimitRemaining !== undefined && rateLimitRemaining !== null}
 						<div>
 							<dt>rateLimitRemaining</dt>
@@ -494,7 +494,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const queryHashAlgorithm = prefetched.queryHashAlgorithm}
+					{@const queryHashAlgorithm = pendingEntity.queryHashAlgorithm}
 					{#if queryHashAlgorithm !== undefined && queryHashAlgorithm !== null}
 						<div>
 							<dt>query hash algorithm</dt>
@@ -529,7 +529,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const queryHash = prefetched.queryHash}
+					{@const queryHash = pendingEntity.queryHash}
 					{#if queryHash !== undefined && queryHash !== null}
 						<div>
 							<dt>query hash</dt>
@@ -564,7 +564,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastCursor = prefetched.lastCursor}
+					{@const lastCursor = pendingEntity.lastCursor}
 					{#if lastCursor !== undefined && lastCursor !== null}
 						<div>
 							<dt>last cursor</dt>

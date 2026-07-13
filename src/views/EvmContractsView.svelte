@@ -119,8 +119,8 @@
 						selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmContractFields}
 						href={
-							(evmContractHrefFields.$network !== undefined && evmContractHrefFields.$network.caip2 !== undefined && evmContractHrefFields.$network.caip2.namespace !== undefined && evmContractHrefFields.$network !== undefined && evmContractHrefFields.$network.caip2 !== undefined && evmContractHrefFields.$network.caip2.reference !== undefined && evmContractHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-								caip2: `${String(evmContractHrefFields.$network.caip2.namespace ?? '')}:${String(evmContractHrefFields.$network.caip2.reference ?? '')}`,
+							(evmContractHrefFields.$network !== undefined && evmContractHrefFields.$network.slug !== undefined && evmContractHrefFields.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+								network: String(evmContractHrefFields.$network.slug ?? ''),
 								address: String(evmContractHrefFields.address ?? ''),
 							}) : undefined)
 						}

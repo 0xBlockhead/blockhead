@@ -9,8 +9,10 @@ export enum Network_TimestampSelector {
 }
 export const Network_Timestamp = entity({
 	entityType: EntityType.Network_Timestamp,
-	label: 'Network timestamp',
-	labelPlural: 'network observations',
+	labels: {
+		singular: 'Network timestamp',
+		plural: 'network observations',
+	},
 	description: 'A point-in-time observation of network status or metrics.',
 })({
 	$network: {
@@ -23,7 +25,7 @@ export const Network_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

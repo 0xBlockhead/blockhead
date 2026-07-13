@@ -9,8 +9,10 @@ export enum EvmActorCoinAllowance_BlockSelector {
 }
 export const EvmActorCoinAllowance_Block = entity({
 	entityType: EntityType.EvmActorCoinAllowance_Block,
-	label: 'EVM actor coin allowance block',
-	labelPlural: 'EVM actor coin allowance blocks',
+	labels: {
+		singular: 'EVM actor coin allowance block',
+		plural: 'EVM actor coin allowance blocks',
+	},
 })({
 	$allowance: {
 		label: 'Allowance',

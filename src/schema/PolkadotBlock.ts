@@ -10,8 +10,10 @@ export enum PolkadotBlockSelector {
 }
 export const PolkadotBlock = entity({
 	entityType: EntityType.PolkadotBlock,
-	label: 'Polkadot block',
-	labelPlural: 'Polkadot blocks',
+	labels: {
+		singular: 'Polkadot block',
+		plural: 'Polkadot blocks',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -23,7 +25,7 @@ export const PolkadotBlock = entity({
 		label: 'Block number',
 		description: 'The block height or number in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {

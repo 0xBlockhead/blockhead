@@ -117,7 +117,7 @@
 
 
 	const entityTitle = $derived(
-		title ?? entityDefinitionByType[entityType].label,
+		title ?? entityDefinitionByType[entityType].labels.singular,
 	)
 
 
@@ -238,11 +238,11 @@
 						Content={TypeAnnotationTooltip}
 					>
 						{#snippet children()}
-							<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+							<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
 						{/snippet}
 					</Tooltip>
 				{:else}
-					<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+					<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
 				{/if}
 			</div>
 		{/if}
@@ -263,11 +263,11 @@
 					Content={TypeAnnotationTooltip}
 				>
 					{#snippet children()}
-						<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+					<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
 					{/snippet}
 				</Tooltip>
 			{:else}
-				<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+				<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
 			{/if}
 		{/snippet}
 

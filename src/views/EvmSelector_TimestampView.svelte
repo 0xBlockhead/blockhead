@@ -70,10 +70,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$selector !== undefined && pendingEntity.$selector.hex !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			hex: String(pendingEntity.$selector.hex ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$selector !== undefined && pendingEntity.$selector.hex !== undefined ? resolve('/evm/selector/[hex=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			hex: String(pendingEntity.$selector.hex ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmSelectorTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -114,7 +114,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={evmSelectorTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -142,7 +142,7 @@
 					<EvmSelectorView
 						selection={select(EntityType.EvmSelector, selection.entitySelector.$selector, {})}
 						href={
-							(selection.entitySelector.$selector.hex !== undefined ? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+							(selection.entitySelector.$selector.hex !== undefined ? resolve('/evm/selector/[hex=zeroExHex]', {
 								hex: String(selection.entitySelector.$selector.hex ?? ''),
 							}) : undefined)
 						}
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -195,7 +195,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -252,7 +252,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const filteredSignatureCount = prefetched.filteredSignatureCount}
+						{@const filteredSignatureCount = pendingEntity.filteredSignatureCount}
 						{#if filteredSignatureCount !== undefined && filteredSignatureCount !== null}
 							<div>
 								<dt>Filtered signature count</dt>
@@ -289,7 +289,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const verifiedCandidateCount = prefetched.verifiedCandidateCount}
+						{@const verifiedCandidateCount = pendingEntity.verifiedCandidateCount}
 						{#if verifiedCandidateCount !== undefined && verifiedCandidateCount !== null}
 							<div>
 								<dt>Verified candidate count</dt>
@@ -326,7 +326,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const reachable = prefetched.reachable}
+						{@const reachable = pendingEntity.reachable}
 						{#if reachable !== undefined && reachable !== null}
 							<div>
 								<dt>Reachable</dt>

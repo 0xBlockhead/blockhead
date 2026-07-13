@@ -9,8 +9,10 @@ export enum AptosCoinBalance_TimestampSelector {
 }
 export const AptosCoinBalance_Timestamp = entity({
 	entityType: EntityType.AptosCoinBalance_Timestamp,
-	label: 'aptos coin balance timestamp',
-	labelPlural: 'aptos coin balance observations',
+	labels: {
+		singular: 'aptos coin balance timestamp',
+		plural: 'aptos coin balance observations',
+	},
 })({
 	$account: {
 		label: 'account',

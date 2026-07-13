@@ -24,7 +24,7 @@
 
 <Page>
 	<CoinsView
-		href={resolve('/(assets)/coins')}
+		href={resolve('/coins')}
 		title='Coins'
 		selection={
 			select(EntityType._Global, {

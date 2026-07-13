@@ -9,8 +9,10 @@ export enum ZeroGDataChunkSelector {
 }
 export const ZeroGDataChunk = entity({
 	entityType: EntityType.ZeroGDataChunk,
-	label: 'zero g data chunk',
-	labelPlural: 'zero g data chunks',
+	labels: {
+		singular: 'zero g data chunk',
+		plural: 'zero g data chunks',
+	},
 })({
 	$dataBlob: {
 		label: 'data blob',

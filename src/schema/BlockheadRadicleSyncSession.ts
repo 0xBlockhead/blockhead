@@ -9,8 +9,10 @@ export enum BlockheadRadicleSyncSessionSelector {
 }
 export const BlockheadRadicleSyncSession = entity({
 	entityType: EntityType.BlockheadRadicleSyncSession,
-	label: 'blockhead radicle sync session',
-	labelPlural: 'blockhead radicle sync sessions',
+	labels: {
+		singular: 'blockhead radicle sync session',
+		plural: 'blockhead radicle sync sessions',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

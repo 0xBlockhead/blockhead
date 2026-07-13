@@ -9,8 +9,10 @@ export enum HyperliquidSpotAsset_TimestampSelector {
 }
 export const HyperliquidSpotAsset_Timestamp = entity({
 	entityType: EntityType.HyperliquidSpotAsset_Timestamp,
-	label: 'hyperliquid spot asset timestamp',
-	labelPlural: 'hyperliquid spot asset observations',
+	labels: {
+		singular: 'hyperliquid spot asset timestamp',
+		plural: 'hyperliquid spot asset observations',
+	},
 })({
 	$spotAsset: {
 		label: 'spot asset',

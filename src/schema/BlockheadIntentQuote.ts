@@ -10,8 +10,10 @@ export enum BlockheadIntentQuoteSelector {
 }
 export const BlockheadIntentQuote = entity({
 	entityType: EntityType.BlockheadIntentQuote,
-	label: 'blockhead intent quote',
-	labelPlural: 'blockhead intent quotes',
+	labels: {
+		singular: 'blockhead intent quote',
+		plural: 'blockhead intent quotes',
+	},
 })({
 	id: {
 		label: 'ID',

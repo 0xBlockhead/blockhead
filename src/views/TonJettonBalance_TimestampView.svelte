@@ -114,7 +114,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -171,7 +171,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const jettonWalletAddress = prefetched.jettonWalletAddress}
+					{@const jettonWalletAddress = pendingEntity.jettonWalletAddress}
 					{#if jettonWalletAddress !== undefined && jettonWalletAddress !== null}
 						<div>
 							<dt>jetton wallet address</dt>
@@ -206,7 +206,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceNano = prefetched.balanceNano}
+					{@const balanceNano = pendingEntity.balanceNano}
 					{#if balanceNano !== undefined && balanceNano !== null}
 						<div>
 							<dt>balance nano</dt>
@@ -241,7 +241,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownerAddress = prefetched.ownerAddress}
+					{@const ownerAddress = pendingEntity.ownerAddress}
 					{#if ownerAddress !== undefined && ownerAddress !== null}
 						<div>
 							<dt>owner address</dt>
@@ -276,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const masterAddress = prefetched.masterAddress}
+					{@const masterAddress = pendingEntity.masterAddress}
 					{#if masterAddress !== undefined && masterAddress !== null}
 						<div>
 							<dt>master address</dt>
@@ -311,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastTransactionLt = prefetched.lastTransactionLt}
+					{@const lastTransactionLt = pendingEntity.lastTransactionLt}
 					{#if lastTransactionLt !== undefined && lastTransactionLt !== null}
 						<div>
 							<dt>last transaction lt</dt>
@@ -346,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const locked = prefetched.locked}
+					{@const locked = pendingEntity.locked}
 					{#if locked !== undefined && locked !== null}
 						<div>
 							<dt>locked</dt>

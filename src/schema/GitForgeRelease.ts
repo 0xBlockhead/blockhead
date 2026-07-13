@@ -10,8 +10,10 @@ export enum GitForgeReleaseSelector {
 }
 export const GitForgeRelease = entity({
 	entityType: EntityType.GitForgeRelease,
-	label: 'Git forge release',
-	labelPlural: 'Git forge releases',
+	labels: {
+		singular: 'Git forge release',
+		plural: 'Git forge releases',
+	},
 })({
 	$forgeMirror: {
 		label: 'forge mirror',

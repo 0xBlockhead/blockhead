@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -45,12 +45,10 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const filecoinDeal = $derived(selection({
 		fields: {
-			$provider: true,
-			$client: true,
 			verifiedDeal: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.dealId ?? prefetched.dealId) ?? '')].filter(Boolean).join(' ') || 'filecoin deal')
+	const titleFallback = $derived([String((pendingEntity.dealId) ?? '')].filter(Boolean).join(' ') || 'filecoin deal')
 	const viewDomId = $derived('filecoin-deal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={filecoinDeal}>
 			{#snippet Pending()}
-				{@const dealId0 = selection.entitySelector.dealId ?? prefetched.dealId}
+				{@const dealId0 = pendingEntity.dealId}
 				{#if dealId0 !== undefined && dealId0 !== null}
 					<NumberValue value={Number(dealId0)} />
 				{/if}
@@ -166,7 +164,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinDeal}>
 			{#snippet Pending()}
-				{@const verifiedDeal0 = prefetched.verifiedDeal}
+				{@const verifiedDeal0 = pendingEntity.verifiedDeal}
 				{#if verifiedDeal0 !== undefined && verifiedDeal0 !== null}
 					<span data-text="muted">
 						{verifiedDeal0 ? 'Yes' : 'No'}
@@ -194,22 +192,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -231,7 +217,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const dealId = selection.entitySelector.dealId ?? prefetched.dealId}
+							{@const dealId = pendingEntity.dealId}
 							{#if dealId !== undefined && dealId !== null}
 								<NumberValue value={Number(dealId)} />
 							{/if}
@@ -251,6 +237,8 @@
 			<ResourceBoundary
 				resource={selection.$provider}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinMiner)}
 					{#if filecoinMiner != null && filecoinMiner[EntityMetaKey.Selector] != null}
 						<div>
@@ -271,6 +259,8 @@
 			<ResourceBoundary
 				resource={selection.$client}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
 						<div>
@@ -298,7 +288,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pieceCid = prefetched.pieceCid}
+					{@const pieceCid = pendingEntity.pieceCid}
 					{#if pieceCid !== undefined && pieceCid !== null}
 						<div>
 							<dt>Piece CID</dt>
@@ -333,7 +323,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pieceSizeBytes = prefetched.pieceSizeBytes}
+					{@const pieceSizeBytes = pendingEntity.pieceSizeBytes}
 					{#if pieceSizeBytes !== undefined && pieceSizeBytes !== null}
 						<div>
 							<dt>Piece size bytes</dt>
@@ -368,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedDeal = prefetched.verifiedDeal}
+					{@const verifiedDeal = pendingEntity.verifiedDeal}
 					{#if verifiedDeal !== undefined && verifiedDeal !== null}
 						<div>
 							<dt>Verified deal</dt>
@@ -403,7 +393,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -440,7 +430,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startEpoch = prefetched.startEpoch}
+					{@const startEpoch = pendingEntity.startEpoch}
 					{#if startEpoch !== undefined && startEpoch !== null}
 						<div>
 							<dt>Start epoch</dt>
@@ -475,7 +465,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endEpoch = prefetched.endEpoch}
+					{@const endEpoch = pendingEntity.endEpoch}
 					{#if endEpoch !== undefined && endEpoch !== null}
 						<div>
 							<dt>End epoch</dt>
@@ -510,7 +500,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storagePricePerEpochAttoFil = prefetched.storagePricePerEpochAttoFil}
+					{@const storagePricePerEpochAttoFil = pendingEntity.storagePricePerEpochAttoFil}
 					{#if storagePricePerEpochAttoFil !== undefined && storagePricePerEpochAttoFil !== null}
 						<div>
 							<dt>Storage price per epoch attoFIL</dt>
@@ -545,7 +535,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerCollateralAttoFil = prefetched.providerCollateralAttoFil}
+					{@const providerCollateralAttoFil = pendingEntity.providerCollateralAttoFil}
 					{#if providerCollateralAttoFil !== undefined && providerCollateralAttoFil !== null}
 						<div>
 							<dt>Provider collateral attoFIL</dt>
@@ -580,7 +570,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clientCollateralAttoFil = prefetched.clientCollateralAttoFil}
+					{@const clientCollateralAttoFil = pendingEntity.clientCollateralAttoFil}
 					{#if clientCollateralAttoFil !== undefined && clientCollateralAttoFil !== null}
 						<div>
 							<dt>Client collateral attoFIL</dt>

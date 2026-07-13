@@ -9,8 +9,10 @@ export enum EvmNetworkAccount_TimestampSelector {
 }
 export const EvmNetworkAccount_Timestamp = entity({
 	entityType: EntityType.EvmNetworkAccount_Timestamp,
-	label: 'EVM network account timestamp',
-	labelPlural: 'EVM network account observations',
+	labels: {
+		singular: 'EVM network account timestamp',
+		plural: 'EVM network account observations',
+	},
 })({
 	$account: {
 		label: 'account',

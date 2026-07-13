@@ -9,8 +9,10 @@ export enum KaspaAddressUtxo_TimestampSelector {
 }
 export const KaspaAddressUtxo_Timestamp = entity({
 	entityType: EntityType.KaspaAddressUtxo_Timestamp,
-	label: 'kaspa address UTXO timestamp',
-	labelPlural: 'kaspa address UTXO observations',
+	labels: {
+		singular: 'kaspa address UTXO timestamp',
+		plural: 'kaspa address UTXO observations',
+	},
 })({
 	$address: {
 		label: 'Address',

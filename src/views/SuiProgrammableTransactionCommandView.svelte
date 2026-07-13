@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const commandIndex = selection.entitySelector.commandIndex ?? prefetched.commandIndex}
+							{@const commandIndex = pendingEntity.commandIndex}
 							{#if commandIndex !== undefined && commandIndex !== null}
 								{String((commandIndex) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const commandKind = prefetched.commandKind}
+							{@const commandKind = pendingEntity.commandKind}
 							{#if commandKind !== undefined && commandKind !== null}
 								{String((commandKind) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packageId = prefetched.packageId}
+					{@const packageId = pendingEntity.packageId}
 					{#if packageId !== undefined && packageId !== null}
 						<div>
 							<dt>package ID</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleName = prefetched.moduleName}
+					{@const moduleName = pendingEntity.moduleName}
 					{#if moduleName !== undefined && moduleName !== null}
 						<div>
 							<dt>module name</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const functionName = prefetched.functionName}
+					{@const functionName = pendingEntity.functionName}
 					{#if functionName !== undefined && functionName !== null}
 						<div>
 							<dt>function name</dt>
@@ -266,7 +266,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const typeArguments = prefetched.typeArguments}
+							{@const typeArguments = pendingEntity.typeArguments}
 							{#if typeArguments !== undefined && typeArguments !== null}
 								{typeArguments.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

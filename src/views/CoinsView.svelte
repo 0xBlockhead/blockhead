@@ -128,7 +128,7 @@
 						selection={select(EntityType.Coin, coin[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={coinFields}
 						href={
-							(coinHrefFields.coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
+							(coinHrefFields.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
 								coinId: String(coinHrefFields.coinId ?? ''),
 							}) : undefined)
 						}
@@ -181,7 +181,7 @@
 
 		<MarketPricesView
 			CollapsibleProps={{ canToggle: false }}
-			href={resolve('/(assets)/markets')}
+			href={resolve('/markets')}
 			selection={select(
 				EntityType._Global,
 				{ scope: '$$marketPrices' }
@@ -269,7 +269,7 @@
 
 	{#snippet SectionMarketsIndex({ id, label })}
 		<div data-row="wrap align-center gap-2">
-			<a href={resolve('/(assets)/markets')}>All markets</a>
+			<a href={resolve('/markets')}>All markets</a>
 			<Tooltip contentProps={{ side: 'top' }}>
 				{#snippet Content()}
 					<p>
@@ -286,7 +286,7 @@
 
 		<MarketsView
 			CollapsibleProps={{ canToggle: false }}
-			href={resolve('/(assets)/markets')}
+			href={resolve('/markets')}
 			selection={select(
 				EntityType._Global,
 				{ scope: '$$markets' }
@@ -323,12 +323,12 @@
 	{#snippet SectionDeploymentsEth({ id, label })}
 		<p data-text="muted">
 			Per-chain deployments are listed on each coin detail page. Preview for catalog
-			<a href={resolve('/(assets)/coin/[coinId]', { coinId: CoinId.ETH })}>ETH</a>:
+			<a href={resolve('/coin/[coinId]', { coinId: CoinId.ETH })}>ETH</a>:
 		</p>
 
 		<EvmCoinInstancesView
 			CollapsibleProps={{ canToggle: false }}
-			href={resolve('/(assets)/coin/[coinId]', { coinId: CoinId.ETH })}
+			href={resolve('/coin/[coinId]', { coinId: CoinId.ETH })}
 			selection={select(
 				EntityType.Coin,
 				{ coinId: CoinId.ETH }

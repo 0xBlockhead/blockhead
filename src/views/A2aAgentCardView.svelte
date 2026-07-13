@@ -45,7 +45,7 @@
 			Source.Eip8004Scan_Rest,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.agentCardUrl ?? prefetched.agentCardUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent card')
+	const titleFallback = $derived([String((pendingEntity.agentCardUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent card')
 	const viewDomId = $derived('a2a-agent-card-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -70,7 +70,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aAgentCard}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.agentCardUrl ?? prefetched.agentCardUrl) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent card'}
+				{[String((pendingEntity.agentCardUrl) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent card'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -95,7 +95,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const agentCardUrl = selection.entitySelector.agentCardUrl ?? prefetched.agentCardUrl}
+							{@const agentCardUrl = pendingEntity.agentCardUrl}
 							{#if agentCardUrl !== undefined && agentCardUrl !== null}
 								<svelte:element
 									this={'a'}

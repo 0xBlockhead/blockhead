@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,7 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaAddressTimestamp = $derived(selection({}))
+	const kaspaAddressTimestamp = $derived(selection({
+		sources: [
+			Source.KaspaExplorer_Rest,
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Rest,
+			Source.KaspaNode_Wrpc,
+		],
+	}))
 	const titleFallback = $derived('kaspa address timestamp')
 	const viewDomId = $derived('kaspa-address-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -104,7 +112,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -134,7 +142,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -161,7 +169,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceSompi = prefetched.balanceSompi}
+					{@const balanceSompi = pendingEntity.balanceSompi}
 					{#if balanceSompi !== undefined && balanceSompi !== null}
 						<div>
 							<dt>balance sompi</dt>
@@ -196,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const utxoCount = prefetched.utxoCount}
+					{@const utxoCount = pendingEntity.utxoCount}
 					{#if utxoCount !== undefined && utxoCount !== null}
 						<div>
 							<dt>UTXO count</dt>
@@ -231,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount}
+					{@const transactionCount = pendingEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>transaction count</dt>

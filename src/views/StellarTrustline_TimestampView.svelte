@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerSequence = prefetched.ledgerSequence}
+					{@const ledgerSequence = pendingEntity.ledgerSequence}
 					{#if ledgerSequence !== undefined && ledgerSequence !== null}
 						<div>
 							<dt>ledger sequence</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>balance</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const limit = prefetched.limit}
+					{@const limit = pendingEntity.limit}
 					{#if limit !== undefined && limit !== null}
 						<div>
 							<dt>limit</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const buyingLiabilities = prefetched.buyingLiabilities}
+					{@const buyingLiabilities = pendingEntity.buyingLiabilities}
 					{#if buyingLiabilities !== undefined && buyingLiabilities !== null}
 						<div>
 							<dt>buying liabilities</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sellingLiabilities = prefetched.sellingLiabilities}
+					{@const sellingLiabilities = pendingEntity.sellingLiabilities}
 					{#if sellingLiabilities !== undefined && sellingLiabilities !== null}
 						<div>
 							<dt>selling liabilities</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorized = prefetched.authorized}
+					{@const authorized = pendingEntity.authorized}
 					{#if authorized !== undefined && authorized !== null}
 						<div>
 							<dt>authorized</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorizedToMaintainLiabilities = prefetched.authorizedToMaintainLiabilities}
+					{@const authorizedToMaintainLiabilities = pendingEntity.authorizedToMaintainLiabilities}
 					{#if authorizedToMaintainLiabilities !== undefined && authorizedToMaintainLiabilities !== null}
 						<div>
 							<dt>authorized to maintain liabilities</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clawbackEnabled = prefetched.clawbackEnabled}
+					{@const clawbackEnabled = pendingEntity.clawbackEnabled}
 					{#if clawbackEnabled !== undefined && clawbackEnabled !== null}
 						<div>
 							<dt>clawback enabled</dt>

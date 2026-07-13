@@ -9,8 +9,10 @@ export enum DydxChainSubaccount_TimestampSelector {
 }
 export const DydxChainSubaccount_Timestamp = entity({
 	entityType: EntityType.DydxChainSubaccount_Timestamp,
-	label: 'dydx chain subaccount timestamp',
-	labelPlural: 'dydx chain subaccount observations',
+	labels: {
+		singular: 'dydx chain subaccount timestamp',
+		plural: 'dydx chain subaccount observations',
+	},
 })({
 	$subaccount: {
 		label: 'subaccount',

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -162,7 +162,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const compiler = prefetched.compiler}
+					{@const compiler = pendingEntity.compiler}
 					{#if compiler !== undefined && compiler !== null}
 						<div>
 							<dt>Compiler</dt>
@@ -200,7 +200,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifyStatus = prefetched.verifyStatus}
+					{@const verifyStatus = pendingEntity.verifyStatus}
 					{#if verifyStatus !== undefined && verifyStatus !== null}
 						<div>
 							<dt>Verify status</dt>
@@ -238,7 +238,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isProxy = prefetched.isProxy}
+					{@const isProxy = pendingEntity.isProxy}
 					{#if isProxy !== undefined && isProxy !== null}
 						<div>
 							<dt>Proxy</dt>
@@ -272,6 +272,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tronContract)}
 					{#if tronContract != null && tronContract[EntityMetaKey.Selector] != null}
 						<div>

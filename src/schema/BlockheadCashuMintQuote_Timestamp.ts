@@ -9,8 +9,10 @@ export enum BlockheadCashuMintQuote_TimestampSelector {
 }
 export const BlockheadCashuMintQuote_Timestamp = entity({
 	entityType: EntityType.BlockheadCashuMintQuote_Timestamp,
-	label: 'blockhead Cashu mint quote timestamp',
-	labelPlural: 'blockhead Cashu mint quote observations',
+	labels: {
+		singular: 'blockhead Cashu mint quote timestamp',
+		plural: 'blockhead Cashu mint quote observations',
+	},
 })({
 	$mintQuote: {
 		label: 'mint quote',

@@ -10,8 +10,10 @@ export enum FilecoinActorSelector {
 }
 export const FilecoinActor = entity({
 	entityType: EntityType.FilecoinActor,
-	label: 'filecoin actor',
-	labelPlural: 'filecoin actors',
+	labels: {
+		singular: 'filecoin actor',
+		plural: 'filecoin actors',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const accountId = selection.entitySelector.accountId ?? prefetched.accountId}
+							{@const accountId = pendingEntity.accountId}
 							{#if accountId !== undefined && accountId !== null}
 								<TruncatedValue value={String((accountId) ?? '')} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transferIndex = selection.entitySelector.transferIndex ?? prefetched.transferIndex}
+							{@const transferIndex = pendingEntity.transferIndex}
 							{#if transferIndex !== undefined && transferIndex !== null}
 								{String((transferIndex) ?? '')}
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const amountTinybar = prefetched.amountTinybar}
+							{@const amountTinybar = pendingEntity.amountTinybar}
 							{#if amountTinybar !== undefined && amountTinybar !== null}
 								{String((amountTinybar) ?? '')}
 							{/if}
@@ -190,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isApproval = prefetched.isApproval}
+					{@const isApproval = pendingEntity.isApproval}
 					{#if isApproval !== undefined && isApproval !== null}
 						<div>
 							<dt>is approval</dt>
@@ -218,6 +218,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>

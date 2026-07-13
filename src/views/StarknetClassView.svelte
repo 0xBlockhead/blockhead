@@ -56,7 +56,7 @@
 			declaredAtBlockNumber: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.classHash ?? prefetched.classHash) ?? '')].filter(Boolean).join(' ') || 'starknet class')
+	const titleFallback = $derived([String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || 'starknet class')
 	const viewDomId = $derived('starknet-class-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -82,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={starknetClass}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.classHash ?? prefetched.classHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet class'}
+				{[String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet class'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetClass}>
 			{#snippet Pending()}
-				{[String((prefetched.contractClassVersion) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.classHash ?? prefetched.classHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet class'}
+				{[String((pendingEntity.contractClassVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet class'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={starknetClass}>
 			{#snippet Pending()}
-				{@const declaredAtBlockNumber0 = prefetched.declaredAtBlockNumber}
+				{@const declaredAtBlockNumber0 = pendingEntity.declaredAtBlockNumber}
 				{#if declaredAtBlockNumber0 !== undefined && declaredAtBlockNumber0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(declaredAtBlockNumber0)} />
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const classHash = selection.entitySelector.classHash ?? prefetched.classHash}
+							{@const classHash = pendingEntity.classHash}
 							{#if classHash !== undefined && classHash !== null}
 								<TruncatedValue value={String((classHash) ?? '')} />
 							{/if}
@@ -181,7 +181,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractClassVersion = prefetched.contractClassVersion}
+					{@const contractClassVersion = pendingEntity.contractClassVersion}
 					{#if contractClassVersion !== undefined && contractClassVersion !== null}
 						<div>
 							<dt>contract class version</dt>
@@ -216,7 +216,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sierraProgramHash = prefetched.sierraProgramHash}
+					{@const sierraProgramHash = pendingEntity.sierraProgramHash}
 					{#if sierraProgramHash !== undefined && sierraProgramHash !== null}
 						<div>
 							<dt>sierra program hash</dt>
@@ -251,7 +251,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const casmClassHash = prefetched.casmClassHash}
+					{@const casmClassHash = pendingEntity.casmClassHash}
 					{#if casmClassHash !== undefined && casmClassHash !== null}
 						<div>
 							<dt>casm class hash</dt>
@@ -288,7 +288,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const abiHash = prefetched.abiHash}
+					{@const abiHash = pendingEntity.abiHash}
 					{#if abiHash !== undefined && abiHash !== null}
 						<div>
 							<dt>ABI hash</dt>
@@ -323,7 +323,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const declaredAtBlockNumber = prefetched.declaredAtBlockNumber}
+					{@const declaredAtBlockNumber = pendingEntity.declaredAtBlockNumber}
 					{#if declaredAtBlockNumber !== undefined && declaredAtBlockNumber !== null}
 						<div>
 							<dt>declared at block number</dt>
@@ -358,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const declaredByTransactionHash = prefetched.declaredByTransactionHash}
+					{@const declaredByTransactionHash = pendingEntity.declaredByTransactionHash}
 					{#if declaredByTransactionHash !== undefined && declaredByTransactionHash !== null}
 						<div>
 							<dt>declared by transaction hash</dt>

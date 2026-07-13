@@ -9,8 +9,10 @@ export enum PayjoinEndpointSelector {
 }
 export const PayjoinEndpoint = entity({
 	entityType: EntityType.PayjoinEndpoint,
-	label: 'payjoin endpoint',
-	labelPlural: 'payjoin endpoints',
+	labels: {
+		singular: 'payjoin endpoint',
+		plural: 'payjoin endpoints',
+	},
 })({
 	endpointUrl: {
 		label: 'endpoint URL',

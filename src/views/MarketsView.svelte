@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType } from '$/constants/Market.ts'
+	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 
 
 	// Context
@@ -86,10 +86,10 @@
 		resource={
 			selection({
 				fields: {
-					$marketVenue: true,
+					marketKind: true,
 					$base: true,
 					$quote: true,
-					marketKind: true,
+					$marketVenue: true,
 				},
 				limit: 8192,
 			})
@@ -140,13 +140,13 @@
 						selection={select(EntityType.Market, market[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={marketFields}
 						href={
-							(marketHrefFields.$marketVenue !== undefined && marketHrefFields.$marketVenue.marketVenueId !== undefined && marketHrefFields.$base !== undefined && marketHrefFields.$base.kind !== undefined && (marketHrefFields.$base !== undefined && marketHrefFields.$base.kind !== undefined && (marketHrefFields.$base.kind === 'Coin' ? marketHrefFields.$base !== undefined && marketHrefFields.$base.$coin !== undefined && marketHrefFields.$base.$coin.coinId !== undefined : marketHrefFields.$base.kind === 'CoinInstance' ? marketHrefFields.$base !== undefined && marketHrefFields.$base.$coinInstance !== undefined && marketHrefFields.$base.$coinInstance.type !== undefined : marketHrefFields.$base !== undefined && marketHrefFields.$base.$currency !== undefined && marketHrefFields.$base.$currency.iso4217 !== undefined)) && marketHrefFields.$quote !== undefined && marketHrefFields.$quote.kind !== undefined && (marketHrefFields.$quote !== undefined && marketHrefFields.$quote.kind !== undefined && (marketHrefFields.$quote.kind === 'Coin' ? marketHrefFields.$quote !== undefined && marketHrefFields.$quote.$coin !== undefined && marketHrefFields.$quote.$coin.coinId !== undefined : marketHrefFields.$quote.kind === 'CoinInstance' ? marketHrefFields.$quote !== undefined && marketHrefFields.$quote.$coinInstance !== undefined && marketHrefFields.$quote.$coinInstance.type !== undefined : marketHrefFields.$quote !== undefined && marketHrefFields.$quote.$currency !== undefined && marketHrefFields.$quote.$currency.iso4217 !== undefined)) && marketHrefFields.marketKind !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
+							(marketHrefFields.marketKind !== undefined && marketHrefFields.$base !== undefined && marketHrefFields.$base.assetKey !== undefined && marketHrefFields.$quote !== undefined && marketHrefFields.$quote.assetKey !== undefined && marketHrefFields.$marketVenue !== undefined && marketHrefFields.$marketVenue.marketVenueId !== undefined && marketHrefFields.$base.kind !== undefined && marketHrefFields.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
+								marketKind: String(marketHrefFields.marketKind ?? ''),
+								base: String(marketHrefFields.$base.assetKey ?? ''),
+								quote: String(marketHrefFields.$quote.assetKey ?? ''),
 								marketVenue: String(marketHrefFields.$marketVenue.marketVenueId ?? ''),
 								baseKind: String(marketAssetRouteLabelByKind[String(marketHrefFields.$base.kind)] ?? ''),
-								base: String((marketHrefFields.$base.kind === 'Coin' ? marketHrefFields.$base.$coin.coinId : marketHrefFields.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketHrefFields.$base.$coinInstance.type)] : marketHrefFields.$base.$currency.iso4217)),
 								quoteKind: String(marketAssetRouteLabelByKind[String(marketHrefFields.$quote.kind)] ?? ''),
-								quote: String((marketHrefFields.$quote.kind === 'Coin' ? marketHrefFields.$quote.$coin.coinId : marketHrefFields.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketHrefFields.$quote.$coinInstance.type)] : marketHrefFields.$quote.$currency.iso4217)),
-								marketKind: String(marketHrefFields.marketKind ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

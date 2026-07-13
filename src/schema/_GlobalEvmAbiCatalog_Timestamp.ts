@@ -9,8 +9,10 @@ export enum _GlobalEvmAbiCatalog_TimestampSelector {
 }
 export const _GlobalEvmAbiCatalog_Timestamp = entity({
 	entityType: EntityType._GlobalEvmAbiCatalog_Timestamp,
-	label: 'global EVM ABI catalog timestamp',
-	labelPlural: 'global EVM ABI catalog observations',
+	labels: {
+		singular: 'global EVM ABI catalog timestamp',
+		plural: 'global EVM ABI catalog observations',
+	},
 })({
 	$hub: {
 		label: 'hub',

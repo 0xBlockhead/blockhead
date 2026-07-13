@@ -47,7 +47,7 @@
 			userOperationsCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 bundler timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 bundler timestamp')
 	const viewDomId = $derived('erc4337bundler-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -65,8 +65,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$bundler !== undefined && pendingEntity.$bundler.$network !== undefined && pendingEntity.$bundler.$network.caip2 !== undefined && pendingEntity.$bundler.$network.caip2.namespace !== undefined && pendingEntity.$bundler !== undefined && pendingEntity.$bundler.$network !== undefined && pendingEntity.$bundler.$network.caip2 !== undefined && pendingEntity.$bundler.$network.caip2.reference !== undefined && pendingEntity.$bundler !== undefined && pendingEntity.$bundler.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(pendingEntity.$bundler.$network.caip2.namespace ?? '')}:${String(pendingEntity.$bundler.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$bundler !== undefined && pendingEntity.$bundler.$network !== undefined && pendingEntity.$bundler.$network.slug !== undefined && pendingEntity.$bundler.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			network: String(pendingEntity.$bundler.$network.slug ?? ''),
 			address: String(pendingEntity.$bundler.address ?? ''),
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={erc4337BundlerTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={erc4337BundlerTimestamp}>
 			{#snippet Pending()}
-				{@const userOperationsCount0 = prefetched.userOperationsCount}
+				{@const userOperationsCount0 = pendingEntity.userOperationsCount}
 				{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
 					<NumberValue value={Number(userOperationsCount0)} />
 				{/if}
@@ -117,7 +117,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={erc4337BundlerTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -152,7 +152,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -182,7 +182,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -209,7 +209,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const userOperationsCount = prefetched.userOperationsCount}
+					{@const userOperationsCount = pendingEntity.userOperationsCount}
 					{#if userOperationsCount !== undefined && userOperationsCount !== null}
 						<div>
 							<dt>User operations</dt>
@@ -242,8 +242,8 @@
 					<Erc4337BundlerView
 						selection={select(EntityType.Erc4337Bundler, selection.entitySelector.$bundler, {})}
 						href={
-							(selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.caip2 !== undefined && selection.entitySelector.$bundler.$network.caip2.namespace !== undefined && selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.caip2 !== undefined && selection.entitySelector.$bundler.$network.caip2.reference !== undefined && selection.entitySelector.$bundler.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$bundler.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$bundler.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.slug !== undefined && selection.entitySelector.$bundler.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
+								network: String(selection.entitySelector.$bundler.$network.slug ?? ''),
 								address: String(selection.entitySelector.$bundler.address ?? ''),
 							}) : undefined)
 						}

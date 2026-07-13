@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -11,30 +12,40 @@
 	import { select } from '$/routes/+layout.svelte'
 
 
+	// State
+	let {
+		data,
+	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType.FarcasterNetwork, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			protocolName: true,
+			homeUrl: true,
+			docsUrl: true,
+			registryName: true,
+			relationshipModel: true,
+		},
+	}))
+	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.protocolName) ?? '')].filter(Boolean).join(' ') || 'Farcaster' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'Farcaster')))
+
+
 	// Components
 	import Page from '$/components/Page.svelte'
 	import FarcasterNetworkView from '$/views/FarcasterNetworkView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>{pageEntityTitle} • Farcaster • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<FarcasterNetworkView
-		href={resolve('/(social)/(farcaster)/farcaster')}
-		selection={
-			select(EntityType.FarcasterNetwork, {
-				scope: 'FarcasterNetwork',
-			}, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					protocolName: true,
-					homeUrl: true,
-					docsUrl: true,
-					registryName: true,
-					relationshipModel: true,
-				},
-			})
-		}
+		href={resolve('/farcaster')}
+		selection={pageSelection}
 	/>
 </Page>

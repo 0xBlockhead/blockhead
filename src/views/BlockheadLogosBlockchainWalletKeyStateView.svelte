@@ -49,7 +49,7 @@
 			Source.LogosBlockchainNode_Rest,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.publicKey ?? prefetched.publicKey) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain wallet key state')
+	const titleFallback = $derived([String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain wallet key state')
 	const viewDomId = $derived('blockhead-logos-blockchain-wallet-key-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.publicKey ?? prefetched.publicKey) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Logos blockchain wallet key state'}
+				{[String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Logos blockchain wallet key state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -130,7 +130,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const publicKey = selection.entitySelector.publicKey ?? prefetched.publicKey}
+							{@const publicKey = pendingEntity.publicKey}
 							{#if publicKey !== undefined && publicKey !== null}
 								{String((publicKey) ?? '')}
 							{/if}

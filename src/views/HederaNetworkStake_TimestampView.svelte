@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epochDay = prefetched.epochDay}
+					{@const epochDay = pendingEntity.epochDay}
 					{#if epochDay !== undefined && epochDay !== null}
 						<div>
 							<dt>epoch day</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxStakeRewardedTinybar = prefetched.maxStakeRewardedTinybar}
+					{@const maxStakeRewardedTinybar = pendingEntity.maxStakeRewardedTinybar}
 					{#if maxStakeRewardedTinybar !== undefined && maxStakeRewardedTinybar !== null}
 						<div>
 							<dt>max stake rewarded tinybar</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxStakingRewardRatePerHbar = prefetched.maxStakingRewardRatePerHbar}
+					{@const maxStakingRewardRatePerHbar = pendingEntity.maxStakingRewardRatePerHbar}
 					{#if maxStakingRewardRatePerHbar !== undefined && maxStakingRewardRatePerHbar !== null}
 						<div>
 							<dt>max staking reward rate per HBAR</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxTotalRewardTinybar = prefetched.maxTotalRewardTinybar}
+					{@const maxTotalRewardTinybar = pendingEntity.maxTotalRewardTinybar}
 					{#if maxTotalRewardTinybar !== undefined && maxTotalRewardTinybar !== null}
 						<div>
 							<dt>max total reward tinybar</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeRewardFeeFraction = prefetched.nodeRewardFeeFraction}
+					{@const nodeRewardFeeFraction = pendingEntity.nodeRewardFeeFraction}
 					{#if nodeRewardFeeFraction !== undefined && nodeRewardFeeFraction !== null}
 						<div>
 							<dt>node reward fee fraction</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reservedStakingRewardsTinybar = prefetched.reservedStakingRewardsTinybar}
+					{@const reservedStakingRewardsTinybar = pendingEntity.reservedStakingRewardsTinybar}
 					{#if reservedStakingRewardsTinybar !== undefined && reservedStakingRewardsTinybar !== null}
 						<div>
 							<dt>reserved staking rewards tinybar</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardBalanceTinybar = prefetched.rewardBalanceTinybar}
+					{@const rewardBalanceTinybar = pendingEntity.rewardBalanceTinybar}
 					{#if rewardBalanceTinybar !== undefined && rewardBalanceTinybar !== null}
 						<div>
 							<dt>reward balance tinybar</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakeTotalTinybar = prefetched.stakeTotalTinybar}
+					{@const stakeTotalTinybar = pendingEntity.stakeTotalTinybar}
 					{#if stakeTotalTinybar !== undefined && stakeTotalTinybar !== null}
 						<div>
 							<dt>stake total tinybar</dt>
@@ -438,7 +438,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakingPeriodsStored = prefetched.stakingPeriodsStored}
+					{@const stakingPeriodsStored = pendingEntity.stakingPeriodsStored}
 					{#if stakingPeriodsStored !== undefined && stakingPeriodsStored !== null}
 						<div>
 							<dt>staking periods stored</dt>
@@ -473,7 +473,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakingRewardFeeFraction = prefetched.stakingRewardFeeFraction}
+					{@const stakingRewardFeeFraction = pendingEntity.stakingRewardFeeFraction}
 					{#if stakingRewardFeeFraction !== undefined && stakingRewardFeeFraction !== null}
 						<div>
 							<dt>staking reward fee fraction</dt>
@@ -508,7 +508,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakingStartThresholdTinybar = prefetched.stakingStartThresholdTinybar}
+					{@const stakingStartThresholdTinybar = pendingEntity.stakingStartThresholdTinybar}
 					{#if stakingStartThresholdTinybar !== undefined && stakingStartThresholdTinybar !== null}
 						<div>
 							<dt>staking start threshold tinybar</dt>
@@ -543,7 +543,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unreservedStakingRewardBalanceTinybar = prefetched.unreservedStakingRewardBalanceTinybar}
+					{@const unreservedStakingRewardBalanceTinybar = pendingEntity.unreservedStakingRewardBalanceTinybar}
 					{#if unreservedStakingRewardBalanceTinybar !== undefined && unreservedStakingRewardBalanceTinybar !== null}
 						<div>
 							<dt>unreserved staking reward balance tinybar</dt>

@@ -9,8 +9,10 @@ export enum PolkadotAsset_TimestampSelector {
 }
 export const PolkadotAsset_Timestamp = entity({
 	entityType: EntityType.PolkadotAsset_Timestamp,
-	label: 'Polkadot asset timestamp',
-	labelPlural: 'Polkadot asset observations',
+	labels: {
+		singular: 'Polkadot asset timestamp',
+		plural: 'Polkadot asset observations',
+	},
 })({
 	$asset: {
 		label: 'Asset',

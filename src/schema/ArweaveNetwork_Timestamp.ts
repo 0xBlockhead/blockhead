@@ -9,8 +9,10 @@ export enum ArweaveNetwork_TimestampSelector {
 }
 export const ArweaveNetwork_Timestamp = entity({
 	entityType: EntityType.ArweaveNetwork_Timestamp,
-	label: 'arweave network timestamp',
-	labelPlural: 'arweave network observations',
+	labels: {
+		singular: 'arweave network timestamp',
+		plural: 'arweave network observations',
+	},
 })({
 	$network: {
 		label: 'network',

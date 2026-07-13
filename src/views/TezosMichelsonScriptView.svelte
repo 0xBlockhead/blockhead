@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const scriptHash = selection.entitySelector.scriptHash ?? prefetched.scriptHash}
+							{@const scriptHash = pendingEntity.scriptHash}
 							{#if scriptHash !== undefined && scriptHash !== null}
 								<TruncatedValue value={String((scriptHash) ?? '')} />
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const codeHash = prefetched.codeHash}
+					{@const codeHash = pendingEntity.codeHash}
 					{#if codeHash !== undefined && codeHash !== null}
 						<div>
 							<dt>code hash</dt>
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const michelson = prefetched.michelson}
+					{@const michelson = pendingEntity.michelson}
 					{#if michelson !== undefined && michelson !== null}
 						<div>
 							<dt>michelson</dt>
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tzip16MetadataUri = prefetched.tzip16MetadataUri}
+					{@const tzip16MetadataUri = pendingEntity.tzip16MetadataUri}
 					{#if tzip16MetadataUri !== undefined && tzip16MetadataUri !== null}
 						<div>
 							<dt>tzip16 metadata URI</dt>

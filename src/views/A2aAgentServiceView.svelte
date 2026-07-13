@@ -51,7 +51,7 @@
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent service')
+	const titleFallback = $derived([String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent service')
 	const viewDomId = $derived('a2a-agent-service-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aAgentService}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent service'}
+				{[String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent service'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aAgentService}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.protocolBinding ?? prefetched.protocolBinding) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent service'}
+				{[String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent service'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aAgentService}>
 			{#snippet Pending()}
-				{@const transportKind0 = prefetched.transportKind}
+				{@const transportKind0 = pendingEntity.transportKind}
 				{#if transportKind0 !== undefined && transportKind0 !== null}
 					<span data-text="muted">
 						{String((transportKind0) ?? '')}
@@ -149,7 +149,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolBinding = selection.entitySelector.protocolBinding ?? prefetched.protocolBinding}
+							{@const protocolBinding = pendingEntity.protocolBinding}
 							{#if protocolBinding !== undefined && protocolBinding !== null}
 								{String((protocolBinding) ?? '')}
 							{/if}
@@ -179,7 +179,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const endpointUrl = selection.entitySelector.endpointUrl ?? prefetched.endpointUrl}
+							{@const endpointUrl = pendingEntity.endpointUrl}
 							{#if endpointUrl !== undefined && endpointUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -220,7 +220,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transportKind = prefetched.transportKind}
+					{@const transportKind = pendingEntity.transportKind}
 					{#if transportKind !== undefined && transportKind !== null}
 						<div>
 							<dt>transport kind</dt>
@@ -255,7 +255,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authKind = prefetched.authKind}
+					{@const authKind = pendingEntity.authKind}
 					{#if authKind !== undefined && authKind !== null}
 						<div>
 							<dt>auth kind</dt>

@@ -10,8 +10,10 @@ export enum NearValidatorSelector {
 }
 export const NearValidator = entity({
 	entityType: EntityType.NearValidator,
-	label: 'near validator',
-	labelPlural: 'near validators',
+	labels: {
+		singular: 'near validator',
+		plural: 'near validators',
+	},
 })({
 	$network: {
 		label: 'Network',

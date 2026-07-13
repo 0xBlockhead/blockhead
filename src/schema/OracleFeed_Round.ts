@@ -9,8 +9,10 @@ export enum OracleFeed_RoundSelector {
 }
 export const OracleFeed_Round = entity({
 	entityType: EntityType.OracleFeed_Round,
-	label: 'oracle feed round',
-	labelPlural: 'oracle feed rounds',
+	labels: {
+		singular: 'oracle feed round',
+		plural: 'oracle feed rounds',
+	},
 })({
 	$oracleFeed: {
 		label: 'oracle feed',

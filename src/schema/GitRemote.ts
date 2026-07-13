@@ -9,8 +9,10 @@ export enum GitRemoteSelector {
 }
 export const GitRemote = entity({
 	entityType: EntityType.GitRemote,
-	label: 'Git remote',
-	labelPlural: 'Git remotes',
+	labels: {
+		singular: 'Git remote',
+		plural: 'Git remotes',
+	},
 })({
 	$repository: {
 		label: 'repository',

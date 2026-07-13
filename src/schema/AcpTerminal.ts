@@ -9,8 +9,10 @@ export enum AcpTerminalSelector {
 }
 export const AcpTerminal = entity({
 	entityType: EntityType.AcpTerminal,
-	label: 'acp terminal',
-	labelPlural: 'acp terminals',
+	labels: {
+		singular: 'acp terminal',
+		plural: 'acp terminals',
+	},
 })({
 	$session: {
 		label: 'session',

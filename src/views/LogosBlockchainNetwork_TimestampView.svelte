@@ -48,7 +48,7 @@
 			mode: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Logos blockchain network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Logos blockchain network timestamp')
 	const viewDomId = $derived('logos-blockchain-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const height0 = prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<NumberValue value={Number(height0)} />
 				{/if}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const mode0 = prefetched.mode}
+				{@const mode0 = pendingEntity.mode}
 				{#if mode0 !== undefined && mode0 !== null}
 					<span data-text="muted">
 						{String((mode0) ?? '')}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mode = prefetched.mode}
+					{@const mode = pendingEntity.mode}
 					{#if mode !== undefined && mode !== null}
 						<div>
 							<dt>Mode</dt>
@@ -251,7 +251,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const height = prefetched.height}
+					{@const height = pendingEntity.height}
 					{#if height !== undefined && height !== null}
 						<div>
 							<dt>Height</dt>
@@ -286,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>Slot</dt>
@@ -321,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const libSlot = prefetched.libSlot}
+					{@const libSlot = pendingEntity.libSlot}
 					{#if libSlot !== undefined && libSlot !== null}
 						<div>
 							<dt>LIB slot</dt>
@@ -358,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tip = prefetched.tip}
+					{@const tip = pendingEntity.tip}
 					{#if tip !== undefined && tip !== null}
 						<div>
 							<dt>Tip</dt>
@@ -393,7 +393,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lib = prefetched.lib}
+					{@const lib = pendingEntity.lib}
 					{#if lib !== undefined && lib !== null}
 						<div>
 							<dt>LIB</dt>

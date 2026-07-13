@@ -43,7 +43,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || 'Git object verification timestamp')
+	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git object verification timestamp')
 	const viewDomId = $derived('git-object-verification-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitObjectVerificationTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git object verification timestamp'}
+				{[String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git object verification timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -80,7 +80,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitObjectVerificationTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git object verification timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git object verification timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +93,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitObjectVerificationTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -128,7 +128,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectId = selection.entitySelector.objectId ?? prefetched.objectId}
+							{@const objectId = pendingEntity.objectId}
 							{#if objectId !== undefined && objectId !== null}
 								{String((objectId) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectFormat = selection.entitySelector.objectFormat ?? prefetched.objectFormat}
+							{@const objectFormat = pendingEntity.objectFormat}
 							{#if objectFormat !== undefined && objectFormat !== null}
 								{String((objectFormat) ?? '')}
 							{/if}
@@ -188,7 +188,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const byteSource = selection.entitySelector.byteSource ?? prefetched.byteSource}
+							{@const byteSource = pendingEntity.byteSource}
 							{#if byteSource !== undefined && byteSource !== null}
 								{String((byteSource) ?? '')}
 							{/if}
@@ -218,7 +218,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -248,7 +248,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -278,7 +278,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -307,7 +307,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifier = prefetched.verifier}
+					{@const verifier = pendingEntity.verifier}
 					{#if verifier !== undefined && verifier !== null}
 						<div>
 							<dt>verifier</dt>
@@ -342,7 +342,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const objectKind = prefetched.objectKind}
+					{@const objectKind = pendingEntity.objectKind}
 					{#if objectKind !== undefined && objectKind !== null}
 						<div>
 							<dt>object kind</dt>
@@ -377,7 +377,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const headerBytesHash = prefetched.headerBytesHash}
+					{@const headerBytesHash = pendingEntity.headerBytesHash}
 					{#if headerBytesHash !== undefined && headerBytesHash !== null}
 						<div>
 							<dt>header bytes hash</dt>
@@ -412,7 +412,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadBytesHash = prefetched.payloadBytesHash}
+					{@const payloadBytesHash = pendingEntity.payloadBytesHash}
 					{#if payloadBytesHash !== undefined && payloadBytesHash !== null}
 						<div>
 							<dt>payload bytes hash</dt>
@@ -447,7 +447,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const computedObjectId = prefetched.computedObjectId}
+					{@const computedObjectId = pendingEntity.computedObjectId}
 					{#if computedObjectId !== undefined && computedObjectId !== null}
 						<div>
 							<dt>computed object ID</dt>
@@ -482,7 +482,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canonicalEncoding = prefetched.canonicalEncoding}
+					{@const canonicalEncoding = pendingEntity.canonicalEncoding}
 					{#if canonicalEncoding !== undefined && canonicalEncoding !== null}
 						<div>
 							<dt>canonical encoding</dt>
@@ -517,7 +517,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

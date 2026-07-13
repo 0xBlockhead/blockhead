@@ -9,8 +9,10 @@ export enum UtxoOutputSelector {
 }
 export const UtxoOutput = entity({
 	entityType: EntityType.UtxoOutput,
-	label: 'UTXO output',
-	labelPlural: 'UTXO outputs',
+	labels: {
+		singular: 'UTXO output',
+		plural: 'UTXO outputs',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',
@@ -21,7 +23,7 @@ export const UtxoOutput = entity({
 	indexInTransaction: {
 		label: 'Index in transaction',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	valueSats: {

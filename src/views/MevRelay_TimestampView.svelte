@@ -48,7 +48,7 @@
 			statusCode: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.reachable) ?? ''), String((prefetched.statusCode) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp')
+	const titleFallback = $derived([String((pendingEntity.reachable) ?? ''), String((pendingEntity.statusCode) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp')
 	const viewDomId = $derived('mev-relay-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,8 +66,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$relay !== undefined && pendingEntity.$relay.$network !== undefined && pendingEntity.$relay.$network.caip2 !== undefined && pendingEntity.$relay.$network.caip2.namespace !== undefined && pendingEntity.$relay !== undefined && pendingEntity.$relay.$network !== undefined && pendingEntity.$relay.$network.caip2 !== undefined && pendingEntity.$relay.$network.caip2.reference !== undefined && pendingEntity.$relay !== undefined && pendingEntity.$relay.host !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(pendingEntity.$relay.$network.caip2.namespace ?? '')}:${String(pendingEntity.$relay.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$relay !== undefined && pendingEntity.$relay.$network !== undefined && pendingEntity.$relay.$network.slug !== undefined && pendingEntity.$relay.host !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			network: String(pendingEntity.$relay.$network.slug ?? ''),
 			host: String(pendingEntity.$relay.host ?? ''),
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mevRelayTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.reachable) ?? ''), String((prefetched.statusCode) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'MEV relay timestamp'}
+				{[String((pendingEntity.reachable) ?? ''), String((pendingEntity.statusCode) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'MEV relay timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mevRelayTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.reachable) ?? ''), String((prefetched.statusCode) ?? '')].filter(Boolean).join(' ') || [String((prefetched.reachable) ?? ''), String((prefetched.statusCode) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'MEV relay timestamp'}
+				{[String((pendingEntity.reachable) ?? ''), String((pendingEntity.statusCode) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.reachable) ?? ''), String((pendingEntity.statusCode) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'MEV relay timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,8 +110,8 @@
 					<MevRelayView
 						selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
 						href={
-							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined && selection.entitySelector.$relay.$network.caip2.namespace !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined && selection.entitySelector.$relay.$network.caip2.reference !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]', {
-								caip2: `${String(selection.entitySelector.$relay.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$relay.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
 								host: String(selection.entitySelector.$relay.host ?? ''),
 							}) : undefined)
 						}
@@ -127,8 +127,8 @@
 					<MevRelayView
 						selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
 						href={
-							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined && selection.entitySelector.$relay.$network.caip2.namespace !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined && selection.entitySelector.$relay.$network.caip2.reference !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]', {
-								caip2: `${String(selection.entitySelector.$relay.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$relay.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
 								host: String(selection.entitySelector.$relay.host ?? ''),
 							}) : undefined)
 						}
@@ -152,7 +152,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>
@@ -187,7 +187,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const statusCode = prefetched.statusCode}
+					{@const statusCode = pendingEntity.statusCode}
 					{#if statusCode !== undefined && statusCode !== null}
 						<div>
 							<dt>Status code</dt>
@@ -222,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>Error</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deliveredPayloadSampleCount = prefetched.deliveredPayloadSampleCount}
+					{@const deliveredPayloadSampleCount = pendingEntity.deliveredPayloadSampleCount}
 					{#if deliveredPayloadSampleCount !== undefined && deliveredPayloadSampleCount !== null}
 						<div>
 							<dt>Delivered payload sample count</dt>
@@ -294,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const builderSampleCount = prefetched.builderSampleCount}
+					{@const builderSampleCount = pendingEntity.builderSampleCount}
 					{#if builderSampleCount !== undefined && builderSampleCount !== null}
 						<div>
 							<dt>Builder sample count</dt>
@@ -329,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sampleLimit = prefetched.sampleLimit}
+					{@const sampleLimit = pendingEntity.sampleLimit}
 					{#if sampleLimit !== undefined && sampleLimit !== null}
 						<div>
 							<dt>Sample limit</dt>
@@ -366,7 +366,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const windowStartSlot = prefetched.windowStartSlot}
+					{@const windowStartSlot = pendingEntity.windowStartSlot}
 					{#if windowStartSlot !== undefined && windowStartSlot !== null}
 						<div>
 							<dt>Window start slot</dt>
@@ -401,7 +401,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const windowEndSlot = prefetched.windowEndSlot}
+					{@const windowEndSlot = pendingEntity.windowEndSlot}
 					{#if windowEndSlot !== undefined && windowEndSlot !== null}
 						<div>
 							<dt>Window end slot</dt>
@@ -439,7 +439,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -469,7 +469,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -492,8 +492,8 @@
 					<MevRelayView
 						selection={select(EntityType.MevRelay, selection.entitySelector.$relay, {})}
 						href={
-							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined && selection.entitySelector.$relay.$network.caip2.namespace !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined && selection.entitySelector.$relay.$network.caip2.reference !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]', {
-								caip2: `${String(selection.entitySelector.$relay.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$relay.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
 								host: String(selection.entitySelector.$relay.host ?? ''),
 							}) : undefined)
 						}

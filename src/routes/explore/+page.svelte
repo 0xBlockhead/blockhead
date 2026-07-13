@@ -54,7 +54,7 @@
 
 		{#snippet SectionNetworks()}
 			<NetworksView
-				href={resolve('/(explore)/networks')}
+												href={resolve('/networks')}
 				selection={select(EntityType._Global, { scope: '$$networks' }).$$networks}
 				id='networks'
 				open={true}

@@ -9,8 +9,10 @@ export enum TonNftCollectionSelector {
 }
 export const TonNftCollection = entity({
 	entityType: EntityType.TonNftCollection,
-	label: 'ton NFT collection',
-	labelPlural: 'ton NFT collections',
+	labels: {
+		singular: 'ton NFT collection',
+		plural: 'ton NFT collections',
+	},
 })({
 	$network: {
 		label: 'network',

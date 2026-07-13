@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -51,7 +50,7 @@
 			noteCommitment: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.actionKind ?? prefetched.actionKind) ?? ''), String((selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action')
+	const titleFallback = $derived([String((pendingEntity.actionKind) ?? ''), String((pendingEntity.indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action')
 	const viewDomId = $derived('zcash-shielded-action-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -69,9 +68,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$transaction !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined && pendingEntity.$transaction.$network.caip2.namespace !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined && pendingEntity.$transaction.$network.caip2.reference !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.txId !== undefined && pendingEntity.pool !== undefined && pendingEntity.actionKind !== undefined && pendingEntity.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/shielded-action/[pool]/[actionKind]/[actionIndex=nonNegativeInteger]', {
-			networkSlug: String(networkByCaip2[String(String(pendingEntity.$transaction.$network.caip2.namespace) + ':' + String(pendingEntity.$transaction.$network.caip2.reference))].slug ?? ''),
-			txId: String(pendingEntity.$transaction.txId ?? ''),
+		href ?? (pendingEntity.$transaction !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.slug !== undefined && pendingEntity.$transaction.txId !== undefined && pendingEntity.pool !== undefined && pendingEntity.actionKind !== undefined && pendingEntity.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
+			network: String(pendingEntity.$transaction.$network.slug ?? ''),
+			transactionId: String(pendingEntity.$transaction.txId ?? ''),
 			pool: String(pendingEntity.pool ?? ''),
 			actionKind: String(pendingEntity.actionKind ?? ''),
 			actionIndex: String(pendingEntity.indexInTransaction ?? ''),
@@ -84,7 +83,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={zcashShieldedAction}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.actionKind ?? prefetched.actionKind) ?? ''), String((selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction) ?? '')].filter(Boolean).join(' ') || title || 'Zcash shielded action'}
+				{[String((pendingEntity.actionKind) ?? ''), String((pendingEntity.indexInTransaction) ?? '')].filter(Boolean).join(' ') || title || 'Zcash shielded action'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -97,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={zcashShieldedAction}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.pool ?? prefetched.pool) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.actionKind ?? prefetched.actionKind) ?? ''), String((selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction) ?? '')].filter(Boolean).join(' ') || title || 'Zcash shielded action'}
+				{[String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.actionKind) ?? ''), String((pendingEntity.indexInTransaction) ?? '')].filter(Boolean).join(' ') || title || 'Zcash shielded action'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,13 +109,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zcashShieldedAction}>
 			{#snippet Pending()}
-				{@const nullifier0 = prefetched.nullifier}
+				{@const nullifier0 = pendingEntity.nullifier}
 				{#if nullifier0 !== undefined && nullifier0 !== null}
 					<span data-text="muted">
 						{String((nullifier0) ?? '')}
 					</span>
 				{/if}
-				{@const noteCommitment1 = prefetched.noteCommitment}
+				{@const noteCommitment1 = pendingEntity.noteCommitment}
 				{#if noteCommitment1 !== undefined && noteCommitment1 !== null}
 					<span data-text="muted">
 						{String((noteCommitment1) ?? '')}
@@ -157,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const pool = selection.entitySelector.pool ?? prefetched.pool}
+							{@const pool = pendingEntity.pool}
 							{#if pool !== undefined && pool !== null}
 								{String((pool) ?? '')}
 							{/if}
@@ -187,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const actionKind = selection.entitySelector.actionKind ?? prefetched.actionKind}
+							{@const actionKind = pendingEntity.actionKind}
 							{#if actionKind !== undefined && actionKind !== null}
 								{String((actionKind) ?? '')}
 							{/if}
@@ -217,7 +216,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const indexInTransaction = selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction}
+							{@const indexInTransaction = pendingEntity.indexInTransaction}
 							{#if indexInTransaction !== undefined && indexInTransaction !== null}
 								<NumberValue value={Number(indexInTransaction)} />
 							{/if}
@@ -239,6 +238,8 @@
 			<ResourceBoundary
 				resource={selection.$pool}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(zcashShieldedPool)}
 					{#if zcashShieldedPool != null && zcashShieldedPool[EntityMetaKey.Selector] != null}
 						<div>
@@ -248,8 +249,8 @@
 									selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector])}
 									prefetched={zcashShieldedPool}
 									href={
-										(zcashShieldedPool[EntityMetaKey.Selector].$network !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2 !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2 !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.reference !== undefined && zcashShieldedPool[EntityMetaKey.Selector].pool !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/shielded-pool/[pool]', {
-											networkSlug: String(networkByCaip2[String(String(zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+										(zcashShieldedPool[EntityMetaKey.Selector].$network !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.slug !== undefined && zcashShieldedPool[EntityMetaKey.Selector].pool !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
+											network: String(zcashShieldedPool[EntityMetaKey.Selector].$network.slug ?? ''),
 											pool: String(zcashShieldedPool[EntityMetaKey.Selector].pool ?? ''),
 										}) : undefined)
 									}
@@ -272,7 +273,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nullifier = prefetched.nullifier}
+					{@const nullifier = pendingEntity.nullifier}
 					{#if nullifier !== undefined && nullifier !== null}
 						<div>
 							<dt>Nullifier</dt>
@@ -307,7 +308,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const noteCommitment = prefetched.noteCommitment}
+					{@const noteCommitment = pendingEntity.noteCommitment}
 					{#if noteCommitment !== undefined && noteCommitment !== null}
 						<div>
 							<dt>Note commitment</dt>
@@ -342,7 +343,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueCommitment = prefetched.valueCommitment}
+					{@const valueCommitment = pendingEntity.valueCommitment}
 					{#if valueCommitment !== undefined && valueCommitment !== null}
 						<div>
 							<dt>Value commitment</dt>
@@ -379,9 +380,9 @@
 							})
 						}
 						href={
-							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.txId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(selection.entitySelector.$transaction.txId ?? ''),
+							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined && selection.entitySelector.$transaction.txId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

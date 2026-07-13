@@ -57,11 +57,13 @@
 			$icon: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.pubkey ?? prefetched.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile')
+	const titleFallback = $derived([String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile')
 	const viewDomId = $derived('nostr-profile-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -107,7 +109,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrProfile}>
 			{#snippet Pending()}
-				{[String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.pubkey ?? prefetched.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile'}
+				{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -139,7 +141,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const displayName = prefetched.displayName}
+					{@const displayName = pendingEntity.displayName}
 					{#if displayName !== undefined && displayName !== null}
 						<div>
 							<dt>Display name</dt>
@@ -178,7 +180,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const about = prefetched.about}
+					{@const about = pendingEntity.about}
 					{#if about !== undefined && about !== null}
 						<div>
 							<dt>About</dt>
@@ -217,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nip05 = prefetched.nip05}
+					{@const nip05 = pendingEntity.nip05}
 					{#if nip05 !== undefined && nip05 !== null}
 						<div>
 							<dt>NIP-05</dt>
@@ -256,7 +258,7 @@
 							}
 						>
 							{#snippet Pending()}
-								{@const pubkey = selection.entitySelector.pubkey ?? prefetched.pubkey}
+								{@const pubkey = pendingEntity.pubkey}
 								{#if pubkey !== undefined && pubkey !== null}
 									<TruncatedValue value={String((pubkey) ?? '')} />
 								{/if}
@@ -289,7 +291,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const website = prefetched.website}
+						{@const website = pendingEntity.website}
 						{#if website !== undefined && website !== null}
 							<div>
 								<dt>Website</dt>
@@ -344,7 +346,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const metadataUpdatedAt = prefetched.metadataUpdatedAt}
+						{@const metadataUpdatedAt = pendingEntity.metadataUpdatedAt}
 						{#if metadataUpdatedAt !== undefined && metadataUpdatedAt !== null}
 							<div>
 								<dt>Metadata updated</dt>
@@ -374,50 +376,116 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<NostrNotesView
-				selection={
-						selection.$$notes({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-						})
-					}
-				title='Notes'
-				href={resolve('/(social)/(nostr)/nostr/notes')}
-				emptyText='No notes in this observed.'
-				id='NostrNotesView-notes'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-nostr-profile-content'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'nostr-profile-notes',
+							label: 'Notes',
+						},
+						{
+							id: 'nostr-profile-articles',
+							label: 'Articles',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-content'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Notes and articles</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<NostrArticlesView
-				selection={
-						selection.$$articles({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-						})
-					}
-				title='Articles'
-				href={resolve('/(social)/(nostr)/nostr/articles')}
-				emptyText='No articles in this observed.'
-				id='NostrArticlesView-articles'
-			/>
+				{#snippet SectionNostrProfileNotes({ id, label, open })}
+					<NostrNotesView
+						selection={
+							selection.$$notes({
+								sources: [
+									Source.Constants_Internal,
+									Source.NostrBand_Rest,
+								],
+							})
+						}
+						href={resolve('/nostr/notes')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No notes in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<NostrRepostsView
-				selection={
-						selection.$$reposts({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-						})
-					}
-				title='Reposts'
-				href={resolve('/(social)/(nostr)/nostr/reposts')}
-				emptyText='No reposts in this observed.'
-				id='NostrRepostsView-reposts'
-			/>
+				{#snippet SectionNostrProfileArticles({ id, label, open })}
+					<NostrArticlesView
+						selection={
+							selection.$$articles({
+								sources: [
+									Source.Constants_Internal,
+									Source.NostrBand_Rest,
+								],
+							})
+						}
+						href={resolve('/nostr/articles')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No articles in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-nostr-profile-engagement'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'nostr-profile-reposts',
+							label: 'Reposts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-engagement'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Engagement</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionNostrProfileReposts({ id, label, open })}
+					<NostrRepostsView
+						selection={
+							selection.$$reposts({
+								sources: [
+									Source.Constants_Internal,
+									Source.NostrBand_Rest,
+								],
+							})
+						}
+						href={resolve('/nostr/reposts')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No reposts in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

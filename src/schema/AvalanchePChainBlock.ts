@@ -10,8 +10,10 @@ export enum AvalanchePChainBlockSelector {
 }
 export const AvalanchePChainBlock = entity({
 	entityType: EntityType.AvalanchePChainBlock,
-	label: 'avalanche p chain block',
-	labelPlural: 'avalanche p chain blocks',
+	labels: {
+		singular: 'avalanche p chain block',
+		plural: 'avalanche p chain blocks',
+	},
 })({
 	$network: {
 		label: 'network',

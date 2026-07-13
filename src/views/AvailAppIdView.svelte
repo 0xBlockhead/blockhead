@@ -46,7 +46,7 @@
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.appId ?? prefetched.appId) ?? '')].filter(Boolean).join(' ') || 'avail app ID')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.appId) ?? '')].filter(Boolean).join(' ') || 'avail app ID')
 	const viewDomId = $derived('avail-app-id-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={availAppId}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.appId ?? prefetched.appId) ?? '')].filter(Boolean).join(' ') || 'avail app ID'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.appId) ?? '')].filter(Boolean).join(' ') || 'avail app ID'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={availAppId}>
 			{#snippet Pending()}
-				{@const appId0 = selection.entitySelector.appId ?? prefetched.appId}
+				{@const appId0 = pendingEntity.appId}
 				{#if appId0 !== undefined && appId0 !== null}
 					<NumberValue value={Number(appId0)} />
 				{/if}
@@ -127,7 +127,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const appId = selection.entitySelector.appId ?? prefetched.appId}
+							{@const appId = pendingEntity.appId}
 							{#if appId !== undefined && appId !== null}
 								<NumberValue value={Number(appId)} />
 							{/if}
@@ -154,7 +154,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>

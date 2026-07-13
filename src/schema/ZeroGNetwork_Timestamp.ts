@@ -9,8 +9,10 @@ export enum ZeroGNetwork_TimestampSelector {
 }
 export const ZeroGNetwork_Timestamp = entity({
 	entityType: EntityType.ZeroGNetwork_Timestamp,
-	label: 'zero g network timestamp',
-	labelPlural: 'zero g network observations',
+	labels: {
+		singular: 'zero g network timestamp',
+		plural: 'zero g network observations',
+	},
 })({
 	$network: {
 		label: 'network',

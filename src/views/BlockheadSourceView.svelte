@@ -49,7 +49,7 @@
 			endpointUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'source')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'source')
 	const viewDomId = $derived('blockhead-source-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadSource}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'source'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'source'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSource}>
 			{#snippet Pending()}
-				{[String((prefetched.source) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'source'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'source'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +108,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const source = prefetched.source}
+					{@const source = pendingEntity.source}
 					{#if source !== undefined && source !== null}
 						<div>
 							<dt>Source</dt>
@@ -143,7 +143,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const provider = prefetched.provider}
+					{@const provider = pendingEntity.provider}
 					{#if provider !== undefined && provider !== null}
 						<div>
 							<dt>Provider</dt>
@@ -178,7 +178,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endpointUrl = prefetched.endpointUrl}
+					{@const endpointUrl = pendingEntity.endpointUrl}
 					{#if endpointUrl !== undefined && endpointUrl !== null}
 						<div>
 							<dt>Endpoint URL</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transportKind = prefetched.transportKind}
+					{@const transportKind = pendingEntity.transportKind}
 					{#if transportKind !== undefined && transportKind !== null}
 						<div>
 							<dt>Transport</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authKind = prefetched.authKind}
+					{@const authKind = pendingEntity.authKind}
 					{#if authKind !== undefined && authKind !== null}
 						<div>
 							<dt>Auth</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const corsMode = prefetched.corsMode}
+					{@const corsMode = pendingEntity.corsMode}
 					{#if corsMode !== undefined && corsMode !== null}
 						<div>
 							<dt>CORS</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proxyMode = prefetched.proxyMode}
+					{@const proxyMode = pendingEntity.proxyMode}
 					{#if proxyMode !== undefined && proxyMode !== null}
 						<div>
 							<dt>Proxy</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const environmentScope = prefetched.environmentScope}
+					{@const environmentScope = pendingEntity.environmentScope}
 					{#if environmentScope !== undefined && environmentScope !== null}
 						<div>
 							<dt>Environment</dt>

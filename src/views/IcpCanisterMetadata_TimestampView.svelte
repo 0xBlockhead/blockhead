@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const visibility = prefetched.visibility}
+					{@const visibility = pendingEntity.visibility}
 					{#if visibility !== undefined && visibility !== null}
 						<div>
 							<dt>visibility</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentHash = prefetched.contentHash}
+					{@const contentHash = pendingEntity.contentHash}
 					{#if contentHash !== undefined && contentHash !== null}
 						<div>
 							<dt>content hash</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentType = prefetched.contentType}
+					{@const contentType = pendingEntity.contentType}
 					{#if contentType !== undefined && contentType !== null}
 						<div>
 							<dt>content type</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const value = prefetched.value}
+					{@const value = pendingEntity.value}
 					{#if value !== undefined && value !== null}
 						<div>
 							<dt>Value</dt>

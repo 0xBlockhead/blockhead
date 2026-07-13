@@ -47,7 +47,7 @@
 			Source.Local_Internal,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle seed observation timestamp')
+	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle seed observation timestamp')
 	const viewDomId = $derived('blockhead-radicle-seed-observation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadRadicleSeedObservationTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle seed observation timestamp'}
+				{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle seed observation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadicleSeedObservationTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -153,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nodeId = selection.entitySelector.nodeId ?? prefetched.nodeId}
+							{@const nodeId = pendingEntity.nodeId}
 							{#if nodeId !== undefined && nodeId !== null}
 								{String((nodeId) ?? '')}
 							{/if}
@@ -173,6 +173,8 @@
 			<ResourceBoundary
 				resource={selection.$observerNode}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadRadicleNodeState)}
 					{#if blockheadRadicleNodeState != null && blockheadRadicleNodeState[EntityMetaKey.Selector] != null}
 						<div>
@@ -203,7 +205,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -233,7 +235,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -262,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const advertised = prefetched.advertised}
+					{@const advertised = pendingEntity.advertised}
 					{#if advertised !== undefined && advertised !== null}
 						<div>
 							<dt>advertised</dt>
@@ -297,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>
@@ -332,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const refCount = prefetched.refCount}
+					{@const refCount = pendingEntity.refCount}
 					{#if refCount !== undefined && refCount !== null}
 						<div>
 							<dt>ref count</dt>
@@ -367,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const objectCount = prefetched.objectCount}
+					{@const objectCount = pendingEntity.objectCount}
 					{#if objectCount !== undefined && objectCount !== null}
 						<div>
 							<dt>object count</dt>

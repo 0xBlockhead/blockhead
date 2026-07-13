@@ -10,8 +10,10 @@ export enum SwapQuote_TimestampSelector {
 }
 export const SwapQuote_Timestamp = entity({
 	entityType: EntityType.SwapQuote_Timestamp,
-	label: 'swap quote timestamp',
-	labelPlural: 'swap quote observations',
+	labels: {
+		singular: 'swap quote timestamp',
+		plural: 'swap quote observations',
+	},
 })({
 	source: {
 		label: 'Source',

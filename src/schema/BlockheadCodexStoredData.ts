@@ -9,8 +9,10 @@ export enum BlockheadCodexStoredDataSelector {
 }
 export const BlockheadCodexStoredData = entity({
 	entityType: EntityType.BlockheadCodexStoredData,
-	label: 'blockhead codex stored data',
-	labelPlural: 'blockhead codex stored data entries',
+	labels: {
+		singular: 'blockhead codex stored data',
+		plural: 'blockhead codex stored data entries',
+	},
 })({
 	$nodeState: {
 		label: 'node state',

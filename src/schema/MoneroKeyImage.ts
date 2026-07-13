@@ -10,8 +10,10 @@ export enum MoneroKeyImageSelector {
 }
 export const MoneroKeyImage = entity({
 	entityType: EntityType.MoneroKeyImage,
-	label: 'monero key image',
-	labelPlural: 'monero key images',
+	labels: {
+		singular: 'monero key image',
+		plural: 'monero key images',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',

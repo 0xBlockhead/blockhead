@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const currentRateCentEquivalent = prefetched.currentRateCentEquivalent}
+					{@const currentRateCentEquivalent = pendingEntity.currentRateCentEquivalent}
 					{#if currentRateCentEquivalent !== undefined && currentRateCentEquivalent !== null}
 						<div>
 							<dt>current rate cent equivalent</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const currentRateHbarEquivalent = prefetched.currentRateHbarEquivalent}
+					{@const currentRateHbarEquivalent = pendingEntity.currentRateHbarEquivalent}
 					{#if currentRateHbarEquivalent !== undefined && currentRateHbarEquivalent !== null}
 						<div>
 							<dt>current rate HBAR equivalent</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const currentRateExpirationTime = prefetched.currentRateExpirationTime}
+					{@const currentRateExpirationTime = pendingEntity.currentRateExpirationTime}
 					{#if currentRateExpirationTime !== undefined && currentRateExpirationTime !== null}
 						<div>
 							<dt>current rate expiration time</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nextRateCentEquivalent = prefetched.nextRateCentEquivalent}
+					{@const nextRateCentEquivalent = pendingEntity.nextRateCentEquivalent}
 					{#if nextRateCentEquivalent !== undefined && nextRateCentEquivalent !== null}
 						<div>
 							<dt>next rate cent equivalent</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nextRateHbarEquivalent = prefetched.nextRateHbarEquivalent}
+					{@const nextRateHbarEquivalent = pendingEntity.nextRateHbarEquivalent}
 					{#if nextRateHbarEquivalent !== undefined && nextRateHbarEquivalent !== null}
 						<div>
 							<dt>next rate HBAR equivalent</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nextRateExpirationTime = prefetched.nextRateExpirationTime}
+					{@const nextRateExpirationTime = pendingEntity.nextRateExpirationTime}
 					{#if nextRateExpirationTime !== undefined && nextRateExpirationTime !== null}
 						<div>
 							<dt>next rate expiration time</dt>

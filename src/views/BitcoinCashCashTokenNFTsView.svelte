@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -121,9 +120,9 @@
 						selection={select(EntityType.BitcoinCashCashTokenNft, bitcoinCashCashTokenNft[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitcoinCashCashTokenNftFields}
 						href={
-							(bitcoinCashCashTokenNftHrefFields.$output !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2.namespace !== undefined && bitcoinCashCashTokenNftHrefFields.$output !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2.reference !== undefined && bitcoinCashCashTokenNftHrefFields.$output !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenNftHrefFields.$output !== undefined && bitcoinCashCashTokenNftHrefFields.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
-								networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(bitcoinCashCashTokenNftHrefFields.$output.$transaction.txId ?? ''),
+							(bitcoinCashCashTokenNftHrefFields.$output !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.slug !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenNftHrefFields.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
+								network: String(bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.slug ?? ''),
+								transactionId: String(bitcoinCashCashTokenNftHrefFields.$output.$transaction.txId ?? ''),
 								outputIndex: String(bitcoinCashCashTokenNftHrefFields.$output.indexInTransaction ?? ''),
 							}) : undefined)
 						}

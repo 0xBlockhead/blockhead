@@ -497,6 +497,10 @@ import BlockheadLitecoinMwebWalletState_TimestampsView from '$/views/BlockheadLi
 import BlockheadLitecoinMwebWalletState_TimestampView from '$/views/BlockheadLitecoinMwebWalletState_TimestampView.svelte'
 import BlockheadLitecoinMwebWalletStatesView from '$/views/BlockheadLitecoinMwebWalletStatesView.svelte'
 import BlockheadLitecoinMwebWalletStateView from '$/views/BlockheadLitecoinMwebWalletStateView.svelte'
+import BlockheadLocalMediaIngest_TimestampsView from '$/views/BlockheadLocalMediaIngest_TimestampsView.svelte'
+import BlockheadLocalMediaIngest_TimestampView from '$/views/BlockheadLocalMediaIngest_TimestampView.svelte'
+import BlockheadLocalMediaIngestsView from '$/views/BlockheadLocalMediaIngestsView.svelte'
+import BlockheadLocalMediaIngestView from '$/views/BlockheadLocalMediaIngestView.svelte'
 import BlockheadLogosBlockchainNodeState_TimestampsView from '$/views/BlockheadLogosBlockchainNodeState_TimestampsView.svelte'
 import BlockheadLogosBlockchainNodeState_TimestampView from '$/views/BlockheadLogosBlockchainNodeState_TimestampView.svelte'
 import BlockheadLogosBlockchainNodeStatesView from '$/views/BlockheadLogosBlockchainNodeStatesView.svelte'
@@ -521,8 +525,10 @@ import BlockheadMoneroWalletState_TimestampsView from '$/views/BlockheadMoneroWa
 import BlockheadMoneroWalletState_TimestampView from '$/views/BlockheadMoneroWalletState_TimestampView.svelte'
 import BlockheadMoneroWalletStatesView from '$/views/BlockheadMoneroWalletStatesView.svelte'
 import BlockheadMoneroWalletStateView from '$/views/BlockheadMoneroWalletStateView.svelte'
+import BlockheadPanelsView from '$/views/BlockheadPanelsView.svelte'
 import BlockheadPanelTreesView from '$/views/BlockheadPanelTreesView.svelte'
 import BlockheadPanelTreeView from '$/views/BlockheadPanelTreeView.svelte'
+import BlockheadPanelView from '$/views/BlockheadPanelView.svelte'
 import BlockheadPayjoinSessionsView from '$/views/BlockheadPayjoinSessionsView.svelte'
 import BlockheadPayjoinSessionView from '$/views/BlockheadPayjoinSessionView.svelte'
 import BlockheadQuilibriumAccountState_TimestampsView from '$/views/BlockheadQuilibriumAccountState_TimestampsView.svelte'
@@ -605,12 +611,16 @@ import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsVi
 import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
 import BlockheadWalletRequest_TimestampsView from '$/views/BlockheadWalletRequest_TimestampsView.svelte'
 import BlockheadWalletRequest_TimestampView from '$/views/BlockheadWalletRequest_TimestampView.svelte'
+import BlockheadWalletRequestCallsView from '$/views/BlockheadWalletRequestCallsView.svelte'
+import BlockheadWalletRequestCallView from '$/views/BlockheadWalletRequestCallView.svelte'
 import BlockheadWalletRequestsView from '$/views/BlockheadWalletRequestsView.svelte'
 import BlockheadWalletRequestView from '$/views/BlockheadWalletRequestView.svelte'
 import BlockheadWalletsView from '$/views/BlockheadWalletsView.svelte'
 import BlockheadWalletTransportSessionsView from '$/views/BlockheadWalletTransportSessionsView.svelte'
 import BlockheadWalletTransportSessionView from '$/views/BlockheadWalletTransportSessionView.svelte'
 import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
+import BlockheadWorkspacesView from '$/views/BlockheadWorkspacesView.svelte'
+import BlockheadWorkspaceView from '$/views/BlockheadWorkspaceView.svelte'
 import BlockheadZcashNoteState_TimestampsView from '$/views/BlockheadZcashNoteState_TimestampsView.svelte'
 import BlockheadZcashNoteState_TimestampView from '$/views/BlockheadZcashNoteState_TimestampView.svelte'
 import BlockheadZcashNoteStatesView from '$/views/BlockheadZcashNoteStatesView.svelte'
@@ -1345,6 +1355,8 @@ import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_Time
 import Market_TimeInterval_TimestampView from '$/views/Market_TimeInterval_TimestampView.svelte'
 import Market_TimestampsView from '$/views/Market_TimestampsView.svelte'
 import Market_TimestampView from '$/views/Market_TimestampView.svelte'
+import MarketAssetsView from '$/views/MarketAssetsView.svelte'
+import MarketAssetView from '$/views/MarketAssetView.svelte'
 import MarketPricesView from '$/views/MarketPricesView.svelte'
 import MarketPriceView from '$/views/MarketPriceView.svelte'
 import MarketsView from '$/views/MarketsView.svelte'
@@ -2526,8 +2538,12 @@ export const View = {
 	BlockheadMoneroWalletStates: BlockheadMoneroWalletStatesView,
 	BlockheadMoneroWalletState_Timestamp: BlockheadMoneroWalletState_TimestampView,
 	BlockheadMoneroWalletState_Timestamps: BlockheadMoneroWalletState_TimestampsView,
+	BlockheadWorkspace: BlockheadWorkspaceView,
+	BlockheadWorkspaces: BlockheadWorkspacesView,
 	BlockheadPanelTree: BlockheadPanelTreeView,
 	BlockheadPanelTrees: BlockheadPanelTreesView,
+	BlockheadPanel: BlockheadPanelView,
+	BlockheadPanels: BlockheadPanelsView,
 	BlockheadPayjoinSession: BlockheadPayjoinSessionView,
 	BlockheadPayjoinSessions: BlockheadPayjoinSessionsView,
 	BlockheadQuilibriumAccountState: BlockheadQuilibriumAccountStateView,
@@ -2570,6 +2586,10 @@ export const View = {
 	BlockheadSharedAddresses: BlockheadSharedAddressesView,
 	BlockheadSiweChallenge: BlockheadSiweChallengeView,
 	BlockheadSiweChallenges: BlockheadSiweChallengesView,
+	BlockheadLocalMediaIngest: BlockheadLocalMediaIngestView,
+	BlockheadLocalMediaIngests: BlockheadLocalMediaIngestsView,
+	BlockheadLocalMediaIngest_Timestamp: BlockheadLocalMediaIngest_TimestampView,
+	BlockheadLocalMediaIngest_Timestamps: BlockheadLocalMediaIngest_TimestampsView,
 	BlockheadSocialPostSession: BlockheadSocialPostSessionView,
 	BlockheadSocialPostSessions: BlockheadSocialPostSessionsView,
 	BlockheadSource: BlockheadSourceView,
@@ -2612,6 +2632,8 @@ export const View = {
 	BlockheadWalletConnections: BlockheadWalletConnectionsView,
 	BlockheadWalletRequest: BlockheadWalletRequestView,
 	BlockheadWalletRequests: BlockheadWalletRequestsView,
+	BlockheadWalletRequestCall: BlockheadWalletRequestCallView,
+	BlockheadWalletRequestCalls: BlockheadWalletRequestCallsView,
 	BlockheadWalletRequest_Timestamp: BlockheadWalletRequest_TimestampView,
 	BlockheadWalletRequest_Timestamps: BlockheadWalletRequest_TimestampsView,
 	BlockheadWalletTransportSession: BlockheadWalletTransportSessionView,
@@ -3344,6 +3366,8 @@ export const View = {
 	MagnetLinks: MagnetLinksView,
 	MagnetResolution_Timestamp: MagnetResolution_TimestampView,
 	MagnetResolution_Timestamps: MagnetResolution_TimestampsView,
+	MarketAsset: MarketAssetView,
+	MarketAssets: MarketAssetsView,
 	Market: MarketView,
 	Markets: MarketsView,
 	Market_Derivative_Timestamp: Market_Derivative_TimestampView,
@@ -4269,7 +4293,9 @@ export const entityViewComponentByType = {
 	[EntityType.BlockheadMoneroTransferState_Timestamp]: View.BlockheadMoneroTransferState_Timestamp,
 	[EntityType.BlockheadMoneroWalletState]: View.BlockheadMoneroWalletState,
 	[EntityType.BlockheadMoneroWalletState_Timestamp]: View.BlockheadMoneroWalletState_Timestamp,
+	[EntityType.BlockheadWorkspace]: View.BlockheadWorkspace,
 	[EntityType.BlockheadPanelTree]: View.BlockheadPanelTree,
+	[EntityType.BlockheadPanel]: View.BlockheadPanel,
 	[EntityType.BlockheadPayjoinSession]: View.BlockheadPayjoinSession,
 	[EntityType.BlockheadQuilibriumAccountState]: View.BlockheadQuilibriumAccountState,
 	[EntityType.BlockheadQuilibriumAccountState_Timestamp]: View.BlockheadQuilibriumAccountState_Timestamp,
@@ -4291,6 +4317,8 @@ export const entityViewComponentByType = {
 	[EntityType.BlockheadSessionSimulationLog]: View.BlockheadSessionSimulationLog,
 	[EntityType.BlockheadSharedAddress]: View.BlockheadSharedAddress,
 	[EntityType.BlockheadSiweChallenge]: View.BlockheadSiweChallenge,
+	[EntityType.BlockheadLocalMediaIngest]: View.BlockheadLocalMediaIngest,
+	[EntityType.BlockheadLocalMediaIngest_Timestamp]: View.BlockheadLocalMediaIngest_Timestamp,
 	[EntityType.BlockheadSocialPostSession]: View.BlockheadSocialPostSession,
 	[EntityType.BlockheadSource]: View.BlockheadSource,
 	[EntityType.BlockheadSource_Timestamp]: View.BlockheadSource_Timestamp,
@@ -4312,6 +4340,7 @@ export const entityViewComponentByType = {
 	[EntityType.BlockheadWalletCapabilityGrant]: View.BlockheadWalletCapabilityGrant,
 	[EntityType.BlockheadWalletConnection]: View.BlockheadWalletConnection,
 	[EntityType.BlockheadWalletRequest]: View.BlockheadWalletRequest,
+	[EntityType.BlockheadWalletRequestCall]: View.BlockheadWalletRequestCall,
 	[EntityType.BlockheadWalletRequest_Timestamp]: View.BlockheadWalletRequest_Timestamp,
 	[EntityType.BlockheadWalletTransportSession]: View.BlockheadWalletTransportSession,
 	[EntityType.BlockheadZcashNoteState]: View.BlockheadZcashNoteState,
@@ -4678,6 +4707,7 @@ export const entityViewComponentByType = {
 	[EntityType.LogosBlockchainNetwork_Timestamp]: View.LogosBlockchainNetwork_Timestamp,
 	[EntityType.MagnetLink]: View.MagnetLink,
 	[EntityType.MagnetResolution_Timestamp]: View.MagnetResolution_Timestamp,
+	[EntityType.MarketAsset]: View.MarketAsset,
 	[EntityType.Market]: View.Market,
 	[EntityType.Market_Derivative_Timestamp]: View.Market_Derivative_Timestamp,
 	[EntityType.Market_TimeInterval_Timestamp]: View.Market_TimeInterval_Timestamp,

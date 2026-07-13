@@ -9,8 +9,10 @@ export enum BlockheadFedimintClientState_TimestampSelector {
 }
 export const BlockheadFedimintClientState_Timestamp = entity({
 	entityType: EntityType.BlockheadFedimintClientState_Timestamp,
-	label: 'blockhead Fedimint client state timestamp',
-	labelPlural: 'blockhead Fedimint client state observations',
+	labels: {
+		singular: 'blockhead Fedimint client state timestamp',
+		plural: 'blockhead Fedimint client state observations',
+	},
 })({
 	$clientState: {
 		label: 'client state',

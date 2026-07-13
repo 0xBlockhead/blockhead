@@ -86,7 +86,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rid = selection.entitySelector.rid ?? prefetched.rid}
+							{@const rid = pendingEntity.rid}
 							{#if rid !== undefined && rid !== null}
 								{String((rid) ?? '')}
 							{/if}
@@ -116,7 +116,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const revision = selection.entitySelector.revision ?? prefetched.revision}
+							{@const revision = pendingEntity.revision}
 							{#if revision !== undefined && revision !== null}
 								{String((revision) ?? '')}
 							{/if}
@@ -143,7 +143,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousRevision = prefetched.previousRevision}
+					{@const previousRevision = pendingEntity.previousRevision}
 					{#if previousRevision !== undefined && previousRevision !== null}
 						<div>
 							<dt>previous revision</dt>
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const documentHash = prefetched.documentHash}
+							{@const documentHash = pendingEntity.documentHash}
 							{#if documentHash !== undefined && documentHash !== null}
 								<TruncatedValue value={String((documentHash) ?? '')} />
 							{/if}
@@ -211,7 +211,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const delegateDids = prefetched.delegateDids}
+							{@const delegateDids = pendingEntity.delegateDids}
 							{#if delegateDids !== undefined && delegateDids !== null}
 								{delegateDids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -238,7 +238,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const threshold = prefetched.threshold}
+					{@const threshold = pendingEntity.threshold}
 					{#if threshold !== undefined && threshold !== null}
 						<div>
 							<dt>threshold</dt>
@@ -276,7 +276,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signedByDids = prefetched.signedByDids}
+							{@const signedByDids = pendingEntity.signedByDids}
 							{#if signedByDids !== undefined && signedByDids !== null}
 								{signedByDids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -306,7 +306,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const verificationStatus = prefetched.verificationStatus}
+							{@const verificationStatus = pendingEntity.verificationStatus}
 							{#if verificationStatus !== undefined && verificationStatus !== null}
 								{String((verificationStatus) ?? '')}
 							{/if}

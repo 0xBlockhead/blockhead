@@ -9,8 +9,10 @@ export enum CelestiaNetwork_TimestampSelector {
 }
 export const CelestiaNetwork_Timestamp = entity({
 	entityType: EntityType.CelestiaNetwork_Timestamp,
-	label: 'celestia network timestamp',
-	labelPlural: 'celestia network observations',
+	labels: {
+		singular: 'celestia network timestamp',
+		plural: 'celestia network observations',
+	},
 })({
 	$network: {
 		label: 'network',

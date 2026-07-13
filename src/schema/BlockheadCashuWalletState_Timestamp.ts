@@ -9,8 +9,10 @@ export enum BlockheadCashuWalletState_TimestampSelector {
 }
 export const BlockheadCashuWalletState_Timestamp = entity({
 	entityType: EntityType.BlockheadCashuWalletState_Timestamp,
-	label: 'blockhead Cashu wallet state timestamp',
-	labelPlural: 'blockhead Cashu wallet state observations',
+	labels: {
+		singular: 'blockhead Cashu wallet state timestamp',
+		plural: 'blockhead Cashu wallet state observations',
+	},
 })({
 	$walletState: {
 		label: 'wallet state',

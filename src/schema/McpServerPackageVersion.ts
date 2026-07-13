@@ -11,8 +11,10 @@ export enum McpServerPackageVersionSelector {
 }
 export const McpServerPackageVersion = entity({
 	entityType: EntityType.McpServerPackageVersion,
-	label: 'mcp server package version',
-	labelPlural: 'mcp server package versions',
+	labels: {
+		singular: 'mcp server package version',
+		plural: 'mcp server package versions',
+	},
 })({
 	$package: {
 		label: 'package',

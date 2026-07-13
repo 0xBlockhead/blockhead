@@ -53,18 +53,20 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'session')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'session')
 	const viewDomId = $derived('blockhead-session-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BlockheadSessionSimulationView from '$/views/BlockheadSessionSimulationView.svelte'
 	import BlockheadSessionActionsView from '$/views/BlockheadSessionActionsView.svelte'
 	import BlockheadIntentInvocationsView from '$/views/BlockheadIntentInvocationsView.svelte'
 	import BlockheadSessionSimulationsView from '$/views/BlockheadSessionSimulationsView.svelte'
-	import BlockheadSessionSimulationView from '$/views/BlockheadSessionSimulationView.svelte'
 </script>
 
 
@@ -81,7 +83,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadSession}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'session'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'session'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSession}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'session'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'session'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadSession}>
 			{#snippet Pending()}
-				{@const updatedAt0 = prefetched.updatedAt}
+				{@const updatedAt0 = pendingEntity.updatedAt}
 				{#if updatedAt0 !== undefined && updatedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(updatedAt0)} />
@@ -142,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -172,7 +174,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}
@@ -202,7 +204,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const updatedAt = prefetched.updatedAt}
+							{@const updatedAt = pendingEntity.updatedAt}
 							{#if updatedAt !== undefined && updatedAt !== null}
 								<Timestamp timestamp={Number(updatedAt)} />
 							{/if}
@@ -229,7 +231,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lockedAt = prefetched.lockedAt}
+					{@const lockedAt = pendingEntity.lockedAt}
 					{#if lockedAt !== undefined && lockedAt !== null}
 						<div>
 							<dt>Locked</dt>
@@ -259,6 +261,8 @@
 			<ResourceBoundary
 				resource={selection.$latestSimulation}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSessionSimulation)}
 					{#if blockheadSessionSimulation != null && blockheadSessionSimulation[EntityMetaKey.Selector] != null}
 						<div>
@@ -286,7 +290,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const simulationCount = prefetched.simulationCount}
+					{@const simulationCount = pendingEntity.simulationCount}
 					{#if simulationCount !== undefined && simulationCount !== null}
 						<div>
 							<dt>Simulation count</dt>
@@ -315,26 +319,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BlockheadSessionActionsView
-				selection={selection.$$actions}
-				title='Actions'
-				emptyText='No actions.'
-				id='BlockheadSessionActionsView-actions'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-blockhead-session-work'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'blockhead-session-actions',
+							label: 'Actions',
+						},
+						{
+							id: 'blockhead-session-intents',
+							label: 'Intent invocations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-work'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Work</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BlockheadIntentInvocationsView
-				selection={selection.$$intentInvocations}
-				title='intent invocations'
-				emptyText='No intent invocations.'
-				id='BlockheadIntentInvocationsView-intent-invocations'
-			/>
+				{#snippet SectionBlockheadSessionActions({ id, label, open })}
+					<BlockheadSessionActionsView
+						selection={selection.$$actions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No actions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadSessionSimulationsView
-				selection={selection.$$simulations}
-				title='Simulations'
-				emptyText='No simulations.'
-				id='BlockheadSessionSimulationsView-simulations'
-			/>
+				{#snippet SectionBlockheadSessionIntents({ id, label, open })}
+					<BlockheadIntentInvocationsView
+						selection={selection.$$intentInvocations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No intent invocations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-blockhead-session-simulations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'blockhead-session-simulation-list',
+							label: 'Simulations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-simulations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Simulations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionBlockheadSessionSimulationList({ id, label, open })}
+					<BlockheadSessionSimulationsView
+						selection={selection.$$simulations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No simulations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

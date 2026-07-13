@@ -10,8 +10,10 @@ export enum AcpMessagePartSelector {
 }
 export const AcpMessagePart = entity({
 	entityType: EntityType.AcpMessagePart,
-	label: 'acp message part',
-	labelPlural: 'acp message parts',
+	labels: {
+		singular: 'acp message part',
+		plural: 'acp message parts',
+	},
 })({
 	$message: {
 		label: 'message',

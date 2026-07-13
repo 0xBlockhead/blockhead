@@ -9,8 +9,10 @@ export enum BittensorMetagraph_TimestampSelector {
 }
 export const BittensorMetagraph_Timestamp = entity({
 	entityType: EntityType.BittensorMetagraph_Timestamp,
-	label: 'Bittensor metagraph observation',
-	labelPlural: 'Bittensor metagraph observations',
+	labels: {
+		singular: 'Bittensor metagraph observation',
+		plural: 'Bittensor metagraph observations',
+	},
 })({
 	$subnet: {
 		label: 'Subnet',

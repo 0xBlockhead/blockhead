@@ -9,8 +9,10 @@ export enum FedimintGateway_TimestampSelector {
 }
 export const FedimintGateway_Timestamp = entity({
 	entityType: EntityType.FedimintGateway_Timestamp,
-	label: 'Fedimint gateway timestamp',
-	labelPlural: 'Fedimint gateway observations',
+	labels: {
+		singular: 'Fedimint gateway timestamp',
+		plural: 'Fedimint gateway observations',
+	},
 })({
 	$gateway: {
 		label: 'gateway',

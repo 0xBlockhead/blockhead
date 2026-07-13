@@ -24,7 +24,7 @@
 
 <Page>
 	<LiquidityPoolsView
-		href={resolve('/(assets)/pools')}
+		href={resolve('/pools')}
 		title='Liquidity pools'
 		selection={
 			select(EntityType._Global, {

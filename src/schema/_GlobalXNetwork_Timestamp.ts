@@ -9,8 +9,10 @@ export enum _GlobalXNetwork_TimestampSelector {
 }
 export const _GlobalXNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalXNetwork_Timestamp,
-	label: 'global X network timestamp',
-	labelPlural: 'global X network observations',
+	labels: {
+		singular: 'global X network timestamp',
+		plural: 'global X network observations',
+	},
 })({
 	$hub: {
 		label: 'hub',

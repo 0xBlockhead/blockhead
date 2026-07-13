@@ -47,7 +47,7 @@
 			archiveCoverageStatus: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'bnb beacon network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'bnb beacon network timestamp')
 	const viewDomId = $derived('bnb-beacon-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.latestArchivedHeight) ?? ''), String((prefetched.archiveCoverageStatus) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon network timestamp'}
+				{[String((pendingEntity.latestArchivedHeight) ?? ''), String((pendingEntity.archiveCoverageStatus) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const archiveCoverageStatus = prefetched.archiveCoverageStatus}
+					{@const archiveCoverageStatus = pendingEntity.archiveCoverageStatus}
 					{#if archiveCoverageStatus !== undefined && archiveCoverageStatus !== null}
 						<div>
 							<dt>archive coverage status</dt>
@@ -244,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestArchivedHeight = prefetched.latestArchivedHeight}
+					{@const latestArchivedHeight = pendingEntity.latestArchivedHeight}
 					{#if latestArchivedHeight !== undefined && latestArchivedHeight !== null}
 						<div>
 							<dt>latest archived height</dt>
@@ -279,7 +279,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestArchivedBlockTimeMs = prefetched.latestArchivedBlockTimeMs}
+					{@const latestArchivedBlockTimeMs = pendingEntity.latestArchivedBlockTimeMs}
 					{#if latestArchivedBlockTimeMs !== undefined && latestArchivedBlockTimeMs !== null}
 						<div>
 							<dt>latest archived block time ms</dt>
@@ -316,7 +316,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validatorCount = prefetched.validatorCount}
+					{@const validatorCount = pendingEntity.validatorCount}
 					{#if validatorCount !== undefined && validatorCount !== null}
 						<div>
 							<dt>validator count</dt>
@@ -351,7 +351,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenCount = prefetched.tokenCount}
+					{@const tokenCount = pendingEntity.tokenCount}
 					{#if tokenCount !== undefined && tokenCount !== null}
 						<div>
 							<dt>token count</dt>
@@ -386,7 +386,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const migrationRecordCount = prefetched.migrationRecordCount}
+					{@const migrationRecordCount = pendingEntity.migrationRecordCount}
 					{#if migrationRecordCount !== undefined && migrationRecordCount !== null}
 						<div>
 							<dt>migration record count</dt>

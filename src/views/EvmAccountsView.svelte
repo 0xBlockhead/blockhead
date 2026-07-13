@@ -67,7 +67,6 @@
 		resource={
 			selection({
 				fields: {
-					$avatar: true,
 					address: true,
 				},
 			})
@@ -118,7 +117,7 @@
 						selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmAccountFields}
 						href={
-							(evmAccountHrefFields.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+							(evmAccountHrefFields.address !== undefined ? resolve('/account/[address=evmAddress]', {
 								address: String(evmAccountHrefFields.address ?? ''),
 							}) : undefined)
 						}

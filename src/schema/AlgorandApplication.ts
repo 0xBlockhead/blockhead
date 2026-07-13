@@ -9,8 +9,10 @@ export enum AlgorandApplicationSelector {
 }
 export const AlgorandApplication = entity({
 	entityType: EntityType.AlgorandApplication,
-	label: 'algorand application',
-	labelPlural: 'algorand applications',
+	labels: {
+		singular: 'algorand application',
+		plural: 'algorand applications',
+	},
 })({
 	$network: {
 		label: 'network',

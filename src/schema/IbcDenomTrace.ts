@@ -9,8 +9,10 @@ export enum IbcDenomTraceSelector {
 }
 export const IbcDenomTrace = entity({
 	entityType: EntityType.IbcDenomTrace,
-	label: 'IBC denom trace',
-	labelPlural: 'IBC denom traces',
+	labels: {
+		singular: 'IBC denom trace',
+		plural: 'IBC denom traces',
+	},
 })({
 	$network: {
 		label: 'Network',

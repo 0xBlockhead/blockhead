@@ -9,8 +9,10 @@ export enum _GlobalLensNetworkSelector {
 }
 export const _GlobalLensNetwork = entity({
 	entityType: EntityType._GlobalLensNetwork,
-	label: 'global lens network',
-	labelPlural: 'global lens networks',
+	labels: {
+		singular: 'global lens network',
+		plural: 'global lens networks',
+	},
 })({
 	scope: {
 		label: 'Scope',

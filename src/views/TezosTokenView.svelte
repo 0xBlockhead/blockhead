@@ -47,10 +47,15 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TezosNetworkView from '$/views/TezosNetworkView.svelte'
 	import TezosContractView from '$/views/TezosContractView.svelte'
+	import TezosTokenTransfersView from '$/views/TezosTokenTransfersView.svelte'
+	import TezosToken_TimestampsView from '$/views/TezosToken_TimestampsView.svelte'
+	import TezosTokenBalance_TimestampsView from '$/views/TezosTokenBalance_TimestampsView.svelte'
 </script>
 
 
@@ -103,7 +108,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const contractAddress = selection.entitySelector.contractAddress ?? prefetched.contractAddress}
+							{@const contractAddress = pendingEntity.contractAddress}
 							{#if contractAddress !== undefined && contractAddress !== null}
 								<TruncatedValue value={String((contractAddress) ?? '')} />
 							{/if}
@@ -133,7 +138,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tokenId = selection.entitySelector.tokenId ?? prefetched.tokenId}
+							{@const tokenId = pendingEntity.tokenId}
 							{#if tokenId !== undefined && tokenId !== null}
 								{String((tokenId) ?? '')}
 							{/if}
@@ -160,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const standard = prefetched.standard}
+					{@const standard = pendingEntity.standard}
 					{#if standard !== undefined && standard !== null}
 						<div>
 							<dt>standard</dt>
@@ -188,6 +193,8 @@
 			<ResourceBoundary
 				resource={selection.$contract}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosContract)}
 					{#if tezosContract != null && tezosContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -205,5 +212,96 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tezos-token-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tezos-token-transfers',
+							label: 'Transfers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTezosTokenTransfers({ id, label, open })}
+					<TezosTokenTransfersView
+						selection={selection.$$transfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tezos-token-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tezos-token-timestamps',
+							label: 'Timestamps',
+						},
+						{
+							id: 'tezos-token-balance-timestamps',
+							label: 'Balance Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTezosTokenTimestamps({ id, label, open })}
+					<TezosToken_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTezosTokenBalanceTimestamps({ id, label, open })}
+					<TezosTokenBalance_TimestampsView
+						selection={selection.$$balanceTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No balance timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

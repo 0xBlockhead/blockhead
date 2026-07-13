@@ -1,0 +1,44 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		data,
+	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType._GlobalSwarmAccess, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+	}))
+	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? 'global Swarm access' : 'global Swarm access')))
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import GlobalSwarmAccessView from '$/views/_GlobalSwarmAccessView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>{pageEntityTitle} • global Swarm access • Blockhead</title>
+</svelte:head>
+
+
+<Page>
+	<GlobalSwarmAccessView
+		href={resolve('/swarm/access')}
+		selection={pageSelection}
+	/>
+</Page>

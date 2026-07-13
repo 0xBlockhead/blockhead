@@ -54,7 +54,7 @@
 			pathTemplate: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.operationId ?? prefetched.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation')
 	const viewDomId = $derived('ai-provider-api-operation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiProviderApiOperation}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.operationId ?? prefetched.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiProviderApiOperation}>
 			{#snippet Pending()}
-				{[String((prefetched.operationKind) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.operationId ?? prefetched.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation'}
+				{[String((pendingEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiProviderApiOperation}>
 			{#snippet Pending()}
-				{@const pathTemplate0 = prefetched.pathTemplate}
+				{@const pathTemplate0 = pendingEntity.pathTemplate}
 				{#if pathTemplate0 !== undefined && pathTemplate0 !== null}
 					<span data-text="muted">
 						{String((pathTemplate0) ?? '')}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operationId = selection.entitySelector.operationId ?? prefetched.operationId}
+							{@const operationId = pendingEntity.operationId}
 							{#if operationId !== undefined && operationId !== null}
 								{String((operationId) ?? '')}
 							{/if}
@@ -178,7 +178,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -213,7 +213,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const operationKind = prefetched.operationKind}
+					{@const operationKind = pendingEntity.operationKind}
 					{#if operationKind !== undefined && operationKind !== null}
 						<div>
 							<dt>operation kind</dt>
@@ -250,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const httpMethod = prefetched.httpMethod}
+					{@const httpMethod = pendingEntity.httpMethod}
 					{#if httpMethod !== undefined && httpMethod !== null}
 						<div>
 							<dt>HTTP method</dt>
@@ -285,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pathTemplate = prefetched.pathTemplate}
+					{@const pathTemplate = pendingEntity.pathTemplate}
 					{#if pathTemplate !== undefined && pathTemplate !== null}
 						<div>
 							<dt>path template</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const documentUrl = prefetched.documentUrl}
+					{@const documentUrl = pendingEntity.documentUrl}
 					{#if documentUrl !== undefined && documentUrl !== null}
 						<div>
 							<dt>document URL</dt>

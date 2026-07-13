@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -97,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
 			{#snippet Pending()}
-				{@const freeBalancePlancks0 = prefetched.freeBalancePlancks}
+				{@const freeBalancePlancks0 = pendingEntity.freeBalancePlancks}
 				{#if freeBalancePlancks0 !== undefined && freeBalancePlancks0 !== null}
 					<NumberValue value={Number(freeBalancePlancks0)} />
 				{/if}
@@ -116,7 +115,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
 			{#snippet Pending()}
-				{@const status0 = prefetched.status}
+				{@const status0 = pendingEntity.status}
 				{#if status0 !== undefined && status0 !== null}
 					<span data-text="muted">
 						{String((status0) ?? '')}
@@ -144,8 +143,8 @@
 					<PolkadotAccountView
 						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account, {})}
 						href={
-							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$account.$network.caip2.namespace) + ':' + String(selection.entitySelector.$account.$network.caip2.reference))].slug ?? ''),
+							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined && selection.entitySelector.$account.accountId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
+								network: String(selection.entitySelector.$account.$network.slug ?? ''),
 								accountId: String(selection.entitySelector.$account.accountId ?? ''),
 							}) : undefined)
 						}
@@ -179,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -209,7 +208,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -236,7 +235,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -271,7 +270,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -308,7 +307,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freeBalancePlancks = prefetched.freeBalancePlancks}
+					{@const freeBalancePlancks = pendingEntity.freeBalancePlancks}
 					{#if freeBalancePlancks !== undefined && freeBalancePlancks !== null}
 						<div>
 							<dt>Free balance plancks</dt>
@@ -343,7 +342,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reservedBalancePlancks = prefetched.reservedBalancePlancks}
+					{@const reservedBalancePlancks = pendingEntity.reservedBalancePlancks}
 					{#if reservedBalancePlancks !== undefined && reservedBalancePlancks !== null}
 						<div>
 							<dt>Reserved balance plancks</dt>
@@ -378,7 +377,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const frozenBalancePlancks = prefetched.frozenBalancePlancks}
+					{@const frozenBalancePlancks = pendingEntity.frozenBalancePlancks}
 					{#if frozenBalancePlancks !== undefined && frozenBalancePlancks !== null}
 						<div>
 							<dt>Frozen balance plancks</dt>
@@ -415,7 +414,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transferableBalancePlancks = prefetched.transferableBalancePlancks}
+					{@const transferableBalancePlancks = pendingEntity.transferableBalancePlancks}
 					{#if transferableBalancePlancks !== undefined && transferableBalancePlancks !== null}
 						<div>
 							<dt>Transferable balance plancks</dt>
@@ -450,7 +449,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lockedBalancePlancks = prefetched.lockedBalancePlancks}
+					{@const lockedBalancePlancks = pendingEntity.lockedBalancePlancks}
 					{#if lockedBalancePlancks !== undefined && lockedBalancePlancks !== null}
 						<div>
 							<dt>Locked balance plancks</dt>
@@ -485,7 +484,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>
@@ -520,7 +519,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reason = prefetched.reason}
+					{@const reason = pendingEntity.reason}
 					{#if reason !== undefined && reason !== null}
 						<div>
 							<dt>Reason</dt>

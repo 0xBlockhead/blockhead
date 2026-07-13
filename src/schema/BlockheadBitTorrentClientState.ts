@@ -9,8 +9,10 @@ export enum BlockheadBitTorrentClientStateSelector {
 }
 export const BlockheadBitTorrentClientState = entity({
 	entityType: EntityType.BlockheadBitTorrentClientState,
-	label: 'blockhead bit torrent client state',
-	labelPlural: 'blockhead bit torrent client states',
+	labels: {
+		singular: 'blockhead bit torrent client state',
+		plural: 'blockhead bit torrent client states',
+	},
 })({
 	clientId: {
 		label: 'client ID',

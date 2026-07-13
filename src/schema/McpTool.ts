@@ -9,8 +9,10 @@ export enum McpToolSelector {
 }
 export const McpTool = entity({
 	entityType: EntityType.McpTool,
-	label: 'mcp tool',
-	labelPlural: 'mcp tools',
+	labels: {
+		singular: 'mcp tool',
+		plural: 'mcp tools',
+	},
 })({
 	$server: {
 		label: 'server',

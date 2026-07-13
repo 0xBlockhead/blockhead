@@ -10,8 +10,10 @@ export enum EigenLayerDelegation_TimestampSelector {
 }
 export const EigenLayerDelegation_Timestamp = entity({
 	entityType: EntityType.EigenLayerDelegation_Timestamp,
-	label: 'eigen layer delegation timestamp',
-	labelPlural: 'eigen layer delegation observations',
+	labels: {
+		singular: 'eigen layer delegation timestamp',
+		plural: 'eigen layer delegation observations',
+	},
 })({
 	$staker: {
 		label: 'staker',

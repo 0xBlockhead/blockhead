@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -50,13 +51,18 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'Farcaster')
+	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'Farcaster')
 	const viewDomId = $derived('farcaster-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import FarcasterFeedsView from '$/views/FarcasterFeedsView.svelte'
+	import FarcasterUsersView from '$/views/FarcasterUsersView.svelte'
+	import FarcasterChannelsView from '$/views/FarcasterChannelsView.svelte'
 </script>
 
 
@@ -73,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -117,7 +123,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolName = prefetched.protocolName}
+							{@const protocolName = pendingEntity.protocolName}
 							{#if protocolName !== undefined && protocolName !== null}
 								{String((protocolName) ?? '')}
 							{/if}
@@ -149,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const homeUrl = prefetched.homeUrl}
+							{@const homeUrl = pendingEntity.homeUrl}
 							{#if homeUrl !== undefined && homeUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -192,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const docsUrl = prefetched.docsUrl}
+					{@const docsUrl = pendingEntity.docsUrl}
 					{#if docsUrl !== undefined && docsUrl !== null}
 						<div>
 							<dt>Docs URL</dt>
@@ -243,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registryName = prefetched.registryName}
+					{@const registryName = pendingEntity.registryName}
 					{#if registryName !== undefined && registryName !== null}
 						<div>
 							<dt>Registry name</dt>
@@ -280,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const relationshipModel = prefetched.relationshipModel}
+					{@const relationshipModel = pendingEntity.relationshipModel}
 					{#if relationshipModel !== undefined && relationshipModel !== null}
 						<div>
 							<dt>Connection model</dt>
@@ -305,5 +311,85 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-farcaster-network-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'farcaster-network-feeds',
+							label: 'Feeds',
+						},
+						{
+							id: 'farcaster-network-users',
+							label: 'Users',
+						},
+						{
+							id: 'farcaster-network-channels',
+							label: 'Channels',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Directory</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionFarcasterNetworkFeeds({ id, label, open })}
+					<FarcasterFeedsView
+						selection={
+							selection.$$feeds({
+								sources: [
+									Source.Constants_Internal,
+									Source.Farcaster_Rest,
+								],
+							})
+						}
+						href={resolve('/farcaster/feed')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster feeds in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionFarcasterNetworkUsers({ id, label, open })}
+					<FarcasterUsersView
+						selection={selection.$$users}
+						href={resolve('/farcaster/users')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster users in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionFarcasterNetworkChannels({ id, label, open })}
+					<FarcasterChannelsView
+						selection={selection.$$channels}
+						href={resolve('/farcaster/channels')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster channels in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

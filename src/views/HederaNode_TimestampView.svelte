@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -160,7 +160,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeAccountId = prefetched.nodeAccountId}
+					{@const nodeAccountId = pendingEntity.nodeAccountId}
 					{#if nodeAccountId !== undefined && nodeAccountId !== null}
 						<div>
 							<dt>node account ID</dt>
@@ -188,6 +188,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -215,7 +217,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -250,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fileId = prefetched.fileId}
+					{@const fileId = pendingEntity.fileId}
 					{#if fileId !== undefined && fileId !== null}
 						<div>
 							<dt>file ID</dt>
@@ -285,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo}
+					{@const memo = pendingEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>memo</dt>
@@ -320,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publicKey = prefetched.publicKey}
+					{@const publicKey = pendingEntity.publicKey}
 					{#if publicKey !== undefined && publicKey !== null}
 						<div>
 							<dt>public key</dt>
@@ -355,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeCertHash = prefetched.nodeCertHash}
+					{@const nodeCertHash = pendingEntity.nodeCertHash}
 					{#if nodeCertHash !== undefined && nodeCertHash !== null}
 						<div>
 							<dt>node cert hash</dt>
@@ -390,7 +392,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakeTinybar = prefetched.stakeTinybar}
+					{@const stakeTinybar = pendingEntity.stakeTinybar}
 					{#if stakeTinybar !== undefined && stakeTinybar !== null}
 						<div>
 							<dt>stake tinybar</dt>
@@ -425,7 +427,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakeRewardedTinybar = prefetched.stakeRewardedTinybar}
+					{@const stakeRewardedTinybar = pendingEntity.stakeRewardedTinybar}
 					{#if stakeRewardedTinybar !== undefined && stakeRewardedTinybar !== null}
 						<div>
 							<dt>stake rewarded tinybar</dt>
@@ -460,7 +462,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakeNotRewardedTinybar = prefetched.stakeNotRewardedTinybar}
+					{@const stakeNotRewardedTinybar = pendingEntity.stakeNotRewardedTinybar}
 					{#if stakeNotRewardedTinybar !== undefined && stakeNotRewardedTinybar !== null}
 						<div>
 							<dt>stake not rewarded tinybar</dt>
@@ -495,7 +497,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minStakeTinybar = prefetched.minStakeTinybar}
+					{@const minStakeTinybar = pendingEntity.minStakeTinybar}
 					{#if minStakeTinybar !== undefined && minStakeTinybar !== null}
 						<div>
 							<dt>min stake tinybar</dt>
@@ -530,7 +532,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxStakeTinybar = prefetched.maxStakeTinybar}
+					{@const maxStakeTinybar = pendingEntity.maxStakeTinybar}
 					{#if maxStakeTinybar !== undefined && maxStakeTinybar !== null}
 						<div>
 							<dt>max stake tinybar</dt>
@@ -565,7 +567,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>

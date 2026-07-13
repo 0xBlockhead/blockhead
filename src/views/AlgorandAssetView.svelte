@@ -46,7 +46,7 @@
 			creator: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.assetId ?? prefetched.assetId) ?? '')].filter(Boolean).join(' ') || 'algorand asset')
+	const titleFallback = $derived([String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || 'algorand asset')
 	const viewDomId = $derived('algorand-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={algorandAsset}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.assetId ?? prefetched.assetId) ?? '')].filter(Boolean).join(' ') || title || 'algorand asset'}
+				{[String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || 'algorand asset'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={algorandAsset}>
 			{#snippet Pending()}
-				{@const creator0 = prefetched.creator}
+				{@const creator0 = pendingEntity.creator}
 				{#if creator0 !== undefined && creator0 !== null}
 					<span data-text="muted">
 						{String((creator0) ?? '')}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const assetId = selection.entitySelector.assetId ?? prefetched.assetId}
+							{@const assetId = pendingEntity.assetId}
 							{#if assetId !== undefined && assetId !== null}
 								{String((assetId) ?? '')}
 							{/if}
@@ -178,7 +178,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const creator = prefetched.creator}
+					{@const creator = pendingEntity.creator}
 					{#if creator !== undefined && creator !== null}
 						<div>
 							<dt>creator</dt>

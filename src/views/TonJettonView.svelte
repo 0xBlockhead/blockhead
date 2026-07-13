@@ -47,10 +47,15 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TonNetworkView from '$/views/TonNetworkView.svelte'
 	import TonAccountView from '$/views/TonAccountView.svelte'
+	import TonJettonTransfersView from '$/views/TonJettonTransfersView.svelte'
+	import TonJettonBalance_TimestampsView from '$/views/TonJettonBalance_TimestampsView.svelte'
+	import TonJetton_TimestampsView from '$/views/TonJetton_TimestampsView.svelte'
 </script>
 
 
@@ -103,7 +108,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const masterAddress = selection.entitySelector.masterAddress ?? prefetched.masterAddress}
+							{@const masterAddress = pendingEntity.masterAddress}
 							{#if masterAddress !== undefined && masterAddress !== null}
 								<TruncatedValue value={String((masterAddress) ?? '')} />
 							{/if}
@@ -123,6 +128,8 @@
 			<ResourceBoundary
 				resource={selection.$masterAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -140,5 +147,96 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ton-jetton-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ton-jetton-transfers',
+							label: 'Transfers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTonJettonTransfers({ id, label, open })}
+					<TonJettonTransfersView
+						selection={selection.$$transfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ton-jetton-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ton-jetton-balance-timestamps',
+							label: 'Balance Timestamps',
+						},
+						{
+							id: 'ton-jetton-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTonJettonBalanceTimestamps({ id, label, open })}
+					<TonJettonBalance_TimestampsView
+						selection={selection.$$balanceTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No balance timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTonJettonTimestamps({ id, label, open })}
+					<TonJetton_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

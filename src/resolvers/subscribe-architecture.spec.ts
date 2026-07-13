@@ -341,7 +341,7 @@ describe('client resolver architecture', () => {
 	})
 
 	it('keeps market catalog constants domain-shaped', () => {
-		const source = scannedSourceByFilePath[join(srcPath, 'constants', 'MarketCatalog.ts')]
+		const source = scannedSourceByFilePath[join(srcPath, 'constants', 'Market.ts')]
 
 		expect(source).not.toMatch(/\bmarketId\b/)
 		expect(source).not.toMatch(/\bMarketIdLabelInput\b/)
@@ -456,6 +456,7 @@ describe('client resolver architecture', () => {
 				if (match[1].startsWith('$/sources/'))
 					expect([
 						'$/sources/SourceProvider.ts',
+						...(relativePath === 'lib/http.ts' ? ['$/sources/SourceBinding.ts'] : []),
 					], `${relativePath}: ${match[1]}`).toContain(match[1])
 				if (relativePath !== 'lib/media.ts' || match[1] !== '$/constants/IpfsProtocol.ts')
 					expect(match[1], relativePath).not.toMatch(/\$\/constants\//)
@@ -631,6 +632,43 @@ describe('client resolver architecture', () => {
 					expect(['Title', 'Value'], `${relativePath}: ${layoutMatch[0]}`).toContain(layoutMatch[1])
 			}
 		}
+	})
+
+	it('keeps generated named source selections backed by defaults and valid sources', () => {
+		const generatedSourceSelections = readFileSync(join(srcPath, 'sources', '$sourceSelections.ts'), 'utf8')
+		const generatedDefaultSourceSelectionNames = new Set(
+			[...generatedSourceSelections.matchAll(/export const default([A-Z][A-Za-z0-9]*)Sources\b/g)]
+				.map((match) => match[1])
+		)
+
+		expect(
+			[...generatedSourceSelections.matchAll(/export const ([a-z][A-Za-z0-9]*)SourceSelectionByKey\b/g)]
+				.map((match) => `${match[1][0].toUpperCase()}${match[1].slice(1)}`)
+				.filter((selectionName) => !generatedDefaultSourceSelectionNames.has(selectionName))
+		).toEqual([])
+		expect(
+			[...generatedSourceSelections.matchAll(/\bSource\.([A-Z][A-Za-z0-9_]*)\b/g)]
+				.map((match) => match[1])
+				.filter((source) => !(source in Source))
+		).toEqual([])
+	})
+
+	it('injects field default sources only when a field query has no explicit sources', () => {
+		const generatorSource = readFileSync(join(rootPath, 'scripts', 'app', 'generate.ts'), 'utf8')
+		const fieldQuerySource = generatorSource.match(/const fieldQuery = \([\s\S]*?\n\nconst fieldQueryForName = /)?.[0] ?? ''
+
+		expect(fieldQuerySource).toMatch(/query\?\.sources != null \|\| fieldDefinition\.defaultSources == null/)
+		expect(fieldQuerySource).toMatch(/sources: fieldDefinition\.defaultSources/)
+		expect(fieldQuerySource).toMatch(/\.\.\.query/)
+	})
+
+	it('scopes entity identity and field provenance independently', () => {
+		const subscribeSource = scannedSourceByFilePath[join(srcPath, 'client', '$subscribe.svelte.ts')]
+		const proxySource = scannedSourceByFilePath[join(srcPath, 'client', '$proxy.svelte.ts')]
+
+		expect(subscribeSource).toMatch(/const selectorSources = selection\.selectorSources \?\? selection\.sources/)
+		expect(subscribeSource).toMatch(/enabledSelectionSources\(context, selectorSources\)/)
+		expect(proxySource).toMatch(/selectorSources: \[\],[\s\S]*?fields: projectionDependencyFields/)
 	})
 
 	it('does not keep false alternate-selector resolver branches', () => {

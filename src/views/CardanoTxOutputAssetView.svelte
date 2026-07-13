@@ -113,7 +113,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const quantity = prefetched.quantity}
+							{@const quantity = pendingEntity.quantity}
 							{#if quantity !== undefined && quantity !== null}
 								{String((quantity) ?? '')}
 							{/if}

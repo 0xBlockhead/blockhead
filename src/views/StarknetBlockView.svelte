@@ -50,7 +50,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.blockNumber) ?? '')].filter(Boolean).join(' ') || 'starknet block')
+	const titleFallback = $derived([String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || 'starknet block')
 	const viewDomId = $derived('starknet-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={starknetBlock}>
 			{#snippet Pending()}
-				{@const blockNumber0 = prefetched.blockNumber}
+				{@const blockNumber0 = pendingEntity.blockNumber}
 				{#if blockNumber0 !== undefined && blockNumber0 !== null}
 					<NumberValue value={Number(blockNumber0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetBlock}>
 			{#snippet Pending()}
-				{[String((prefetched.blockHash) ?? '')].filter(Boolean).join(' ') || [String((prefetched.blockNumber) ?? '')].filter(Boolean).join(' ') || title || 'starknet block'}
+				{[String((pendingEntity.blockHash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || title || 'starknet block'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={starknetBlock}>
 			{#snippet Pending()}
-				{@const status0 = prefetched.status}
+				{@const status0 = pendingEntity.status}
 				{#if status0 !== undefined && status0 !== null}
 					<span data-text="muted">
 						{String((status0) ?? '')}
@@ -140,7 +140,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -175,7 +175,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const parentHash = prefetched.parentHash}
+					{@const parentHash = pendingEntity.parentHash}
 					{#if parentHash !== undefined && parentHash !== null}
 						<div>
 							<dt>parent hash</dt>
@@ -245,7 +245,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const newRoot = prefetched.newRoot}
+					{@const newRoot = pendingEntity.newRoot}
 					{#if newRoot !== undefined && newRoot !== null}
 						<div>
 							<dt>new root</dt>
@@ -280,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -317,7 +317,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequencerAddress = prefetched.sequencerAddress}
+					{@const sequencerAddress = pendingEntity.sequencerAddress}
 					{#if sequencerAddress !== undefined && sequencerAddress !== null}
 						<div>
 							<dt>sequencer address</dt>
@@ -352,7 +352,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>

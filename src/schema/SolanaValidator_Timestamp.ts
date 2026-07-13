@@ -10,8 +10,10 @@ export enum SolanaValidator_TimestampSelector {
 }
 export const SolanaValidator_Timestamp = entity({
 	entityType: EntityType.SolanaValidator_Timestamp,
-	label: 'solana validator timestamp',
-	labelPlural: 'Solana validator observations',
+	labels: {
+		singular: 'solana validator timestamp',
+		plural: 'Solana validator observations',
+	},
 })({
 	$validator: {
 		label: 'Validator',

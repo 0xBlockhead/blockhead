@@ -9,8 +9,10 @@ export enum BlockheadAgentConnection_TimestampSelector {
 }
 export const BlockheadAgentConnection_Timestamp = entity({
 	entityType: EntityType.BlockheadAgentConnection_Timestamp,
-	label: 'blockhead agent connection timestamp',
-	labelPlural: 'blockhead agent connection observations',
+	labels: {
+		singular: 'blockhead agent connection timestamp',
+		plural: 'blockhead agent connection observations',
+	},
 })({
 	$connection: {
 		label: 'connection',

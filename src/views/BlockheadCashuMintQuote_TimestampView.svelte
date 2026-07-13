@@ -46,7 +46,7 @@
 			state: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu mint quote timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu mint quote timestamp')
 	const viewDomId = $derived('blockhead-cashu-mint-quote-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -70,7 +70,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadCashuMintQuoteTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuMintQuoteTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.state) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu mint quote timestamp'}
+				{[String((pendingEntity.state) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu mint quote timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadCashuMintQuoteTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -178,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -208,7 +208,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const state = prefetched.state}
+							{@const state = pendingEntity.state}
 							{#if state !== undefined && state !== null}
 								{String((state) ?? '')}
 							{/if}
@@ -237,7 +237,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiryMs = prefetched.expiryMs}
+					{@const expiryMs = pendingEntity.expiryMs}
 					{#if expiryMs !== undefined && expiryMs !== null}
 						<div>
 							<dt>expiry ms</dt>
@@ -272,7 +272,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subscriptionId = prefetched.subscriptionId}
+					{@const subscriptionId = pendingEntity.subscriptionId}
 					{#if subscriptionId !== undefined && subscriptionId !== null}
 						<div>
 							<dt>subscription ID</dt>

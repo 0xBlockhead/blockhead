@@ -3,11 +3,31 @@ import {
 	expect,
 	it,
 } from 'vitest'
+import { QueryClient } from '@tanstack/query-core'
+import type { PersistenceAdapter } from '@tanstack/db-sqlite-persistence-core'
+import { type as arktype } from 'arktype'
 import {
 	readdirSync,
 	readFileSync,
 } from 'node:fs'
 import { resolve } from 'node:path'
+
+import {
+	CollectionLoadDecision,
+	PersistedCollectionLoadStatus,
+	PersistedCollectionSourceStatus,
+	client,
+	persistedCollectionHydrationPlan,
+	persistedCollectionRemoteResult,
+} from '$/client/$client.svelte.ts'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+	EntityMetaKey,
+	entity,
+	entityFieldAddressKey,
+	facet,
+} from '$/schema/$schema.ts'
 
 
 const clientDirectory = resolve(
@@ -28,13 +48,14 @@ const source = (
 
 describe('client resolver stack architecture', () => {
 	it('keeps the client implementation in the original files', () => {
-		expect(readdirSync(clientDirectory).toSorted()).toEqual([
+		expect(readdirSync(clientDirectory)
+			.filter((fileName) => !fileName.endsWith('.spec.ts'))
+			.toSorted()).toEqual([
 			'$client.svelte.ts',
 			'$e2eProbe.ts',
 			'$e2eTrace.ts',
 			'$proxy.svelte.ts',
 			'$subscribe.svelte.ts',
-			'client-resolver-stack.spec.ts',
 		])
 	})
 
@@ -77,33 +98,469 @@ describe('client resolver stack architecture', () => {
 		}
 	})
 
-	it('distinguishes remote, hydrated-rows, and loaded-marker persistence outcomes', () => {
-		const clientSource = source('$client.svelte.ts')
-		expect(clientSource).toMatch(/PersistedCollectionLoadedSubset/)
-		expect(clientSource).toMatch(/metadata\?\.collection\.get\(metadataKey\)/)
-		expect(clientSource).toMatch(/decision: CollectionLoadDecision\.Persisted[\s\S]*status: PersistedCollectionLoadStatus\.Completed/)
-		expect(clientSource).toMatch(/decision: CollectionLoadDecision\.Remote[\s\S]*status: PersistedCollectionLoadStatus\.Loading/)
-		expect(clientSource).toMatch(/rowCount: marker\.rowCount/)
-		expect(clientSource).toMatch(/sourceRowCounts: marker\.sourceRowCounts/)
+	it('distinguishes remote, fresh query-cache-empty hydrated-rows, and loaded-marker outcomes', () => {
+		const remote = persistedCollectionHydrationPlan(
+			'counts',
+			'network',
+			undefined,
+			[],
+			['source-a']
+		)
+		expect(remote).toMatchObject({
+			decision: CollectionLoadDecision.Remote,
+			missReason: 'missing-marker',
+			remoteSources: ['source-a'],
+		})
+		expect(persistedCollectionHydrationPlan(
+			'counts',
+			'network',
+			{
+				collectionId: 'counts',
+				loadedKey: 'network',
+				rowCount: 1,
+				sourceRowCounts: {
+					'source-a': 0,
+				},
+			},
+			[],
+			['source-a']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.Remote,
+			missReason: 'missing-marker',
+			remoteSources: ['source-a'],
+		})
+
+		const hydratedRow = {
+			key: 'count',
+			[EntityMetaKey.Source]: 'source-a',
+		}
+		const completedRows = persistedCollectionRemoteResult({
+			collectionId: 'counts',
+			loadedKey: 'network',
+			persistedRows: [],
+			loaded: {
+				rows: [hydratedRow],
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Completed,
+				}],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			getKey: (row) => row.key,
+		})
+		expect(persistedCollectionHydrationPlan(
+			'counts',
+			'network',
+			completedRows.nextMarker,
+			completedRows.rows,
+			['source-a']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.HydratedRows,
+			remoteSources: [],
+		})
+
+		const completedEmpty = persistedCollectionRemoteResult({
+			collectionId: 'fields',
+			loadedKey: 'network',
+			persistedRows: [],
+			loaded: {
+				rows: [],
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Completed,
+				}],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			getKey: (row) => row[EntityMetaKey.Source],
+		})
+		expect(completedEmpty.nextMarker).toEqual({
+			collectionId: 'fields',
+			loadedKey: 'network',
+			rowCount: 0,
+			sourceRowCounts: {
+				'source-a': 0,
+			},
+		})
+		expect(persistedCollectionHydrationPlan(
+			'fields',
+			'network',
+			completedEmpty.nextMarker,
+			[],
+			['source-a']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.LoadedMarker,
+			remoteSources: [],
+		})
+
+		const emptyRows = completedRows.rows.slice(0, 0)
+		const unaccountedEmpty = persistedCollectionRemoteResult({
+			collectionId: 'fields',
+			loadedKey: 'network',
+			persistedRows: emptyRows,
+			loaded: {
+				rows: emptyRows,
+				outcomes: [],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			getKey: (row) => row.key,
+		})
+		expect(unaccountedEmpty.failedOutcomes).toEqual([{
+			source: 'source-a',
+			status: PersistedCollectionSourceStatus.Failed,
+			error: 'fields did not account for source source-a',
+		}])
+		expect(persistedCollectionHydrationPlan(
+			'fields',
+			'network',
+			unaccountedEmpty.nextMarker,
+			unaccountedEmpty.rows,
+			['source-a']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.Remote,
+			missReason: 'missing-source:source-a',
+			remoteSources: ['source-a'],
+		})
 	})
 
-	it('rejects incomplete persisted subsets and implicit-source marker mismatches', () => {
-		const clientSource = source('$client.svelte.ts')
-		expect(clientSource).toMatch(/missing-marker/)
-		expect(clientSource).toMatch(/row-count-undercount/)
-		expect(clientSource).toMatch(/missing-source/)
-		expect(clientSource).toMatch(/source-count-undercount/)
-		expect(clientSource).toMatch(/remoteSources = \(/)
-		expect(clientSource).toMatch(/requestedSources\.filter/)
+	it('round-trips asynchronously persisted row and zero-row loaded markers', async () => {
+		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
+		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
+		const persistence = {
+			adapter: {
+				loadSubset: async (collectionId) => [
+					...(collectionRowsByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({
+					key,
+					value,
+				})),
+				applyCommittedTx: async (collectionId, transaction) => {
+					await new Promise((resolve) => setTimeout(resolve, 50))
+					const collectionRows = collectionRowsByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.mutations) {
+						if (mutation.type === 'delete')
+							collectionRows.delete(mutation.key)
+						else
+							collectionRows.set(mutation.key, mutation.value)
+					}
+					collectionRowsByCollectionId.set(collectionId, collectionRows)
+					const collectionMetadata = collectionMetadataByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.collectionMetadataMutations ?? []) {
+						if (mutation.type === 'delete')
+							collectionMetadata.delete(mutation.key)
+						else
+							collectionMetadata.set(mutation.key, JSON.stringify(mutation.value))
+					}
+					collectionMetadataByCollectionId.set(collectionId, collectionMetadata)
+				},
+				loadCollectionMetadata: async (collectionId) => [
+					...(collectionMetadataByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({
+					key,
+					value: JSON.parse(value),
+				})),
+				ensureIndex: async () => {},
+			} satisfies PersistenceAdapter,
+		}
+		const fixtureSchema = [
+			entity({
+				entityType: 'PersistenceFixture',
+				labels: {
+					singular: 'Persistence fixture',
+					plural: 'Persistence fixtures',
+				},
+			})({
+				slug: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				items: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.ZeroOrMany,
+				},
+			})({
+				selectors: {
+					Slug: ['slug'],
+				},
+			}),
+		] as const
+		const sourceProviders = [{
+			provider: 'PersistenceFixture',
+			label: 'Persistence fixture',
+			sources: [{
+				provider: 'PersistenceFixture',
+				source: 'PersistenceFixture',
+				label: 'Persistence fixture',
+			}],
+		}] as const
+		const resolvers = [{
+			source: 'PersistenceFixture',
+			resolvers: [{
+				entityType: 'PersistenceFixture',
+				resolve: {
+					Slug: async () => ({}),
+				},
+				projections: {
+					items: () => [],
+				},
+			}],
+		}] as const
+		const createContext = () => client({
+			schema: fixtureSchema,
+			sourceProviders,
+		})({
+			resolvers,
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence,
+			schemaVersion: 1,
+		})
+
+		const cold = createContext()
+		expect((await cold.select(
+			'PersistenceFixture',
+			{
+				slug: 'fixture',
+			}
+		)({
+			fields: {
+				items: true,
+			},
+		})).fields.items.values).toEqual([])
+		expect(cold.events).toContainEqual(expect.objectContaining({
+			decision: CollectionLoadDecision.Remote,
+			status: PersistedCollectionLoadStatus.Completed,
+			rowCount: 0,
+			sourceRowCounts: {
+				PersistenceFixture: 0,
+			},
+		}))
+		await expect.poll(() => cold.events.some((event) => (
+			event.decision === CollectionLoadDecision.Remote
+			&& event.status === PersistedCollectionLoadStatus.Completed
+			&& event.rowCount === 1
+			&& event.sourceRowCounts?.PersistenceFixture === 1
+		))).toBe(true)
+		expect(cold.events).toContainEqual(expect.objectContaining({
+			decision: CollectionLoadDecision.Remote,
+			status: PersistedCollectionLoadStatus.Completed,
+			rowCount: 1,
+			sourceRowCounts: {
+				PersistenceFixture: 1,
+			},
+		}))
+		expect([...collectionMetadataByCollectionId.values()]
+			.flatMap((collectionMetadata) => [...collectionMetadata])
+			.map(([key, value]) => [
+				key,
+				JSON.parse(value),
+			]))
+			.toContainEqual([
+				expect.stringMatching(/^loadedSubset:1:/),
+				expect.objectContaining({
+				rowCount: 0,
+				sourceRowCounts: {
+					PersistenceFixture: 0,
+				},
+				}),
+			])
+		expect([...collectionMetadataByCollectionId.values()]
+			.flatMap((collectionMetadata) => [...collectionMetadata])
+			.map(([key, value]) => [
+				key,
+				JSON.parse(value),
+			]))
+			.toContainEqual([
+				expect.stringMatching(/^loadedSubset:1:/),
+				expect.objectContaining({
+					rowCount: 1,
+					sourceRowCounts: {
+						PersistenceFixture: 1,
+					},
+				}),
+			])
+
+		const warm = createContext()
+		expect((await warm.select(
+			'PersistenceFixture',
+			{
+				slug: 'fixture',
+			}
+		)({
+			fields: {
+				items: true,
+			},
+		})).fields.items.values).toEqual([])
+		expect(warm.events).toContainEqual(expect.objectContaining({
+			decision: CollectionLoadDecision.LoadedMarker,
+			status: PersistedCollectionLoadStatus.Completed,
+			rowCount: 0,
+			sourceRowCounts: {
+				PersistenceFixture: 0,
+			},
+		}))
+		await expect.poll(() => warm.events.some((event) => (
+			event.decision === CollectionLoadDecision.HydratedRows
+			&& event.status === PersistedCollectionLoadStatus.Completed
+			&& event.rowCount === 1
+			&& event.sourceRowCounts?.PersistenceFixture === 1
+		))).toBe(true)
+		expect(warm.events).toContainEqual(expect.objectContaining({
+			decision: CollectionLoadDecision.HydratedRows,
+			status: PersistedCollectionLoadStatus.Completed,
+			rowCount: 1,
+			sourceRowCounts: {
+				PersistenceFixture: 1,
+			},
+		}))
 	})
 
-	it('keeps hydrated rows visible when count refresh failure surfaces later errors', () => {
-		const clientSource = source('$client.svelte.ts')
-		expect(clientSource).toMatch(/\.\.\.persistedRows\(loadSubsetOptions, collection\.toArray\)/)
-		expect(clientSource).toMatch(/\.\.\.loaded\.rows/)
-		expect(clientSource).toMatch(/failedOutcomes/)
-		expect(clientSource).toMatch(/collectionLoadFailures\.add/)
-		expect(clientSource).toMatch(/status: PersistedCollectionLoadStatus\.Failed/)
+	it('replays incomplete persisted subsets and rejects implicit-source marker incompatibility', () => {
+		const persistedRows = [
+			{
+				key: 'first',
+				[EntityMetaKey.Source]: 'source-a',
+			},
+			{
+				key: 'second',
+				[EntityMetaKey.Source]: 'source-a',
+			},
+		]
+		const completed = persistedCollectionRemoteResult({
+			collectionId: 'fields',
+			loadedKey: 'network',
+			persistedRows: [],
+			loaded: {
+				rows: persistedRows,
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Completed,
+				}],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			getKey: (row) => row.key,
+		})
+		expect(persistedCollectionHydrationPlan(
+			'fields',
+			'network',
+			completed.nextMarker,
+			persistedRows.slice(0, 1),
+			['source-a']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.Remote,
+			missReason: 'row-count-undercount:2:1',
+			remoteSources: ['source-a'],
+		})
+		expect(persistedCollectionHydrationPlan(
+			'fields',
+			'network',
+			completed.nextMarker,
+			persistedRows,
+			[
+				'source-a',
+				'source-b',
+			]
+		)).toMatchObject({
+			decision: CollectionLoadDecision.Remote,
+			missReason: 'missing-source:source-b',
+			remoteSources: ['source-b'],
+		})
+
+		const implicitSources = persistedCollectionRemoteResult({
+			collectionId: 'fields',
+			loadedKey: 'network',
+			persistedRows: [],
+			loaded: {
+				rows: [
+					...persistedRows.slice(0, 1),
+					{
+						key: 'source-b',
+						[EntityMetaKey.Source]: 'source-b',
+					},
+				],
+				outcomes: [
+					{
+						source: 'source-a',
+						status: PersistedCollectionSourceStatus.Completed,
+					},
+					{
+						source: 'source-b',
+						status: PersistedCollectionSourceStatus.Completed,
+					},
+				],
+			},
+			remoteSources: [
+				'source-a',
+				'source-b',
+			],
+			requestedSources: [
+				'source-a',
+				'source-b',
+			],
+			getKey: (row) => row.key,
+		})
+		expect(persistedCollectionHydrationPlan(
+			'fields',
+			'network',
+			implicitSources.nextMarker,
+			implicitSources.rows.filter((row) => row[EntityMetaKey.Source] === 'source-a'),
+			['source-a']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.HydratedRows,
+			remoteSources: [],
+		})
+	})
+
+	it('count refresh failure keeps hydrated rows while surfacing later errors', () => {
+		const hydratedCount = {
+			key: 'count',
+			value: 7,
+			[EntityMetaKey.Source]: 'source-a',
+		}
+		const failedRefresh = persistedCollectionRemoteResult({
+			collectionId: 'counts',
+			loadedKey: 'network',
+			marker: {
+				collectionId: 'counts',
+				loadedKey: 'network',
+				rowCount: 2,
+				sourceRowCounts: {
+					'source-a': 2,
+				},
+			},
+			persistedRows: [hydratedCount],
+			loaded: {
+				rows: [],
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Failed,
+					error: 'count refresh failed',
+				}],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			getKey: (row) => row.key,
+		})
+		expect(failedRefresh.rows).toEqual([hydratedCount])
+		expect(failedRefresh.failedOutcomes).toEqual([{
+			source: 'source-a',
+			status: PersistedCollectionSourceStatus.Failed,
+			error: 'count refresh failed',
+		}])
+		expect(failedRefresh.status).toBe(PersistedCollectionLoadStatus.Partial)
+		expect(failedRefresh.nextMarker).toEqual({
+			collectionId: 'counts',
+			loadedKey: 'network',
+			rowCount: 0,
+			sourceRowCounts: {},
+		})
+		expect(source('$client.svelte.ts')).toMatch(/collectionLoadFailures\.add\(\{[\s\S]*sources: \[outcome\.source\]/)
 	})
 
 	it('keeps undefined snapshot completion gated by schema cardinality', () => {
@@ -124,6 +581,118 @@ describe('client resolver stack architecture', () => {
 		}
 	})
 
+	it('keeps base fields flat and nested facet fields addressed', async () => {
+		const fixtureSchema = [
+			entity({
+				entityType: 'SelectionFixture',
+				labels: {
+					singular: 'Selection fixture',
+					plural: 'Selection fixtures',
+				},
+			})({
+				slug: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				namespace: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				kind: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+			})({
+				selectors: {
+					Slug: ['slug'],
+				},
+				facets: {
+					Parent: facet({
+						path: ['kind'],
+						is: 'parent',
+					})({
+						parentKind: {
+							type: EntityFieldType.Primitive,
+							primitiveType: arktype('string'),
+							cardinality: EntityFieldCardinality.One,
+						},
+					})({
+						facets: {
+							Child: facet({
+								path: [
+									'Parent',
+									'parentKind',
+								],
+								is: 'child',
+							})({
+								childField: {
+									type: EntityFieldType.Primitive,
+									primitiveType: arktype('string'),
+									cardinality: EntityFieldCardinality.One,
+								},
+							}),
+						},
+					}),
+				},
+			}),
+		] as const
+		const context = client({
+			schema: fixtureSchema,
+			sourceProviders: [],
+		})({
+			resolvers: [],
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence: {
+				adapter: {
+					loadSubset: async () => [],
+					applyCommittedTx: async () => {},
+					ensureIndex: async () => {},
+				} satisfies PersistenceAdapter,
+			},
+			schemaVersion: 1,
+		})
+		const selection = context.select(
+			'SelectionFixture',
+			{
+				slug: 'fixture',
+			}
+		)
+		const baseFieldResource = selection({
+			fields: {
+				namespace: true,
+			},
+		})
+		const nestedFacetResource = selection({
+			fields: {
+				Parent: {
+					fields: {
+						Child: {
+							fields: {
+								childField: true,
+							},
+						},
+					},
+				},
+			},
+		})
+
+		expect((await baseFieldResource).fields).toEqual({
+			namespace: undefined,
+		})
+		expect((await nestedFacetResource).fields).toEqual({})
+		expect((await nestedFacetResource).fieldValuesByAddress).toEqual({
+			[entityFieldAddressKey('SelectionFixture', [
+				'Parent',
+				'Child',
+			], 'childField')]: undefined,
+		})
+	})
+
 	it('validates resolver field value shape before writing persisted field rows', () => {
 		const clientSource = source('$client.svelte.ts')
 		expect(clientSource).toMatch(/returned non-array value for multiple-cardinality field/)
@@ -131,19 +700,6 @@ describe('client resolver stack architecture', () => {
 		expect(clientSource).toMatch(/entityFieldPrimitiveValueIsValid/)
 		expect(clientSource).toMatch(/validateEntitySelector\(/)
 		expect(clientSource).not.toMatch(/Array\.isArray\(value\) \?[\s\S]*:\s*\[value\]/)
-	})
-
-	it('keeps conditional fields pending until discriminator state is known', () => {
-		for (const fileName of [
-			'$client.svelte.ts',
-			'$subscribe.svelte.ts',
-		]) {
-			const clientSource = source(fileName)
-			expect(clientSource).toMatch(/enum FieldConditionState/)
-			expect(clientSource).toMatch(/FieldConditionState\.Unknown/)
-			expect(clientSource).toMatch(/conditionState !== FieldConditionState\.Unknown/)
-			expect(clientSource).not.toMatch(/conditionState === false/)
-		}
 	})
 
 	it('keeps count rows are authoritative for paged and windowed list totals', () => {

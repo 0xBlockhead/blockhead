@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const certificateHash = selection.entitySelector.certificateHash ?? prefetched.certificateHash}
+							{@const certificateHash = pendingEntity.certificateHash}
 							{#if certificateHash !== undefined && certificateHash !== null}
 								<TruncatedValue value={String((certificateHash) ?? '')} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const pathHash = selection.entitySelector.pathHash ?? prefetched.pathHash}
+							{@const pathHash = pendingEntity.pathHash}
 							{#if pathHash !== undefined && pathHash !== null}
 								<TruncatedValue value={String((pathHash) ?? '')} />
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const treeHash = prefetched.treeHash}
+					{@const treeHash = pendingEntity.treeHash}
 					{#if treeHash !== undefined && treeHash !== null}
 						<div>
 							<dt>tree hash</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const certifiedAtMs = prefetched.certifiedAtMs}
+					{@const certifiedAtMs = pendingEntity.certifiedAtMs}
 					{#if certifiedAtMs !== undefined && certifiedAtMs !== null}
 						<div>
 							<dt>certified AT ms</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subnetSignature = prefetched.subnetSignature}
+					{@const subnetSignature = pendingEntity.subnetSignature}
 					{#if subnetSignature !== undefined && subnetSignature !== null}
 						<div>
 							<dt>subnet signature</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verificationStatus = prefetched.verificationStatus}
+					{@const verificationStatus = pendingEntity.verificationStatus}
 					{#if verificationStatus !== undefined && verificationStatus !== null}
 						<div>
 							<dt>verification status</dt>

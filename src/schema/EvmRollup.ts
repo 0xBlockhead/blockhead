@@ -9,8 +9,10 @@ export enum EvmRollupSelector {
 }
 export const EvmRollup = entity({
 	entityType: EntityType.EvmRollup,
-	label: 'EVM rollup',
-	labelPlural: 'EVM rollups',
+	labels: {
+		singular: 'EVM rollup',
+		plural: 'EVM rollups',
+	},
 })({
 	$network: {
 		label: 'Network',

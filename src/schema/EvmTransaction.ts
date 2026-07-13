@@ -11,8 +11,10 @@ export enum EvmTransactionSelector {
 }
 export const EvmTransaction = entity({
 	entityType: EntityType.EvmTransaction,
-	label: 'EVM transaction',
-	labelPlural: 'EVM transactions',
+	labels: {
+		singular: 'EVM transaction',
+		plural: 'EVM transactions',
+	},
 	description: 'A transaction submitted to or included in an EVM-compatible network.',
 })({
 	$network: {
@@ -25,7 +27,7 @@ export const EvmTransaction = entity({
 		label: 'Transaction hash',
 		description: 'The transaction hash in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	envelopeType: {
@@ -101,30 +103,6 @@ export const EvmTransaction = entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	maxFeePerGas: {
-		label: 'Max fee',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	maxPriorityFeePerGas: {
-		label: 'Priority fee',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	maxFeePerBlobGas: {
-		label: 'Max fee per blob gas',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	blobGasUsed: {
-		label: 'Blob gas used',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	input: {
 		label: 'Input data',
 		type: EntityFieldType.Primitive,
@@ -166,12 +144,6 @@ export const EvmTransaction = entity({
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$$blobs: {
-		label: 'Blobs',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.EvmBlob,
-		cardinality: EntityFieldCardinality.Many,
 	},
 	$$logs: {
 		label: 'Receipt logs',
@@ -227,5 +199,56 @@ export const EvmTransaction = entity({
 			'$network',
 			'txHash',
 		],
+	},
+
+	facets: {
+		FeeMarket: facet({
+			path: [
+				'envelopeType',
+			],
+			isOneOf: [
+				'FeeMarket',
+				'Blob',
+				'SetCode',
+			],
+		})({
+			maxFeePerGas: {
+				label: 'Max fee',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			maxPriorityFeePerGas: {
+				label: 'Priority fee',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+		}),
+		Blob: facet({
+			path: [
+				'envelopeType',
+			],
+			is: 'Blob',
+		})({
+			maxFeePerBlobGas: {
+				label: 'Max fee per blob gas',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			blobGasUsed: {
+				label: 'Blob gas used',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			$$blobs: {
+				label: 'Blobs',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.EvmBlob,
+				cardinality: EntityFieldCardinality.Many,
+			},
+		}),
 	},
 })

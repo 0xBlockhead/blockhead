@@ -9,8 +9,10 @@ export enum _GlobalRedditNetwork_TimestampSelector {
 }
 export const _GlobalRedditNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalRedditNetwork_Timestamp,
-	label: 'global Reddit network timestamp',
-	labelPlural: 'global Reddit network observations',
+	labels: {
+		singular: 'global Reddit network timestamp',
+		plural: 'global Reddit network observations',
+	},
 })({
 	$hub: {
 		label: 'Hub',

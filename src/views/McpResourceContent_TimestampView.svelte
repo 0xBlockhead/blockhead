@@ -54,7 +54,7 @@
 			error: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp resource content timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp resource content timestamp')
 	const viewDomId = $derived('mcp-resource-content-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpResourceContentTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -99,7 +99,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mcpResourceContentTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.contentKind) ?? ''), String((prefetched.mimeType) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'mcp resource content timestamp'}
+				{[String((pendingEntity.contentKind) ?? ''), String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'mcp resource content timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -112,7 +112,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpResourceContentTimestamp}>
 			{#snippet Pending()}
-				{@const error0 = prefetched.error}
+				{@const error0 = pendingEntity.error}
 				{#if error0 !== undefined && error0 !== null}
 					<span data-text="muted">
 						{String((error0) ?? '')}
@@ -158,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -188,7 +188,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentKind = prefetched.contentKind}
+					{@const contentKind = pendingEntity.contentKind}
 					{#if contentKind !== undefined && contentKind !== null}
 						<div>
 							<dt>content kind</dt>
@@ -252,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uri = prefetched.uri}
+					{@const uri = pendingEntity.uri}
 					{#if uri !== undefined && uri !== null}
 						<div>
 							<dt>URI</dt>
@@ -301,7 +301,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mimeType = prefetched.mimeType}
+					{@const mimeType = pendingEntity.mimeType}
 					{#if mimeType !== undefined && mimeType !== null}
 						<div>
 							<dt>mime type</dt>
@@ -336,7 +336,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const size = prefetched.size}
+					{@const size = pendingEntity.size}
 					{#if size !== undefined && size !== null}
 						<div>
 							<dt>size</dt>
@@ -371,7 +371,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blobHashAlgorithm = prefetched.blobHashAlgorithm}
+					{@const blobHashAlgorithm = pendingEntity.blobHashAlgorithm}
 					{#if blobHashAlgorithm !== undefined && blobHashAlgorithm !== null}
 						<div>
 							<dt>blob hash algorithm</dt>
@@ -406,7 +406,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blobHash = prefetched.blobHash}
+					{@const blobHash = pendingEntity.blobHash}
 					{#if blobHash !== undefined && blobHash !== null}
 						<div>
 							<dt>blob hash</dt>
@@ -441,7 +441,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

@@ -13,6 +13,7 @@ import {
 	jsonErrorHintFromResponse,
 	throwHttpError,
 } from '$/lib/http.ts'
+import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const jsonResponse = (body: object, status = 500) => new Response(
 	JSON.stringify(body),
@@ -101,6 +102,75 @@ describe('HTTP error helpers', () => {
 					signal: expect.any(AbortSignal),
 				})
 			)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('uses SourceDelivery.HttpProxy even when the registered origin supports CORS', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+		try {
+			await corsFetch('https://registered.example/data', {
+				delivery: SourceDelivery.HttpProxy,
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: true,
+				}],
+			})
+			expect(fetchMock).toHaveBeenCalledWith(
+				'/api-proxy/https://registered.example/data',
+				expect.objectContaining({
+					signal: expect.any(AbortSignal),
+				})
+			)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('rejects browser HTTP for remote resource deliveries', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+		try {
+			for (const delivery of [
+				SourceDelivery.RemoteQuery,
+				SourceDelivery.RemoteLive,
+			])
+				await expect(corsFetch('https://registered.example/data', {
+					delivery,
+					origins: [{
+						origin: 'https://registered.example',
+						corsEnabled: false,
+					}],
+				})).rejects.toThrow(
+					delivery === SourceDelivery.RemoteQuery ?
+						'RemoteQuery source HTTP must run through a SvelteKit query'
+					:
+						'RemoteLive source HTTP must run through sourceLive'
+				)
+
+			expect(fetchMock).not.toHaveBeenCalled()
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('rejects BrowserDirect metadata that is not CORS-enabled', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+		try {
+			await expect(corsFetch('https://registered.example/data', {
+				delivery: SourceDelivery.BrowserDirect,
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: false,
+				}],
+			})).rejects.toThrow('BrowserDirect source origin is not CORS-enabled')
+			expect(fetchMock).not.toHaveBeenCalled()
 		} finally {
 			vi.unstubAllGlobals()
 		}

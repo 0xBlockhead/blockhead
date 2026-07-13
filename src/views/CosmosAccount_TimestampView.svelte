@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -48,7 +47,7 @@
 			sequence: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'Cosmos account timestamp')
+	const titleFallback = $derived([String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'Cosmos account timestamp')
 	const viewDomId = $derived('cosmos-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -65,14 +64,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={
-		href ?? (pendingEntity.$account !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.caip2 !== undefined && pendingEntity.$account.$network.caip2.namespace !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.caip2 !== undefined && pendingEntity.$account.$network.caip2.reference !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(pendingEntity.$account.$network.caip2.namespace ?? '')}:${String(pendingEntity.$account.$network.caip2.reference ?? '')}`,
-			address: String(pendingEntity.$account.address ?? ''),
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-		}) : undefined)
-	}
+	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -80,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cosmosAccountTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos account timestamp'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos account timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cosmosAccountTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.accountNumber) ?? ''), String((prefetched.sequence) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos account timestamp'}
+				{[String((pendingEntity.accountNumber) ?? ''), String((pendingEntity.sequence) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos account timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +98,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cosmosAccountTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -141,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -171,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -198,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountNumber = prefetched.accountNumber}
+					{@const accountNumber = pendingEntity.accountNumber}
 					{#if accountNumber !== undefined && accountNumber !== null}
 						<div>
 							<dt>Account number</dt>
@@ -233,7 +225,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequence = prefetched.sequence}
+					{@const sequence = pendingEntity.sequence}
 					{#if sequence !== undefined && sequence !== null}
 						<div>
 							<dt>Sequence</dt>
@@ -263,12 +255,6 @@
 				<dd>
 					<CosmosAccountView
 						selection={select(EntityType.CosmosAccount, selection.entitySelector.$account, {})}
-						href={
-							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
-								caip2: `${String(selection.entitySelector.$account.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$account.$network.caip2.reference ?? '')}`,
-								address: String(selection.entitySelector.$account.address ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

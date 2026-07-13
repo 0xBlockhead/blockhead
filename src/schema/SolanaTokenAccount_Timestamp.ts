@@ -9,8 +9,10 @@ export enum SolanaTokenAccount_TimestampSelector {
 }
 export const SolanaTokenAccount_Timestamp = entity({
 	entityType: EntityType.SolanaTokenAccount_Timestamp,
-	label: 'solana token account timestamp',
-	labelPlural: 'Solana token account observations',
+	labels: {
+		singular: 'solana token account timestamp',
+		plural: 'Solana token account observations',
+	},
 })({
 	$tokenAccount: {
 		label: 'Token account',

@@ -48,11 +48,10 @@
 			Source.Atproto_Xrpc,
 		],
 		fields: {
-			$icon: true,
 			displayName: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.displayName) ?? ''), String((prefetched.handle) ?? '')].filter(Boolean).join(' ') || [String((prefetched.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account')
+	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.handle) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account')
 	const viewDomId = $derived('atproto-actor-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,8 +72,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.did !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]', {
-			did: encodeURIComponent(String(pendingEntity.did ?? '')),
+		href ?? (pendingEntity.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
+			did: String(pendingEntity.did ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -105,7 +104,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={atprotoActor}>
 			{#snippet Pending()}
-				{[String((prefetched.displayName) ?? ''), String((prefetched.handle) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account'}
+				{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.handle) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -118,7 +117,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={atprotoActor}>
 			{#snippet Pending()}
-				{@const handle0 = prefetched.handle}
+				{@const handle0 = pendingEntity.handle}
 				{#if handle0 !== undefined && handle0 !== null}
 					<span data-text="muted">
 						{String((handle0) ?? '')}
@@ -159,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const handle = prefetched.handle}
+							{@const handle = pendingEntity.handle}
 							{#if handle !== undefined && handle !== null}
 								<span>@</span>
 								{String((handle) ?? '')}
@@ -191,7 +190,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const did = prefetched.did}
+							{@const did = pendingEntity.did}
 							{#if did !== undefined && did !== null}
 								<TruncatedValue value={String((did) ?? '')} />
 							{/if}
@@ -219,7 +218,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const indexedAt = prefetched.indexedAt}
+						{@const indexedAt = pendingEntity.indexedAt}
 						{#if indexedAt !== undefined && indexedAt !== null}
 							<div>
 								<dt>Indexed</dt>
@@ -249,6 +248,8 @@
 				<ResourceBoundary
 					resource={selection.$icon}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(media)}
 						{#if media != null && media[EntityMetaKey.Selector] != null}
 							<div>
@@ -258,7 +259,7 @@
 										selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 										prefetched={media}
 										href={
-											(media[EntityMetaKey.Selector].url !== undefined ? resolve('/(explore)/media/[url]', {
+											(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
 												url: String(media[EntityMetaKey.Selector].url ?? ''),
 											}) : undefined)
 										}
@@ -276,6 +277,8 @@
 				<ResourceBoundary
 					resource={selection.$banner}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(media)}
 						{#if media != null && media[EntityMetaKey.Selector] != null}
 							<div>
@@ -285,7 +288,7 @@
 										selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 										prefetched={media}
 										href={
-											(media[EntityMetaKey.Selector].url !== undefined ? resolve('/(explore)/media/[url]', {
+											(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
 												url: String(media[EntityMetaKey.Selector].url ?? ''),
 											}) : undefined)
 										}
@@ -330,7 +333,7 @@
 						})
 					}
 				title='Posts'
-				href={resolve('/(social)/(atproto)/atproto/posts')}
+				href={resolve('/atproto/posts')}
 				id='AtprotoPostsView-posts'
 			/>
 

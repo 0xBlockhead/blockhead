@@ -9,8 +9,10 @@ export enum XrplAmendment_TimestampSelector {
 }
 export const XrplAmendment_Timestamp = entity({
 	entityType: EntityType.XrplAmendment_Timestamp,
-	label: 'xrpl amendment timestamp',
-	labelPlural: 'xrpl amendment observations',
+	labels: {
+		singular: 'xrpl amendment timestamp',
+		plural: 'xrpl amendment observations',
+	},
 })({
 	$amendment: {
 		label: 'amendment',

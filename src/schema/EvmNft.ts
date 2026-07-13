@@ -11,8 +11,10 @@ export enum EvmNftSelector {
 }
 export const EvmNft = entity({
 	entityType: EntityType.EvmNft,
-	label: 'EVM NFT',
-	labelPlural: 'EVM NFTs',
+	labels: {
+		singular: 'EVM NFT',
+		plural: 'EVM NFTs',
+	},
 	description: 'A non-fungible token on an EVM contract, with ERC-8004 agent registration fields shown when the resolver supplies registry evidence.',
 })({
 	$contract: {
@@ -63,64 +65,10 @@ export const EvmNft = entity({
 		primitiveType: (UrlString),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	agentRegistry: {
-		label: 'Agent registry',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	agentId: {
-		label: 'Agent ID',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	agentUri: {
-		label: 'Agent URI',
-		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	contactEndpoint: {
-		label: 'Contact endpoint',
-		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$agentWallet: {
-		label: 'Agent wallet',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.EvmAccount,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	x402Support: {
-		label: 'x402 support',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	active: {
 		label: 'Active',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	supportedTrust: {
-		label: 'Supported trust',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string').array(),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	registrationTypeIri: {
-		label: 'Registration type IRI',
-		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	fetchedAt: {
-		label: 'Fetched at',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({
@@ -129,5 +77,69 @@ export const EvmNft = entity({
 			'$contract',
 			'tokenId',
 		],
+	},
+
+	facets: {
+		Eip8004Registration: facet({
+			path: [
+				'format',
+			],
+			is: 'Eip8004Registration',
+		})({
+			agentRegistry: {
+				label: 'Agent registry',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
+			},
+			agentId: {
+				label: 'Agent ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
+			},
+			agentUri: {
+				label: 'Agent URI',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			contactEndpoint: {
+				label: 'Contact endpoint',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			$agentWallet: {
+				label: 'Agent wallet',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			x402Support: {
+				label: 'x402 support',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			supportedTrust: {
+				label: 'Supported trust',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string').array(),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			registrationTypeIri: {
+				label: 'Registration type IRI',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			fetchedAt: {
+				label: 'Fetched at',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+		}),
 	},
 })

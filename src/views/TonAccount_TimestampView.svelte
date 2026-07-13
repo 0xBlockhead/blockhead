@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceNano = prefetched.balanceNano}
+					{@const balanceNano = pendingEntity.balanceNano}
 					{#if balanceNano !== undefined && balanceNano !== null}
 						<div>
 							<dt>balance nano</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const codeHash = prefetched.codeHash}
+					{@const codeHash = pendingEntity.codeHash}
 					{#if codeHash !== undefined && codeHash !== null}
 						<div>
 							<dt>code hash</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataHash = prefetched.dataHash}
+					{@const dataHash = pendingEntity.dataHash}
 					{#if dataHash !== undefined && dataHash !== null}
 						<div>
 							<dt>data hash</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stateHash = prefetched.stateHash}
+					{@const stateHash = pendingEntity.stateHash}
 					{#if stateHash !== undefined && stateHash !== null}
 						<div>
 							<dt>state hash</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const frozenHash = prefetched.frozenHash}
+					{@const frozenHash = pendingEntity.frozenHash}
 					{#if frozenHash !== undefined && frozenHash !== null}
 						<div>
 							<dt>frozen hash</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastTransactionLt = prefetched.lastTransactionLt}
+					{@const lastTransactionLt = pendingEntity.lastTransactionLt}
 					{#if lastTransactionLt !== undefined && lastTransactionLt !== null}
 						<div>
 							<dt>last transaction lt</dt>
@@ -404,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastTransactionHash = prefetched.lastTransactionHash}
+					{@const lastTransactionHash = pendingEntity.lastTransactionHash}
 					{#if lastTransactionHash !== undefined && lastTransactionHash !== null}
 						<div>
 							<dt>last transaction hash</dt>

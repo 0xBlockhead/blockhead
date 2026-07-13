@@ -9,8 +9,10 @@ export enum DydxChainPerpetualPosition_TimestampSelector {
 }
 export const DydxChainPerpetualPosition_Timestamp = entity({
 	entityType: EntityType.DydxChainPerpetualPosition_Timestamp,
-	label: 'dydx chain perpetual position timestamp',
-	labelPlural: 'dydx chain perpetual position observations',
+	labels: {
+		singular: 'dydx chain perpetual position timestamp',
+		plural: 'dydx chain perpetual position observations',
+	},
 })({
 	$subaccount: {
 		label: 'subaccount',

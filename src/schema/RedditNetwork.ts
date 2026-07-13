@@ -9,8 +9,10 @@ export enum RedditNetworkSelector {
 }
 export const RedditNetwork = entity({
 	entityType: EntityType.RedditNetwork,
-	label: 'Reddit network',
-	labelPlural: 'Reddit networks',
+	labels: {
+		singular: 'Reddit network',
+		plural: 'Reddit networks',
+	},
 	description: 'Reddit protocol catalog identity for public API and listing metadata. Product observeds live on the global Reddit hub.',
 })({
 	scope: {

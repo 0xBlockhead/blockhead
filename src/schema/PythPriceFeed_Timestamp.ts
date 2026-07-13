@@ -10,8 +10,10 @@ export enum PythPriceFeed_TimestampSelector {
 }
 export const PythPriceFeed_Timestamp = entity({
 	entityType: EntityType.PythPriceFeed_Timestamp,
-	label: 'Pyth price feed timestamp',
-	labelPlural: 'Pyth price feed observations',
+	labels: {
+		singular: 'Pyth price feed timestamp',
+		plural: 'Pyth price feed observations',
+	},
 })({
 	$feed: {
 		label: 'Feed',

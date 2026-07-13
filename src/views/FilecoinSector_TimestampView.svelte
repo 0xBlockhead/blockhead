@@ -50,7 +50,7 @@
 			height: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin sector timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin sector timestamp')
 	const viewDomId = $derived('filecoin-sector-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={filecoinSectorTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -116,7 +116,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinSectorTimestamp}>
 			{#snippet Pending()}
-				{@const height0 = prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(height0)} />
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const height = prefetched.height}
+					{@const height = pendingEntity.height}
 					{#if height !== undefined && height !== null}
 						<div>
 							<dt>Height</dt>
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tipsetKey = prefetched.tipsetKey}
+					{@const tipsetKey = pendingEntity.tipsetKey}
 					{#if tipsetKey !== undefined && tipsetKey !== null}
 						<div>
 							<dt>Tipset key</dt>
@@ -282,6 +282,8 @@
 			<ResourceBoundary
 				resource={selection.$tipset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinTipset)}
 					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
 						<div>
@@ -312,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sealedCid = prefetched.sealedCid}
+					{@const sealedCid = pendingEntity.sealedCid}
 					{#if sealedCid !== undefined && sealedCid !== null}
 						<div>
 							<dt>Sealed CID</dt>
@@ -350,7 +352,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activationEpoch = prefetched.activationEpoch}
+					{@const activationEpoch = pendingEntity.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -388,7 +390,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expirationEpoch = prefetched.expirationEpoch}
+					{@const expirationEpoch = pendingEntity.expirationEpoch}
 					{#if expirationEpoch !== undefined && expirationEpoch !== null}
 						<div>
 							<dt>Expiration epoch</dt>
@@ -426,7 +428,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const dealIds = prefetched.dealIds}
+							{@const dealIds = pendingEntity.dealIds}
 							{#if dealIds !== undefined && dealIds !== null}
 								{dealIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

@@ -45,7 +45,7 @@
 			Source.BeaconchaIn_Rest,
 		],
 	}))
-	const titleFallback = $derived((String((selection.entitySelector.epoch ?? prefetched.epoch) ?? '') ? 'Epoch #' + String((selection.entitySelector.epoch ?? prefetched.epoch) ?? '') : '') || 'beacon epoch')
+	const titleFallback = $derived((String((pendingEntity.epoch) ?? '') ? 'Epoch #' + String((pendingEntity.epoch) ?? '') : '') || 'beacon epoch')
 	const viewDomId = $derived('beacon-epoch-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -61,10 +61,10 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.epoch ?? prefetched.epoch ?? '')}
+	idDragPlainText={String(pendingEntity.epoch ?? '')}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			epoch: String(pendingEntity.epoch ?? ''),
 		}) : undefined)
 	}
@@ -73,7 +73,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = selection.entitySelector.epoch ?? prefetched.epoch}
+		{@const serialValue = pendingEntity.epoch}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Epoch </span>
@@ -85,7 +85,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = selection.entitySelector.epoch ?? prefetched.epoch}
+		{@const serialValue = pendingEntity.epoch}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -131,7 +131,7 @@
 							}
 						>
 							{#snippet Pending()}
-								{@const slotCount = prefetched.slotCount}
+								{@const slotCount = pendingEntity.slotCount}
 								{#if slotCount !== undefined && slotCount !== null}
 									<NumberValue value={Number(slotCount)} />
 								{/if}
@@ -160,7 +160,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const finalized = prefetched.finalized}
+						{@const finalized = pendingEntity.finalized}
 						{#if finalized !== undefined && finalized !== null}
 							<div>
 								<dt>Finalized</dt>
@@ -199,7 +199,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const globalParticipationRate = prefetched.globalParticipationRate}
+						{@const globalParticipationRate = pendingEntity.globalParticipationRate}
 						{#if globalParticipationRate !== undefined && globalParticipationRate !== null}
 							<div>
 								<dt>Participation</dt>
@@ -242,7 +242,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const validatorsCount = prefetched.validatorsCount}
+						{@const validatorsCount = pendingEntity.validatorsCount}
 						{#if validatorsCount !== undefined && validatorsCount !== null}
 							<div>
 								<dt>Validators</dt>
@@ -279,7 +279,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const attestationsCount = prefetched.attestationsCount}
+						{@const attestationsCount = pendingEntity.attestationsCount}
 						{#if attestationsCount !== undefined && attestationsCount !== null}
 							<div>
 								<dt>Attestations</dt>
@@ -316,7 +316,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const withdrawalsCount = prefetched.withdrawalsCount}
+						{@const withdrawalsCount = pendingEntity.withdrawalsCount}
 						{#if withdrawalsCount !== undefined && withdrawalsCount !== null}
 							<div>
 								<dt>Withdrawals</dt>

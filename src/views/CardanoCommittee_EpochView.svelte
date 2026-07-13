@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const epoch = selection.entitySelector.epoch ?? prefetched.epoch}
+							{@const epoch = pendingEntity.epoch}
 							{#if epoch !== undefined && epoch !== null}
 								{String((epoch) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>slot</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quorumNumerator = prefetched.quorumNumerator}
+					{@const quorumNumerator = pendingEntity.quorumNumerator}
 					{#if quorumNumerator !== undefined && quorumNumerator !== null}
 						<div>
 							<dt>quorum numerator</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quorumDenominator = prefetched.quorumDenominator}
+					{@const quorumDenominator = pendingEntity.quorumDenominator}
 					{#if quorumDenominator !== undefined && quorumDenominator !== null}
 						<div>
 							<dt>quorum denominator</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memberCount = prefetched.memberCount}
+					{@const memberCount = pendingEntity.memberCount}
 					{#if memberCount !== undefined && memberCount !== null}
 						<div>
 							<dt>member count</dt>

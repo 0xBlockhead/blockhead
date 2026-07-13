@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -160,7 +160,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>Block height</dt>
@@ -201,7 +201,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceSun = prefetched.balanceSun}
+					{@const balanceSun = pendingEntity.balanceSun}
 					{#if balanceSun !== undefined && balanceSun !== null}
 						<div>
 							<dt>Balance sun</dt>
@@ -239,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdTimestampMs = prefetched.createdTimestampMs}
+					{@const createdTimestampMs = pendingEntity.createdTimestampMs}
 					{#if createdTimestampMs !== undefined && createdTimestampMs !== null}
 						<div>
 							<dt>Created</dt>
@@ -277,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestOperationTimestampMs = prefetched.latestOperationTimestampMs}
+					{@const latestOperationTimestampMs = pendingEntity.latestOperationTimestampMs}
 					{#if latestOperationTimestampMs !== undefined && latestOperationTimestampMs !== null}
 						<div>
 							<dt>Latest operation</dt>
@@ -315,7 +315,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalTransactionCount = prefetched.totalTransactionCount}
+					{@const totalTransactionCount = pendingEntity.totalTransactionCount}
 					{#if totalTransactionCount !== undefined && totalTransactionCount !== null}
 						<div>
 							<dt>Total transactions</dt>
@@ -353,7 +353,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freeNetUsed = prefetched.freeNetUsed}
+					{@const freeNetUsed = pendingEntity.freeNetUsed}
 					{#if freeNetUsed !== undefined && freeNetUsed !== null}
 						<div>
 							<dt>Free net used</dt>
@@ -391,7 +391,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freeNetLimit = prefetched.freeNetLimit}
+					{@const freeNetLimit = pendingEntity.freeNetLimit}
 					{#if freeNetLimit !== undefined && freeNetLimit !== null}
 						<div>
 							<dt>Free net limit</dt>
@@ -429,7 +429,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const netUsed = prefetched.netUsed}
+					{@const netUsed = pendingEntity.netUsed}
 					{#if netUsed !== undefined && netUsed !== null}
 						<div>
 							<dt>Net used</dt>
@@ -467,7 +467,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const netLimit = prefetched.netLimit}
+					{@const netLimit = pendingEntity.netLimit}
 					{#if netLimit !== undefined && netLimit !== null}
 						<div>
 							<dt>Net limit</dt>
@@ -505,7 +505,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const energyUsed = prefetched.energyUsed}
+					{@const energyUsed = pendingEntity.energyUsed}
 					{#if energyUsed !== undefined && energyUsed !== null}
 						<div>
 							<dt>Energy used</dt>
@@ -543,7 +543,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const energyLimit = prefetched.energyLimit}
+					{@const energyLimit = pendingEntity.energyLimit}
 					{#if energyLimit !== undefined && energyLimit !== null}
 						<div>
 							<dt>Energy limit</dt>
@@ -578,7 +578,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tronPowerUsed = prefetched.tronPowerUsed}
+					{@const tronPowerUsed = pendingEntity.tronPowerUsed}
 					{#if tronPowerUsed !== undefined && tronPowerUsed !== null}
 						<div>
 							<dt>TRON power used</dt>
@@ -613,7 +613,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tronPowerLimit = prefetched.tronPowerLimit}
+					{@const tronPowerLimit = pendingEntity.tronPowerLimit}
 					{#if tronPowerLimit !== undefined && tronPowerLimit !== null}
 						<div>
 							<dt>TRON power limit</dt>
@@ -651,7 +651,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isContract = prefetched.isContract}
+					{@const isContract = pendingEntity.isContract}
 					{#if isContract !== undefined && isContract !== null}
 						<div>
 							<dt>Contract</dt>

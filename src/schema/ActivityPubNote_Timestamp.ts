@@ -9,8 +9,10 @@ export enum ActivityPubNote_TimestampSelector {
 }
 export const ActivityPubNote_Timestamp = entity({
 	entityType: EntityType.ActivityPubNote_Timestamp,
-	label: 'ActivityPub note observation',
-	labelPlural: 'ActivityPub note observations',
+	labels: {
+		singular: 'ActivityPub note observation',
+		plural: 'ActivityPub note observations',
+	},
 })({
 	$note: {
 		label: 'Note',
@@ -21,7 +23,7 @@ export const ActivityPubNote_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	favouriteCount: {

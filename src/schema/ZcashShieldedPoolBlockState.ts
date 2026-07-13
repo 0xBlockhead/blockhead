@@ -10,8 +10,10 @@ export enum ZcashShieldedPoolBlockStateSelector {
 }
 export const ZcashShieldedPoolBlockState = entity({
 	entityType: EntityType.ZcashShieldedPoolBlockState,
-	label: 'zcash shielded pool block state',
-	labelPlural: 'zcash shielded pool block states',
+	labels: {
+		singular: 'zcash shielded pool block state',
+		plural: 'zcash shielded pool block states',
+	},
 })({
 	$block: {
 		label: 'block',

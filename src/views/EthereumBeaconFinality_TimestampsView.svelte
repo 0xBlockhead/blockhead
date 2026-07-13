@@ -119,8 +119,8 @@
 						selection={select(EntityType.EthereumBeaconFinality_Timestamp, ethereumBeaconFinalityTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ethereumBeaconFinalityTimestampFields}
 						href={
-							(ethereumBeaconFinalityTimestampHrefFields.$network !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.caip2 !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.caip2.namespace !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.caip2 !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.caip2.reference !== undefined && ethereumBeaconFinalityTimestampHrefFields.timestampMs !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/finality/[timestampMs=nonNegativeInteger]', {
-								caip2: `${String(ethereumBeaconFinalityTimestampHrefFields.$network.caip2.namespace ?? '')}:${String(ethereumBeaconFinalityTimestampHrefFields.$network.caip2.reference ?? '')}`,
+							(ethereumBeaconFinalityTimestampHrefFields.$network !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.slug !== undefined && ethereumBeaconFinalityTimestampHrefFields.timestampMs !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/finality/[timestampMs=nonNegativeInteger]', {
+								network: String(ethereumBeaconFinalityTimestampHrefFields.$network.slug ?? ''),
 								timestampMs: String(ethereumBeaconFinalityTimestampHrefFields.timestampMs ?? ''),
 							}) : undefined)
 						}

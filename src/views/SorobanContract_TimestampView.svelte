@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerSequence = selection.entitySelector.ledgerSequence ?? prefetched.ledgerSequence}
+							{@const ledgerSequence = pendingEntity.ledgerSequence}
 							{#if ledgerSequence !== undefined && ledgerSequence !== null}
 								{String((ledgerSequence) ?? '')}
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -160,7 +160,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedAtMs = prefetched.observedAtMs}
+					{@const observedAtMs = pendingEntity.observedAtMs}
 					{#if observedAtMs !== undefined && observedAtMs !== null}
 						<div>
 							<dt>observed AT ms</dt>
@@ -195,7 +195,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const wasmHash = prefetched.wasmHash}
+					{@const wasmHash = pendingEntity.wasmHash}
 					{#if wasmHash !== undefined && wasmHash !== null}
 						<div>
 							<dt>Wasm hash</dt>
@@ -223,6 +223,8 @@
 			<ResourceBoundary
 				resource={selection.$wasm}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(sorobanWasm)}
 					{#if sorobanWasm != null && sorobanWasm[EntityMetaKey.Selector] != null}
 						<div>
@@ -250,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const executableKind = prefetched.executableKind}
+					{@const executableKind = pendingEntity.executableKind}
 					{#if executableKind !== undefined && executableKind !== null}
 						<div>
 							<dt>executable kind</dt>
@@ -285,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastModifiedLedger = prefetched.lastModifiedLedger}
+					{@const lastModifiedLedger = pendingEntity.lastModifiedLedger}
 					{#if lastModifiedLedger !== undefined && lastModifiedLedger !== null}
 						<div>
 							<dt>last modified ledger</dt>
@@ -320,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const liveUntilLedger = prefetched.liveUntilLedger}
+					{@const liveUntilLedger = pendingEntity.liveUntilLedger}
 					{#if liveUntilLedger !== undefined && liveUntilLedger !== null}
 						<div>
 							<dt>live until ledger</dt>
@@ -355,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const found = prefetched.found}
+					{@const found = pendingEntity.found}
 					{#if found !== undefined && found !== null}
 						<div>
 							<dt>found</dt>

@@ -43,7 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const youtubeCommentTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation')
 	const viewDomId = $derived('youtube-comment-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -60,10 +60,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$comment !== undefined && pendingEntity.$comment.videoId !== undefined && pendingEntity.$comment !== undefined && pendingEntity.$comment.commentId !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$comment !== undefined && pendingEntity.$comment.videoId !== undefined && pendingEntity.$comment.commentId !== undefined ? resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			videoId: String(pendingEntity.$comment.videoId ?? ''),
 			commentId: String(pendingEntity.$comment.commentId ?? ''),
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -78,7 +78,7 @@
 					layout={EntityLayout.Title}
 					open={false}
 				/>
-				{@const timestampMs1 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs1 = pendingEntity.timestampMs}
 				{#if timestampMs1 !== undefined && timestampMs1 !== null}
 					<Timestamp timestamp={Number(timestampMs1)} />
 				{/if}
@@ -114,7 +114,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}

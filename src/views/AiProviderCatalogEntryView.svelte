@@ -52,7 +52,7 @@
 			subjectKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.entryLabel) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.providerEntryId ?? prefetched.providerEntryId) ?? '')].filter(Boolean).join(' ') || 'AI provider catalog entry')
+	const titleFallback = $derived([String((pendingEntity.entryLabel) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerEntryId) ?? '')].filter(Boolean).join(' ') || 'AI provider catalog entry')
 	const viewDomId = $derived('ai-provider-catalog-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiProviderCatalogEntry}>
 			{#snippet Pending()}
-				{[String((prefetched.entryLabel) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.providerEntryId ?? prefetched.providerEntryId) ?? '')].filter(Boolean).join(' ') || 'AI provider catalog entry'}
+				{[String((pendingEntity.entryLabel) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerEntryId) ?? '')].filter(Boolean).join(' ') || 'AI provider catalog entry'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiProviderCatalogEntry}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.catalogKind ?? prefetched.catalogKind) ?? '')].filter(Boolean).join(' ') || [String((prefetched.entryLabel) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.providerEntryId ?? prefetched.providerEntryId) ?? '')].filter(Boolean).join(' ') || 'AI provider catalog entry'}
+				{[String((pendingEntity.catalogKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.entryLabel) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerEntryId) ?? '')].filter(Boolean).join(' ') || 'AI provider catalog entry'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiProviderCatalogEntry}>
 			{#snippet Pending()}
-				{@const subjectKind0 = prefetched.subjectKind}
+				{@const subjectKind0 = pendingEntity.subjectKind}
 				{#if subjectKind0 !== undefined && subjectKind0 !== null}
 					<span data-text="muted">
 						{String((subjectKind0) ?? '')}
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const catalogKind = selection.entitySelector.catalogKind ?? prefetched.catalogKind}
+							{@const catalogKind = pendingEntity.catalogKind}
 							{#if catalogKind !== undefined && catalogKind !== null}
 								{String((catalogKind) ?? '')}
 							{/if}
@@ -178,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const providerEntryId = selection.entitySelector.providerEntryId ?? prefetched.providerEntryId}
+							{@const providerEntryId = pendingEntity.providerEntryId}
 							{#if providerEntryId !== undefined && providerEntryId !== null}
 								{String((providerEntryId) ?? '')}
 							{/if}
@@ -205,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const entryLabel = prefetched.entryLabel}
+					{@const entryLabel = pendingEntity.entryLabel}
 					{#if entryLabel !== undefined && entryLabel !== null}
 						<div>
 							<dt>entry label</dt>
@@ -240,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subjectKind = prefetched.subjectKind}
+					{@const subjectKind = pendingEntity.subjectKind}
 					{#if subjectKind !== undefined && subjectKind !== null}
 						<div>
 							<dt>subject kind</dt>

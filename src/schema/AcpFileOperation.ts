@@ -10,8 +10,10 @@ export enum AcpFileOperationSelector {
 }
 export const AcpFileOperation = entity({
 	entityType: EntityType.AcpFileOperation,
-	label: 'acp file operation',
-	labelPlural: 'acp file operations',
+	labels: {
+		singular: 'acp file operation',
+		plural: 'acp file operations',
+	},
 })({
 	$session: {
 		label: 'session',

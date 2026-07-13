@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const targetObjectId = prefetched.targetObjectId}
+							{@const targetObjectId = pendingEntity.targetObjectId}
 							{#if targetObjectId !== undefined && targetObjectId !== null}
 								{String((targetObjectId) ?? '')}
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signatureStatus = prefetched.signatureStatus}
+							{@const signatureStatus = pendingEntity.signatureStatus}
 							{#if signatureStatus !== undefined && signatureStatus !== null}
 								<TruncatedValue value={String((signatureStatus) ?? '')} />
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const objectAvailable = prefetched.objectAvailable}
+					{@const objectAvailable = pendingEntity.objectAvailable}
 					{#if objectAvailable !== undefined && objectAvailable !== null}
 						<div>
 							<dt>object available</dt>
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegateThresholdMet = prefetched.delegateThresholdMet}
+					{@const delegateThresholdMet = pendingEntity.delegateThresholdMet}
 					{#if delegateThresholdMet !== undefined && delegateThresholdMet !== null}
 						<div>
 							<dt>delegate threshold met</dt>
@@ -292,7 +292,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

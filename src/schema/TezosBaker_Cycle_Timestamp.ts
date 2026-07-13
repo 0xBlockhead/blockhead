@@ -9,8 +9,10 @@ export enum TezosBaker_Cycle_TimestampSelector {
 }
 export const TezosBaker_Cycle_Timestamp = entity({
 	entityType: EntityType.TezosBaker_Cycle_Timestamp,
-	label: 'tezos baker cycle timestamp',
-	labelPlural: 'tezos baker cycle observations',
+	labels: {
+		singular: 'tezos baker cycle timestamp',
+		plural: 'tezos baker cycle observations',
+	},
 })({
 	$baker: {
 		label: 'baker',

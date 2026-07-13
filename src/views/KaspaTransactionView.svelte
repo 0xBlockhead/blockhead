@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,19 +42,28 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaTransaction = $derived(selection({}))
+	const kaspaTransaction = $derived(selection({
+		sources: [
+			Source.KaspaExplorer_Rest,
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Rest,
+			Source.KaspaNode_Wrpc,
+		],
+	}))
 	const titleFallback = $derived('kaspa transaction')
 	const viewDomId = $derived('kaspa-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
 	import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
 	import KaspaAcceptedTransactionsView from '$/views/KaspaAcceptedTransactionsView.svelte'
-	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
 </script>
 
 
@@ -106,7 +116,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionId = selection.entitySelector.transactionId ?? prefetched.transactionId}
+							{@const transactionId = pendingEntity.transactionId}
 							{#if transactionId !== undefined && transactionId !== null}
 								{String((transactionId) ?? '')}
 							{/if}
@@ -133,7 +143,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -168,7 +178,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subnetworkId = prefetched.subnetworkId}
+					{@const subnetworkId = pendingEntity.subnetworkId}
 					{#if subnetworkId !== undefined && subnetworkId !== null}
 						<div>
 							<dt>subnetwork ID</dt>
@@ -203,7 +213,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mass = prefetched.mass}
+					{@const mass = pendingEntity.mass}
 					{#if mass !== undefined && mass !== null}
 						<div>
 							<dt>mass</dt>
@@ -240,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadLength = prefetched.payloadLength}
+					{@const payloadLength = pendingEntity.payloadLength}
 					{#if payloadLength !== undefined && payloadLength !== null}
 						<div>
 							<dt>payload length</dt>
@@ -278,7 +288,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockHashes = prefetched.blockHashes}
+							{@const blockHashes = pendingEntity.blockHashes}
 							{#if blockHashes !== undefined && blockHashes !== null}
 								<TruncatedValue value={blockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -299,26 +309,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<UtxoInputsView
-				selection={selection.$$inputs}
-				title='inputs'
-				emptyText='No UTXO inputs.'
-				id='UtxoInputsView-inputs'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-kaspa-tx-io'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'kaspa-tx-inputs',
+							label: 'Inputs',
+						},
+						{
+							id: 'kaspa-tx-outputs',
+							label: 'Outputs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-io'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Inputs and outputs</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<UtxoOutputsView
-				selection={selection.$$outputs}
-				title='outputs'
-				emptyText='No UTXO outputs.'
-				id='UtxoOutputsView-outputs'
-			/>
+				{#snippet SectionKaspaTxInputs({ id, label, open })}
+					<UtxoInputsView
+						selection={selection.$$inputs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No UTXO inputs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<KaspaAcceptedTransactionsView
-				selection={selection.$$acceptances}
-				title='acceptances'
-				emptyText='No Kaspa acceptances.'
-				id='KaspaAcceptedTransactionsView-acceptances'
-			/>
+				{#snippet SectionKaspaTxOutputs({ id, label, open })}
+					<UtxoOutputsView
+						selection={selection.$$outputs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No UTXO outputs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-kaspa-tx-acceptance'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'kaspa-tx-acceptances',
+							label: 'Acceptances',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-acceptance'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Acceptance</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionKaspaTxAcceptances({ id, label, open })}
+					<KaspaAcceptedTransactionsView
+						selection={selection.$$acceptances}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Kaspa acceptances.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

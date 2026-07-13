@@ -9,8 +9,10 @@ export enum SuiBalanceChangeSelector {
 }
 export const SuiBalanceChange = entity({
 	entityType: EntityType.SuiBalanceChange,
-	label: 'sui balance change',
-	labelPlural: 'sui balance changes',
+	labels: {
+		singular: 'sui balance change',
+		plural: 'sui balance changes',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

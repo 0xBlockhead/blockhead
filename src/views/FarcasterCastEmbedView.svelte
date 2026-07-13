@@ -48,13 +48,11 @@
 			Source.Snapchain_Rest,
 		],
 		fields: {
-			$icon: true,
 			title: true,
 			url: true,
-			$embeddedCast: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? ''), String((prefetched.url) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')
+	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')
 	const viewDomId = $derived('farcaster-cast-embed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,10 +72,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$cast !== undefined && pendingEntity.$cast.fid !== undefined && pendingEntity.$cast !== undefined && pendingEntity.$cast.hash !== undefined && pendingEntity.indexInCast !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]/embed/[indexInCast=nonNegativeInteger]', {
+		href ?? (pendingEntity.indexInCast !== undefined && pendingEntity.$cast !== undefined && pendingEntity.$cast.fid !== undefined && pendingEntity.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
+			indexInCast: String(pendingEntity.indexInCast ?? ''),
 			fid: String(pendingEntity.$cast.fid ?? ''),
 			hash: String(pendingEntity.$cast.hash ?? ''),
-			indexInCast: String(pendingEntity.indexInCast ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -108,11 +106,11 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterCastEmbed}>
 			{#snippet Pending()}
-				{@const title0 = prefetched.title}
+				{@const title0 = pendingEntity.title}
 				{#if title0 !== undefined && title0 !== null}
 					{String((title0) ?? '')}
 				{/if}
-				{@const url1 = prefetched.url}
+				{@const url1 = pendingEntity.url}
 				{#if url1 !== undefined && url1 !== null}
 					<TruncatedValue value={String((url1) ?? '')} />
 				{/if}
@@ -132,7 +130,7 @@
 								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 								prefetched={farcasterCast}
 								href={
-									(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+									(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 										fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
 										hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
 									}) : undefined)
@@ -171,7 +169,7 @@
 								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 								prefetched={farcasterCast}
 								href={
-									(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+									(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 										fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
 										hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
 									}) : undefined)
@@ -189,7 +187,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterCastEmbed}>
 			{#snippet Pending()}
-				{@const indexInCast0 = selection.entitySelector.indexInCast ?? prefetched.indexInCast}
+				{@const indexInCast0 = pendingEntity.indexInCast}
 				{#if indexInCast0 !== undefined && indexInCast0 !== null}
 					<NumberValue value={Number(indexInCast0)} />
 				{/if}
@@ -213,7 +211,7 @@
 					<FarcasterCastView
 						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast, {})}
 						href={
-							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 								fid: String(selection.entitySelector.$cast.fid ?? ''),
 								hash: String(selection.entitySelector.$cast.hash ?? ''),
 							}) : undefined)
@@ -239,7 +237,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const indexInCast = selection.entitySelector.indexInCast ?? prefetched.indexInCast}
+							{@const indexInCast = pendingEntity.indexInCast}
 							{#if indexInCast !== undefined && indexInCast !== null}
 								<NumberValue value={Number(indexInCast)} />
 							{/if}
@@ -271,7 +269,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const url = prefetched.url}
+					{@const url = pendingEntity.url}
 					{#if url !== undefined && url !== null}
 						<div>
 							<dt>URL</dt>
@@ -321,6 +319,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(farcasterCast)}
 					{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
 						<div>
@@ -330,7 +330,7 @@
 									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 									prefetched={farcasterCast}
 									href={
-										(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+										(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 											fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
 											hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
 										}) : undefined)
@@ -359,7 +359,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quotedPreviewText = prefetched.quotedPreviewText}
+					{@const quotedPreviewText = pendingEntity.quotedPreviewText}
 					{#if quotedPreviewText !== undefined && quotedPreviewText !== null}
 						<div>
 							<dt>Quoted preview text</dt>

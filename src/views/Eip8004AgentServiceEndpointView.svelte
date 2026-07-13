@@ -51,7 +51,7 @@
 			protocolKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent service endpoint')
+	const titleFallback = $derived([String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent service endpoint')
 	const viewDomId = $derived('eip8004agent-service-endpoint-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
 			{#snippet Pending()}
-				{@const endpointUrl0 = selection.entitySelector.endpointUrl ?? prefetched.endpointUrl}
+				{@const endpointUrl0 = pendingEntity.endpointUrl}
 				{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
 					<svelte:element
 						this={'a'}
@@ -110,7 +110,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.endpointKind ?? prefetched.endpointKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent service endpoint'}
+				{[String((pendingEntity.endpointKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent service endpoint'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -123,7 +123,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
 			{#snippet Pending()}
-				{@const protocolKind0 = prefetched.protocolKind}
+				{@const protocolKind0 = pendingEntity.protocolKind}
 				{#if protocolKind0 !== undefined && protocolKind0 !== null}
 					<span data-text="muted">
 						{String((protocolKind0) ?? '')}
@@ -169,7 +169,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const endpointKind = selection.entitySelector.endpointKind ?? prefetched.endpointKind}
+							{@const endpointKind = pendingEntity.endpointKind}
 							{#if endpointKind !== undefined && endpointKind !== null}
 								{String((endpointKind) ?? '')}
 							{/if}
@@ -199,7 +199,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const endpointUrl = selection.entitySelector.endpointUrl ?? prefetched.endpointUrl}
+							{@const endpointUrl = pendingEntity.endpointUrl}
 							{#if endpointUrl !== undefined && endpointUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -240,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -275,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>Version</dt>
@@ -310,7 +310,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolKind = prefetched.protocolKind}
+					{@const protocolKind = pendingEntity.protocolKind}
 					{#if protocolKind !== undefined && protocolKind !== null}
 						<div>
 							<dt>Protocol kind</dt>
@@ -347,7 +347,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>Active</dt>
@@ -375,6 +375,8 @@
 			<ResourceBoundary
 				resource={selection.$mcpServer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null && mcpServer[EntityMetaKey.Selector] != null}
 						<div>

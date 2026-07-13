@@ -54,7 +54,7 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 		await step(expect(page.locator('#network-summary-head-block')).toBeVisible({
 			timeout: 45_000,
 		}))
-		await step(expect(page.locator('.network-view-collapsible-topology')).toBeAttached({
+		await step(expect(page.locator('.network-view-collapsible-network-relationships')).toBeAttached({
 			timeout: 120_000,
 		}))
 
@@ -75,7 +75,7 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 
 		await step(collapseNetworkEntityView(page))
 
-		await step(expect(page.locator('.network-view-collapsible-topology')).toHaveCount(0))
+		await step(expect(page.locator('.network-view-collapsible-network-relationships')).toHaveCount(0))
 		await step(expect(page.locator('#network-summary-head-block')).toBeVisible())
 		await step(expect(page.locator('#network-summary-head-block a[href*="/block/"]')).toBeAttached({
 			timeout: 30_000,

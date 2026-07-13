@@ -48,11 +48,8 @@
 			Source.Starkscan_Rest,
 			Source.Voyager_Rest,
 		],
-		fields: {
-			$fromContract: true,
-		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.eventIndex ?? prefetched.eventIndex) ?? '')].filter(Boolean).join(' ') || 'starknet event')
+	const titleFallback = $derived([String((pendingEntity.eventIndex) ?? '')].filter(Boolean).join(' ') || 'starknet event')
 	const viewDomId = $derived('starknet-event-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={starknetEvent}>
 			{#snippet Pending()}
-				{@const eventIndex0 = selection.entitySelector.eventIndex ?? prefetched.eventIndex}
+				{@const eventIndex0 = pendingEntity.eventIndex}
 				{#if eventIndex0 !== undefined && eventIndex0 !== null}
 					<NumberValue value={Number(eventIndex0)} />
 				{/if}
@@ -183,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventIndex = selection.entitySelector.eventIndex ?? prefetched.eventIndex}
+							{@const eventIndex = pendingEntity.eventIndex}
 							{#if eventIndex !== undefined && eventIndex !== null}
 								<NumberValue value={Number(eventIndex)} />
 							{/if}
@@ -203,6 +200,8 @@
 			<ResourceBoundary
 				resource={selection.$fromContract}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(starknetContract)}
 					{#if starknetContract != null && starknetContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -233,7 +232,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const keys = prefetched.keys}
+							{@const keys = pendingEntity.keys}
 							{#if keys !== undefined && keys !== null}
 								{keys.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -263,7 +262,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const data = prefetched.data}
+							{@const data = pendingEntity.data}
 							{#if data !== undefined && data !== null}
 								{data.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

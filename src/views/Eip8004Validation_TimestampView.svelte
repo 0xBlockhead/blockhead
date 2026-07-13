@@ -54,7 +54,7 @@
 			validatorAddress: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.requestHash ?? prefetched.requestHash) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 validation timestamp')
+	const titleFallback = $derived([String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 validation timestamp')
 	const viewDomId = $derived('eip8004validation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eip8004ValidationTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.requestHash ?? prefetched.requestHash) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 validation timestamp'}
+				{[String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 validation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004ValidationTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.response) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.requestHash ?? prefetched.requestHash) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 validation timestamp'}
+				{[String((pendingEntity.response) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 validation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +106,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip8004ValidationTimestamp}>
 			{#snippet Pending()}
-				{@const validatorAddress0 = prefetched.validatorAddress}
+				{@const validatorAddress0 = pendingEntity.validatorAddress}
 				{#if validatorAddress0 !== undefined && validatorAddress0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((validatorAddress0) ?? '')} />
@@ -141,7 +141,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestHashAlgorithm = selection.entitySelector.requestHashAlgorithm ?? prefetched.requestHashAlgorithm}
+							{@const requestHashAlgorithm = pendingEntity.requestHashAlgorithm}
 							{#if requestHashAlgorithm !== undefined && requestHashAlgorithm !== null}
 								<TruncatedValue value={String((requestHashAlgorithm) ?? '')} />
 							{/if}
@@ -171,7 +171,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestHash = selection.entitySelector.requestHash ?? prefetched.requestHash}
+							{@const requestHash = pendingEntity.requestHash}
 							{#if requestHash !== undefined && requestHash !== null}
 								<TruncatedValue value={String((requestHash) ?? '')} />
 							{/if}
@@ -191,6 +191,8 @@
 			<ResourceBoundary
 				resource={selection.$registration}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(eip8004AgentRegistration)}
 					{#if eip8004AgentRegistration != null && eip8004AgentRegistration[EntityMetaKey.Selector] != null}
 						<div>
@@ -218,7 +220,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validatorAddress = prefetched.validatorAddress}
+					{@const validatorAddress = pendingEntity.validatorAddress}
 					{#if validatorAddress !== undefined && validatorAddress !== null}
 						<div>
 							<dt>Validator address</dt>
@@ -253,7 +255,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const response = prefetched.response}
+					{@const response = pendingEntity.response}
 					{#if response !== undefined && response !== null}
 						<div>
 							<dt>Response</dt>
@@ -290,7 +292,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestUri = prefetched.requestUri}
+					{@const requestUri = pendingEntity.requestUri}
 					{#if requestUri !== undefined && requestUri !== null}
 						<div>
 							<dt>Request URI</dt>
@@ -339,7 +341,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const responseUri = prefetched.responseUri}
+					{@const responseUri = pendingEntity.responseUri}
 					{#if responseUri !== undefined && responseUri !== null}
 						<div>
 							<dt>Response URI</dt>
@@ -388,7 +390,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const responseHashAlgorithm = prefetched.responseHashAlgorithm}
+					{@const responseHashAlgorithm = pendingEntity.responseHashAlgorithm}
 					{#if responseHashAlgorithm !== undefined && responseHashAlgorithm !== null}
 						<div>
 							<dt>Response hash algorithm</dt>
@@ -423,7 +425,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const responseHash = prefetched.responseHash}
+					{@const responseHash = pendingEntity.responseHash}
 					{#if responseHash !== undefined && responseHash !== null}
 						<div>
 							<dt>Response hash</dt>
@@ -460,7 +462,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tag = prefetched.tag}
+					{@const tag = pendingEntity.tag}
 					{#if tag !== undefined && tag !== null}
 						<div>
 							<dt>Tag</dt>
@@ -495,7 +497,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastUpdate = prefetched.lastUpdate}
+					{@const lastUpdate = pendingEntity.lastUpdate}
 					{#if lastUpdate !== undefined && lastUpdate !== null}
 						<div>
 							<dt>Last update</dt>
@@ -530,7 +532,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -565,7 +567,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>Transaction hash</dt>

@@ -9,8 +9,10 @@ export enum HyperliquidMarket_TimeInterval_TimestampSelector {
 }
 export const HyperliquidMarket_TimeInterval_Timestamp = entity({
 	entityType: EntityType.HyperliquidMarket_TimeInterval_Timestamp,
-	label: 'hyperliquid market time interval timestamp',
-	labelPlural: 'hyperliquid market time interval observations',
+	labels: {
+		singular: 'hyperliquid market time interval timestamp',
+		plural: 'hyperliquid market time interval observations',
+	},
 })({
 	$network: {
 		label: 'network',

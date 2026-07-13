@@ -9,8 +9,10 @@ export enum IssuerActionSelector {
 }
 export const IssuerAction = entity({
 	entityType: EntityType.IssuerAction,
-	label: 'issuer action',
-	labelPlural: 'issuer actions',
+	labels: {
+		singular: 'issuer action',
+		plural: 'issuer actions',
+	},
 })({
 	issuerActionId: {
 		label: 'issuer action ID',

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerIndex = selection.entitySelector.ledgerIndex ?? prefetched.ledgerIndex}
+							{@const ledgerIndex = pendingEntity.ledgerIndex}
 							{#if ledgerIndex !== undefined && ledgerIndex !== null}
 								{String((ledgerIndex) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceDrops = prefetched.balanceDrops}
+					{@const balanceDrops = pendingEntity.balanceDrops}
 					{#if balanceDrops !== undefined && balanceDrops !== null}
 						<div>
 							<dt>balance drops</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownerCount = prefetched.ownerCount}
+					{@const ownerCount = pendingEntity.ownerCount}
 					{#if ownerCount !== undefined && ownerCount !== null}
 						<div>
 							<dt>owner count</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequence = prefetched.sequence}
+					{@const sequence = pendingEntity.sequence}
 					{#if sequence !== undefined && sequence !== null}
 						<div>
 							<dt>sequence</dt>

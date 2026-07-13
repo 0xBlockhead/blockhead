@@ -9,8 +9,10 @@ export enum HederaTopic_TimestampSelector {
 }
 export const HederaTopic_Timestamp = entity({
 	entityType: EntityType.HederaTopic_Timestamp,
-	label: 'hedera topic timestamp',
-	labelPlural: 'hedera topic observations',
+	labels: {
+		singular: 'hedera topic timestamp',
+		plural: 'hedera topic observations',
+	},
 })({
 	$topic: {
 		label: 'topic',

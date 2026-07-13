@@ -110,7 +110,7 @@
 					<GlobalSwarmAccessView
 						selection={select(EntityType._GlobalSwarmAccess, globalSwarmAccess[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalSwarmAccessFields}
-						href={resolve('/(explore)/(swarm)/swarm/access')}
+						href={resolve('/swarm/access')}
 						layout={EntityLayout.Title}
 						open={false}
 					/>

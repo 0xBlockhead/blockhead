@@ -10,8 +10,10 @@ export enum Eip8004AgentRegistrationSelector {
 }
 export const Eip8004AgentRegistration = entity({
 	entityType: EntityType.Eip8004AgentRegistration,
-	label: 'EIP-8004 agent registration',
-	labelPlural: 'EIP-8004 agent registrations',
+	labels: {
+		singular: 'EIP-8004 agent registration',
+		plural: 'EIP-8004 agent registrations',
+	},
 })({
 	namespace: {
 		label: 'Namespace',

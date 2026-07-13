@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const internalIndex = selection.entitySelector.internalIndex ?? prefetched.internalIndex}
+							{@const internalIndex = pendingEntity.internalIndex}
 							{#if internalIndex !== undefined && internalIndex !== null}
 								{String((internalIndex) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operationKind = prefetched.operationKind}
+							{@const operationKind = pendingEntity.operationKind}
 							{#if operationKind !== undefined && operationKind !== null}
 								{String((operationKind) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceAddress = prefetched.sourceAddress}
+					{@const sourceAddress = pendingEntity.sourceAddress}
 					{#if sourceAddress !== undefined && sourceAddress !== null}
 						<div>
 							<dt>source address</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const destinationAddress = prefetched.destinationAddress}
+					{@const destinationAddress = pendingEntity.destinationAddress}
 					{#if destinationAddress !== undefined && destinationAddress !== null}
 						<div>
 							<dt>destination address</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountMutez = prefetched.amountMutez}
+					{@const amountMutez = pendingEntity.amountMutez}
 					{#if amountMutez !== undefined && amountMutez !== null}
 						<div>
 							<dt>amount mutez</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nonce = prefetched.nonce}
+					{@const nonce = pendingEntity.nonce}
 					{#if nonce !== undefined && nonce !== null}
 						<div>
 							<dt>nonce</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resultStatus = prefetched.resultStatus}
+					{@const resultStatus = pendingEntity.resultStatus}
 					{#if resultStatus !== undefined && resultStatus !== null}
 						<div>
 							<dt>result status</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consumedGas = prefetched.consumedGas}
+					{@const consumedGas = pendingEntity.consumedGas}
 					{#if consumedGas !== undefined && consumedGas !== null}
 						<div>
 							<dt>consumed gas</dt>

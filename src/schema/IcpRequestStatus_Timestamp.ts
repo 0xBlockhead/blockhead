@@ -9,8 +9,10 @@ export enum IcpRequestStatus_TimestampSelector {
 }
 export const IcpRequestStatus_Timestamp = entity({
 	entityType: EntityType.IcpRequestStatus_Timestamp,
-	label: 'icp request status timestamp',
-	labelPlural: 'icp request status observations',
+	labels: {
+		singular: 'icp request status timestamp',
+		plural: 'icp request status observations',
+	},
 })({
 	$requestStatus: {
 		label: 'request status',

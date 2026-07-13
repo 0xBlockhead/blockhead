@@ -9,8 +9,10 @@ export enum AvalancheDelegatorSelector {
 }
 export const AvalancheDelegator = entity({
 	entityType: EntityType.AvalancheDelegator,
-	label: 'avalanche delegator',
-	labelPlural: 'avalanche delegators',
+	labels: {
+		singular: 'avalanche delegator',
+		plural: 'avalanche delegators',
+	},
 })({
 	$validator: {
 		label: 'validator',

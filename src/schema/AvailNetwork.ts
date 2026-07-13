@@ -9,8 +9,10 @@ export enum AvailNetworkSelector {
 }
 export const AvailNetwork = entity({
 	entityType: EntityType.AvailNetwork,
-	label: 'avail network',
-	labelPlural: 'avail networks',
+	labels: {
+		singular: 'avail network',
+		plural: 'avail networks',
+	},
 })({
 	$network: {
 		label: 'network',

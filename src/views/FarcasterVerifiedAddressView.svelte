@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -44,7 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterVerifiedAddress = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address')
+	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address')
 	const viewDomId = $derived('farcaster-verified-address-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -63,7 +62,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.fid !== undefined && pendingEntity.protocol !== undefined && pendingEntity.address !== undefined ? resolve('/(social)/(farcaster)/farcaster/user/[userId=farcasterFid]/(user)/verified-address/[protocol]/[address]', {
+		href ?? (pendingEntity.fid !== undefined && pendingEntity.protocol !== undefined && pendingEntity.address !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]/verified-address/[protocol=stringSegment]/[address=stringSegment]', {
 			userId: String(pendingEntity.fid ?? ''),
 			protocol: String(pendingEntity.protocol ?? ''),
 			address: String(pendingEntity.address ?? ''),
@@ -76,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterVerifiedAddress}>
 			{#snippet Pending()}
-				{@const address0 = selection.entitySelector.address ?? prefetched.address}
+				{@const address0 = pendingEntity.address}
 				{#if address0 !== undefined && address0 !== null}
 					<TruncatedValue value={String((address0) ?? '')} />
 				{/if}
@@ -95,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterVerifiedAddress}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.protocol ?? prefetched.protocol) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster verified address'}
+				{[String((pendingEntity.protocol) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster verified address'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -114,7 +113,7 @@
 						resource={selection.$user}
 					>
 						{#snippet children(farcasterUser)}
-							{#if farcasterUser[EntityMetaKey.Selector] != null}
+							{#if farcasterUser != null && farcasterUser[EntityMetaKey.Selector] != null}
 								<FarcasterUserView
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
@@ -142,7 +141,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocol = selection.entitySelector.protocol ?? prefetched.protocol}
+							{@const protocol = pendingEntity.protocol}
 							{#if protocol !== undefined && protocol !== null}
 								{String((protocol) ?? '')}
 							{/if}
@@ -174,7 +173,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -196,6 +195,8 @@
 			<ResourceBoundary
 				resource={selection.$evmAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -205,7 +206,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -223,6 +224,8 @@
 			<ResourceBoundary
 				resource={selection.$solanaAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -232,9 +235,9 @@
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
 									href={
-										(solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2.reference !== undefined && solanaAccount[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/account/[pubkey]', {
-											networkSlug: String(networkByCaip2[String(String(solanaAccount[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(solanaAccount[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
-											pubkey: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+										(solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined && solanaAccount[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
+											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

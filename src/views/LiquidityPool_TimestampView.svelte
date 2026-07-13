@@ -55,7 +55,7 @@
 			liquidityUsd: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.baseTokenSymbol) ?? ''), String((prefetched.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')
+	const titleFallback = $derived([String((pendingEntity.baseTokenSymbol) ?? ''), String((pendingEntity.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')
 	const viewDomId = $derived('liquidity-pool-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -81,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={liquidityPoolTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.baseTokenSymbol) ?? ''), String((prefetched.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
+				{[String((pendingEntity.baseTokenSymbol) ?? ''), String((pendingEntity.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={liquidityPoolTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.priceUsd) ?? ''), String((prefetched.liquidityUsd) ?? '')].filter(Boolean).join(' ') || [String((prefetched.baseTokenSymbol) ?? ''), String((prefetched.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
+				{[String((pendingEntity.priceUsd) ?? ''), String((pendingEntity.liquidityUsd) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.baseTokenSymbol) ?? ''), String((pendingEntity.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={liquidityPoolTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -135,9 +135,9 @@
 					<LiquidityPoolView
 						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool, {})}
 						href={
-							(selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined && selection.entitySelector.$liquidityPool.id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
+							(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
+								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -159,7 +159,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -189,7 +189,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const feedKey = selection.entitySelector.feedKey ?? prefetched.feedKey}
+							{@const feedKey = pendingEntity.feedKey}
 							{#if feedKey !== undefined && feedKey !== null}
 								{String((feedKey) ?? '')}
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transport = prefetched.transport}
+					{@const transport = pendingEntity.transport}
 					{#if transport !== undefined && transport !== null}
 						<div>
 							<dt>Transport</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseTokenSymbol = prefetched.baseTokenSymbol}
+					{@const baseTokenSymbol = pendingEntity.baseTokenSymbol}
 					{#if baseTokenSymbol !== undefined && baseTokenSymbol !== null}
 						<div>
 							<dt>Base token symbol</dt>
@@ -297,7 +297,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quoteTokenSymbol = prefetched.quoteTokenSymbol}
+					{@const quoteTokenSymbol = pendingEntity.quoteTokenSymbol}
 					{#if quoteTokenSymbol !== undefined && quoteTokenSymbol !== null}
 						<div>
 							<dt>Quote token symbol</dt>
@@ -332,7 +332,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseTokenDecimals = prefetched.baseTokenDecimals}
+					{@const baseTokenDecimals = pendingEntity.baseTokenDecimals}
 					{#if baseTokenDecimals !== undefined && baseTokenDecimals !== null}
 						<div>
 							<dt>Base token decimals</dt>
@@ -367,7 +367,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quoteTokenDecimals = prefetched.quoteTokenDecimals}
+					{@const quoteTokenDecimals = pendingEntity.quoteTokenDecimals}
 					{#if quoteTokenDecimals !== undefined && quoteTokenDecimals !== null}
 						<div>
 							<dt>Quote token decimals</dt>
@@ -405,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pairCreatedAtMs = prefetched.pairCreatedAtMs}
+					{@const pairCreatedAtMs = pendingEntity.pairCreatedAtMs}
 					{#if pairCreatedAtMs !== undefined && pairCreatedAtMs !== null}
 						<div>
 							<dt>Pair created</dt>
@@ -443,7 +443,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dexId = prefetched.dexId}
+					{@const dexId = pendingEntity.dexId}
 					{#if dexId !== undefined && dexId !== null}
 						<div>
 							<dt>DEX</dt>
@@ -481,7 +481,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dexscreenerPairUrl = prefetched.dexscreenerPairUrl}
+					{@const dexscreenerPairUrl = pendingEntity.dexscreenerPairUrl}
 					{#if dexscreenerPairUrl !== undefined && dexscreenerPairUrl !== null}
 						<div>
 							<dt>Dexscreener</dt>
@@ -535,7 +535,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const priceUsd = prefetched.priceUsd}
+					{@const priceUsd = pendingEntity.priceUsd}
 					{#if priceUsd !== undefined && priceUsd !== null}
 						<div>
 							<dt>Price USD</dt>
@@ -573,7 +573,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const priceNative = prefetched.priceNative}
+					{@const priceNative = pendingEntity.priceNative}
 					{#if priceNative !== undefined && priceNative !== null}
 						<div>
 							<dt>Price native</dt>
@@ -611,7 +611,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const liquidityUsd = prefetched.liquidityUsd}
+					{@const liquidityUsd = pendingEntity.liquidityUsd}
 					{#if liquidityUsd !== undefined && liquidityUsd !== null}
 						<div>
 							<dt>Liquidity USD</dt>
@@ -649,7 +649,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const volumeUsd24h = prefetched.volumeUsd24h}
+					{@const volumeUsd24h = pendingEntity.volumeUsd24h}
 					{#if volumeUsd24h !== undefined && volumeUsd24h !== null}
 						<div>
 							<dt>Volume USD 24h</dt>
@@ -687,7 +687,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const priceChangePercent24h = prefetched.priceChangePercent24h}
+					{@const priceChangePercent24h = pendingEntity.priceChangePercent24h}
 					{#if priceChangePercent24h !== undefined && priceChangePercent24h !== null}
 						<div>
 							<dt>Price change 24h</dt>
@@ -725,7 +725,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionBuys24h = prefetched.transactionBuys24h}
+					{@const transactionBuys24h = pendingEntity.transactionBuys24h}
 					{#if transactionBuys24h !== undefined && transactionBuys24h !== null}
 						<div>
 							<dt>Buys 24h</dt>
@@ -763,7 +763,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionSells24h = prefetched.transactionSells24h}
+					{@const transactionSells24h = pendingEntity.transactionSells24h}
 					{#if transactionSells24h !== undefined && transactionSells24h !== null}
 						<div>
 							<dt>Sells 24h</dt>
@@ -801,7 +801,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const marketCapUsd = prefetched.marketCapUsd}
+					{@const marketCapUsd = pendingEntity.marketCapUsd}
 					{#if marketCapUsd !== undefined && marketCapUsd !== null}
 						<div>
 							<dt>Market cap USD</dt>
@@ -839,7 +839,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fdvUsd = prefetched.fdvUsd}
+					{@const fdvUsd = pendingEntity.fdvUsd}
 					{#if fdvUsd !== undefined && fdvUsd !== null}
 						<div>
 							<dt>FDV USD</dt>
@@ -882,7 +882,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const dexscreenerLabels = prefetched.dexscreenerLabels}
+							{@const dexscreenerLabels = pendingEntity.dexscreenerLabels}
 							{#if dexscreenerLabels !== undefined && dexscreenerLabels !== null}
 								{dexscreenerLabels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -912,14 +912,14 @@
 						}
 					>
 						{#snippet children(liquidityPool)}
-							{#if liquidityPool[EntityMetaKey.Selector] != null}
+							{#if liquidityPool != null && liquidityPool[EntityMetaKey.Selector] != null}
 								<LiquidityPoolView
 									selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
 									prefetched={liquidityPool}
 									href={
-										(liquidityPool[EntityMetaKey.Selector].$network !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2 !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2.reference !== undefined && liquidityPool[EntityMetaKey.Selector].id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-											chainId: String(liquidityPool[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+										(liquidityPool[EntityMetaKey.Selector].id !== undefined && liquidityPool[EntityMetaKey.Selector].$network !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2 !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 											poolId: String(liquidityPool[EntityMetaKey.Selector].id ?? ''),
+											chainId: String(liquidityPool[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

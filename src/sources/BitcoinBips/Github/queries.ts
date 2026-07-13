@@ -18,7 +18,7 @@ export const getContents = (): Promise<BitcoinBipsGithubContents> => (
 	getGithubContents({
 		endpoints: bitcoinBipsBindings[0].endpoints,
 		target: bitcoinBipsGithubRepo,
-	}) as Promise<BitcoinBipsGithubContents>
+	})
 )
 
 export const getProposalMediaWikiText = ({ number }: { number: number }) => (

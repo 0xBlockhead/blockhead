@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,12 +24,16 @@
 
 <Page>
 	<MarketsView
-		href={resolve('/(assets)/markets')}
+		href={resolve('/markets')}
 		title='Markets'
 		selection={
 			select(EntityType._Global, {
 				scope: '$$markets',
-			}).$$markets
+			}).$$markets({
+				sources: [
+					Source.Constants_Internal,
+				],
+			})
 		}
 		id='markets'
 	/>

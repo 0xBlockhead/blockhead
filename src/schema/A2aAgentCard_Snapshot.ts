@@ -11,8 +11,10 @@ export enum A2aAgentCard_SnapshotSelector {
 }
 export const A2aAgentCard_Snapshot = entity({
 	entityType: EntityType.A2aAgentCard_Snapshot,
-	label: 'a2a agent card snapshot',
-	labelPlural: 'a2a agent card snapshots',
+	labels: {
+		singular: 'a2a agent card snapshot',
+		plural: 'a2a agent card snapshots',
+	},
 })({
 	$card: {
 		label: 'card',

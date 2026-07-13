@@ -9,8 +9,10 @@ export enum BlockheadZcashViewingKey_TimestampSelector {
 }
 export const BlockheadZcashViewingKey_Timestamp = entity({
 	entityType: EntityType.BlockheadZcashViewingKey_Timestamp,
-	label: 'blockhead zcash viewing key timestamp',
-	labelPlural: 'blockhead zcash viewing key observations',
+	labels: {
+		singular: 'blockhead zcash viewing key timestamp',
+		plural: 'blockhead zcash viewing key observations',
+	},
 })({
 	$viewingKey: {
 		label: 'viewing key',

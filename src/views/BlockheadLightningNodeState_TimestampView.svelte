@@ -54,7 +54,7 @@
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state timestamp')
 	const viewDomId = $derived('blockhead-lightning-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.syncedToChain) ?? ''), String((prefetched.syncedToGraph) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Lightning node state timestamp'}
+				{[String((pendingEntity.syncedToChain) ?? ''), String((pendingEntity.syncedToGraph) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Lightning node state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const blockHeight0 = prefetched.blockHeight}
+				{@const blockHeight0 = pendingEntity.blockHeight}
 				{#if blockHeight0 !== undefined && blockHeight0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(blockHeight0)} />
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const syncedToChain = prefetched.syncedToChain}
+					{@const syncedToChain = pendingEntity.syncedToChain}
 					{#if syncedToChain !== undefined && syncedToChain !== null}
 						<div>
 							<dt>synced to chain</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const syncedToGraph = prefetched.syncedToGraph}
+					{@const syncedToGraph = pendingEntity.syncedToGraph}
 					{#if syncedToGraph !== undefined && syncedToGraph !== null}
 						<div>
 							<dt>synced to graph</dt>
@@ -286,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>block height</dt>
@@ -321,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bestHeaderTimestampMs = prefetched.bestHeaderTimestampMs}
+					{@const bestHeaderTimestampMs = pendingEntity.bestHeaderTimestampMs}
 					{#if bestHeaderTimestampMs !== undefined && bestHeaderTimestampMs !== null}
 						<div>
 							<dt>best header timestamp ms</dt>
@@ -358,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const walletBalanceSats = prefetched.walletBalanceSats}
+					{@const walletBalanceSats = pendingEntity.walletBalanceSats}
 					{#if walletBalanceSats !== undefined && walletBalanceSats !== null}
 						<div>
 							<dt>wallet balance sats</dt>
@@ -393,7 +393,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const channelBalanceSats = prefetched.channelBalanceSats}
+					{@const channelBalanceSats = pendingEntity.channelBalanceSats}
 					{#if channelBalanceSats !== undefined && channelBalanceSats !== null}
 						<div>
 							<dt>channel balance sats</dt>
@@ -428,7 +428,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingChannelBalanceSats = prefetched.pendingChannelBalanceSats}
+					{@const pendingChannelBalanceSats = pendingEntity.pendingChannelBalanceSats}
 					{#if pendingChannelBalanceSats !== undefined && pendingChannelBalanceSats !== null}
 						<div>
 							<dt>pending channel balance sats</dt>
@@ -465,7 +465,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>peer count</dt>
@@ -500,7 +500,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activeChannelCount = prefetched.activeChannelCount}
+					{@const activeChannelCount = pendingEntity.activeChannelCount}
 					{#if activeChannelCount !== undefined && activeChannelCount !== null}
 						<div>
 							<dt>active channel count</dt>
@@ -535,7 +535,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inactiveChannelCount = prefetched.inactiveChannelCount}
+					{@const inactiveChannelCount = pendingEntity.inactiveChannelCount}
 					{#if inactiveChannelCount !== undefined && inactiveChannelCount !== null}
 						<div>
 							<dt>inactive channel count</dt>
@@ -570,7 +570,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingChannelCount = prefetched.pendingChannelCount}
+					{@const pendingChannelCount = pendingEntity.pendingChannelCount}
 					{#if pendingChannelCount !== undefined && pendingChannelCount !== null}
 						<div>
 							<dt>pending channel count</dt>

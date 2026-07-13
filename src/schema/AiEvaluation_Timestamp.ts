@@ -10,8 +10,10 @@ export enum AiEvaluation_TimestampSelector {
 }
 export const AiEvaluation_Timestamp = entity({
 	entityType: EntityType.AiEvaluation_Timestamp,
-	label: 'AI evaluation timestamp',
-	labelPlural: 'AI evaluation observations',
+	labels: {
+		singular: 'AI evaluation timestamp',
+		plural: 'AI evaluation observations',
+	},
 })({
 	subjectKind: {
 		label: 'subject kind',

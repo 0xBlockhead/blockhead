@@ -9,8 +9,10 @@ export enum BlockheadSharedAddressSelector {
 }
 export const BlockheadSharedAddress = entity({
 	entityType: EntityType.BlockheadSharedAddress,
-	label: 'blockhead shared address',
-	labelPlural: 'blockhead shared addresses',
+	labels: {
+		singular: 'blockhead shared address',
+		plural: 'blockhead shared addresses',
+	},
 })({
 	id: {
 		label: 'ID',

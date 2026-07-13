@@ -48,7 +48,7 @@
 			sender: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || 'algorand transaction')
+	const titleFallback = $derived([String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'algorand transaction')
 	const viewDomId = $derived('algorand-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={algorandTransaction}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || title || 'algorand transaction'}
+				{[String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || 'algorand transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={algorandTransaction}>
 			{#snippet Pending()}
-				{[String((prefetched.transactionType) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || title || 'algorand transaction'}
+				{[String((pendingEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || 'algorand transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,7 +99,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={algorandTransaction}>
 			{#snippet Pending()}
-				{@const sender0 = prefetched.sender}
+				{@const sender0 = pendingEntity.sender}
 				{#if sender0 !== undefined && sender0 !== null}
 					<span data-text="muted">
 						{String((sender0) ?? '')}
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const txId = selection.entitySelector.txId ?? prefetched.txId}
+							{@const txId = pendingEntity.txId}
 							{#if txId !== undefined && txId !== null}
 								{String((txId) ?? '')}
 							{/if}
@@ -172,7 +172,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const round = prefetched.round}
+					{@const round = pendingEntity.round}
 					{#if round !== undefined && round !== null}
 						<div>
 							<dt>round</dt>
@@ -210,7 +210,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sender = prefetched.sender}
+							{@const sender = pendingEntity.sender}
 							{#if sender !== undefined && sender !== null}
 								{String((sender) ?? '')}
 							{/if}
@@ -240,7 +240,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionType = prefetched.transactionType}
+							{@const transactionType = pendingEntity.transactionType}
 							{#if transactionType !== undefined && transactionType !== null}
 								{String((transactionType) ?? '')}
 							{/if}
@@ -269,7 +269,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fee = prefetched.fee}
+					{@const fee = pendingEntity.fee}
 					{#if fee !== undefined && fee !== null}
 						<div>
 							<dt>fee</dt>
@@ -304,7 +304,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const group = prefetched.group}
+					{@const group = pendingEntity.group}
 					{#if group !== undefined && group !== null}
 						<div>
 							<dt>group</dt>
@@ -332,6 +332,8 @@
 			<ResourceBoundary
 				resource={selection.$group}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(algorandTransactionGroup)}
 					{#if algorandTransactionGroup != null && algorandTransactionGroup[EntityMetaKey.Selector] != null}
 						<div>
@@ -359,7 +361,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const parentTransactionId = prefetched.parentTransactionId}
+					{@const parentTransactionId = pendingEntity.parentTransactionId}
 					{#if parentTransactionId !== undefined && parentTransactionId !== null}
 						<div>
 							<dt>parent transaction ID</dt>
@@ -394,7 +396,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const innerTransactionIndex = prefetched.innerTransactionIndex}
+					{@const innerTransactionIndex = pendingEntity.innerTransactionIndex}
 					{#if innerTransactionIndex !== undefined && innerTransactionIndex !== null}
 						<div>
 							<dt>inner transaction index</dt>
@@ -434,7 +436,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const logs = prefetched.logs}
+							{@const logs = pendingEntity.logs}
 							{#if logs !== undefined && logs !== null}
 								{logs.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

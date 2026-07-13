@@ -120,8 +120,8 @@
 						selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lightningChannelFields}
 						href={
-							(lightningChannelHrefFields.$network !== undefined && lightningChannelHrefFields.$network.slug !== undefined && lightningChannelHrefFields.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-								networkSlug: String(lightningChannelHrefFields.$network.slug ?? ''),
+							(lightningChannelHrefFields.$network !== undefined && lightningChannelHrefFields.$network.slug !== undefined && lightningChannelHrefFields.channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+								network: String(lightningChannelHrefFields.$network.slug ?? ''),
 								channelId: String(lightningChannelHrefFields.channelId ?? ''),
 							}) : undefined)
 						}

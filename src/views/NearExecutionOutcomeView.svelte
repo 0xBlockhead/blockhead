@@ -51,7 +51,7 @@
 			gasBurnt: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.outcomeId ?? prefetched.outcomeId) ?? '')].filter(Boolean).join(' ') || 'near execution outcome')
+	const titleFallback = $derived([String((pendingEntity.outcomeId) ?? '')].filter(Boolean).join(' ') || 'near execution outcome')
 	const viewDomId = $derived('near-execution-outcome-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearExecutionOutcome}>
 			{#snippet Pending()}
-				{@const outcomeId0 = selection.entitySelector.outcomeId ?? prefetched.outcomeId}
+				{@const outcomeId0 = pendingEntity.outcomeId}
 				{#if outcomeId0 !== undefined && outcomeId0 !== null}
 					<TruncatedValue value={String((outcomeId0) ?? '')} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearExecutionOutcome}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.outcomeId ?? prefetched.outcomeId) ?? '')].filter(Boolean).join(' ') || title || 'near execution outcome'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.outcomeId) ?? '')].filter(Boolean).join(' ') || title || 'near execution outcome'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearExecutionOutcome}>
 			{#snippet Pending()}
-				{@const gasBurnt0 = prefetched.gasBurnt}
+				{@const gasBurnt0 = pendingEntity.gasBurnt}
 				{#if gasBurnt0 !== undefined && gasBurnt0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(gasBurnt0)} />
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const outcomeId = selection.entitySelector.outcomeId ?? prefetched.outcomeId}
+							{@const outcomeId = pendingEntity.outcomeId}
 							{#if outcomeId !== undefined && outcomeId !== null}
 								<TruncatedValue value={String((outcomeId) ?? '')} />
 							{/if}
@@ -185,7 +185,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>
@@ -223,7 +223,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasBurnt = prefetched.gasBurnt}
+					{@const gasBurnt = pendingEntity.gasBurnt}
 					{#if gasBurnt !== undefined && gasBurnt !== null}
 						<div>
 							<dt>Gas burnt</dt>

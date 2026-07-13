@@ -47,9 +47,16 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TonNetworkView from '$/views/TonNetworkView.svelte'
+	import TonTransactionsView from '$/views/TonTransactionsView.svelte'
+	import TonMessagesView from '$/views/TonMessagesView.svelte'
+	import TonNftItemsView from '$/views/TonNftItemsView.svelte'
+	import TonJettonBalance_TimestampsView from '$/views/TonJettonBalance_TimestampsView.svelte'
+	import TonAccount_TimestampsView from '$/views/TonAccount_TimestampsView.svelte'
 </script>
 
 
@@ -102,7 +109,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -129,7 +136,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const workchain = prefetched.workchain}
+					{@const workchain = pendingEntity.workchain}
 					{#if workchain !== undefined && workchain !== null}
 						<div>
 							<dt>workchain</dt>
@@ -164,7 +171,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const addressHash = prefetched.addressHash}
+					{@const addressHash = pendingEntity.addressHash}
 					{#if addressHash !== undefined && addressHash !== null}
 						<div>
 							<dt>address hash</dt>
@@ -189,5 +196,126 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ton-account-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ton-account-transactions',
+							label: 'Transactions',
+						},
+						{
+							id: 'ton-account-messages',
+							label: 'Messages',
+						},
+						{
+							id: 'ton-account-nft-items',
+							label: 'Nft Items',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTonAccountTransactions({ id, label, open })}
+					<TonTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTonAccountMessages({ id, label, open })}
+					<TonMessagesView
+						selection={selection.$$messages}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No messages.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTonAccountNftItems({ id, label, open })}
+					<TonNftItemsView
+						selection={selection.$$nftItems}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No nft items.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ton-account-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ton-account-jetton-balance-timestamps',
+							label: 'Jetton Balance Timestamps',
+						},
+						{
+							id: 'ton-account-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTonAccountJettonBalanceTimestamps({ id, label, open })}
+					<TonJettonBalance_TimestampsView
+						selection={selection.$$jettonBalanceTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No jetton balance timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTonAccountTimestamps({ id, label, open })}
+					<TonAccount_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

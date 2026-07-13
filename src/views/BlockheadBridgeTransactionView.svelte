@@ -48,7 +48,7 @@
 			Source.Local_Internal,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.createdAt ?? prefetched.createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction')
+	const titleFallback = $derived([String((pendingEntity.createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction')
 	const viewDomId = $derived('blockhead-bridge-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadBridgeTransaction}>
 			{#snippet Pending()}
-				{@const createdAt0 = selection.entitySelector.createdAt ?? prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<Timestamp timestamp={Number(createdAt0)} />
 				{/if}
@@ -97,8 +97,8 @@
 				<EvmTransactionView
 					selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
 					href={
-						(selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined && selection.entitySelector.$sourceTx.$network.caip2.namespace !== undefined && selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined && selection.entitySelector.$sourceTx.$network.caip2.reference !== undefined && selection.entitySelector.$sourceTx.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-							caip2: `${String(selection.entitySelector.$sourceTx.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$sourceTx.$network.caip2.reference ?? '')}`,
+						(selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.slug !== undefined && selection.entitySelector.$sourceTx.txHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+							network: String(selection.entitySelector.$sourceTx.$network.slug ?? ''),
 							transactionId: String(selection.entitySelector.$sourceTx.txHash ?? ''),
 						}) : undefined)
 					}
@@ -112,8 +112,8 @@
 				<EvmTransactionView
 					selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
 					href={
-						(selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined && selection.entitySelector.$sourceTx.$network.caip2.namespace !== undefined && selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined && selection.entitySelector.$sourceTx.$network.caip2.reference !== undefined && selection.entitySelector.$sourceTx.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-							caip2: `${String(selection.entitySelector.$sourceTx.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$sourceTx.$network.caip2.reference ?? '')}`,
+						(selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.slug !== undefined && selection.entitySelector.$sourceTx.txHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+							network: String(selection.entitySelector.$sourceTx.$network.slug ?? ''),
 							transactionId: String(selection.entitySelector.$sourceTx.txHash ?? ''),
 						}) : undefined)
 					}
@@ -131,7 +131,7 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
 						href={
-							(selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+							(selection.entitySelector.$account.address !== undefined ? resolve('/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$account.address ?? ''),
 							}) : undefined)
 						}
@@ -147,7 +147,7 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
 						href={
-							(selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+							(selection.entitySelector.$account.address !== undefined ? resolve('/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$account.address ?? ''),
 							}) : undefined)
 						}
@@ -167,7 +167,7 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$account, {})}
 						href={
-							(selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+							(selection.entitySelector.$account.address !== undefined ? resolve('/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$account.address ?? ''),
 							}) : undefined)
 						}
@@ -183,8 +183,8 @@
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx, {})}
 						href={
-							(selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined && selection.entitySelector.$sourceTx.$network.caip2.namespace !== undefined && selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined && selection.entitySelector.$sourceTx.$network.caip2.reference !== undefined && selection.entitySelector.$sourceTx.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${String(selection.entitySelector.$sourceTx.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$sourceTx.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.slug !== undefined && selection.entitySelector.$sourceTx.txHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								network: String(selection.entitySelector.$sourceTx.$network.slug ?? ''),
 								transactionId: String(selection.entitySelector.$sourceTx.txHash ?? ''),
 							}) : undefined)
 						}
@@ -207,7 +207,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = selection.entitySelector.createdAt ?? prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}
@@ -229,6 +229,8 @@
 			<ResourceBoundary
 				resource={selection.$bridgeTransfer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(bridgeTransfer)}
 					{#if bridgeTransfer != null && bridgeTransfer[EntityMetaKey.Selector] != null}
 						<div>

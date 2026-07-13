@@ -51,7 +51,7 @@
 			balance: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain wallet key state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain wallet key state timestamp')
 	const viewDomId = $derived('blockhead-logos-blockchain-wallet-key-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyStateTimestamp}>
 			{#snippet Pending()}
-				{@const balance0 = prefetched.balance}
+				{@const balance0 = pendingEntity.balance}
 				{#if balance0 !== undefined && balance0 !== null}
 					<NumberValue value={Number(balance0)} />
 				{/if}
@@ -115,7 +115,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyStateTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -191,7 +191,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -218,7 +218,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tip = prefetched.tip}
+					{@const tip = pendingEntity.tip}
 					{#if tip !== undefined && tip !== null}
 						<div>
 							<dt>tip</dt>
@@ -255,7 +255,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>balance</dt>
@@ -290,7 +290,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const address = prefetched.address}
+					{@const address = pendingEntity.address}
 					{#if address !== undefined && address !== null}
 						<div>
 							<dt>Address</dt>

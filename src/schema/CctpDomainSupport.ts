@@ -9,8 +9,10 @@ export enum CctpDomainSupportSelector {
 }
 export const CctpDomainSupport = entity({
 	entityType: EntityType.CctpDomainSupport,
-	label: 'CCTP domain support',
-	labelPlural: 'CCTP domain supports',
+	labels: {
+		singular: 'CCTP domain support',
+		plural: 'CCTP domain supports',
+	},
 })({
 	cctpVersion: {
 		label: 'CCTP version',

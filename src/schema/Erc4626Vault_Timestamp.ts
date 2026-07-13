@@ -10,8 +10,10 @@ export enum Erc4626Vault_TimestampSelector {
 }
 export const Erc4626Vault_Timestamp = entity({
 	entityType: EntityType.Erc4626Vault_Timestamp,
-	label: 'erc4626 vault timestamp',
-	labelPlural: 'erc4626 vault observations',
+	labels: {
+		singular: 'erc4626 vault timestamp',
+		plural: 'erc4626 vault observations',
+	},
 })({
 	$vault: {
 		label: 'Vault',

@@ -116,7 +116,7 @@
 					<EvmCalldataView
 						selection={select(EntityType.EvmCalldata, evmCalldata[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmCalldataFields}
-						href={resolve('/(explore)/(evm)/evm/(calldata)/calldata')}
+						href={resolve('/evm/calldata')}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

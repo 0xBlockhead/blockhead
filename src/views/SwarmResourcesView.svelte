@@ -120,7 +120,7 @@
 						selection={select(EntityType.SwarmResource, swarmResource[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={swarmResourceFields}
 						href={
-							(swarmResourceHrefFields.reference !== undefined ? resolve('/(explore)/(swarm)/swarm/[reference]', {
+							(swarmResourceHrefFields.reference !== undefined ? resolve('/swarm/[reference=stringSegment]', {
 								reference: String(swarmResourceHrefFields.reference ?? ''),
 							}) : undefined)
 						}

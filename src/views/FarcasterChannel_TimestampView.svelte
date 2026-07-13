@@ -67,9 +67,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$channel !== undefined && pendingEntity.$channel.id !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(farcaster)/farcaster/channel/[channelId]/(channel)/observations/[timestampMs=nonNegativeInteger]', {
-			channelId: String(pendingEntity.$channel.id ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$channel !== undefined && pendingEntity.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			channelId: String(pendingEntity.$channel.id ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterChannelTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -173,7 +173,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followerCount = prefetched.followerCount}
+					{@const followerCount = pendingEntity.followerCount}
 					{#if followerCount !== undefined && followerCount !== null}
 						<div>
 							<dt>Followers</dt>
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memberCount = prefetched.memberCount}
+					{@const memberCount = pendingEntity.memberCount}
 					{#if memberCount !== undefined && memberCount !== null}
 						<div>
 							<dt>Members</dt>

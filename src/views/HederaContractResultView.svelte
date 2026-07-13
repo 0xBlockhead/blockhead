@@ -93,6 +93,8 @@
 			<ResourceBoundary
 				resource={selection.$contract}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaContract)}
 					{#if hederaContract != null && hederaContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -120,7 +122,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractId = prefetched.contractId}
+					{@const contractId = pendingEntity.contractId}
 					{#if contractId !== undefined && contractId !== null}
 						<div>
 							<dt>contract ID</dt>
@@ -155,7 +157,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evmAddress = prefetched.evmAddress}
+					{@const evmAddress = pendingEntity.evmAddress}
 					{#if evmAddress !== undefined && evmAddress !== null}
 						<div>
 							<dt>EVM address</dt>
@@ -190,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ethereumHash = prefetched.ethereumHash}
+					{@const ethereumHash = pendingEntity.ethereumHash}
 					{#if ethereumHash !== undefined && ethereumHash !== null}
 						<div>
 							<dt>ethereum hash</dt>
@@ -225,7 +227,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const functionParameters = prefetched.functionParameters}
+					{@const functionParameters = pendingEntity.functionParameters}
 					{#if functionParameters !== undefined && functionParameters !== null}
 						<div>
 							<dt>function parameters</dt>
@@ -260,7 +262,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasLimit = prefetched.gasLimit}
+					{@const gasLimit = pendingEntity.gasLimit}
 					{#if gasLimit !== undefined && gasLimit !== null}
 						<div>
 							<dt>gas limit</dt>
@@ -295,7 +297,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>gas used</dt>
@@ -330,7 +332,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountTinybar = prefetched.amountTinybar}
+					{@const amountTinybar = pendingEntity.amountTinybar}
 					{#if amountTinybar !== undefined && amountTinybar !== null}
 						<div>
 							<dt>amount tinybar</dt>
@@ -365,7 +367,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -400,7 +402,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const errorMessage = prefetched.errorMessage}
+					{@const errorMessage = pendingEntity.errorMessage}
 					{#if errorMessage !== undefined && errorMessage !== null}
 						<div>
 							<dt>error message</dt>
@@ -435,7 +437,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bloom = prefetched.bloom}
+					{@const bloom = pendingEntity.bloom}
 					{#if bloom !== undefined && bloom !== null}
 						<div>
 							<dt>bloom</dt>

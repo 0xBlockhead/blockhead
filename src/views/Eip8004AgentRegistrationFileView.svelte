@@ -43,7 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const eip8004AgentRegistrationFile = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.fileUrl ?? prefetched.fileUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration file')
+	const titleFallback = $derived([String((pendingEntity.fileUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration file')
 	const viewDomId = $derived('eip8004agent-registration-file-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eip8004AgentRegistrationFile}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.fileUrl ?? prefetched.fileUrl) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration file'}
+				{[String((pendingEntity.fileUrl) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration file'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -124,7 +124,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fileUrl = selection.entitySelector.fileUrl ?? prefetched.fileUrl}
+							{@const fileUrl = pendingEntity.fileUrl}
 							{#if fileUrl !== undefined && fileUrl !== null}
 								<svelte:element
 									this={'a'}

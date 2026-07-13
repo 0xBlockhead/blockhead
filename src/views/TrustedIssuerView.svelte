@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const issuerKey = selection.entitySelector.issuerKey ?? prefetched.issuerKey}
+							{@const issuerKey = pendingEntity.issuerKey}
 							{#if issuerKey !== undefined && issuerKey !== null}
 								<TruncatedValue value={String((issuerKey) ?? '')} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const claimTopics = prefetched.claimTopics}
+							{@const claimTopics = pendingEntity.claimTopics}
 							{#if claimTopics !== undefined && claimTopics !== null}
 								{claimTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

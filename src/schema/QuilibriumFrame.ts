@@ -9,8 +9,10 @@ export enum QuilibriumFrameSelector {
 }
 export const QuilibriumFrame = entity({
 	entityType: EntityType.QuilibriumFrame,
-	label: 'quilibrium frame',
-	labelPlural: 'quilibrium frames',
+	labels: {
+		singular: 'quilibrium frame',
+		plural: 'quilibrium frames',
+	},
 })({
 	$network: {
 		label: 'network',

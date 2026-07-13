@@ -51,7 +51,7 @@
 			verified: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ENS reverse record timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ENS reverse record timestamp')
 	const viewDomId = $derived('ens-reverse-record-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={ensReverseRecordTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={ensReverseRecordTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.verified) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'ENS reverse record timestamp'}
+				{[String((pendingEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'ENS reverse record timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={ensReverseRecordTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -153,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -183,7 +183,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verified = prefetched.verified}
+					{@const verified = pendingEntity.verified}
 					{#if verified !== undefined && verified !== null}
 						<div>
 							<dt>Verified</dt>

@@ -44,13 +44,12 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const tokenMetadataDocument = $derived(selection({
 		fields: {
-			$media: true,
 			name: true,
 			symbol: true,
 			metadataStandard: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? ''), String((prefetched.symbol) ?? ''), String((selection.entitySelector.metadataKey ?? prefetched.metadataKey) ?? '')].filter(Boolean).join(' ') || 'token metadata document')
+	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.symbol) ?? ''), String((pendingEntity.metadataKey) ?? '')].filter(Boolean).join(' ') || 'token metadata document')
 	const viewDomId = $derived('token-metadata-document-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -98,7 +97,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={tokenMetadataDocument}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? ''), String((prefetched.symbol) ?? ''), String((selection.entitySelector.metadataKey ?? prefetched.metadataKey) ?? '')].filter(Boolean).join(' ') || title || 'token metadata document'}
+				{[String((pendingEntity.name) ?? ''), String((pendingEntity.symbol) ?? ''), String((pendingEntity.metadataKey) ?? '')].filter(Boolean).join(' ') || title || 'token metadata document'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +110,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={tokenMetadataDocument}>
 			{#snippet Pending()}
-				{[String((prefetched.metadataStandard) ?? ''), String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((prefetched.symbol) ?? ''), String((selection.entitySelector.metadataKey ?? prefetched.metadataKey) ?? '')].filter(Boolean).join(' ') || title || 'token metadata document'}
+				{[String((pendingEntity.metadataStandard) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.symbol) ?? ''), String((pendingEntity.metadataKey) ?? '')].filter(Boolean).join(' ') || title || 'token metadata document'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -124,7 +123,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={tokenMetadataDocument}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -159,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const metadataSubjectKey = selection.entitySelector.metadataSubjectKey ?? prefetched.metadataSubjectKey}
+							{@const metadataSubjectKey = pendingEntity.metadataSubjectKey}
 							{#if metadataSubjectKey !== undefined && metadataSubjectKey !== null}
 								{String((metadataSubjectKey) ?? '')}
 							{/if}
@@ -189,7 +188,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const metadataKey = selection.entitySelector.metadataKey ?? prefetched.metadataKey}
+							{@const metadataKey = pendingEntity.metadataKey}
 							{#if metadataKey !== undefined && metadataKey !== null}
 								{String((metadataKey) ?? '')}
 							{/if}
@@ -219,7 +218,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -249,7 +248,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -278,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -313,7 +312,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const symbol = prefetched.symbol}
+					{@const symbol = pendingEntity.symbol}
 					{#if symbol !== undefined && symbol !== null}
 						<div>
 							<dt>Symbol</dt>
@@ -348,7 +347,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataStandard = prefetched.metadataStandard}
+					{@const metadataStandard = pendingEntity.metadataStandard}
 					{#if metadataStandard !== undefined && metadataStandard !== null}
 						<div>
 							<dt>Metadata standard</dt>
@@ -383,7 +382,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mutable = prefetched.mutable}
+					{@const mutable = pendingEntity.mutable}
 					{#if mutable !== undefined && mutable !== null}
 						<div>
 							<dt>Mutable</dt>
@@ -420,7 +419,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uri = prefetched.uri}
+					{@const uri = pendingEntity.uri}
 					{#if uri !== undefined && uri !== null}
 						<div>
 							<dt>URI</dt>
@@ -469,7 +468,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentHash = prefetched.contentHash}
+					{@const contentHash = pendingEntity.contentHash}
 					{#if contentHash !== undefined && contentHash !== null}
 						<div>
 							<dt>Content hash</dt>
@@ -504,7 +503,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mediaUrl = prefetched.mediaUrl}
+					{@const mediaUrl = pendingEntity.mediaUrl}
 					{#if mediaUrl !== undefined && mediaUrl !== null}
 						<div>
 							<dt>Media URL</dt>
@@ -550,13 +549,13 @@
 						resource={selection.$assetInstance}
 					>
 						{#snippet children(assetInstance)}
-							{#if assetInstance[EntityMetaKey.Selector] != null}
+							{#if assetInstance != null && assetInstance[EntityMetaKey.Selector] != null}
 								<AssetInstanceView
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									href={
-										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-											caip2: `${String(assetInstance[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(assetInstance[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.slug !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+											network: String(assetInstance[EntityMetaKey.Selector].$network.slug ?? ''),
 											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
 											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
 										}) : undefined)

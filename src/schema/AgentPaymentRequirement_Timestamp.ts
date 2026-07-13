@@ -10,8 +10,10 @@ export enum AgentPaymentRequirement_TimestampSelector {
 }
 export const AgentPaymentRequirement_Timestamp = entity({
 	entityType: EntityType.AgentPaymentRequirement_Timestamp,
-	label: 'agent payment requirement timestamp',
-	labelPlural: 'agent payment requirement observations',
+	labels: {
+		singular: 'agent payment requirement timestamp',
+		plural: 'agent payment requirement observations',
+	},
 })({
 	subjectKind: {
 		label: 'subject kind',

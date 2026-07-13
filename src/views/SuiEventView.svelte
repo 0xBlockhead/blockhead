@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionDigest = selection.entitySelector.transactionDigest ?? prefetched.transactionDigest}
+							{@const transactionDigest = pendingEntity.transactionDigest}
 							{#if transactionDigest !== undefined && transactionDigest !== null}
 								<TruncatedValue value={String((transactionDigest) ?? '')} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventIndex = selection.entitySelector.eventIndex ?? prefetched.eventIndex}
+							{@const eventIndex = pendingEntity.eventIndex}
 							{#if eventIndex !== undefined && eventIndex !== null}
 								{String((eventIndex) ?? '')}
 							{/if}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventType = prefetched.eventType}
+							{@const eventType = pendingEntity.eventType}
 							{#if eventType !== undefined && eventType !== null}
 								{String((eventType) ?? '')}
 							{/if}
@@ -189,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packageId = prefetched.packageId}
+					{@const packageId = pendingEntity.packageId}
 					{#if packageId !== undefined && packageId !== null}
 						<div>
 							<dt>package ID</dt>
@@ -224,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleName = prefetched.moduleName}
+					{@const moduleName = pendingEntity.moduleName}
 					{#if moduleName !== undefined && moduleName !== null}
 						<div>
 							<dt>module name</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sender = prefetched.sender}
+					{@const sender = pendingEntity.sender}
 					{#if sender !== undefined && sender !== null}
 						<div>
 							<dt>sender</dt>

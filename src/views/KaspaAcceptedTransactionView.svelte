@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,7 +42,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaAcceptedTransaction = $derived(selection({}))
+	const kaspaAcceptedTransaction = $derived(selection({
+		sources: [
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Wrpc,
+		],
+	}))
 	const titleFallback = $derived('kaspa accepted transaction')
 	const viewDomId = $derived('kaspa-accepted-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -112,7 +118,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const acceptedIndex = prefetched.acceptedIndex}
+					{@const acceptedIndex = pendingEntity.acceptedIndex}
 					{#if acceptedIndex !== undefined && acceptedIndex !== null}
 						<div>
 							<dt>accepted index</dt>
@@ -150,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const acceptingBlockHash = prefetched.acceptingBlockHash}
+							{@const acceptingBlockHash = pendingEntity.acceptingBlockHash}
 							{#if acceptingBlockHash !== undefined && acceptingBlockHash !== null}
 								<TruncatedValue value={String((acceptingBlockHash) ?? '')} />
 							{/if}
@@ -180,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionId = prefetched.transactionId}
+							{@const transactionId = pendingEntity.transactionId}
 							{#if transactionId !== undefined && transactionId !== null}
 								{String((transactionId) ?? '')}
 							{/if}

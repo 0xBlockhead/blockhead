@@ -1,5 +1,9 @@
+import { stringify } from 'devalue'
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
+
+import { entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 import {
 	assertMainSettled,
@@ -9,88 +13,92 @@ import {
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
+const fieldCollectionId = (
+	entityType: string,
+	facetPath: readonly string[],
+	fieldName: string
+) => stringify([
+	'client.fields',
+	entityType,
+	facetPath,
+	fieldName,
+])
+
 const pageErrors = (issues: string[]) => (
 	issues.filter((i) => i.startsWith('pageerror:'))
 )
 
 const readBlocksDiagnostics = (
 	page: Page
-) => page.evaluate(() => {
+) => page.evaluate(({ collectionId, fieldAddressKey }) => {
 	const probe = window.__blockheadClientProbe
 	if (probe == null)
 		throw new Error('missing blockhead client probe')
 
 	return {
-		fieldRows: probe.collectionSizes().fields.EvmNetwork.$$blocks,
-		queries: probe.queryStates().filter((query) => query.key[0] === 'Field:EvmNetwork:$$blocks'),
+		fieldRows: probe.collectionSizes().fields.Network[fieldAddressKey],
+		loads: probe.events.collectionLoads.filter((event) => event.collectionId === collectionId),
 	}
+}, {
+	collectionId: fieldCollectionId(EntityType.Network, ['Evm'], '$$blocks'),
+	fieldAddressKey: entityFieldAddressKey(EntityType.Network, ['Evm'], '$$blocks'),
 })
 
-const readFieldSyncs = (
+const readFieldLoads = (
 	page: Page
 ) => page.evaluate(() => {
 	const probe = window.__blockheadClientProbe
 	if (probe == null)
 		throw new Error('missing blockhead client probe')
 
-	return probe.events.collectionSync.flatMap((event) => (
-		event.collection.kind === 'Field' ?
-			[{
-				entityType: event.collection.entityType,
-				fieldName: event.collection.fieldName,
-			}]
-		:
-			[]
-	))
+	return probe.events.collectionLoads
 })
 
-const assertOnlyRouteOwnedEvmNetworkFields = async (
+const assertOnlyRouteOwnedEvmFields = async (
 	page: Page,
 	routeOwnedFieldName: string
 ) => {
-	const fieldNames = (await readFieldSyncs(page)).flatMap((fieldSync) => (
-		fieldSync.entityType === 'EvmNetwork' ?
-			[fieldSync.fieldName]
-		:
-			[]
-	))
-	expect(fieldNames).toContain(routeOwnedFieldName)
-	expect(fieldNames.filter((fieldName) => (
-		fieldName !== routeOwnedFieldName
-		&& [
-			'$$executionUpgrades',
-			'$$gasFeeBlocks',
-			'$$gasEstimateTimestamps',
-			'$$txpoolTimestamps',
-			'$$erc20TokenTransfers',
-			'$$nftTokenTransfers',
-			'$$erc4337SmartAccounts',
-			'$$erc4337Bundlers',
-			'$$erc4337Paymasters',
-			'$$erc4337AccountFactories',
-			'$$userOperations',
-			'$$beaconFinalityTimestamps',
-			'$$beaconCommittees',
-			'$$beaconSyncCommittees',
-			'$$beaconAttestations',
-			'$$beaconWithdrawals',
-			'$$beaconSlashings',
-			'$$beaconValidators',
-			'$$beaconEpochs',
-			'$$beaconSlots',
-			'$$mevRelays',
-			'$$mevBuilders',
-			'$$mevProposerPayloadDelivered',
-			'$$blobs',
-			'$$precompiles',
-			'$$contracts',
-			'$$bridges',
-			'$$faucetUrls',
-			'$$blockExplorerUrls',
-			'$$siblingShardNetworks',
-			'$$childLayers',
-			'$$settledRollups',
-		].includes(fieldName)
+	const collectionIds = (await readFieldLoads(page)).map(({ collectionId }) => collectionId)
+	expect(collectionIds).toContain(fieldCollectionId(EntityType.Network, ['Evm'], routeOwnedFieldName))
+	expect(collectionIds.filter((collectionId) => (
+		[
+			...[
+				'$$executionUpgrades',
+				'$$gasFeeBlocks',
+				'$$gasEstimateTimestamps',
+				'$$txpoolTimestamps',
+				'$$erc20TokenTransfers',
+				'$$nftTokenTransfers',
+				'$$erc4337SmartAccounts',
+				'$$erc4337Bundlers',
+				'$$erc4337Paymasters',
+				'$$erc4337AccountFactories',
+				'$$userOperations',
+				'$$beaconFinalityTimestamps',
+				'$$beaconCommittees',
+				'$$beaconSyncCommittees',
+				'$$beaconAttestations',
+				'$$beaconWithdrawals',
+				'$$beaconSlashings',
+				'$$beaconValidators',
+				'$$beaconEpochs',
+				'$$beaconSlots',
+				'$$mevRelays',
+				'$$mevBuilders',
+				'$$mevProposerPayloadDelivered',
+				'$$blobs',
+				'$$precompiles',
+				'$$contracts',
+				'$$bridges',
+				'$$siblingShardNetworks',
+				'$$childLayers',
+				'$$settledRollups',
+			].map((fieldName) => fieldCollectionId(EntityType.Network, ['Evm'], fieldName)),
+			...[
+				'$$faucetUrls',
+				'$$blockExplorerUrls',
+			].map((fieldName) => fieldCollectionId(EntityType.Network, [], fieldName)),
+		].includes(collectionId)
 	))).toEqual([])
 }
 
@@ -101,11 +109,14 @@ const assertNoFieldSyncs = async (
 		fieldName: string
 	}[]
 ) => {
-	const fieldSyncs = await readFieldSyncs(page)
-	expect(fieldSyncs.filter((fieldSync) => (
+	const fieldLoads = await readFieldLoads(page)
+	expect(fieldLoads.filter(({ collectionId }) => (
 		forbiddenFieldSyncs.some((forbiddenFieldSync) => (
-			forbiddenFieldSync.entityType === fieldSync.entityType
-			&& forbiddenFieldSync.fieldName === fieldSync.fieldName
+			collectionId === fieldCollectionId(
+				forbiddenFieldSync.entityType,
+				[],
+				forbiddenFieldSync.fieldName
+			)
 		))
 	))).toEqual([])
 }
@@ -177,13 +188,13 @@ test.describe('EVM network nested routes only start route-owned field collection
 			const diagnostics = await readBlocksDiagnostics(page)
 			return (
 				diagnostics.fieldRows > 0
-				&& diagnostics.queries.some((query) => query.status === 'success')
+				&& diagnostics.loads.some((load) => load.status === 'completed')
 			) ?
 				'ok'
 			:
 				JSON.stringify(diagnostics)
 		}, {
-			message: 'Field:EvmNetwork:$$blocks query must materialize rows into the TanStack DB field collection',
+			message: 'Network/Evm/$$blocks must materialize rows into the TanStack DB field collection',
 			timeout: 60_000,
 			intervals: [
 				500,
@@ -195,7 +206,7 @@ test.describe('EVM network nested routes only start route-owned field collection
 		const firstBlockLink = page.locator('#blocks-items a[href*="/block/"]').first()
 		await expect(firstBlockLink).toBeAttached()
 		await expect(firstBlockLink).toHaveAttribute('href', /\/block\/[0-9]+\b/)
-		await assertOnlyRouteOwnedEvmNetworkFields(page, '$$blocks')
+		await assertOnlyRouteOwnedEvmFields(page, '$$blocks')
 		await assertNoFieldSyncs(page, [
 			{
 				entityType: 'EvmBlock',
@@ -218,7 +229,7 @@ test.describe('EVM network nested routes only start route-owned field collection
 		} = await openEvmNetworkRoute(page, '/network/eip155:1/transactions')
 
 		await expect(page.locator('#transactions')).toBeVisible()
-		await assertOnlyRouteOwnedEvmNetworkFields(page, '$$transactions')
+		await assertOnlyRouteOwnedEvmFields(page, '$$transactions')
 		assertNoAccountAbstractionListRequests(requestUrls)
 		await assertNoFieldSyncs(page, [
 			{

@@ -10,8 +10,10 @@ export enum NearExecutionOutcomeSelector {
 }
 export const NearExecutionOutcome = entity({
 	entityType: EntityType.NearExecutionOutcome,
-	label: 'near execution outcome',
-	labelPlural: 'near execution outcomes',
+	labels: {
+		singular: 'near execution outcome',
+		plural: 'near execution outcomes',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',

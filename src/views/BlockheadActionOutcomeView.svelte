@@ -54,7 +54,7 @@
 			transactionHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.outcomeKind) ?? '')].filter(Boolean).join(' ') || 'blockhead action outcome')
+	const titleFallback = $derived([String((pendingEntity.outcomeKind) ?? '')].filter(Boolean).join(' ') || 'blockhead action outcome')
 	const viewDomId = $derived('blockhead-action-outcome-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -83,7 +83,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadActionOutcome}>
 			{#snippet Pending()}
-				{[String((prefetched.outcomeKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action outcome'}
+				{[String((pendingEntity.outcomeKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action outcome'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadActionOutcome}>
 			{#snippet Pending()}
-				{[String((prefetched.transactionHash) ?? '')].filter(Boolean).join(' ') || [String((prefetched.outcomeKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action outcome'}
+				{[String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.outcomeKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action outcome'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadActionOutcome}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -138,7 +138,7 @@
 						resource={selection.$sessionAction}
 					>
 						{#snippet children(blockheadSessionAction)}
-							{#if blockheadSessionAction[EntityMetaKey.Selector] != null}
+							{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
 								<BlockheadSessionActionView
 									selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionAction}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const outcomeId = selection.entitySelector.outcomeId ?? prefetched.outcomeId}
+							{@const outcomeId = pendingEntity.outcomeId}
 							{#if outcomeId !== undefined && outcomeId !== null}
 								{String((outcomeId) ?? '')}
 							{/if}
@@ -194,7 +194,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const outcomeKind = prefetched.outcomeKind}
+							{@const outcomeKind = pendingEntity.outcomeKind}
 							{#if outcomeKind !== undefined && outcomeKind !== null}
 								{String((outcomeKind) ?? '')}
 							{/if}
@@ -214,6 +214,8 @@
 			<ResourceBoundary
 				resource={selection.$walletRequest}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWalletRequest)}
 					{#if blockheadWalletRequest != null && blockheadWalletRequest[EntityMetaKey.Selector] != null}
 						<div>
@@ -234,6 +236,8 @@
 			<ResourceBoundary
 				resource={selection.$intentOrder}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadIntentOrder)}
 					{#if blockheadIntentOrder != null && blockheadIntentOrder[EntityMetaKey.Selector] != null}
 						<div>
@@ -254,6 +258,8 @@
 			<ResourceBoundary
 				resource={selection.$simulation}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSessionSimulation)}
 					{#if blockheadSessionSimulation != null && blockheadSessionSimulation[EntityMetaKey.Selector] != null}
 						<div>
@@ -283,7 +289,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>transaction hash</dt>
@@ -318,7 +324,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionId = prefetched.transactionId}
+					{@const transactionId = pendingEntity.transactionId}
 					{#if transactionId !== undefined && transactionId !== null}
 						<div>
 							<dt>transaction ID</dt>
@@ -353,7 +359,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bridgeTransferId = prefetched.bridgeTransferId}
+					{@const bridgeTransferId = pendingEntity.bridgeTransferId}
 					{#if bridgeTransferId !== undefined && bridgeTransferId !== null}
 						<div>
 							<dt>bridge transfer ID</dt>
@@ -388,7 +394,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outcomePayloadHash = prefetched.outcomePayloadHash}
+					{@const outcomePayloadHash = pendingEntity.outcomePayloadHash}
 					{#if outcomePayloadHash !== undefined && outcomePayloadHash !== null}
 						<div>
 							<dt>outcome payload hash</dt>
@@ -426,7 +432,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}

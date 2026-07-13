@@ -9,8 +9,10 @@ export enum AcpAgentRuntimeSelector {
 }
 export const AcpAgentRuntime = entity({
 	entityType: EntityType.AcpAgentRuntime,
-	label: 'acp agent runtime',
-	labelPlural: 'acp agent runtimes',
+	labels: {
+		singular: 'acp agent runtime',
+		plural: 'acp agent runtimes',
+	},
 })({
 	runtimeId: {
 		label: 'runtime ID',

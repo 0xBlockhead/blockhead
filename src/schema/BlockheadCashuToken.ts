@@ -9,8 +9,10 @@ export enum BlockheadCashuTokenSelector {
 }
 export const BlockheadCashuToken = entity({
 	entityType: EntityType.BlockheadCashuToken,
-	label: 'blockhead Cashu token',
-	labelPlural: 'blockhead Cashu tokens',
+	labels: {
+		singular: 'blockhead Cashu token',
+		plural: 'blockhead Cashu tokens',
+	},
 })({
 	id: {
 		label: 'ID',

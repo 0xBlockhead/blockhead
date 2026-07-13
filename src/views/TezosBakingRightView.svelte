@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const cycle = selection.entitySelector.cycle ?? prefetched.cycle}
+							{@const cycle = pendingEntity.cycle}
 							{#if cycle !== undefined && cycle !== null}
 								{String((cycle) ?? '')}
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const level = selection.entitySelector.level ?? prefetched.level}
+							{@const level = pendingEntity.level}
 							{#if level !== undefined && level !== null}
 								{String((level) ?? '')}
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rightKind = selection.entitySelector.rightKind ?? prefetched.rightKind}
+							{@const rightKind = pendingEntity.rightKind}
 							{#if rightKind !== undefined && rightKind !== null}
 								{String((rightKind) ?? '')}
 							{/if}
@@ -193,7 +193,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const bakerAddress = selection.entitySelector.bakerAddress ?? prefetched.bakerAddress}
+							{@const bakerAddress = pendingEntity.bakerAddress}
 							{#if bakerAddress !== undefined && bakerAddress !== null}
 								<TruncatedValue value={String((bakerAddress) ?? '')} />
 							{/if}
@@ -223,7 +223,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -243,6 +243,8 @@
 			<ResourceBoundary
 				resource={selection.$baker}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosBaker)}
 					{#if tezosBaker != null && tezosBaker[EntityMetaKey.Selector] != null}
 						<div>
@@ -270,7 +272,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const round = prefetched.round}
+					{@const round = pendingEntity.round}
 					{#if round !== undefined && round !== null}
 						<div>
 							<dt>round</dt>
@@ -305,7 +307,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slots = prefetched.slots}
+					{@const slots = pendingEntity.slots}
 					{#if slots !== undefined && slots !== null}
 						<div>
 							<dt>slots</dt>
@@ -340,7 +342,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const priority = prefetched.priority}
+					{@const priority = pendingEntity.priority}
 					{#if priority !== undefined && priority !== null}
 						<div>
 							<dt>priority</dt>

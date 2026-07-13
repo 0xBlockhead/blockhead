@@ -120,9 +120,9 @@
 						selection={select(EntityType.AtprotoActor_Timestamp, atprotoActorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoActorTimestampFields}
 						href={
-							(atprotoActorTimestampHrefFields.$actor !== undefined && atprotoActorTimestampHrefFields.$actor.did !== undefined && atprotoActorTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]/(actor)/observations/[timestampMs=nonNegativeInteger]', {
-								did: String(atprotoActorTimestampHrefFields.$actor.did ?? ''),
+							(atprotoActorTimestampHrefFields.timestampMs !== undefined && atprotoActorTimestampHrefFields.$actor !== undefined && atprotoActorTimestampHrefFields.$actor.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 								timestampMs: String(atprotoActorTimestampHrefFields.timestampMs ?? ''),
+								did: String(atprotoActorTimestampHrefFields.$actor.did ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

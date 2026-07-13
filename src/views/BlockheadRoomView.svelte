@@ -49,7 +49,7 @@
 			createdBy: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'room')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'room')
 	const viewDomId = $derived('blockhead-room-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadRoom}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'room'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'room'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRoom}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<Timestamp timestamp={Number(createdAt0)} />
 				{/if}
@@ -118,7 +118,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
 							{/if}
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdBy = prefetched.createdBy}
+							{@const createdBy = pendingEntity.createdBy}
 							{#if createdBy !== undefined && createdBy !== null}
 								{String((createdBy) ?? '')}
 							{/if}
@@ -178,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}

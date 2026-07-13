@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -56,7 +55,7 @@
 			valueZatoshis: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.noteCommitment ?? prefetched.noteCommitment) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash note state')
+	const titleFallback = $derived([String((pendingEntity.noteCommitment) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash note state')
 	const viewDomId = $derived('blockhead-zcash-note-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -83,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadZcashNoteState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.noteCommitment ?? prefetched.noteCommitment) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zcash note state'}
+				{[String((pendingEntity.noteCommitment) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zcash note state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZcashNoteState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.pool ?? prefetched.pool) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.noteCommitment ?? prefetched.noteCommitment) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zcash note state'}
+				{[String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.noteCommitment) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zcash note state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZcashNoteState}>
 			{#snippet Pending()}
-				{@const valueZatoshis0 = prefetched.valueZatoshis}
+				{@const valueZatoshis0 = pendingEntity.valueZatoshis}
 				{#if valueZatoshis0 !== undefined && valueZatoshis0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(valueZatoshis0)} />
@@ -144,7 +143,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const walletId = selection.entitySelector.walletId ?? prefetched.walletId}
+							{@const walletId = pendingEntity.walletId}
 							{#if walletId !== undefined && walletId !== null}
 								{String((walletId) ?? '')}
 							{/if}
@@ -164,6 +163,8 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -184,6 +185,8 @@
 			<ResourceBoundary
 				resource={selection.$shieldedAction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(zcashShieldedAction)}
 					{#if zcashShieldedAction != null && zcashShieldedAction[EntityMetaKey.Selector] != null}
 						<div>
@@ -193,9 +196,9 @@
 									selection={select(EntityType.ZcashShieldedAction, zcashShieldedAction[EntityMetaKey.Selector])}
 									prefetched={zcashShieldedAction}
 									href={
-										(zcashShieldedAction[EntityMetaKey.Selector].$transaction !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2.namespace !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2.reference !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.txId !== undefined && zcashShieldedAction[EntityMetaKey.Selector].pool !== undefined && zcashShieldedAction[EntityMetaKey.Selector].actionKind !== undefined && zcashShieldedAction[EntityMetaKey.Selector].indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/shielded-action/[pool]/[actionKind]/[actionIndex=nonNegativeInteger]', {
-											networkSlug: String(networkByCaip2[String(String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2.namespace) + ':' + String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2.reference))].slug ?? ''),
-											txId: String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.txId ?? ''),
+										(zcashShieldedAction[EntityMetaKey.Selector].$transaction !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.slug !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.txId !== undefined && zcashShieldedAction[EntityMetaKey.Selector].pool !== undefined && zcashShieldedAction[EntityMetaKey.Selector].actionKind !== undefined && zcashShieldedAction[EntityMetaKey.Selector].indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
+											network: String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.slug ?? ''),
+											transactionId: String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.txId ?? ''),
 											pool: String(zcashShieldedAction[EntityMetaKey.Selector].pool ?? ''),
 											actionKind: String(zcashShieldedAction[EntityMetaKey.Selector].actionKind ?? ''),
 											actionIndex: String(zcashShieldedAction[EntityMetaKey.Selector].indexInTransaction ?? ''),
@@ -223,7 +226,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const pool = selection.entitySelector.pool ?? prefetched.pool}
+							{@const pool = pendingEntity.pool}
 							{#if pool !== undefined && pool !== null}
 								{String((pool) ?? '')}
 							{/if}
@@ -253,7 +256,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const noteCommitment = selection.entitySelector.noteCommitment ?? prefetched.noteCommitment}
+							{@const noteCommitment = pendingEntity.noteCommitment}
 							{#if noteCommitment !== undefined && noteCommitment !== null}
 								{String((noteCommitment) ?? '')}
 							{/if}
@@ -280,7 +283,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nullifier = prefetched.nullifier}
+					{@const nullifier = pendingEntity.nullifier}
 					{#if nullifier !== undefined && nullifier !== null}
 						<div>
 							<dt>nullifier</dt>
@@ -317,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueZatoshis = prefetched.valueZatoshis}
+					{@const valueZatoshis = pendingEntity.valueZatoshis}
 					{#if valueZatoshis !== undefined && valueZatoshis !== null}
 						<div>
 							<dt>value zatoshis</dt>
@@ -352,7 +355,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo}
+					{@const memo = pendingEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>memo</dt>
@@ -387,7 +390,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const diversifier = prefetched.diversifier}
+					{@const diversifier = pendingEntity.diversifier}
 					{#if diversifier !== undefined && diversifier !== null}
 						<div>
 							<dt>diversifier</dt>
@@ -422,7 +425,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const recipientAddress = prefetched.recipientAddress}
+					{@const recipientAddress = pendingEntity.recipientAddress}
 					{#if recipientAddress !== undefined && recipientAddress !== null}
 						<div>
 							<dt>recipient address</dt>
@@ -459,7 +462,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const receivedTransactionId = prefetched.receivedTransactionId}
+					{@const receivedTransactionId = pendingEntity.receivedTransactionId}
 					{#if receivedTransactionId !== undefined && receivedTransactionId !== null}
 						<div>
 							<dt>received transaction ID</dt>
@@ -494,7 +497,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const receivedAtHeight = prefetched.receivedAtHeight}
+					{@const receivedAtHeight = pendingEntity.receivedAtHeight}
 					{#if receivedAtHeight !== undefined && receivedAtHeight !== null}
 						<div>
 							<dt>received AT height</dt>

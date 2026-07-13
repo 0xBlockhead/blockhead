@@ -9,8 +9,10 @@ export enum _GlobalSwarmAccessSelector {
 }
 export const _GlobalSwarmAccess = entity({
 	entityType: EntityType._GlobalSwarmAccess,
-	label: 'global Swarm access',
-	labelPlural: 'global Swarm accesses',
+	labels: {
+		singular: 'global Swarm access',
+		plural: 'global Swarm accesses',
+	},
 })({
 	scope: {
 		label: 'Scope',

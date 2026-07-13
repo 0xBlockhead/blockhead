@@ -9,8 +9,10 @@ export enum StellarOffer_TimestampSelector {
 }
 export const StellarOffer_Timestamp = entity({
 	entityType: EntityType.StellarOffer_Timestamp,
-	label: 'stellar offer timestamp',
-	labelPlural: 'stellar offer observations',
+	labels: {
+		singular: 'stellar offer timestamp',
+		plural: 'stellar offer observations',
+	},
 })({
 	$offer: {
 		label: 'offer',

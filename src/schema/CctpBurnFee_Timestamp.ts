@@ -9,8 +9,10 @@ export enum CctpBurnFee_TimestampSelector {
 }
 export const CctpBurnFee_Timestamp = entity({
 	entityType: EntityType.CctpBurnFee_Timestamp,
-	label: 'CCTP burn fee timestamp',
-	labelPlural: 'CCTP burn fee observations',
+	labels: {
+		singular: 'CCTP burn fee timestamp',
+		plural: 'CCTP burn fee observations',
+	},
 })({
 	$sourceDomain: {
 		label: 'Source domain',

@@ -9,8 +9,10 @@ export enum IcpNetwork_TimestampSelector {
 }
 export const IcpNetwork_Timestamp = entity({
 	entityType: EntityType.IcpNetwork_Timestamp,
-	label: 'icp network timestamp',
-	labelPlural: 'icp network observations',
+	labels: {
+		singular: 'icp network timestamp',
+		plural: 'icp network observations',
+	},
 })({
 	$network: {
 		label: 'network',

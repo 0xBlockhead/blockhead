@@ -9,8 +9,10 @@ export enum HederaNft_TimestampSelector {
 }
 export const HederaNft_Timestamp = entity({
 	entityType: EntityType.HederaNft_Timestamp,
-	label: 'hedera NFT timestamp',
-	labelPlural: 'hedera NFT observations',
+	labels: {
+		singular: 'hedera NFT timestamp',
+		plural: 'hedera NFT observations',
+	},
 })({
 	$nft: {
 		label: 'NFT',

@@ -9,8 +9,10 @@ export enum BlockheadAlgorandPendingTransactionSelector {
 }
 export const BlockheadAlgorandPendingTransaction = entity({
 	entityType: EntityType.BlockheadAlgorandPendingTransaction,
-	label: 'blockhead algorand pending transaction',
-	labelPlural: 'blockhead algorand pending transactions',
+	labels: {
+		singular: 'blockhead algorand pending transaction',
+		plural: 'blockhead algorand pending transactions',
+	},
 })({
 	nodeId: {
 		label: 'node ID',

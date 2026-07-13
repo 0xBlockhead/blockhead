@@ -9,8 +9,10 @@ export enum AtprotoNetworkSelector {
 }
 export const AtprotoNetwork = entity({
 	entityType: EntityType.AtprotoNetwork,
-	label: 'AT Protocol',
-	labelPlural: 'AT Protocol',
+	labels: {
+		singular: 'AT Protocol',
+		plural: 'AT Protocol',
+	},
 	description: 'AT Protocol catalog identity for DID, repository, PDS, and appview protocol metadata. Product observeds live on the global AT Protocol hub.',
 })({
 	scope: {

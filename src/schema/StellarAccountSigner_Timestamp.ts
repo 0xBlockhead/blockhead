@@ -9,8 +9,10 @@ export enum StellarAccountSigner_TimestampSelector {
 }
 export const StellarAccountSigner_Timestamp = entity({
 	entityType: EntityType.StellarAccountSigner_Timestamp,
-	label: 'stellar account signer timestamp',
-	labelPlural: 'stellar account signer observations',
+	labels: {
+		singular: 'stellar account signer timestamp',
+		plural: 'stellar account signer observations',
+	},
 })({
 	$signer: {
 		label: 'signer',

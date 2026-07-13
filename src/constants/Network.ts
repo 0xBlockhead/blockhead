@@ -399,6 +399,11 @@ export const networkResourceUrls = [
 		url: 'https://dogechain.info/',
 	},
 	{
+		networkSlug: 'ethereum',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://etherscan.io/',
+	},
+	{
 		networkSlug: 'filecoin',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://filfox.info/',

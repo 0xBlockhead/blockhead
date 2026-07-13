@@ -95,7 +95,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subjectKey = selection.entitySelector.subjectKey ?? prefetched.subjectKey}
+							{@const subjectKey = pendingEntity.subjectKey}
 							{#if subjectKey !== undefined && subjectKey !== null}
 								{String((subjectKey) ?? '')}
 							{/if}
@@ -125,7 +125,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rightKey = selection.entitySelector.rightKey ?? prefetched.rightKey}
+							{@const rightKey = pendingEntity.rightKey}
 							{#if rightKey !== undefined && rightKey !== null}
 								{String((rightKey) ?? '')}
 							{/if}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sourceKind = prefetched.sourceKind}
+							{@const sourceKind = pendingEntity.sourceKind}
 							{#if sourceKind !== undefined && sourceKind !== null}
 								{String((sourceKind) ?? '')}
 							{/if}
@@ -245,7 +245,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rightKind = prefetched.rightKind}
+							{@const rightKind = pendingEntity.rightKind}
 							{#if rightKind !== undefined && rightKind !== null}
 								{String((rightKind) ?? '')}
 							{/if}
@@ -267,6 +267,8 @@
 			<ResourceBoundary
 				resource={selection.$object}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(assetObject)}
 					{#if assetObject != null && assetObject[EntityMetaKey.Selector] != null}
 						<div>
@@ -287,6 +289,8 @@
 			<ResourceBoundary
 				resource={selection.$token}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(nftToken)}
 					{#if nftToken != null && nftToken[EntityMetaKey.Selector] != null}
 						<div>
@@ -307,6 +311,8 @@
 			<ResourceBoundary
 				resource={selection.$user}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(account)}
 					{#if account != null && account[EntityMetaKey.Selector] != null}
 						<div>
@@ -334,7 +340,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiresAt = prefetched.expiresAt}
+					{@const expiresAt = pendingEntity.expiresAt}
 					{#if expiresAt !== undefined && expiresAt !== null}
 						<div>
 							<dt>expires AT</dt>
@@ -371,7 +377,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateKind = prefetched.ledgerCoordinateKind}
+					{@const ledgerCoordinateKind = pendingEntity.ledgerCoordinateKind}
 					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
 						<div>
 							<dt>ledger coordinate kind</dt>
@@ -406,7 +412,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateValue = prefetched.ledgerCoordinateValue}
+					{@const ledgerCoordinateValue = pendingEntity.ledgerCoordinateValue}
 					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
 						<div>
 							<dt>ledger coordinate value</dt>
@@ -441,7 +447,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractAddress = prefetched.contractAddress}
+					{@const contractAddress = pendingEntity.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>contract address</dt>

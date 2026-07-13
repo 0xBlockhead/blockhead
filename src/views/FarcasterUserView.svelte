@@ -54,16 +54,21 @@
 			$icon: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.displayName) ?? ''), String((prefetched.username) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user')
+	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user')
 	const viewDomId = $derived('farcaster-user-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
+	import FarcasterVerifiedAddressesView from '$/views/FarcasterVerifiedAddressesView.svelte'
+	import FarcasterUser_TimestampsView from '$/views/FarcasterUser_TimestampsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
 
@@ -102,7 +107,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterUser}>
 			{#snippet Pending()}
-				{[String((prefetched.displayName) ?? ''), String((prefetched.username) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster user'}
+				{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster user'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -115,7 +120,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterUser}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || [String((prefetched.displayName) ?? ''), String((prefetched.username) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster user'}
+				{[String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster user'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -128,7 +133,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={farcasterUser}>
 			{#snippet Pending()}
-				{@const username0 = prefetched.username}
+				{@const username0 = pendingEntity.username}
 				{#if username0 !== undefined && username0 !== null}
 					<span data-text="muted">
 						<span>@</span>
@@ -165,7 +170,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fid = selection.entitySelector.fid ?? prefetched.fid}
+							{@const fid = pendingEntity.fid}
 							{#if fid !== undefined && fid !== null}
 								<NumberValue value={Number(fid)} />
 							{/if}
@@ -194,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const username = prefetched.username}
+					{@const username = pendingEntity.username}
 					{#if username !== undefined && username !== null}
 						<div>
 							<dt>Username</dt>
@@ -233,7 +238,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const url = prefetched.url}
+					{@const url = pendingEntity.url}
 					{#if url !== undefined && url !== null}
 						<div>
 							<dt>URL</dt>
@@ -277,6 +282,8 @@
 			<ResourceBoundary
 				resource={selection.$primaryEvmAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -286,7 +293,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -317,5 +324,103 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-farcaster-user-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'farcaster-user-casts',
+							label: 'Casts',
+						},
+						{
+							id: 'farcaster-user-verified-addresses',
+							label: 'Verified addresses',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionFarcasterUserCasts({ id, label, open })}
+					<FarcasterCastsView
+						selection={
+							selection.$$casts({
+								sources: [
+									Source.Snapchain_Rest,
+								],
+							})
+						}
+						href={resolve('/farcaster/feed/trending')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster casts for this user.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionFarcasterUserVerifiedAddresses({ id, label, open })}
+					<FarcasterVerifiedAddressesView
+						selection={selection.$$verifiedAddresses}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster verified addresses for this user.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-farcaster-user-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'farcaster-user-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionFarcasterUserTimestamps({ id, label, open })}
+					<FarcasterUser_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster user observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

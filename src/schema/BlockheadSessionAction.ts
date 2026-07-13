@@ -9,8 +9,10 @@ export enum BlockheadSessionActionSelector {
 }
 export const BlockheadSessionAction = entity({
 	entityType: EntityType.BlockheadSessionAction,
-	label: 'blockhead session action',
-	labelPlural: 'blockhead session actions',
+	labels: {
+		singular: 'blockhead session action',
+		plural: 'blockhead session actions',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

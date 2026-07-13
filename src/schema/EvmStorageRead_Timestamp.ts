@@ -10,8 +10,10 @@ export enum EvmStorageRead_TimestampSelector {
 }
 export const EvmStorageRead_Timestamp = entity({
 	entityType: EntityType.EvmStorageRead_Timestamp,
-	label: 'EVM storage read timestamp',
-	labelPlural: 'EVM storage read observations',
+	labels: {
+		singular: 'EVM storage read timestamp',
+		plural: 'EVM storage read observations',
+	},
 })({
 	$contract: {
 		label: 'Contract',

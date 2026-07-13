@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const owner = selection.entitySelector.owner ?? prefetched.owner}
+							{@const owner = pendingEntity.owner}
 							{#if owner !== undefined && owner !== null}
 								{String((owner) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subaccount = selection.entitySelector.subaccount ?? prefetched.subaccount}
+					{@const subaccount = pendingEntity.subaccount}
 					{#if subaccount !== undefined && subaccount !== null}
 						<div>
 							<dt>subaccount</dt>
@@ -167,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -197,7 +197,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -224,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>balance</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const allowanceCount = prefetched.allowanceCount}
+					{@const allowanceCount = pendingEntity.allowanceCount}
 					{#if allowanceCount !== undefined && allowanceCount !== null}
 						<div>
 							<dt>allowance count</dt>

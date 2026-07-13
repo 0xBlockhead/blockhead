@@ -125,9 +125,9 @@
 						selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={liquidityPoolFields}
 						href={
-							(liquidityPoolHrefFields.$network !== undefined && liquidityPoolHrefFields.$network.caip2 !== undefined && liquidityPoolHrefFields.$network.caip2.reference !== undefined && liquidityPoolHrefFields.id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-								chainId: String(liquidityPoolHrefFields.$network.caip2.reference ?? ''),
+							(liquidityPoolHrefFields.id !== undefined && liquidityPoolHrefFields.$network !== undefined && liquidityPoolHrefFields.$network.caip2 !== undefined && liquidityPoolHrefFields.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 								poolId: String(liquidityPoolHrefFields.id ?? ''),
+								chainId: String(liquidityPoolHrefFields.$network.caip2.reference ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

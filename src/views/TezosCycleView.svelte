@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const cycle = selection.entitySelector.cycle ?? prefetched.cycle}
+							{@const cycle = pendingEntity.cycle}
 							{#if cycle !== undefined && cycle !== null}
 								{String((cycle) ?? '')}
 							{/if}
@@ -128,7 +128,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const firstLevel = prefetched.firstLevel}
+					{@const firstLevel = pendingEntity.firstLevel}
 					{#if firstLevel !== undefined && firstLevel !== null}
 						<div>
 							<dt>first level</dt>
@@ -163,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastLevel = prefetched.lastLevel}
+					{@const lastLevel = pendingEntity.lastLevel}
 					{#if lastLevel !== undefined && lastLevel !== null}
 						<div>
 							<dt>last level</dt>
@@ -198,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const snapshotLevel = prefetched.snapshotLevel}
+					{@const snapshotLevel = pendingEntity.snapshotLevel}
 					{#if snapshotLevel !== undefined && snapshotLevel !== null}
 						<div>
 							<dt>snapshot level</dt>
@@ -233,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const randomSeed = prefetched.randomSeed}
+					{@const randomSeed = pendingEntity.randomSeed}
 					{#if randomSeed !== undefined && randomSeed !== null}
 						<div>
 							<dt>random seed</dt>

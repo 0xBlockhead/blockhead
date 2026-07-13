@@ -10,8 +10,10 @@ export enum BeaconValidatorSelector {
 }
 export const BeaconValidator = entity({
 	entityType: EntityType.BeaconValidator,
-	label: 'beacon validator',
-	labelPlural: 'Beacon validators',
+	labels: {
+		singular: 'beacon validator',
+		plural: 'Beacon validators',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -22,7 +24,7 @@ export const BeaconValidator = entity({
 	indexInNetwork: {
 		label: 'Index in network',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	pubkey: {

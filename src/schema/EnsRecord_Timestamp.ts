@@ -9,8 +9,10 @@ export enum EnsRecord_TimestampSelector {
 }
 export const EnsRecord_Timestamp = entity({
 	entityType: EntityType.EnsRecord_Timestamp,
-	label: 'ENS record observation',
-	labelPlural: 'ENS record observations',
+	labels: {
+		singular: 'ENS record observation',
+		plural: 'ENS record observations',
+	},
 })({
 	$record: {
 		label: 'Record',
@@ -21,7 +23,7 @@ export const EnsRecord_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

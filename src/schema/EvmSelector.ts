@@ -10,8 +10,10 @@ export enum EvmSelectorSelector {
 }
 export const EvmSelector = entity({
 	entityType: EntityType.EvmSelector,
-	label: 'EVM selector',
-	labelPlural: 'EVM selectors',
+	labels: {
+		singular: 'EVM selector',
+		plural: 'EVM selectors',
+	},
 })({
 	hex: {
 		label: 'Hex',

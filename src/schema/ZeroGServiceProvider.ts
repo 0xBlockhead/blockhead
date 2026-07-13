@@ -9,8 +9,10 @@ export enum ZeroGServiceProviderSelector {
 }
 export const ZeroGServiceProvider = entity({
 	entityType: EntityType.ZeroGServiceProvider,
-	label: 'zero g service provider',
-	labelPlural: 'zero g service providers',
+	labels: {
+		singular: 'zero g service provider',
+		plural: 'zero g service providers',
+	},
 })({
 	$network: {
 		label: 'network',

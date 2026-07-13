@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -91,22 +91,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -128,7 +116,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionId = selection.entitySelector.transactionId ?? prefetched.transactionId}
+							{@const transactionId = pendingEntity.transactionId}
 							{#if transactionId !== undefined && transactionId !== null}
 								{String((transactionId) ?? '')}
 							{/if}
@@ -158,6 +146,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tronBlock)}
 					{#if tronBlock != null && tronBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -192,7 +182,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>Block height</dt>
@@ -234,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -274,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expirationTimestampMs = prefetched.expirationTimestampMs}
+					{@const expirationTimestampMs = pendingEntity.expirationTimestampMs}
 					{#if expirationTimestampMs !== undefined && expirationTimestampMs !== null}
 						<div>
 							<dt>Expiration timestamp</dt>
@@ -315,7 +305,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractType = prefetched.contractType}
+					{@const contractType = pendingEntity.contractType}
 					{#if contractType !== undefined && contractType !== null}
 						<div>
 							<dt>Contract type</dt>
@@ -356,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const result = prefetched.result}
+					{@const result = pendingEntity.result}
 					{#if result !== undefined && result !== null}
 						<div>
 							<dt>Result</dt>
@@ -394,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeSun = prefetched.feeSun}
+					{@const feeSun = pendingEntity.feeSun}
 					{#if feeSun !== undefined && feeSun !== null}
 						<div>
 							<dt>Fee sun</dt>
@@ -431,6 +421,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tronAccount)}
 					{#if tronAccount != null && tronAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -460,6 +452,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tronAccount)}
 					{#if tronAccount != null && tronAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -489,6 +483,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tronContract)}
 					{#if tronContract != null && tronContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -522,7 +518,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountSun = prefetched.amountSun}
+					{@const amountSun = pendingEntity.amountSun}
 					{#if amountSun !== undefined && amountSun !== null}
 						<div>
 							<dt>Amount sun</dt>
@@ -562,7 +558,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const assetName = prefetched.assetName}
+					{@const assetName = pendingEntity.assetName}
 					{#if assetName !== undefined && assetName !== null}
 						<div>
 							<dt>Asset name</dt>
@@ -602,7 +598,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rawDataHex = prefetched.rawDataHex}
+					{@const rawDataHex = pendingEntity.rawDataHex}
 					{#if rawDataHex !== undefined && rawDataHex !== null}
 						<div>
 							<dt>Raw data hex</dt>
@@ -645,7 +641,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signatures = prefetched.signatures}
+							{@const signatures = pendingEntity.signatures}
 							{#if signatures !== undefined && signatures !== null}
 								<TruncatedValue value={signatures.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -674,6 +670,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tronTransactionReceipt)}
 					{#if tronTransactionReceipt != null && tronTransactionReceipt[EntityMetaKey.Selector] != null}
 						<div>

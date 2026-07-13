@@ -47,7 +47,7 @@
 			health: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'celestia network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'celestia network timestamp')
 	const viewDomId = $derived('celestia-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={celestiaNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={celestiaNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.latestHeight) ?? ''), String((prefetched.health) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'celestia network timestamp'}
+				{[String((pendingEntity.latestHeight) ?? ''), String((pendingEntity.health) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'celestia network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={celestiaNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const health = prefetched.health}
+					{@const health = pendingEntity.health}
 					{#if health !== undefined && health !== null}
 						<div>
 							<dt>health</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const syncing = prefetched.syncing}
+					{@const syncing = pendingEntity.syncing}
 					{#if syncing !== undefined && syncing !== null}
 						<div>
 							<dt>syncing</dt>
@@ -280,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestHeight = prefetched.latestHeight}
+					{@const latestHeight = pendingEntity.latestHeight}
 					{#if latestHeight !== undefined && latestHeight !== null}
 						<div>
 							<dt>latest height</dt>
@@ -315,7 +315,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestHash = prefetched.latestHash}
+					{@const latestHash = pendingEntity.latestHash}
 					{#if latestHash !== undefined && latestHash !== null}
 						<div>
 							<dt>latest hash</dt>
@@ -350,7 +350,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestBlockTimeMs = prefetched.latestBlockTimeMs}
+					{@const latestBlockTimeMs = pendingEntity.latestBlockTimeMs}
 					{#if latestBlockTimeMs !== undefined && latestBlockTimeMs !== null}
 						<div>
 							<dt>latest block time ms</dt>
@@ -387,7 +387,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blobCount = prefetched.blobCount}
+					{@const blobCount = pendingEntity.blobCount}
 					{#if blobCount !== undefined && blobCount !== null}
 						<div>
 							<dt>blob count</dt>
@@ -422,7 +422,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const namespaceCount = prefetched.namespaceCount}
+					{@const namespaceCount = pendingEntity.namespaceCount}
 					{#if namespaceCount !== undefined && namespaceCount !== null}
 						<div>
 							<dt>namespace count</dt>
@@ -457,7 +457,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sampledHeaderHeight = prefetched.sampledHeaderHeight}
+					{@const sampledHeaderHeight = pendingEntity.sampledHeaderHeight}
 					{#if sampledHeaderHeight !== undefined && sampledHeaderHeight !== null}
 						<div>
 							<dt>sampled header height</dt>
@@ -492,7 +492,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeType = prefetched.nodeType}
+					{@const nodeType = pendingEntity.nodeType}
 					{#if nodeType !== undefined && nodeType !== null}
 						<div>
 							<dt>node type</dt>

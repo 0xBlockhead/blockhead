@@ -51,7 +51,7 @@
 			cwd: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.terminalId ?? prefetched.terminalId) ?? '')].filter(Boolean).join(' ') || 'ACP terminal')
+	const titleFallback = $derived([String((pendingEntity.terminalId) ?? '')].filter(Boolean).join(' ') || 'ACP terminal')
 	const viewDomId = $derived('acp-terminal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpTerminal}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.terminalId ?? prefetched.terminalId) ?? '')].filter(Boolean).join(' ') || title || 'ACP terminal'}
+				{[String((pendingEntity.terminalId) ?? '')].filter(Boolean).join(' ') || title || 'ACP terminal'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpTerminal}>
 			{#snippet Pending()}
-				{[String((prefetched.command) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.terminalId ?? prefetched.terminalId) ?? '')].filter(Boolean).join(' ') || title || 'ACP terminal'}
+				{[String((pendingEntity.command) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.terminalId) ?? '')].filter(Boolean).join(' ') || title || 'ACP terminal'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpTerminal}>
 			{#snippet Pending()}
-				{@const cwd0 = prefetched.cwd}
+				{@const cwd0 = pendingEntity.cwd}
 				{#if cwd0 !== undefined && cwd0 !== null}
 					<span data-text="muted">
 						{String((cwd0) ?? '')}
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const terminalId = selection.entitySelector.terminalId ?? prefetched.terminalId}
+							{@const terminalId = pendingEntity.terminalId}
 							{#if terminalId !== undefined && terminalId !== null}
 								{String((terminalId) ?? '')}
 							{/if}
@@ -175,7 +175,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const command = prefetched.command}
+					{@const command = pendingEntity.command}
 					{#if command !== undefined && command !== null}
 						<div>
 							<dt>command</dt>
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cwd = prefetched.cwd}
+					{@const cwd = pendingEntity.cwd}
 					{#if cwd !== undefined && cwd !== null}
 						<div>
 							<dt>cwd</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const releasedAt = prefetched.releasedAt}
+					{@const releasedAt = pendingEntity.releasedAt}
 					{#if releasedAt !== undefined && releasedAt !== null}
 						<div>
 							<dt>released AT</dt>

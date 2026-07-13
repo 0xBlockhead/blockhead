@@ -52,17 +52,19 @@
 			modelFamily: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.providerModelId ?? prefetched.providerModelId) ?? '')].filter(Boolean).join(' ') || 'AI model')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerModelId) ?? '')].filter(Boolean).join(' ') || 'AI model')
 	const viewDomId = $derived('ai-model-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import AiModelProviderView from '$/views/AiModelProviderView.svelte'
 	import AiModelVersionsView from '$/views/AiModelVersionsView.svelte'
 	import AiDocumentsView from '$/views/AiDocumentsView.svelte'
 	import AiModel_TimestampsView from '$/views/AiModel_TimestampsView.svelte'
-	import AiModelProviderView from '$/views/AiModelProviderView.svelte'
 </script>
 
 
@@ -79,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiModel}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.providerModelId ?? prefetched.providerModelId) ?? '')].filter(Boolean).join(' ') || 'AI model'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerModelId) ?? '')].filter(Boolean).join(' ') || 'AI model'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -113,7 +115,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiModel}>
 			{#snippet Pending()}
-				{@const modelFamily0 = prefetched.modelFamily}
+				{@const modelFamily0 = pendingEntity.modelFamily}
 				{#if modelFamily0 !== undefined && modelFamily0 !== null}
 					<span data-text="muted">
 						{String((modelFamily0) ?? '')}
@@ -159,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const providerModelId = selection.entitySelector.providerModelId ?? prefetched.providerModelId}
+							{@const providerModelId = pendingEntity.providerModelId}
 							{#if providerModelId !== undefined && providerModelId !== null}
 								{String((providerModelId) ?? '')}
 							{/if}
@@ -186,7 +188,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerResourceName = prefetched.providerResourceName}
+					{@const providerResourceName = pendingEntity.providerResourceName}
 					{#if providerResourceName !== undefined && providerResourceName !== null}
 						<div>
 							<dt>provider resource name</dt>
@@ -221,7 +223,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseModelId = prefetched.baseModelId}
+					{@const baseModelId = pendingEntity.baseModelId}
 					{#if baseModelId !== undefined && baseModelId !== null}
 						<div>
 							<dt>base model ID</dt>
@@ -256,7 +258,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -291,7 +293,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const modelFamily = prefetched.modelFamily}
+					{@const modelFamily = pendingEntity.modelFamily}
 					{#if modelFamily !== undefined && modelFamily !== null}
 						<div>
 							<dt>model family</dt>
@@ -328,7 +330,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerOwnedBy = prefetched.providerOwnedBy}
+					{@const providerOwnedBy = pendingEntity.providerOwnedBy}
 					{#if providerOwnedBy !== undefined && providerOwnedBy !== null}
 						<div>
 							<dt>provider owned by</dt>
@@ -363,7 +365,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerCreatedAt = prefetched.providerCreatedAt}
+					{@const providerCreatedAt = pendingEntity.providerCreatedAt}
 					{#if providerCreatedAt !== undefined && providerCreatedAt !== null}
 						<div>
 							<dt>provider created AT</dt>
@@ -392,26 +394,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AiModelVersionsView
-				selection={selection.$$versions}
-				title='versions'
-				emptyText='No AI model versions.'
-				id='AiModelVersionsView-versions'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ai-model-versions-docs'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ai-model-versions',
+							label: 'Versions',
+						},
+						{
+							id: 'ai-model-documents',
+							label: 'Documents',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-versions'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Versions and documents</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AiDocumentsView
-				selection={selection.$$documents}
-				title='documents'
-				emptyText='No linked documents.'
-				id='AiDocumentsView-documents'
-			/>
+				{#snippet SectionAiModelVersions({ id, label, open })}
+					<AiModelVersionsView
+						selection={selection.$$versions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI model versions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AiModel_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No AI model observations.'
-				id='AiModel_TimestampsView-timestamps'
-			/>
+				{#snippet SectionAiModelDocuments({ id, label, open })}
+					<AiDocumentsView
+						selection={selection.$$documents}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No linked documents.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ai-model-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ai-model-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAiModelTimestamps({ id, label, open })}
+					<AiModel_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI model observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

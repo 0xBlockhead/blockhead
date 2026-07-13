@@ -10,8 +10,10 @@ export enum BlockheadIntentOrderSelector {
 }
 export const BlockheadIntentOrder = entity({
 	entityType: EntityType.BlockheadIntentOrder,
-	label: 'blockhead intent order',
-	labelPlural: 'blockhead intent orders',
+	labels: {
+		singular: 'blockhead intent order',
+		plural: 'blockhead intent orders',
+	},
 })({
 	id: {
 		label: 'ID',

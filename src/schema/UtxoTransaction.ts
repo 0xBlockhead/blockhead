@@ -9,8 +9,10 @@ export enum UtxoTransactionSelector {
 }
 export const UtxoTransaction = entity({
 	entityType: EntityType.UtxoTransaction,
-	label: 'UTXO transaction',
-	labelPlural: 'UTXO transactions',
+	labels: {
+		singular: 'UTXO transaction',
+		plural: 'UTXO transactions',
+	},
 })({
 	$network: {
 		label: 'Network',

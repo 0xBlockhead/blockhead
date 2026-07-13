@@ -9,8 +9,10 @@ export enum BlockheadZeroGStorageNodeState_TimestampSelector {
 }
 export const BlockheadZeroGStorageNodeState_Timestamp = entity({
 	entityType: EntityType.BlockheadZeroGStorageNodeState_Timestamp,
-	label: 'blockhead zero g storage node state timestamp',
-	labelPlural: 'blockhead zero g storage node state observations',
+	labels: {
+		singular: 'blockhead zero g storage node state timestamp',
+		plural: 'blockhead zero g storage node state observations',
+	},
 })({
 	$nodeState: {
 		label: 'node state',

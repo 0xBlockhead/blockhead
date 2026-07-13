@@ -121,7 +121,7 @@
 						selection={select(EntityType.EvmSelector, evmSelector[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmSelectorFields}
 						href={
-							(evmSelectorHrefFields.hex !== undefined ? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+							(evmSelectorHrefFields.hex !== undefined ? resolve('/evm/selector/[hex=zeroExHex]', {
 								hex: String(evmSelectorHrefFields.hex ?? ''),
 							}) : undefined)
 						}

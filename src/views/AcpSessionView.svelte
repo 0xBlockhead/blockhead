@@ -48,11 +48,10 @@
 			Source.AcpLocal_JsonRpc,
 		],
 		fields: {
-			$runtime: true,
 			workspaceUri: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.sessionId ?? prefetched.sessionId) ?? '')].filter(Boolean).join(' ') || 'ACP session')
+	const titleFallback = $derived([String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || 'ACP session')
 	const viewDomId = $derived('acp-session-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpSession}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.sessionId ?? prefetched.sessionId) ?? '')].filter(Boolean).join(' ') || title || 'ACP session'}
+				{[String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || 'ACP session'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -130,7 +129,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpSession}>
 			{#snippet Pending()}
-				{@const workspaceUri0 = prefetched.workspaceUri}
+				{@const workspaceUri0 = pendingEntity.workspaceUri}
 				{#if workspaceUri0 !== undefined && workspaceUri0 !== null}
 					<span data-text="muted">
 						<svelte:element
@@ -179,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sessionId = selection.entitySelector.sessionId ?? prefetched.sessionId}
+							{@const sessionId = pendingEntity.sessionId}
 							{#if sessionId !== undefined && sessionId !== null}
 								{String((sessionId) ?? '')}
 							{/if}
@@ -199,6 +198,8 @@
 			<ResourceBoundary
 				resource={selection.$runtime}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(acpAgentRuntime)}
 					{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
 						<div>
@@ -226,7 +227,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const workspaceUri = prefetched.workspaceUri}
+					{@const workspaceUri = pendingEntity.workspaceUri}
 					{#if workspaceUri !== undefined && workspaceUri !== null}
 						<div>
 							<dt>workspace URI</dt>
@@ -275,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mode = prefetched.mode}
+					{@const mode = pendingEntity.mode}
 					{#if mode !== undefined && mode !== null}
 						<div>
 							<dt>mode</dt>
@@ -310,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const listed = prefetched.listed}
+					{@const listed = pendingEntity.listed}
 					{#if listed !== undefined && listed !== null}
 						<div>
 							<dt>listed</dt>
@@ -345,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -380,7 +381,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const loadedFromSessionId = prefetched.loadedFromSessionId}
+					{@const loadedFromSessionId = pendingEntity.loadedFromSessionId}
 					{#if loadedFromSessionId !== undefined && loadedFromSessionId !== null}
 						<div>
 							<dt>loaded from session ID</dt>
@@ -417,7 +418,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -452,7 +453,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const closedAt = prefetched.closedAt}
+					{@const closedAt = pendingEntity.closedAt}
 					{#if closedAt !== undefined && closedAt !== null}
 						<div>
 							<dt>closed AT</dt>
@@ -487,7 +488,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deletedAt = prefetched.deletedAt}
+					{@const deletedAt = pendingEntity.deletedAt}
 					{#if deletedAt !== undefined && deletedAt !== null}
 						<div>
 							<dt>deleted AT</dt>

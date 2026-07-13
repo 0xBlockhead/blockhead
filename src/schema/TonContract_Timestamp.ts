@@ -9,8 +9,10 @@ export enum TonContract_TimestampSelector {
 }
 export const TonContract_Timestamp = entity({
 	entityType: EntityType.TonContract_Timestamp,
-	label: 'ton contract timestamp',
-	labelPlural: 'ton contract observations',
+	labels: {
+		singular: 'ton contract timestamp',
+		plural: 'ton contract observations',
+	},
 })({
 	$contract: {
 		label: 'contract',

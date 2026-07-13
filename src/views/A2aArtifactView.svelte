@@ -51,7 +51,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.artifactId ?? prefetched.artifactId) ?? '')].filter(Boolean).join(' ') || 'A2A artifact')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.artifactId) ?? '')].filter(Boolean).join(' ') || 'A2A artifact')
 	const viewDomId = $derived('a2a-artifact-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aArtifact}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.artifactId ?? prefetched.artifactId) ?? '')].filter(Boolean).join(' ') || 'A2A artifact'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.artifactId) ?? '')].filter(Boolean).join(' ') || 'A2A artifact'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aArtifact}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const artifactId = selection.entitySelector.artifactId ?? prefetched.artifactId}
+							{@const artifactId = pendingEntity.artifactId}
 							{#if artifactId !== undefined && artifactId !== null}
 								{String((artifactId) ?? '')}
 							{/if}
@@ -184,7 +184,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -282,6 +282,8 @@
 			<ResourceBoundary
 				resource={selection.$aiArtifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>

@@ -10,8 +10,10 @@ export enum Erc4337SmartAccountSelector {
 }
 export const Erc4337SmartAccount = entity({
 	entityType: EntityType.Erc4337SmartAccount,
-	label: 'ERC-4337 smart account',
-	labelPlural: 'ERC-4337 smart accounts',
+	labels: {
+		singular: 'ERC-4337 smart account',
+		plural: 'ERC-4337 smart accounts',
+	},
 })({
 	$network: {
 		label: 'Network',

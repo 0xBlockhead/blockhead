@@ -11,8 +11,10 @@ export enum ScalingDeploymentClaim_TimestampSelector {
 }
 export const ScalingDeploymentClaim_Timestamp = entity({
 	entityType: EntityType.ScalingDeploymentClaim_Timestamp,
-	label: 'scaling deployment claim timestamp',
-	labelPlural: 'scaling deployment claim observations',
+	labels: {
+		singular: 'scaling deployment claim timestamp',
+		plural: 'scaling deployment claim observations',
+	},
 })({
 	$claim: {
 		label: 'Claim',

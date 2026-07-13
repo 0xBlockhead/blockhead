@@ -52,7 +52,7 @@
 			callPath: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.logIndex ?? prefetched.logIndex) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation log')
+	const titleFallback = $derived([String((pendingEntity.logIndex) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation log')
 	const viewDomId = $derived('blockhead-session-simulation-log-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadSessionSimulationLog}>
 			{#snippet Pending()}
-				{@const logIndex0 = selection.entitySelector.logIndex ?? prefetched.logIndex}
+				{@const logIndex0 = pendingEntity.logIndex}
 				{#if logIndex0 !== undefined && logIndex0 !== null}
 					<NumberValue value={Number(logIndex0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSessionSimulationLog}>
 			{#snippet Pending()}
-				{[String((prefetched.address) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.logIndex ?? prefetched.logIndex) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session simulation log'}
+				{[String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.logIndex) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session simulation log'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadSessionSimulationLog}>
 			{#snippet Pending()}
-				{@const callPath0 = prefetched.callPath}
+				{@const callPath0 = pendingEntity.callPath}
 				{#if callPath0 !== undefined && callPath0 !== null}
 					<span data-text="muted">
 						{String((callPath0) ?? '')}
@@ -138,7 +138,7 @@
 						resource={selection.$simulation}
 					>
 						{#snippet children(blockheadSessionSimulation)}
-							{#if blockheadSessionSimulation[EntityMetaKey.Selector] != null}
+							{#if blockheadSessionSimulation != null && blockheadSessionSimulation[EntityMetaKey.Selector] != null}
 								<BlockheadSessionSimulationView
 									selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionSimulation}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const logIndex = selection.entitySelector.logIndex ?? prefetched.logIndex}
+							{@const logIndex = pendingEntity.logIndex}
 							{#if logIndex !== undefined && logIndex !== null}
 								<NumberValue value={Number(logIndex)} />
 							{/if}
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const callPath = prefetched.callPath}
+					{@const callPath = pendingEntity.callPath}
 					{#if callPath !== undefined && callPath !== null}
 						<div>
 							<dt>call path</dt>
@@ -226,7 +226,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const address = prefetched.address}
+					{@const address = pendingEntity.address}
 					{#if address !== undefined && address !== null}
 						<div>
 							<dt>Address</dt>
@@ -261,7 +261,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const topic0 = prefetched.topic0}
+					{@const topic0 = pendingEntity.topic0}
 					{#if topic0 !== undefined && topic0 !== null}
 						<div>
 							<dt>topic0</dt>
@@ -301,7 +301,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const topics = prefetched.topics}
+							{@const topics = pendingEntity.topics}
 							{#if topics !== undefined && topics !== null}
 								{topics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -328,7 +328,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataHash = prefetched.dataHash}
+					{@const dataHash = pendingEntity.dataHash}
 					{#if dataHash !== undefined && dataHash !== null}
 						<div>
 							<dt>data hash</dt>
@@ -363,7 +363,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decodedEventName = prefetched.decodedEventName}
+					{@const decodedEventName = pendingEntity.decodedEventName}
 					{#if decodedEventName !== undefined && decodedEventName !== null}
 						<div>
 							<dt>decoded event name</dt>
@@ -398,7 +398,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const removed = prefetched.removed}
+					{@const removed = pendingEntity.removed}
 					{#if removed !== undefined && removed !== null}
 						<div>
 							<dt>removed</dt>

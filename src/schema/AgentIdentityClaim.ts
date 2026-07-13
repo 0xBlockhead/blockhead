@@ -10,8 +10,10 @@ export enum AgentIdentityClaimSelector {
 }
 export const AgentIdentityClaim = entity({
 	entityType: EntityType.AgentIdentityClaim,
-	label: 'agent identity claim',
-	labelPlural: 'agent identity claims',
+	labels: {
+		singular: 'agent identity claim',
+		plural: 'agent identity claims',
+	},
 })({
 	subjectKind: {
 		label: 'subject kind',

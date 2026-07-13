@@ -42,11 +42,13 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.infoHash ?? prefetched.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent metainfo')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent metainfo')
 	const viewDomId = $derived('bit-torrent-metainfo-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -73,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bitTorrentMetainfo}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.infoHash ?? prefetched.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent metainfo'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent metainfo'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentMetainfo}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.hashVersion ?? prefetched.hashVersion) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.infoHash ?? prefetched.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent metainfo'}
+				{[String((pendingEntity.hashVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent metainfo'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +110,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -146,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const infoHash = selection.entitySelector.infoHash ?? prefetched.infoHash}
+							{@const infoHash = pendingEntity.infoHash}
 							{#if infoHash !== undefined && infoHash !== null}
 								<TruncatedValue value={String((infoHash) ?? '')} />
 							{/if}
@@ -176,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hashVersion = selection.entitySelector.hashVersion ?? prefetched.hashVersion}
+							{@const hashVersion = pendingEntity.hashVersion}
 							{#if hashVersion !== undefined && hashVersion !== null}
 								<TruncatedValue value={String((hashVersion) ?? '')} />
 							{/if}
@@ -203,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalLength = prefetched.totalLength}
+					{@const totalLength = pendingEntity.totalLength}
 					{#if totalLength !== undefined && totalLength !== null}
 						<div>
 							<dt>total length</dt>
@@ -240,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const infoHashV1 = prefetched.infoHashV1}
+					{@const infoHashV1 = pendingEntity.infoHashV1}
 					{#if infoHashV1 !== undefined && infoHashV1 !== null}
 						<div>
 							<dt>info hash v1</dt>
@@ -275,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const infoHashV2 = prefetched.infoHashV2}
+					{@const infoHashV2 = pendingEntity.infoHashV2}
 					{#if infoHashV2 !== undefined && infoHashV2 !== null}
 						<div>
 							<dt>info hash v2</dt>
@@ -310,7 +312,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metainfoHash = prefetched.metainfoHash}
+					{@const metainfoHash = pendingEntity.metainfoHash}
 					{#if metainfoHash !== undefined && metainfoHash !== null}
 						<div>
 							<dt>metainfo hash</dt>
@@ -345,7 +347,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bencodedInfoHash = prefetched.bencodedInfoHash}
+					{@const bencodedInfoHash = pendingEntity.bencodedInfoHash}
 					{#if bencodedInfoHash !== undefined && bencodedInfoHash !== null}
 						<div>
 							<dt>bencoded info hash</dt>
@@ -380,7 +382,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pieceLength = prefetched.pieceLength}
+					{@const pieceLength = pendingEntity.pieceLength}
 					{#if pieceLength !== undefined && pieceLength !== null}
 						<div>
 							<dt>piece length</dt>
@@ -415,7 +417,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const privateValue = prefetched.private}
+					{@const privateValue = pendingEntity.private}
 					{#if privateValue !== undefined && privateValue !== null}
 						<div>
 							<dt>private</dt>
@@ -444,54 +446,173 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BitTorrentFilesView
-				selection={selection.$$files}
-				title='files'
-				emptyText='No files found.'
-				id='BitTorrentFilesView-files'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-bittorrent-content'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'bittorrent-files',
+							label: 'Files',
+						},
+						{
+							id: 'bittorrent-file-tree',
+							label: 'File tree',
+						},
+						{
+							id: 'bittorrent-pieces',
+							label: 'Pieces',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-content'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Content</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BitTorrentFileTreeEntriesView
-				selection={selection.$$fileTreeEntries}
-				title='file tree entries'
-				emptyText='No file tree entries found.'
-				id='BitTorrentFileTreeEntriesView-file-tree-entries'
-			/>
+				{#snippet SectionBittorrentFiles({ id, label, open })}
+					<BitTorrentFilesView
+						selection={selection.$$files}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No files found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BitTorrentPiecesView
-				selection={selection.$$pieces}
-				title='pieces'
-				emptyText='No pieces found.'
-				id='BitTorrentPiecesView-pieces'
-			/>
+				{#snippet SectionBittorrentFileTree({ id, label, open })}
+					<BitTorrentFileTreeEntriesView
+						selection={selection.$$fileTreeEntries}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No file tree entries found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BitTorrentTrackersView
-				selection={selection.$$trackers}
-				title='trackers'
-				emptyText='No trackers found.'
-				id='BitTorrentTrackersView-trackers'
-			/>
+				{#snippet SectionBittorrentPieces({ id, label, open })}
+					<BitTorrentPiecesView
+						selection={selection.$$pieces}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No pieces found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<MagnetLinksView
-				selection={selection.$$magnets}
-				title='magnets'
-				emptyText='No magnets found.'
-				id='MagnetLinksView-magnets'
-			/>
+			</CollapsibleTabs>
 
-			<BitTorrentSwarmObservation_TimestampsView
-				selection={selection.$$swarmTimestamps}
-				title='swarm timestamps'
-				emptyText='No swarm observations yet.'
-				id='BitTorrentSwarmObservation_TimestampsView-swarm-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-bittorrent-discovery'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'bittorrent-trackers',
+							label: 'Trackers',
+						},
+						{
+							id: 'bittorrent-magnets',
+							label: 'Magnets',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-discovery'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Discovery</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BlockheadBitTorrentTransfer_TimestampsView
-				selection={selection.$$clientTransfers}
-				title='client transfers'
-				emptyText='No client transfers yet.'
-				id='BlockheadBitTorrentTransfer_TimestampsView-client-transfers'
-			/>
+				{#snippet SectionBittorrentTrackers({ id, label, open })}
+					<BitTorrentTrackersView
+						selection={selection.$$trackers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No trackers found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionBittorrentMagnets({ id, label, open })}
+					<MagnetLinksView
+						selection={selection.$$magnets}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No magnets found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-bittorrent-swarm'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'bittorrent-swarm-observations',
+							label: 'Swarm observations',
+						},
+						{
+							id: 'bittorrent-client-transfers',
+							label: 'Client transfers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-swarm'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Swarm and transfers</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionBittorrentSwarmObservations({ id, label, open })}
+					<BitTorrentSwarmObservation_TimestampsView
+						selection={selection.$$swarmTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No swarm observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionBittorrentClientTransfers({ id, label, open })}
+					<BlockheadBitTorrentTransfer_TimestampsView
+						selection={selection.$$clientTransfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No client transfers yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

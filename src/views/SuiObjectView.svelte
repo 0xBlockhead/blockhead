@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectId = selection.entitySelector.objectId ?? prefetched.objectId}
+							{@const objectId = pendingEntity.objectId}
 							{#if objectId !== undefined && objectId !== null}
 								{String((objectId) ?? '')}
 							{/if}

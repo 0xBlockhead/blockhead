@@ -9,8 +9,10 @@ export enum HederaNftSelector {
 }
 export const HederaNft = entity({
 	entityType: EntityType.HederaNft,
-	label: 'hedera NFT',
-	labelPlural: 'hedera NFTs',
+	labels: {
+		singular: 'hedera NFT',
+		plural: 'hedera NFTs',
+	},
 })({
 	$token: {
 		label: 'token',

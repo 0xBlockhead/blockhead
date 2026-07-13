@@ -1,0 +1,84 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { LayoutLoad } from './$types'
+import { error } from '@sveltejs/kit'
+import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
+import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
+import { parseEntitySelector, type EntitySelector } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { EvmBlock as EvmBlockSchema } from '$/schema/EvmBlock.ts'
+import { schema } from '$/schema/index.ts'
+import { PolkadotBlock as PolkadotBlockSchema } from '$/schema/PolkadotBlock.ts'
+import { SolanaBlock as SolanaBlockSchema } from '$/schema/SolanaBlock.ts'
+import { UtxoBlock as UtxoBlockSchema } from '$/schema/UtxoBlock.ts'
+import { type as arktype } from 'arktype'
+
+export const load: LayoutLoad = async ({ params, parent }) => {
+	const parentData = await parent()
+
+	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
+	if (projectionNetwork == null) error(404, 'Network projection context not found')
+
+	const selectorMappings: {
+		entityType: EntityType
+		selector: EntitySelector<typeof schema, EntityType>
+	}[] = []
+
+	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')) && matchNonNegativeBigInt(params.blockNumber)) {
+		const evmBlockEvmNetworkBlockNumberSelector = parseEntitySelector(
+			schema,
+			EvmBlockSchema,
+			{
+				$network: parentData.selector,
+				blockNumber: BigInt(params.blockNumber),
+			}
+		)
+		if (!(evmBlockEvmNetworkBlockNumberSelector instanceof arktype.errors))
+			selectorMappings.push({ entityType: EntityType.EvmBlock, selector: evmBlockEvmNetworkBlockNumberSelector })
+	}
+
+	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')) && matchNonNegativeBigInt(params.blockNumber)) {
+		const solanaBlockSlotSelector = parseEntitySelector(
+			schema,
+			SolanaBlockSchema,
+			{
+				$network: parentData.selector,
+				slot: BigInt(params.blockNumber),
+			}
+		)
+		if (!(solanaBlockSlotSelector instanceof arktype.errors))
+			selectorMappings.push({ entityType: EntityType.SolanaBlock, selector: solanaBlockSlotSelector })
+	}
+
+	if ((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && matchNonNegativeBigInt(params.blockNumber)) {
+		const utxoBlockNetworkHeightSelector = parseEntitySelector(
+			schema,
+			UtxoBlockSchema,
+			{
+				$network: parentData.selector,
+				height: BigInt(params.blockNumber),
+			}
+		)
+		if (!(utxoBlockNetworkHeightSelector instanceof arktype.errors))
+			selectorMappings.push({ entityType: EntityType.UtxoBlock, selector: utxoBlockNetworkHeightSelector })
+	}
+
+	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')) && matchNonNegativeBigInt(params.blockNumber)) {
+		const polkadotBlockNetworkBlockNumberSelector = parseEntitySelector(
+			schema,
+			PolkadotBlockSchema,
+			{
+				$network: parentData.selector,
+				blockNumber: BigInt(params.blockNumber),
+			}
+		)
+		if (!(polkadotBlockNetworkBlockNumberSelector instanceof arktype.errors))
+			selectorMappings.push({ entityType: EntityType.PolkadotBlock, selector: polkadotBlockNetworkBlockNumberSelector })
+	}
+
+	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')
+	if (selectorMappings.length > 1) error(500, 'Route selector is ambiguous')
+	const selectorMapping = selectorMappings[0]
+
+	return { selector: selectorMapping.selector, selectorMapping, selectorMappings }
+}

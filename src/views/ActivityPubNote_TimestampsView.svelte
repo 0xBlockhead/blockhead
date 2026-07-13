@@ -118,10 +118,10 @@
 						selection={select(EntityType.ActivityPubNote_Timestamp, activityPubNoteTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={activityPubNoteTimestampFields}
 						href={
-							(activityPubNoteTimestampHrefFields.$note !== undefined && activityPubNoteTimestampHrefFields.$note.instanceOrigin !== undefined && activityPubNoteTimestampHrefFields.$note !== undefined && activityPubNoteTimestampHrefFields.$note.localStatusId !== undefined && activityPubNoteTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/(note)/observations/[timestampMs=nonNegativeInteger]', {
+							(activityPubNoteTimestampHrefFields.timestampMs !== undefined && activityPubNoteTimestampHrefFields.$note !== undefined && activityPubNoteTimestampHrefFields.$note.instanceOrigin !== undefined && activityPubNoteTimestampHrefFields.$note.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+								timestampMs: String(activityPubNoteTimestampHrefFields.timestampMs ?? ''),
 								instanceOrigin: String(activityPubNoteTimestampHrefFields.$note.instanceOrigin ?? ''),
 								localStatusId: String(activityPubNoteTimestampHrefFields.$note.localStatusId ?? ''),
-								timestampMs: String(activityPubNoteTimestampHrefFields.timestampMs ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

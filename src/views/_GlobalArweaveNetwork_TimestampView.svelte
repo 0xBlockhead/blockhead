@@ -53,7 +53,7 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global Arweave network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global Arweave network timestamp')
 	const viewDomId = $derived('-global-arweave-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={globalArweaveNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -97,7 +97,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalArweaveNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const sourceReportedLatestHeight0 = prefetched.sourceReportedLatestHeight}
+				{@const sourceReportedLatestHeight0 = pendingEntity.sourceReportedLatestHeight}
 				{#if sourceReportedLatestHeight0 !== undefined && sourceReportedLatestHeight0 !== null}
 					<NumberValue value={Number(sourceReportedLatestHeight0)} />
 				{/if}
@@ -116,7 +116,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalArweaveNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const reachable0 = prefetched.reachable}
+				{@const reachable0 = pendingEntity.reachable}
 				{#if reachable0 !== undefined && reachable0 !== null}
 					<span data-text="muted">
 						{reachable0 ? 'Yes' : 'No'}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>
@@ -256,7 +256,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const declaredAccessEndpointCount = prefetched.declaredAccessEndpointCount}
+					{@const declaredAccessEndpointCount = pendingEntity.declaredAccessEndpointCount}
 					{#if declaredAccessEndpointCount !== undefined && declaredAccessEndpointCount !== null}
 						<div>
 							<dt>Declared access endpoints</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachableAccessEndpointCount = prefetched.reachableAccessEndpointCount}
+					{@const reachableAccessEndpointCount = pendingEntity.reachableAccessEndpointCount}
 					{#if reachableAccessEndpointCount !== undefined && reachableAccessEndpointCount !== null}
 						<div>
 							<dt>Reachable access endpoints</dt>
@@ -326,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceReportedLatestHeight = prefetched.sourceReportedLatestHeight}
+					{@const sourceReportedLatestHeight = pendingEntity.sourceReportedLatestHeight}
 					{#if sourceReportedLatestHeight !== undefined && sourceReportedLatestHeight !== null}
 						<div>
 							<dt>Source-reported latest height</dt>
@@ -363,7 +363,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedBlockCount = prefetched.observedBlockCount}
+					{@const observedBlockCount = pendingEntity.observedBlockCount}
 					{#if observedBlockCount !== undefined && observedBlockCount !== null}
 						<div>
 							<dt>Observed blocks</dt>
@@ -398,7 +398,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedTransactionCount = prefetched.observedTransactionCount}
+					{@const observedTransactionCount = pendingEntity.observedTransactionCount}
 					{#if observedTransactionCount !== undefined && observedTransactionCount !== null}
 						<div>
 							<dt>Observed transactions</dt>
@@ -433,7 +433,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededExampleCount = prefetched.seededExampleCount}
+					{@const seededExampleCount = pendingEntity.seededExampleCount}
 					{#if seededExampleCount !== undefined && seededExampleCount !== null}
 						<div>
 							<dt>Seeded examples</dt>

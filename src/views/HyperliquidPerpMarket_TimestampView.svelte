@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxLeverage = prefetched.maxLeverage}
+					{@const maxLeverage = pendingEntity.maxLeverage}
 					{#if maxLeverage !== undefined && maxLeverage !== null}
 						<div>
 							<dt>max leverage</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const onlyIsolated = prefetched.onlyIsolated}
+					{@const onlyIsolated = pendingEntity.onlyIsolated}
 					{#if onlyIsolated !== undefined && onlyIsolated !== null}
 						<div>
 							<dt>only isolated</dt>

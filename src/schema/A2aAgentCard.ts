@@ -10,8 +10,10 @@ export enum A2aAgentCardSelector {
 }
 export const A2aAgentCard = entity({
 	entityType: EntityType.A2aAgentCard,
-	label: 'a2a agent card',
-	labelPlural: 'a2a agent cards',
+	labels: {
+		singular: 'a2a agent card',
+		plural: 'a2a agent cards',
+	},
 })({
 	agentCardUrl: {
 		label: 'agent card URL',

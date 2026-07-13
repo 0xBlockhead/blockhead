@@ -9,8 +9,10 @@ export enum ActivityPubInstancePeerSelector {
 }
 export const ActivityPubInstancePeer = entity({
 	entityType: EntityType.ActivityPubInstancePeer,
-	label: 'ActivityPub instance peer',
-	labelPlural: 'ActivityPub instance peers',
+	labels: {
+		singular: 'ActivityPub instance peer',
+		plural: 'ActivityPub instance peers',
+	},
 	description: 'A domain that a declared ActivityPub instance reports as a known connected domain.',
 })({
 	instanceOrigin: {

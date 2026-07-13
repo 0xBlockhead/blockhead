@@ -9,8 +9,10 @@ export enum AvailDataSubmissionSelector {
 }
 export const AvailDataSubmission = entity({
 	entityType: EntityType.AvailDataSubmission,
-	label: 'avail data submission',
-	labelPlural: 'avail data submissions',
+	labels: {
+		singular: 'avail data submission',
+		plural: 'avail data submissions',
+	},
 })({
 	$network: {
 		label: 'network',

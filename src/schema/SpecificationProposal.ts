@@ -9,8 +9,10 @@ export enum SpecificationProposalSelector {
 }
 export const SpecificationProposal = entity({
 	entityType: EntityType.SpecificationProposal,
-	label: 'Specification proposal',
-	labelPlural: 'specification proposals',
+	labels: {
+		singular: 'Specification proposal',
+		plural: 'specification proposals',
+	},
 })({
 	realm: {
 		label: 'Realm',

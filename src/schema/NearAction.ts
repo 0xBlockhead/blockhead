@@ -10,8 +10,10 @@ export enum NearActionSelector {
 }
 export const NearAction = entity({
 	entityType: EntityType.NearAction,
-	label: 'near action',
-	labelPlural: 'near actions',
+	labels: {
+		singular: 'near action',
+		plural: 'near actions',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',

@@ -9,8 +9,10 @@ export enum AcpAgentRuntime_TimestampSelector {
 }
 export const AcpAgentRuntime_Timestamp = entity({
 	entityType: EntityType.AcpAgentRuntime_Timestamp,
-	label: 'acp agent runtime timestamp',
-	labelPlural: 'acp agent runtime observations',
+	labels: {
+		singular: 'acp agent runtime timestamp',
+		plural: 'acp agent runtime observations',
+	},
 })({
 	$runtime: {
 		label: 'runtime',

@@ -10,8 +10,10 @@ export enum EvmTopicSelector {
 }
 export const EvmTopic = entity({
 	entityType: EntityType.EvmTopic,
-	label: 'EVM topic',
-	labelPlural: 'EVM topics',
+	labels: {
+		singular: 'EVM topic',
+		plural: 'EVM topics',
+	},
 })({
 	hex: {
 		label: 'Hex',

@@ -47,7 +47,7 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'arweave network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'arweave network timestamp')
 	const viewDomId = $derived('arweave-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={arweaveNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const latestHeight0 = prefetched.latestHeight}
+				{@const latestHeight0 = pendingEntity.latestHeight}
 				{#if latestHeight0 !== undefined && latestHeight0 !== null}
 					<NumberValue value={Number(latestHeight0)} />
 				{/if}
@@ -111,13 +111,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={arweaveNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
 					</span>
 				{/if}
-				{@const reachable1 = prefetched.reachable}
+				{@const reachable1 = pendingEntity.reachable}
 				{#if reachable1 !== undefined && reachable1 !== null}
 					<span data-text="muted">
 						{reachable1 ? 'Yes' : 'No'}
@@ -169,7 +169,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -199,7 +199,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestHeight = prefetched.latestHeight}
+					{@const latestHeight = pendingEntity.latestHeight}
 					{#if latestHeight !== undefined && latestHeight !== null}
 						<div>
 							<dt>latest height</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestBlockHash = prefetched.latestBlockHash}
+					{@const latestBlockHash = pendingEntity.latestBlockHash}
 					{#if latestBlockHash !== undefined && latestBlockHash !== null}
 						<div>
 							<dt>latest block hash</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const currentBlockHash = prefetched.currentBlockHash}
+					{@const currentBlockHash = pendingEntity.currentBlockHash}
 					{#if currentBlockHash !== undefined && currentBlockHash !== null}
 						<div>
 							<dt>current block hash</dt>
@@ -335,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const networkId = prefetched.networkId}
+					{@const networkId = pendingEntity.networkId}
 					{#if networkId !== undefined && networkId !== null}
 						<div>
 							<dt>network ID</dt>
@@ -370,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>peer count</dt>
@@ -405,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const queuedTransactionCount = prefetched.queuedTransactionCount}
+					{@const queuedTransactionCount = pendingEntity.queuedTransactionCount}
 					{#if queuedTransactionCount !== undefined && queuedTransactionCount !== null}
 						<div>
 							<dt>queued transaction count</dt>
@@ -440,7 +440,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gatewayOrigin = prefetched.gatewayOrigin}
+					{@const gatewayOrigin = pendingEntity.gatewayOrigin}
 					{#if gatewayOrigin !== undefined && gatewayOrigin !== null}
 						<div>
 							<dt>gateway origin</dt>
@@ -475,7 +475,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const graphqlCursor = prefetched.graphqlCursor}
+					{@const graphqlCursor = pendingEntity.graphqlCursor}
 					{#if graphqlCursor !== undefined && graphqlCursor !== null}
 						<div>
 							<dt>GraphQL cursor</dt>
@@ -510,7 +510,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>

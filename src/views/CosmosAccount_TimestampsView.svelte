@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -71,7 +70,6 @@
 					accountNumber: true,
 					sequence: true,
 					timestampMs: true,
-					$account: true,
 				},
 			})
 		}
@@ -116,18 +114,9 @@
 
 				{#snippet Item({ item: cosmosAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosAccount_Timestamp> })}
 					{@const cosmosAccountTimestampFields = { ...cosmosAccountTimestamp[EntityMetaKey.Selector], ...cosmosAccountTimestamp }}
-					{@const cosmosAccountTimestampHrefFields = { ...cosmosAccountTimestamp, ...cosmosAccountTimestamp[EntityMetaKey.Selector] }}
 					<CosmosAccount_TimestampView
 						selection={select(EntityType.CosmosAccount_Timestamp, cosmosAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosAccountTimestampFields}
-						href={
-							(cosmosAccountTimestampHrefFields.$account !== undefined && cosmosAccountTimestampHrefFields.$account.$network !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2 !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2.namespace !== undefined && cosmosAccountTimestampHrefFields.$account !== undefined && cosmosAccountTimestampHrefFields.$account.$network !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2 !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2.reference !== undefined && cosmosAccountTimestampHrefFields.$account !== undefined && cosmosAccountTimestampHrefFields.$account.address !== undefined && cosmosAccountTimestampHrefFields.timestampMs !== undefined && cosmosAccountTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(cosmosAccountTimestampHrefFields.$account.$network.caip2.namespace ?? '')}:${String(cosmosAccountTimestampHrefFields.$account.$network.caip2.reference ?? '')}`,
-								address: String(cosmosAccountTimestampHrefFields.$account.address ?? ''),
-								timestampMs: String(cosmosAccountTimestampHrefFields.timestampMs ?? ''),
-								source: String(cosmosAccountTimestampHrefFields.source ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

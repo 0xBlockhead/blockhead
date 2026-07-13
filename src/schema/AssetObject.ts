@@ -9,8 +9,10 @@ export enum AssetObjectSelector {
 }
 export const AssetObject = entity({
 	entityType: EntityType.AssetObject,
-	label: 'asset object',
-	labelPlural: 'asset objects',
+	labels: {
+		singular: 'asset object',
+		plural: 'asset objects',
+	},
 	description: 'A distinct asset object or item within an asset instance, such as an NFT or uniquely addressable collectible.',
 })({
 	$assetInstance: {

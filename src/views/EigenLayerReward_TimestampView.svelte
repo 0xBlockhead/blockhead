@@ -104,7 +104,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerRewardTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.rewardContextKey ?? prefetched.rewardContextKey) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer reward timestamp'}
+				{[String((pendingEntity.rewardContextKey) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer reward timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -117,7 +117,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eigenLayerRewardTimestamp}>
 			{#snippet Pending()}
-				{@const rewardToken0 = prefetched.rewardToken}
+				{@const rewardToken0 = pendingEntity.rewardToken}
 				{#if rewardToken0 !== undefined && rewardToken0 !== null}
 					<span data-text="muted">
 						{String((rewardToken0) ?? '')}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rewardContextKey = selection.entitySelector.rewardContextKey ?? prefetched.rewardContextKey}
+							{@const rewardContextKey = pendingEntity.rewardContextKey}
 							{#if rewardContextKey !== undefined && rewardContextKey !== null}
 								{String((rewardContextKey) ?? '')}
 							{/if}
@@ -183,6 +183,8 @@
 			<ResourceBoundary
 				resource={selection.$strategy}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(eigenLayerStrategy)}
 					{#if eigenLayerStrategy != null && eigenLayerStrategy[EntityMetaKey.Selector] != null}
 						<div>
@@ -203,6 +205,8 @@
 			<ResourceBoundary
 				resource={selection.$operator}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(eigenLayerOperator)}
 					{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
 						<div>
@@ -223,6 +227,8 @@
 			<ResourceBoundary
 				resource={selection.$avs}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(eigenLayerAvs)}
 					{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
 						<div>
@@ -255,7 +261,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -285,7 +291,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -312,7 +318,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardToken = prefetched.rewardToken}
+					{@const rewardToken = pendingEntity.rewardToken}
 					{#if rewardToken !== undefined && rewardToken !== null}
 						<div>
 							<dt>reward token</dt>
@@ -349,7 +355,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardAmount = prefetched.rewardAmount}
+					{@const rewardAmount = pendingEntity.rewardAmount}
 					{#if rewardAmount !== undefined && rewardAmount !== null}
 						<div>
 							<dt>reward amount</dt>
@@ -384,7 +390,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cumulativeClaimed = prefetched.cumulativeClaimed}
+					{@const cumulativeClaimed = pendingEntity.cumulativeClaimed}
 					{#if cumulativeClaimed !== undefined && cumulativeClaimed !== null}
 						<div>
 							<dt>cumulative claimed</dt>
@@ -419,7 +425,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const merkleRoot = prefetched.merkleRoot}
+					{@const merkleRoot = pendingEntity.merkleRoot}
 					{#if merkleRoot !== undefined && merkleRoot !== null}
 						<div>
 							<dt>merkle root</dt>
@@ -454,7 +460,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proofRequested = prefetched.proofRequested}
+					{@const proofRequested = pendingEntity.proofRequested}
 					{#if proofRequested !== undefined && proofRequested !== null}
 						<div>
 							<dt>proof requested</dt>

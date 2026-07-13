@@ -9,8 +9,10 @@ export enum LensPostSelector {
 }
 export const LensPost = entity({
 	entityType: EntityType.LensPost,
-	label: 'Lens post',
-	labelPlural: 'Lens posts',
+	labels: {
+		singular: 'Lens post',
+		plural: 'Lens posts',
+	},
 })({
 	id: {
 		label: 'ID',

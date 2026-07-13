@@ -9,8 +9,10 @@ export enum TonJettonSelector {
 }
 export const TonJetton = entity({
 	entityType: EntityType.TonJetton,
-	label: 'ton jetton',
-	labelPlural: 'ton jettons',
+	labels: {
+		singular: 'ton jetton',
+		plural: 'ton jettons',
+	},
 })({
 	$network: {
 		label: 'network',

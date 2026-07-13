@@ -9,8 +9,10 @@ export enum CashuKeyset_TimestampSelector {
 }
 export const CashuKeyset_Timestamp = entity({
 	entityType: EntityType.CashuKeyset_Timestamp,
-	label: 'Cashu keyset timestamp',
-	labelPlural: 'Cashu keyset observations',
+	labels: {
+		singular: 'Cashu keyset timestamp',
+		plural: 'Cashu keyset observations',
+	},
 })({
 	$keyset: {
 		label: 'keyset',

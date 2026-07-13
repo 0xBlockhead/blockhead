@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operationHash = selection.entitySelector.operationHash ?? prefetched.operationHash}
+							{@const operationHash = pendingEntity.operationHash}
 							{#if operationHash !== undefined && operationHash !== null}
 								<TruncatedValue value={String((operationHash) ?? '')} />
 							{/if}
@@ -123,6 +123,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosBlock)}
 					{#if tezosBlock != null && tezosBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -150,7 +152,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const branch = prefetched.branch}
+					{@const branch = pendingEntity.branch}
 					{#if branch !== undefined && branch !== null}
 						<div>
 							<dt>branch</dt>
@@ -185,7 +187,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signature = prefetched.signature}
+					{@const signature = pendingEntity.signature}
 					{#if signature !== undefined && signature !== null}
 						<div>
 							<dt>signature</dt>
@@ -220,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validationPass = prefetched.validationPass}
+					{@const validationPass = pendingEntity.validationPass}
 					{#if validationPass !== undefined && validationPass !== null}
 						<div>
 							<dt>validation pass</dt>
@@ -255,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const operationCount = prefetched.operationCount}
+					{@const operationCount = pendingEntity.operationCount}
 					{#if operationCount !== undefined && operationCount !== null}
 						<div>
 							<dt>operation count</dt>

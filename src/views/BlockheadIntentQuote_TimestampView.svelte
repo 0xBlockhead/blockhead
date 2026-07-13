@@ -52,7 +52,7 @@
 			solverId: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.quoteId) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'blockhead intent quote timestamp')
+	const titleFallback = $derived([String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'blockhead intent quote timestamp')
 	const viewDomId = $derived('blockhead-intent-quote-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadIntentQuoteTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.quoteId) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'blockhead intent quote timestamp'}
+				{[String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'blockhead intent quote timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadIntentQuoteTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadIntentQuoteTimestamp}>
 			{#snippet Pending()}
-				{@const solverId0 = prefetched.solverId}
+				{@const solverId0 = pendingEntity.solverId}
 				{#if solverId0 !== undefined && solverId0 !== null}
 					<span data-text="muted">
 						{String((solverId0) ?? '')}
@@ -156,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -186,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -213,7 +213,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quoteId = prefetched.quoteId}
+					{@const quoteId = pendingEntity.quoteId}
 					{#if quoteId !== undefined && quoteId !== null}
 						<div>
 							<dt>quote ID</dt>
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const solverId = prefetched.solverId}
+					{@const solverId = pendingEntity.solverId}
 					{#if solverId !== undefined && solverId !== null}
 						<div>
 							<dt>solver ID</dt>
@@ -285,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validUntil = prefetched.validUntil}
+					{@const validUntil = pendingEntity.validUntil}
 					{#if validUntil !== undefined && validUntil !== null}
 						<div>
 							<dt>valid until</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const estimatedFillSeconds = prefetched.estimatedFillSeconds}
+					{@const estimatedFillSeconds = pendingEntity.estimatedFillSeconds}
 					{#if estimatedFillSeconds !== undefined && estimatedFillSeconds !== null}
 						<div>
 							<dt>estimated fill seconds</dt>
@@ -355,7 +355,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quotePayloadHash = prefetched.quotePayloadHash}
+					{@const quotePayloadHash = pendingEntity.quotePayloadHash}
 					{#if quotePayloadHash !== undefined && quotePayloadHash !== null}
 						<div>
 							<dt>quote payload hash</dt>
@@ -390,7 +390,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const integrityChecksum = prefetched.integrityChecksum}
+					{@const integrityChecksum = pendingEntity.integrityChecksum}
 					{#if integrityChecksum !== undefined && integrityChecksum !== null}
 						<div>
 							<dt>integrity checksum</dt>
@@ -425,7 +425,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

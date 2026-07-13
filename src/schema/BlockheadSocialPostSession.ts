@@ -4,21 +4,27 @@ import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum SocialProtocol {
-	Farcaster = 'Farcaster',
-}
 export enum BlockheadSocialPostSessionStatus {
 	Draft = 'Draft',
 	Submitted = 'Submitted',
 	Finalized = 'Finalized',
+}
+export enum SocialProtocol {
+	Farcaster = 'Farcaster',
+	Atproto = 'Atproto',
+	ActivityPub = 'ActivityPub',
+	Nostr = 'Nostr',
+	X = 'X',
 }
 export enum BlockheadSocialPostSessionSelector {
 	Id = 'Id',
 }
 export const BlockheadSocialPostSession = entity({
 	entityType: EntityType.BlockheadSocialPostSession,
-	label: 'blockhead social post session',
-	labelPlural: 'blockhead social post sessions',
+	labels: {
+		singular: 'blockhead social post session',
+		plural: 'blockhead social post sessions',
+	},
 })({
 	id: {
 		label: 'ID',
@@ -46,11 +52,47 @@ export const BlockheadSocialPostSession = entity({
 		primitiveType: type.enumerated(...Object.values(SocialProtocol)),
 		cardinality: EntityFieldCardinality.One,
 	},
-	authorId: {
-		label: 'author ID',
+	authorKey: {
+		label: 'author key',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.One,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$walletConnection: {
+		label: 'wallet connection',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.BlockheadWalletConnection,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$agentConversation: {
+		label: 'agent conversation',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.BlockheadAgentConversation,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	text: {
+		label: 'text',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$media: {
+		label: 'media',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	publishedEntityType: {
+		label: 'published entity type',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	publishedSelector: {
+		label: 'published selector',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
 		label: 'Created',

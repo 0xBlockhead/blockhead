@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,7 +43,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaAddressUtxoTimestamp = $derived(selection({}))
+	const kaspaAddressUtxoTimestamp = $derived(selection({
+		sources: [
+			Source.KaspaExplorer_Rest,
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Rest,
+			Source.KaspaNode_Wrpc,
+		],
+	}))
 	const titleFallback = $derived('kaspa address UTXO timestamp')
 	const viewDomId = $derived('kaspa-address-utxo-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -108,7 +115,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const outpointTransactionId = selection.entitySelector.outpointTransactionId ?? prefetched.outpointTransactionId}
+							{@const outpointTransactionId = pendingEntity.outpointTransactionId}
 							{#if outpointTransactionId !== undefined && outpointTransactionId !== null}
 								{String((outpointTransactionId) ?? '')}
 							{/if}
@@ -138,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const outpointIndex = selection.entitySelector.outpointIndex ?? prefetched.outpointIndex}
+							{@const outpointIndex = pendingEntity.outpointIndex}
 							{#if outpointIndex !== undefined && outpointIndex !== null}
 								<NumberValue value={Number(outpointIndex)} />
 							{/if}
@@ -168,7 +175,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -198,7 +205,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -225,7 +232,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountSompi = prefetched.amountSompi}
+					{@const amountSompi = pendingEntity.amountSompi}
 					{#if amountSompi !== undefined && amountSompi !== null}
 						<div>
 							<dt>amount sompi</dt>
@@ -262,7 +269,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockDaaScore = prefetched.blockDaaScore}
+					{@const blockDaaScore = pendingEntity.blockDaaScore}
 					{#if blockDaaScore !== undefined && blockDaaScore !== null}
 						<div>
 							<dt>block daa score</dt>
@@ -297,7 +304,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isCoinbase = prefetched.isCoinbase}
+					{@const isCoinbase = pendingEntity.isCoinbase}
 					{#if isCoinbase !== undefined && isCoinbase !== null}
 						<div>
 							<dt>is coinbase</dt>
@@ -325,6 +332,8 @@
 			<ResourceBoundary
 				resource={selection.$output}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(utxoOutput)}
 					{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}
 						<div>
@@ -334,9 +343,9 @@
 									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
 									prefetched={utxoOutput}
 									href={
-										(utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2.namespace !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2.reference !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
-											networkSlug: String(networkByCaip2[String(String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2.namespace) + ':' + String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2.reference))].slug ?? ''),
-											txId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
+										(utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+											network: String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug ?? ''),
+											transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
 											outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
 										}) : undefined)
 									}
@@ -352,6 +361,8 @@
 			<ResourceBoundary
 				resource={selection.$spendingTransaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(kaspaTransaction)}
 					{#if kaspaTransaction != null && kaspaTransaction[EntityMetaKey.Selector] != null}
 						<div>

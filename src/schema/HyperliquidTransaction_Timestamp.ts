@@ -9,8 +9,10 @@ export enum HyperliquidTransaction_TimestampSelector {
 }
 export const HyperliquidTransaction_Timestamp = entity({
 	entityType: EntityType.HyperliquidTransaction_Timestamp,
-	label: 'hyperliquid transaction timestamp',
-	labelPlural: 'hyperliquid transaction observations',
+	labels: {
+		singular: 'hyperliquid transaction timestamp',
+		plural: 'hyperliquid transaction observations',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

@@ -48,7 +48,7 @@ export const getContents = (): Promise<CaipsGithubContents> => (
 	getGithubContents({
 		endpoints: caipsBindings[0].endpoints,
 		target: caipsGithubRepo,
-	}) as Promise<CaipsGithubContents>
+	})
 )
 
 export const getRawMarkdownText = ({

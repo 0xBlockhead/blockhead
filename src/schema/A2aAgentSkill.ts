@@ -9,8 +9,10 @@ export enum A2aAgentSkillSelector {
 }
 export const A2aAgentSkill = entity({
 	entityType: EntityType.A2aAgentSkill,
-	label: 'a2a agent skill',
-	labelPlural: 'a2a agent skills',
+	labels: {
+		singular: 'a2a agent skill',
+		plural: 'a2a agent skills',
+	},
 })({
 	$cardSnapshot: {
 		label: 'card snapshot',

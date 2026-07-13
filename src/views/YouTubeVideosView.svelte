@@ -123,8 +123,8 @@
 						selection={select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={youtubeVideoFields}
 						href={
-							(youtubeVideoHrefFields.videoId !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-								videoId: encodeURIComponent(String(youtubeVideoHrefFields.videoId ?? '')),
+							(youtubeVideoHrefFields.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
+								videoId: String(youtubeVideoHrefFields.videoId ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

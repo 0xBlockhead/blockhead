@@ -9,8 +9,10 @@ export enum EvmNetworkActorCoinBalance_TimestampSelector {
 }
 export const EvmNetworkActorCoinBalance_Timestamp = entity({
 	entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp,
-	label: 'EVM network actor coin balance timestamp',
-	labelPlural: 'EVM network actor coin balance observations',
+	labels: {
+		singular: 'EVM network actor coin balance timestamp',
+		plural: 'EVM network actor coin balance observations',
+	},
 })({
 	$actorCoin: {
 		label: 'Actor coin',

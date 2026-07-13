@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page, type TestInfo } from '@playwright/test'
+import { parse } from 'devalue'
 
 import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
@@ -38,27 +39,46 @@ export const jsonStringifyForExpectMessage = (
 	)
 )
 
-export const generatedRouteArtifactPatterns = [
+/** Structural smells scanned in HTML (source / markup), not only visible text. */
+export const generatedRouteHtmlArtifactPatterns = [
 	/\bEntityType\.Unknown\b/,
 	/<title>\{'Entity'\}<\/title>/,
 	/\bNo rows\b/,
 	/\/venues\b/,
-	/\$base.*\$quote.*\$marketVenue/,
-	/devalue|EntityView-\{/,
+] as const
+
+/**
+ * Machine-payload / dump smells scanned in visible title + `#main` text only.
+ * Attribute-only devalue (`id` / `view-transition-name` via `stringify`) is intentional and excluded.
+ */
+export const generatedRouteVisibleArtifactPatterns = [
+	/\bdevalue\b/i,
+	/EntityView-\{/,
 	/\[object Object\]/,
 	/\{\s*("|&quot;)?(entityType|selector|fields|values)("|&quot;)?\s*:/,
+	/\[\s*\{\s*"[^"]+"\s*:\s*\d+\s*\}/,
+] as const
+
+export const generatedRouteArtifactPatterns = [
+	...generatedRouteHtmlArtifactPatterns,
+	...generatedRouteVisibleArtifactPatterns,
 ] as const
 
 export const snapshotGeneratedRouteArtifacts = async (page: Page) => (
-	page.evaluate(() => ({
-		html: document.documentElement.outerHTML.slice(0, 50_000),
-		title: document.title,
-		bodyText: document.body.textContent.replace(/\s+/g, ' ').trim().slice(0, 2_000),
-		entityViewCount: document.querySelectorAll('.entity-view-summary, [class*="entity-view"]').length,
-		plainLinkListCount: document.querySelectorAll('#main ul:not(:has(.entity-view-summary)) > li > a:only-child').length,
-		notFoundCount: document.querySelectorAll('#main [id$="not-found"]').length,
-		errorCount: document.querySelectorAll('#main [data-error]').length,
-	}))
+	page.evaluate(() => {
+		const main = document.querySelector('#main')
+		return {
+			html: document.documentElement.outerHTML.slice(0, 50_000),
+			title: document.title,
+			bodyText: document.body.textContent.replace(/\s+/g, ' ').trim().slice(0, 2_000),
+			mainText: (main?.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 4_000),
+			entityViewCount: document.querySelectorAll('.entity-view-summary, [class*="entity-view"]').length,
+			plainLinkListCount: document.querySelectorAll('#main ul:not(:has(.entity-view-summary)) > li > a:only-child').length,
+			notFoundCount: document.querySelectorAll('#main [id$="not-found"]').length,
+			errorCount: document.querySelectorAll('#main [data-error]').length,
+			mainEmpty: main != null && main.textContent.replace(/\s+/g, '').length === 0,
+		}
+	})
 )
 
 export const assertNoGeneratedRouteArtifacts = async (
@@ -66,16 +86,35 @@ export const assertNoGeneratedRouteArtifacts = async (
 	pathname: string
 ) => {
 	const snapshot = await snapshotGeneratedRouteArtifacts(page)
-	const artifactHits = generatedRouteArtifactPatterns.filter((pattern) => (
+	const htmlHits = generatedRouteHtmlArtifactPatterns.filter((pattern) => (
 		pattern.test(snapshot.html)
 		|| pattern.test(snapshot.title)
+	))
+	const visibleHits = generatedRouteVisibleArtifactPatterns.filter((pattern) => (
+		pattern.test(snapshot.title)
+		|| pattern.test(snapshot.mainText)
 		|| pattern.test(snapshot.bodyText)
 	))
+	const emptyShellHits = snapshot.mainEmpty ? ['#main empty shell'] : []
 
 	expect(
-		artifactHits.map((pattern) => pattern.toString()),
+		[
+			...htmlHits.map((pattern) => pattern.toString()),
+			...visibleHits.map((pattern) => pattern.toString()),
+			...emptyShellHits,
+		],
 		`${pathname} generated-route artifact markers in DOM/title`
 	).toEqual([])
+}
+
+export const assertCanonicalRouteUrl = async (
+	page: Page,
+	pathname: string
+) => {
+	const url = new URL(page.url())
+	await expect(url.pathname, `${pathname} canonical route pathname`).toBe(pathname)
+	await expect(url.search, `${pathname} canonical route query`).toBe('')
+	await expect(url.hash, `${pathname} canonical route fragment`).toBe('')
 }
 
 declare global {
@@ -106,6 +145,7 @@ export type BoundaryUpdateEvent = {
 	id: string | null
 	key: string | null
 	message: string
+	context: string
 }
 
 export type BoundaryLoadingProbeRow = {
@@ -113,6 +153,7 @@ export type BoundaryLoadingProbeRow = {
 	startedAt: number
 	key: string | null
 	message: string
+	context: string
 }
 
 export type BoundaryDomRow = {
@@ -126,6 +167,7 @@ export type BoundarySlowRow = {
 	id: string | null
 	key: string | null
 	message: string
+	context: string
 	durationMs: number
 	resolved: boolean
 }
@@ -254,10 +296,19 @@ export const installBoundaryProbe = (page: Page) => (
 		}
 		const rowContext = (element: Element) => {
 			const pieces = []
+			const detailTerm = element.closest('dd')?.previousElementSibling
+			if (detailTerm?.matches('dt'))
+				pieces.push(`field=${detailTerm.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)}`)
+
 			for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement) {
+				const entityType = parent.getAttribute('data-entity-field-type')
+				const fieldName = parent.getAttribute('data-entity-field-name')
+				if (entityType || fieldName)
+					pieces.push(`resource=${entityType || '?entity'}.${fieldName || '?field'}`)
+
 				const scrollMarkerLabel = parent.getAttribute('data-scroll-marker-label')
 				if (scrollMarkerLabel)
-					pieces.push(scrollMarkerLabel)
+					pieces.push(`section=${scrollMarkerLabel}`)
 
 				const ariaLabel = parent.getAttribute('aria-label')
 				if (ariaLabel)
@@ -265,9 +316,22 @@ export const installBoundaryProbe = (page: Page) => (
 
 				const id = parent.getAttribute('id')
 				if (id)
-					pieces.push(`#${id}`)
+					pieces.push(`id=#${id}`)
 			}
-			return pieces.slice(0, 8).join(' > ')
+
+			const heading = element
+				.closest('section, article, details, [data-scroll-marker-label], [data-card]')
+				?.querySelector('h1, h2, h3, h4, h5, h6, summary')
+				?.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)
+			if (heading)
+				pieces.push(`heading=${heading}`)
+
+			if (pieces.length === 0) {
+				for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement)
+					pieces.push(`${parent.tagName.toLowerCase()}${parent.id ? `#${parent.id}` : ''}`)
+			}
+
+			return [...new Set(pieces)].slice(0, 8).join(' > ')
 		}
 
 		const rowKey = (element: Element) => (
@@ -299,7 +363,8 @@ export const installBoundaryProbe = (page: Page) => (
 			kind: BoundaryUpdateEvent['kind'],
 			id: string | null,
 			key: string | null,
-			message: string
+			message: string,
+			context: string
 		) => {
 			(window.__blockheadBoundaryProbe ??= []).push({
 				at: Date.now(),
@@ -307,10 +372,16 @@ export const installBoundaryProbe = (page: Page) => (
 				id,
 				key,
 				message,
+				context,
 			})
 		}
 
-		const resolveLoading = (id: string, key: string | null, message: string) => {
+		const resolveLoading = (
+			id: string,
+			key: string | null,
+			message: string,
+			context: string
+		) => {
 			if (!activeLoadingById.has(id)) return
 			activeLoadingById.delete(id)
 			syncActiveRows()
@@ -318,7 +389,8 @@ export const installBoundaryProbe = (page: Page) => (
 				'dom-resolved',
 				id,
 				key,
-				message
+				message,
+				context
 			)
 		}
 
@@ -327,6 +399,7 @@ export const installBoundaryProbe = (page: Page) => (
 			const id = boundaryProbeId(element)
 			const key = rowKey(element)
 			const message = rowMessage(element)
+			const context = rowContext(element)
 
 			if (kind === 'dom-loading') {
 				if (!activeLoadingById.has(id)) {
@@ -335,30 +408,33 @@ export const installBoundaryProbe = (page: Page) => (
 						startedAt: Date.now(),
 						key,
 						message,
+						context,
 					})
 					syncActiveRows()
 					pushBoundaryEvent(
 						'dom-loading',
 						id,
 						key,
-						message
+						message,
+						context
 					)
 				}
 				return
 			}
 
 			if (kind === 'dom-failed') {
-				resolveLoading(id, key, message)
+				resolveLoading(id, key, message, context)
 				pushBoundaryEvent(
 					'dom-failed',
 					id,
 					key,
-					message
+					message,
+					context
 				)
 				return
 			}
 
-			resolveLoading(id, key, message)
+			resolveLoading(id, key, message, context)
 		}
 
 		const origConsoleError = console.error
@@ -370,7 +446,8 @@ export const installBoundaryProbe = (page: Page) => (
 					'console-uncaught',
 					null,
 					keyMatch?.[1] ?? null,
-					text
+					text,
+					[...activeLoadingById.values()].slice(-8).map((row) => row.context).filter(Boolean).join(' || ')
 				)
 			}
 			else if (text.includes('[blockhead:boundary]')) {
@@ -379,7 +456,8 @@ export const installBoundaryProbe = (page: Page) => (
 					'console-failed',
 					null,
 					keyMatch?.[1] ?? null,
-					text
+					text,
+					[...activeLoadingById.values()].slice(-8).map((row) => row.context).filter(Boolean).join(' || ')
 				)
 			}
 			origConsoleError.apply(console, args)
@@ -413,7 +491,8 @@ export const installBoundaryProbe = (page: Page) => (
 				resolveLoading(
 					boundaryProbeId(element),
 					rowKey(element),
-					rowMessage(element)
+					rowMessage(element),
+					rowContext(element)
 				)
 		}
 
@@ -509,10 +588,19 @@ export const snapshotBoundaryMain = (page: Page) => (
 		}
 		const rowContext = (element: Element) => {
 			const pieces = []
+			const detailTerm = element.closest('dd')?.previousElementSibling
+			if (detailTerm?.matches('dt'))
+				pieces.push(`field=${detailTerm.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)}`)
+
 			for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement) {
+				const entityType = parent.getAttribute('data-entity-field-type')
+				const fieldName = parent.getAttribute('data-entity-field-name')
+				if (entityType || fieldName)
+					pieces.push(`resource=${entityType || '?entity'}.${fieldName || '?field'}`)
+
 				const scrollMarkerLabel = parent.getAttribute('data-scroll-marker-label')
 				if (scrollMarkerLabel)
-					pieces.push(scrollMarkerLabel)
+					pieces.push(`section=${scrollMarkerLabel}`)
 
 				const ariaLabel = parent.getAttribute('aria-label')
 				if (ariaLabel)
@@ -520,9 +608,22 @@ export const snapshotBoundaryMain = (page: Page) => (
 
 				const id = parent.getAttribute('id')
 				if (id)
-					pieces.push(`#${id}`)
+					pieces.push(`id=#${id}`)
 			}
-			return pieces.slice(0, 8).join(' > ')
+
+			const heading = element
+				.closest('section, article, details, [data-scroll-marker-label], [data-card]')
+				?.querySelector('h1, h2, h3, h4, h5, h6, summary')
+				?.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)
+			if (heading)
+				pieces.push(`heading=${heading}`)
+
+			if (pieces.length === 0) {
+				for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement)
+					pieces.push(`${parent.tagName.toLowerCase()}${parent.id ? `#${parent.id}` : ''}`)
+			}
+
+			return [...new Set(pieces)].slice(0, 8).join(' > ')
 		}
 
 		const main = document.querySelector('#main')
@@ -676,6 +777,26 @@ export const waitForBoundarySettle = async (
 		}))
 }
 
+const formatBoundaryOwner = ({
+	key,
+	context,
+}: {
+	key: string | null
+	context: string
+}) => (
+	context ?
+		(
+			key != null
+			&& key !== ''
+			&& key !== 'Loading…' ?
+				`${key}:${context}`
+			:
+				context
+		)
+	:
+		key ?? 'document=#main'
+)
+
 export const summarizeRouteBoundaryReport = (
 	pathname: string,
 	finalUrl: string,
@@ -703,13 +824,14 @@ export const summarizeRouteBoundaryReport = (
 
 		const durationMs = event.at - loading.at
 		if (durationMs >= slowThresholdMs) {
-			slow.push({
-				id: event.id,
-				key: loading.key,
-				message: loading.message,
-				durationMs,
-				resolved: true,
-			})
+				slow.push({
+					id: event.id,
+					key: loading.key,
+					message: loading.message,
+					context: loading.context,
+					durationMs,
+					resolved: true,
+				})
 		}
 		loadingStartedAtById.delete(event.id)
 	}
@@ -719,19 +841,19 @@ export const summarizeRouteBoundaryReport = (
 
 	for (const row of snapshot.failed) {
 		issues.push(
-			`failed:${row.key ?? 'unknown'}:${row.message || '(no message)'}`
+			`failed:${formatBoundaryOwner(row)}:${row.message || '(no message)'}`
 		)
 	}
 
 	for (const row of snapshot.loading) {
 		issues.push(
-			`still-loading:${row.key ?? 'unknown'}:${row.message || '(no message)'}`
+			`still-loading:${formatBoundaryOwner(row)}:${row.message || '(no message)'}`
 		)
 	}
 
 	for (const row of slow) {
 		issues.push(
-			`slow-loading:${row.key ?? 'unknown'}:${row.durationMs}ms:${row.message || '(no message)'}`
+			`slow-loading:${formatBoundaryOwner(row)}:${row.durationMs}ms:${row.message || '(no message)'}`
 		)
 	}
 
@@ -764,8 +886,8 @@ export const summarizeRouteBoundaryReport = (
 	))
 
 	for (const event of consoleFailures) {
-		const token = `console:${event.kind}:${event.key ?? 'unknown'}`
-		if (!issues.some((issue) => issue.includes(event.key ?? 'unknown') && issue.startsWith('failed:')))
+		const token = `console:${event.kind}:${formatBoundaryOwner(event)}`
+		if (!issues.some((issue) => issue.includes(formatBoundaryOwner(event)) && issue.startsWith('failed:')))
 			issues.push(`${token}:${event.message}`)
 	}
 
@@ -831,12 +953,12 @@ export const formatBoundaryReportSummary = (
 			const tag = optionalPathnames.has(report.pathname) ? ' (optional-live)' : ''
 			lines.push(`  ${report.pathname}${tag}`)
 			for (const row of report.snapshot.failed)
-				lines.push(`    [dom] ${row.key ?? 'unknown'}: ${row.message}`)
+				lines.push(`    [dom] ${formatBoundaryOwner(row)}: ${row.message}`)
 			for (const event of report.updates.filter((entry) => (
 				entry.kind === 'console-failed'
 				|| entry.kind === 'console-uncaught'
 			)))
-				lines.push(`    [${event.kind}] ${event.key ?? 'unknown'}: ${event.message}`)
+				lines.push(`    [${event.kind}] ${formatBoundaryOwner(event)}: ${event.message}`)
 		}
 		lines.push('')
 	}
@@ -846,7 +968,7 @@ export const formatBoundaryReportSummary = (
 		for (const report of loadingRoutes) {
 			lines.push(`  ${report.pathname}`)
 			for (const row of report.snapshot.loading)
-				lines.push(`    ${row.key ?? 'unknown'}: ${row.message}`)
+				lines.push(`    ${formatBoundaryOwner(row)}: ${row.message}`)
 		}
 		lines.push('')
 	}
@@ -857,7 +979,7 @@ export const formatBoundaryReportSummary = (
 			const tag = optionalPathnames.has(report.pathname) ? ' (optional-live)' : ''
 			lines.push(`  ${report.pathname}${tag}`)
 			for (const row of report.slow)
-				lines.push(`    ${row.key ?? 'unknown'}: ${row.durationMs}ms: ${row.message}`)
+				lines.push(`    ${formatBoundaryOwner(row)}: ${row.durationMs}ms: ${row.message}`)
 		}
 		lines.push('')
 	}
@@ -877,7 +999,7 @@ export const formatBoundaryReportSummary = (
 			lines.push(`    settle ${timings.settleMs}ms`)
 			lines.push(`    events ${timings.eventsMs}ms`)
 			for (const event of report.updates.slice(-12))
-				lines.push(`    [${event.kind}] ${event.at}: ${event.key ?? 'unknown'}: ${event.message}`)
+				lines.push(`    [${event.kind}] ${event.at}: ${formatBoundaryOwner(event)}: ${event.message}`)
 		}
 		lines.push('')
 	}
@@ -951,28 +1073,6 @@ const forwardBrowserConsoleLine = (
 		console.log(line)
 }
 
-const browserConsoleErrorIsIgnored = (
-	text: string,
-	{
-		ignoreTransientDevLoad,
-	}: {
-		ignoreTransientDevLoad?: boolean
-	} = {}
-) => (
-	text.includes('Failed to load resource: the server responded with a status of ')
-	|| text.includes('Failed to load resource: net::')
-	|| ignoreTransientDevLoad === true
-	&& (
-		text.includes('[vite] Failed to reload')
-		|| text.includes('Failed to fetch dynamically imported module')
-	)
-	// Legacy ignore: hydrate paths historically surfaced resolver “requires query limit”; capped by the resolver context row-limit fallback now.
-	|| (
-		text.includes('[QueryCollection]')
-		&& text.includes('requires query limit')
-	)
-)
-
 export const browserDevServerContaminationError = (text: string) => (
 	text.includes('[vite] hot updated') ?
 		new Error(`route smoke test contaminated by Vite HMR during navigation: ${text}`)
@@ -988,6 +1088,17 @@ export type PageRuntimeDiagnostics = {
 	flushArtifacts: (testInfo: TestInfo) => Promise<void>
 }
 
+export const requestFailureIsResourceCancellation = (
+	resourceType: string,
+	failure: string | null
+) => (
+	failure === 'net::ERR_ABORTED'
+	&& (
+		resourceType === 'fetch'
+		|| resourceType === 'xhr'
+	)
+)
+
 export const setupPageRuntimeDiagnostics = (
 	page: Page,
 	{
@@ -995,17 +1106,21 @@ export const setupPageRuntimeDiagnostics = (
 		forwardConsole = false,
 		failOnDevServerContamination = false,
 		failOnTanStackWarnings = false,
-		ignoreTransientDevLoad = false,
+		ignoreTransientDevLoad: deprecatedIgnoreTransientDevLoad = false,
 	}: {
 		failFast?: boolean
 		forwardConsole?: boolean
 		failOnDevServerContamination?: boolean
 		failOnTanStackWarnings?: boolean
+		/** @deprecated Browser failures always remain fail-closed. */
 		ignoreTransientDevLoad?: boolean
 	} = {}
 ): PageRuntimeDiagnostics => {
 	const issues: string[] = []
 	const lines: string[] = []
+	if (deprecatedIgnoreTransientDevLoad)
+		lines.push('ignoreTransientDevLoad is deprecated; browser failures remain fail-closed')
+
 	let failed = false
 	let rejectRuntimeError: ((error: Error) => void) | undefined
 	const runtimeError = new Promise<never>((_, reject) => {
@@ -1054,11 +1169,27 @@ export const setupPageRuntimeDiagnostics = (
 			return
 		}
 
-		if (
-			message.type() === 'error'
-			&& !browserConsoleErrorIsIgnored(text, { ignoreTransientDevLoad })
-		)
+		if (message.type() === 'error')
 			pushIssue(`console.error:${locationText} ${text}`)
+	})
+	page.on('response', (response) => {
+		if (response.status() < 400) return
+
+		const request = response.request()
+		pushIssue(
+			`response:${response.status()} ${request.method()} ${response.url()} (${request.resourceType()})`
+		)
+	})
+	page.on('requestfailed', (request) => {
+		if (requestFailureIsResourceCancellation(
+			request.resourceType(),
+			request.failure()?.errorText ?? null
+		))
+			return
+
+		pushIssue(
+			`requestfailed:${request.method()} ${request.url()} (${request.resourceType()}): ${request.failure()?.errorText ?? 'unknown'}`
+		)
 	})
 	page.on('pageerror', (error) => {
 		const issue = `pageerror: ${error.message}`
@@ -1161,19 +1292,73 @@ export const collectIssues = (page: Page) => (
 	}).issues
 )
 
-export const pageFailureSnapshot = async (page: Page) => (
-	page.isClosed() ?
-		'page closed'
-	:
-		await page.evaluate(() => ({
+const formatCollectionOwner = (collectionId: string) => {
+	try {
+		return String(parse(collectionId)).replace(/,/g, '.')
+	}
+	catch {
+		return collectionId
+	}
+}
+
+export const pageFailureSnapshot = async (page: Page) => {
+	if (page.isClosed()) return 'page closed'
+
+	const [pageState, boundaries, boundaryEvents, resourceOwnerTail] = await Promise.all([
+		page.evaluate(() => ({
 			finalUrl: location.href,
 			readyState: document.readyState,
 			mainCount: document.querySelectorAll('#main').length,
-			bodyText: document.body.textContent.replace(/\s+/g, ' ').trim().slice(0, 800),
-		})).then(jsonStringifyForExpectMessage).catch((error) => (
-			`page snapshot failed: ${error}`
-		))
-)
+			mainText: document.querySelector('#main')?.textContent.replace(/\s+/g, ' ').trim().slice(0, 800) ?? '',
+		})).catch((error) => ({
+			finalUrl: page.url(),
+			readyState: `unavailable: ${error}`,
+			mainCount: -1,
+			mainText: '',
+		})),
+		snapshotBoundaryMain(page).catch(() => null),
+		getBoundaryProbeEvents(page).then((events) => events.slice(-30)).catch(() => []),
+		page.evaluate(() => (
+			window.__blockheadClientProbe?.events.collectionLoads.slice(-60).map((event) => ({
+				collectionId: event.collectionId,
+				decision: event.decision,
+				status: event.status,
+				sourceRowCounts: event.sourceRowCounts,
+				reason: event.reason,
+				error: event.error,
+			})) ?? []
+		)).catch(() => []),
+	])
+
+	return [
+		`url=${pageState.finalUrl} readyState=${pageState.readyState} mainCount=${pageState.mainCount}`,
+		`main=${pageState.mainText || '(empty)'}`,
+		'boundary owners:',
+		...(
+			boundaries == null ?
+				['- boundary snapshot unavailable']
+			:
+				[
+					...boundaries.failed.map((row) => `- failed ${formatBoundaryOwner(row)}: ${row.message}`),
+					...boundaries.loading.map((row) => `- loading ${formatBoundaryOwner(row)}: ${row.message}`),
+				]
+		),
+		...boundaryEvents.filter((event) => (
+			event.kind === 'console-failed'
+			|| event.kind === 'console-uncaught'
+		)).slice(-8).map((event) => (
+			`- ${event.kind} ${formatBoundaryOwner(event)}: ${event.message}`
+		)),
+		'resource/source tail:',
+		...resourceOwnerTail.filter((event) => (
+			event.error != null
+			|| event.status === 'loading'
+			|| event.status === 'partial'
+		)).slice(-16).map((event) => (
+			`- ${formatCollectionOwner(event.collectionId)} | ${event.status ?? event.decision ?? 'observed'}${event.error ? ` | ${event.error}` : ''}${event.reason ? ` | ${event.reason}` : ''}${event.sourceRowCounts ? ` | sources=${Object.keys(event.sourceRowCounts).join(',') || '(none)'}` : ''}`
+		)),
+	].join('\n')
+}
 
 export const expectMainVisible = async (
 	page: Page,
@@ -1227,14 +1412,9 @@ export const expectMainAttached = async (
 	}
 }
 
-/**
-	* Fail-fast gate for live network pages: `step()` races each await against first pageerror / critical console.error.
-	* Matches filters in `network.e2e.ts` (ignore HTTP 4xx/5xx, resolver fetch noise, WSS drop copy).
-	*/
+/** Fail-fast gate for live network pages: `step()` races each await against the first browser failure. */
 export const setupNetworkLiveFailFast = (page: Page) => {
-	const diagnostics = setupPageRuntimeDiagnostics(page, {
-		ignoreTransientDevLoad: true,
-	})
+	const diagnostics = setupPageRuntimeDiagnostics(page)
 
 	return {
 		step: diagnostics.step,
@@ -1268,7 +1448,7 @@ const bitcoinCashNodeJsonRpcWire = (
 const bitcoinCashCashTokenTransactionId = '9c3f790921eab71fe9b210a9884c81708dc55d9444bba8c54394b827e2cf7f5a'
 const bitcoinProbeAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'
 const bitcoinGenesisBlockHash = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f'
-const bitcoinProbeTransactionId = '4d3e4007c50313d031ffb3f180d0bd6b37192e1c852ec9f9a16ad1db957707c6'
+const bitcoinProbeTransactionId = '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b'
 const zcashShieldedProbeTransactionId = '7fb6c4d3e2a1908070605040302010ffeeddccbbaa99887766554433221100ff'
 
 const bitcoinCashNodeJsonRpcBody = (post: {
@@ -4473,10 +4653,10 @@ export const assertMainSettled = async (
 	await expectMainVisible(page, timeoutMs, diagnostics)
 	const snapshot = await waitForBoundarySettle(page, { timeoutMs })
 	expect(
-		snapshot.failed.map((row) => `${row.key ?? 'unknown'}: ${row.message}${row.context ? ` (${row.context})` : ''}`)
+		snapshot.failed.map((row) => `${formatBoundaryOwner(row)}: ${row.message}`)
 		).toEqual([])
 	expect(
-		snapshot.loading.map((row) => `${row.key ?? 'unknown'}: ${row.message}${row.context ? ` (${row.context})` : ''}`)
+		snapshot.loading.map((row) => `${formatBoundaryOwner(row)}: ${row.message}`)
 		).toEqual([])
 	expect(
 		snapshot.empty ?

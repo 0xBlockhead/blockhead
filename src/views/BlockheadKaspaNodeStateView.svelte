@@ -51,7 +51,7 @@
 			networkId: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead kaspa node state')
+	const titleFallback = $derived([String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead kaspa node state')
 	const viewDomId = $derived('blockhead-kaspa-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadKaspaNodeState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead kaspa node state'}
+				{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead kaspa node state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadKaspaNodeState}>
 			{#snippet Pending()}
-				{@const networkId0 = prefetched.networkId}
+				{@const networkId0 = pendingEntity.networkId}
 				{#if networkId0 !== undefined && networkId0 !== null}
 					<span data-text="muted">
 						{String((networkId0) ?? '')}
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const connectionId = selection.entitySelector.connectionId ?? prefetched.connectionId}
+							{@const connectionId = pendingEntity.connectionId}
 							{#if connectionId !== undefined && connectionId !== null}
 								{String((connectionId) ?? '')}
 							{/if}
@@ -183,7 +183,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rpcUrl = prefetched.rpcUrl}
+					{@const rpcUrl = pendingEntity.rpcUrl}
 					{#if rpcUrl !== undefined && rpcUrl !== null}
 						<div>
 							<dt>RPC URL</dt>
@@ -232,7 +232,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const encoding = prefetched.encoding}
+					{@const encoding = pendingEntity.encoding}
 					{#if encoding !== undefined && encoding !== null}
 						<div>
 							<dt>encoding</dt>
@@ -267,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const networkId = prefetched.networkId}
+					{@const networkId = pendingEntity.networkId}
 					{#if networkId !== undefined && networkId !== null}
 						<div>
 							<dt>network ID</dt>

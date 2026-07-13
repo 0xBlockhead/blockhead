@@ -51,7 +51,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.messageId ?? prefetched.messageId) ?? '')].filter(Boolean).join(' ') || 'ACP message')
+	const titleFallback = $derived([String((pendingEntity.messageId) ?? '')].filter(Boolean).join(' ') || 'ACP message')
 	const viewDomId = $derived('acp-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpMessage}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.messageId ?? prefetched.messageId) ?? '')].filter(Boolean).join(' ') || title || 'ACP message'}
+				{[String((pendingEntity.messageId) ?? '')].filter(Boolean).join(' ') || title || 'ACP message'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpMessage}>
 			{#snippet Pending()}
-				{[String((prefetched.role) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.messageId ?? prefetched.messageId) ?? '')].filter(Boolean).join(' ') || title || 'ACP message'}
+				{[String((pendingEntity.role) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.messageId) ?? '')].filter(Boolean).join(' ') || title || 'ACP message'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpMessage}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const messageId = selection.entitySelector.messageId ?? prefetched.messageId}
+							{@const messageId = pendingEntity.messageId}
 							{#if messageId !== undefined && messageId !== null}
 								{String((messageId) ?? '')}
 							{/if}
@@ -178,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const role = prefetched.role}
+							{@const role = pendingEntity.role}
 							{#if role !== undefined && role !== null}
 								{String((role) ?? '')}
 							{/if}
@@ -205,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>

@@ -10,8 +10,10 @@ export enum LightningChannel_TimestampSelector {
 }
 export const LightningChannel_Timestamp = entity({
 	entityType: EntityType.LightningChannel_Timestamp,
-	label: 'Lightning channel timestamp',
-	labelPlural: 'Lightning channel observations',
+	labels: {
+		singular: 'Lightning channel timestamp',
+		plural: 'Lightning channel observations',
+	},
 })({
 	$channel: {
 		label: 'Channel',

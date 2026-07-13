@@ -9,8 +9,10 @@ export enum ArweaveNetworkSelector {
 }
 export const ArweaveNetwork = entity({
 	entityType: EntityType.ArweaveNetwork,
-	label: 'arweave network',
-	labelPlural: 'arweave networks',
+	labels: {
+		singular: 'arweave network',
+		plural: 'arweave networks',
+	},
 })({
 	$network: {
 		label: 'network',

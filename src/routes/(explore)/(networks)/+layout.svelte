@@ -16,7 +16,7 @@
 
 <ParentPageCollapsible
 	title='Networks'
-	href={resolve('/(explore)/networks')}
+	href={resolve('/networks')}
 >
 	{@render children()}
 </ParentPageCollapsible>

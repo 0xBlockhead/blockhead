@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const powerKind = selection.entitySelector.powerKind ?? prefetched.powerKind}
+							{@const powerKind = pendingEntity.powerKind}
 							{#if powerKind !== undefined && powerKind !== null}
 								{String((powerKind) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const actorKey = selection.entitySelector.actorKey ?? prefetched.actorKey}
+							{@const actorKey = pendingEntity.actorKey}
 							{#if actorKey !== undefined && actorKey !== null}
 								{String((actorKey) ?? '')}
 							{/if}
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -190,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateKind = prefetched.ledgerCoordinateKind}
+					{@const ledgerCoordinateKind = pendingEntity.ledgerCoordinateKind}
 					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
 						<div>
 							<dt>ledger coordinate kind</dt>
@@ -225,7 +225,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateValue = prefetched.ledgerCoordinateValue}
+					{@const ledgerCoordinateValue = pendingEntity.ledgerCoordinateValue}
 					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
 						<div>
 							<dt>ledger coordinate value</dt>

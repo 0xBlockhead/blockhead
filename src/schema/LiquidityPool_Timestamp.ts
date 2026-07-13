@@ -11,8 +11,10 @@ export enum LiquidityPool_TimestampSelector {
 }
 export const LiquidityPool_Timestamp = entity({
 	entityType: EntityType.LiquidityPool_Timestamp,
-	label: 'liquidity pool timestamp',
-	labelPlural: 'liquidity pool observations',
+	labels: {
+		singular: 'liquidity pool timestamp',
+		plural: 'liquidity pool observations',
+	},
 })({
 	$liquidityPool: {
 		label: 'Liquidity pool',
@@ -24,7 +26,7 @@ export const LiquidityPool_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	feedKey: {

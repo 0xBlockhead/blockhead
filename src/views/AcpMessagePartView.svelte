@@ -52,7 +52,7 @@
 			mimeType: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.partKind) ?? '')].filter(Boolean).join(' ') || 'ACP message part')
+	const titleFallback = $derived([String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || 'ACP message part')
 	const viewDomId = $derived('acp-message-part-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpMessagePart}>
 			{#snippet Pending()}
-				{[String((prefetched.partKind) ?? '')].filter(Boolean).join(' ') || title || 'ACP message part'}
+				{[String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || title || 'ACP message part'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpMessagePart}>
 			{#snippet Pending()}
-				{@const partIndex0 = selection.entitySelector.partIndex ?? prefetched.partIndex}
+				{@const partIndex0 = pendingEntity.partIndex}
 				{#if partIndex0 !== undefined && partIndex0 !== null}
 					<NumberValue value={Number(partIndex0)} />
 				{/if}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpMessagePart}>
 			{#snippet Pending()}
-				{@const mimeType0 = prefetched.mimeType}
+				{@const mimeType0 = pendingEntity.mimeType}
 				{#if mimeType0 !== undefined && mimeType0 !== null}
 					<span data-text="muted">
 						{String((mimeType0) ?? '')}
@@ -156,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const partIndex = selection.entitySelector.partIndex ?? prefetched.partIndex}
+							{@const partIndex = pendingEntity.partIndex}
 							{#if partIndex !== undefined && partIndex !== null}
 								<NumberValue value={Number(partIndex)} />
 							{/if}
@@ -186,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const partKind = prefetched.partKind}
+							{@const partKind = pendingEntity.partKind}
 							{#if partKind !== undefined && partKind !== null}
 								{String((partKind) ?? '')}
 							{/if}
@@ -213,7 +213,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mimeType = prefetched.mimeType}
+					{@const mimeType = pendingEntity.mimeType}
 					{#if mimeType !== undefined && mimeType !== null}
 						<div>
 							<dt>mime type</dt>
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uri = prefetched.uri}
+					{@const uri = pendingEntity.uri}
 					{#if uri !== undefined && uri !== null}
 						<div>
 							<dt>URI</dt>
@@ -290,6 +290,8 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>

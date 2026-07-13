@@ -10,8 +10,10 @@ export enum McpServerSelector {
 }
 export const McpServer = entity({
 	entityType: EntityType.McpServer,
-	label: 'mcp server',
-	labelPlural: 'mcp servers',
+	labels: {
+		singular: 'mcp server',
+		plural: 'mcp servers',
+	},
 })({
 	serverKey: {
 		label: 'server key',

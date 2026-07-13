@@ -10,8 +10,10 @@ export enum EigenLayerReward_TimestampSelector {
 }
 export const EigenLayerReward_Timestamp = entity({
 	entityType: EntityType.EigenLayerReward_Timestamp,
-	label: 'eigen layer reward timestamp',
-	labelPlural: 'eigen layer reward observations',
+	labels: {
+		singular: 'eigen layer reward timestamp',
+		plural: 'eigen layer reward observations',
+	},
 })({
 	$earner: {
 		label: 'earner',

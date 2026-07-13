@@ -46,7 +46,7 @@
 			clientName: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.clientName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.clientId ?? prefetched.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead Fedimint client state')
+	const titleFallback = $derived([String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead Fedimint client state')
 	const viewDomId = $derived('blockhead-fedimint-client-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadFedimintClientState}>
 			{#snippet Pending()}
-				{[String((prefetched.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.clientId ?? prefetched.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead Fedimint client state'}
+				{[String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead Fedimint client state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadFedimintClientState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.federationId ?? prefetched.federationId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.clientId ?? prefetched.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead Fedimint client state'}
+				{[String((pendingEntity.federationId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead Fedimint client state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const clientId = selection.entitySelector.clientId ?? prefetched.clientId}
+							{@const clientId = pendingEntity.clientId}
 							{#if clientId !== undefined && clientId !== null}
 								{String((clientId) ?? '')}
 							{/if}
@@ -137,7 +137,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clientName = prefetched.clientName}
+					{@const clientName = pendingEntity.clientName}
 					{#if clientName !== undefined && clientName !== null}
 						<div>
 							<dt>client name</dt>
@@ -175,7 +175,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const federationId = selection.entitySelector.federationId ?? prefetched.federationId}
+							{@const federationId = pendingEntity.federationId}
 							{#if federationId !== undefined && federationId !== null}
 								{String((federationId) ?? '')}
 							{/if}
@@ -199,7 +199,7 @@
 						resource={selection.$federation}
 					>
 						{#snippet children(fedimintFederation)}
-							{#if fedimintFederation[EntityMetaKey.Selector] != null}
+							{#if fedimintFederation != null && fedimintFederation[EntityMetaKey.Selector] != null}
 								<FedimintFederationView
 									selection={select(EntityType.FedimintFederation, fedimintFederation[EntityMetaKey.Selector])}
 									prefetched={fedimintFederation}
@@ -222,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inviteCode = prefetched.inviteCode}
+					{@const inviteCode = pendingEntity.inviteCode}
 					{#if inviteCode !== undefined && inviteCode !== null}
 						<div>
 							<dt>invite code</dt>
@@ -257,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mnemonicSet = prefetched.mnemonicSet}
+					{@const mnemonicSet = pendingEntity.mnemonicSet}
 					{#if mnemonicSet !== undefined && mnemonicSet !== null}
 						<div>
 							<dt>mnemonic set</dt>
@@ -294,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const guardianThreshold = prefetched.guardianThreshold}
+					{@const guardianThreshold = pendingEntity.guardianThreshold}
 					{#if guardianThreshold !== undefined && guardianThreshold !== null}
 						<div>
 							<dt>guardian threshold</dt>
@@ -329,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleConfigJson = prefetched.moduleConfigJson}
+					{@const moduleConfigJson = pendingEntity.moduleConfigJson}
 					{#if moduleConfigJson !== undefined && moduleConfigJson !== null}
 						<div>
 							<dt>module config JSON</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const joinedAt = prefetched.joinedAt}
+					{@const joinedAt = pendingEntity.joinedAt}
 					{#if joinedAt !== undefined && joinedAt !== null}
 						<div>
 							<dt>joined AT</dt>
@@ -399,7 +399,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const viewingKeyJson = prefetched.viewingKeyJson}
+					{@const viewingKeyJson = pendingEntity.viewingKeyJson}
 					{#if viewingKeyJson !== undefined && viewingKeyJson !== null}
 						<div>
 							<dt>viewing key JSON</dt>

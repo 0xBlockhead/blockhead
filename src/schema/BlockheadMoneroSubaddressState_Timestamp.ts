@@ -9,8 +9,10 @@ export enum BlockheadMoneroSubaddressState_TimestampSelector {
 }
 export const BlockheadMoneroSubaddressState_Timestamp = entity({
 	entityType: EntityType.BlockheadMoneroSubaddressState_Timestamp,
-	label: 'blockhead monero subaddress state timestamp',
-	labelPlural: 'blockhead monero subaddress state observations',
+	labels: {
+		singular: 'blockhead monero subaddress state timestamp',
+		plural: 'blockhead monero subaddress state observations',
+	},
 })({
 	$subaddressState: {
 		label: 'subaddress state',

@@ -11,8 +11,10 @@ export enum Eip8004AgentRegistration_TimestampSelector {
 }
 export const Eip8004AgentRegistration_Timestamp = entity({
 	entityType: EntityType.Eip8004AgentRegistration_Timestamp,
-	label: 'EIP-8004 agent registration timestamp',
-	labelPlural: 'EIP-8004 agent registration observations',
+	labels: {
+		singular: 'EIP-8004 agent registration timestamp',
+		plural: 'EIP-8004 agent registration observations',
+	},
 })({
 	$registration: {
 		label: 'Registration',

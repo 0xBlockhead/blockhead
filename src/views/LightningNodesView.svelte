@@ -120,8 +120,8 @@
 						selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lightningNodeFields}
 						href={
-							(lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.slug !== undefined && lightningNodeHrefFields.publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-								networkSlug: String(lightningNodeHrefFields.$network.slug ?? ''),
+							(lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.slug !== undefined && lightningNodeHrefFields.publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+								network: String(lightningNodeHrefFields.$network.slug ?? ''),
 								pubkey: String(lightningNodeHrefFields.publicKey ?? ''),
 							}) : undefined)
 						}

@@ -9,8 +9,10 @@ export enum CctpFastBurnAllowance_TimestampSelector {
 }
 export const CctpFastBurnAllowance_Timestamp = entity({
 	entityType: EntityType.CctpFastBurnAllowance_Timestamp,
-	label: 'CCTP fast burn allowance timestamp',
-	labelPlural: 'CCTP fast burn allowance observations',
+	labels: {
+		singular: 'CCTP fast burn allowance timestamp',
+		plural: 'CCTP fast burn allowance observations',
+	},
 })({
 	timestampMs: {
 		label: 'Timestamp',

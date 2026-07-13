@@ -10,8 +10,10 @@ export enum _GlobalAiArtifactCatalog_TimestampSelector {
 }
 export const _GlobalAiArtifactCatalog_Timestamp = entity({
 	entityType: EntityType._GlobalAiArtifactCatalog_Timestamp,
-	label: 'global AI artifact catalog timestamp',
-	labelPlural: 'global AI artifact catalog observations',
+	labels: {
+		singular: 'global AI artifact catalog timestamp',
+		plural: 'global AI artifact catalog observations',
+	},
 })({
 	$catalog: {
 		label: 'catalog',

@@ -38,7 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalYoutubeNetworkTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube hub observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube hub observation')
 	const viewDomId = $derived('-global-youtube-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -62,7 +62,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={globalYoutubeNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -81,7 +81,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalYoutubeNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -116,7 +116,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -146,7 +146,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -173,7 +173,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedChannelCount = prefetched.observedChannelCount}
+					{@const observedChannelCount = pendingEntity.observedChannelCount}
 					{#if observedChannelCount !== undefined && observedChannelCount !== null}
 						<div>
 							<dt>Observed channels</dt>
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedVideoCount = prefetched.observedVideoCount}
+					{@const observedVideoCount = pendingEntity.observedVideoCount}
 					{#if observedVideoCount !== undefined && observedVideoCount !== null}
 						<div>
 							<dt>Observed videos</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedPlaylistCount = prefetched.observedPlaylistCount}
+					{@const observedPlaylistCount = pendingEntity.observedPlaylistCount}
 					{#if observedPlaylistCount !== undefined && observedPlaylistCount !== null}
 						<div>
 							<dt>Observed playlists</dt>
@@ -278,7 +278,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>

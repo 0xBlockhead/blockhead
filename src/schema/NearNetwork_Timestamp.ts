@@ -10,8 +10,10 @@ export enum NearNetwork_TimestampSelector {
 }
 export const NearNetwork_Timestamp = entity({
 	entityType: EntityType.NearNetwork_Timestamp,
-	label: 'near network timestamp',
-	labelPlural: 'near network observations',
+	labels: {
+		singular: 'near network timestamp',
+		plural: 'near network observations',
+	},
 })({
 	$network: {
 		label: 'Network',

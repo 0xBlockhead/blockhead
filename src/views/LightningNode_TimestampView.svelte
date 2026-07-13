@@ -49,7 +49,7 @@
 			capacitySats: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.alias) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning node timestamp')
+	const titleFallback = $derived([String((pendingEntity.alias) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning node timestamp')
 	const viewDomId = $derived('lightning-node-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lightningNodeTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.alias) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Lightning node timestamp'}
+				{[String((pendingEntity.alias) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Lightning node timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -88,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lightningNodeTimestamp}>
 			{#snippet Pending()}
-				{@const capacitySats0 = prefetched.capacitySats}
+				{@const capacitySats0 = pendingEntity.capacitySats}
 				{#if capacitySats0 !== undefined && capacitySats0 !== null}
 					<NumberValue value={Number(capacitySats0)} />
 				{/if}
@@ -112,8 +112,8 @@
 					<LightningNodeView
 						selection={select(EntityType.LightningNode, selection.entitySelector.$node, {})}
 						href={
-							(selection.entitySelector.$node.$network !== undefined && selection.entitySelector.$node.$network.slug !== undefined && selection.entitySelector.$node.publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-								networkSlug: String(selection.entitySelector.$node.$network.slug ?? ''),
+							(selection.entitySelector.$node.$network !== undefined && selection.entitySelector.$node.$network.slug !== undefined && selection.entitySelector.$node.publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+								network: String(selection.entitySelector.$node.$network.slug ?? ''),
 								pubkey: String(selection.entitySelector.$node.publicKey ?? ''),
 							}) : undefined)
 						}
@@ -136,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -166,7 +166,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const color = prefetched.color}
+					{@const color = pendingEntity.color}
 					{#if color !== undefined && color !== null}
 						<div>
 							<dt>Color</dt>
@@ -205,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const channelCount = prefetched.channelCount}
+					{@const channelCount = pendingEntity.channelCount}
 					{#if channelCount !== undefined && channelCount !== null}
 						<div>
 							<dt>Channels</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const firstSeenMs = prefetched.firstSeenMs}
+					{@const firstSeenMs = pendingEntity.firstSeenMs}
 					{#if firstSeenMs !== undefined && firstSeenMs !== null}
 						<div>
 							<dt>First seen</dt>
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAtMs = prefetched.updatedAtMs}
+					{@const updatedAtMs = pendingEntity.updatedAtMs}
 					{#if updatedAtMs !== undefined && updatedAtMs !== null}
 						<div>
 							<dt>Updated</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const countryCode = prefetched.countryCode}
+					{@const countryCode = pendingEntity.countryCode}
 					{#if countryCode !== undefined && countryCode !== null}
 						<div>
 							<dt>Country</dt>
@@ -358,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const city = prefetched.city}
+					{@const city = pendingEntity.city}
 					{#if city !== undefined && city !== null}
 						<div>
 							<dt>City</dt>
@@ -399,7 +399,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const networkAddresses = prefetched.networkAddresses}
+							{@const networkAddresses = pendingEntity.networkAddresses}
 							{#if networkAddresses !== undefined && networkAddresses !== null}
 								<TruncatedValue value={networkAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}

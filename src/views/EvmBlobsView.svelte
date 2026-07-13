@@ -129,8 +129,8 @@
 						selection={select(EntityType.EvmBlob, evmBlob[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmBlobFields}
 						href={
-							(evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.caip2 !== undefined && evmBlobHrefFields.$transaction.$network.caip2.namespace !== undefined && evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.caip2 !== undefined && evmBlobHrefFields.$transaction.$network.caip2.reference !== undefined && evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
-								caip2: `${String(evmBlobHrefFields.$transaction.$network.caip2.namespace ?? '')}:${String(evmBlobHrefFields.$transaction.$network.caip2.reference ?? '')}`,
+							(evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.slug !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
+								network: String(evmBlobHrefFields.$transaction.$network.slug ?? ''),
 								transactionId: String(evmBlobHrefFields.$transaction.txHash ?? ''),
 								indexInTransaction: String(evmBlobHrefFields.indexInTransaction ?? ''),
 							}) : undefined)

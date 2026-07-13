@@ -40,7 +40,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const url = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.url ?? prefetched.url) ?? '')].filter(Boolean).join(' ') || 'URL')
+	const titleFallback = $derived([String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || 'URL')
 	const viewDomId = $derived('url-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -56,8 +56,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.url !== undefined ? resolve('/(explore)/url/[url]', {
-			url: encodeURIComponent(String(pendingEntity.url ?? '')),
+		href ?? (pendingEntity.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
+			url: String(pendingEntity.url ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={url}>
 			{#snippet Pending()}
-				{@const url0 = selection.entitySelector.url ?? prefetched.url}
+				{@const url0 = pendingEntity.url}
 				{#if url0 !== undefined && url0 !== null}
 					<svelte:element
 						this={'a'}
@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={url}>
 			{#snippet Pending()}
-				{@const url0 = selection.entitySelector.url ?? prefetched.url}
+				{@const url0 = pendingEntity.url}
 				{#if url0 !== undefined && url0 !== null}
 					<TruncatedValue value={String((url0) ?? '')} />
 				{/if}
@@ -137,7 +137,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const url = selection.entitySelector.url ?? prefetched.url}
+							{@const url = pendingEntity.url}
 							{#if url !== undefined && url !== null}
 								<svelte:element
 									this={'a'}

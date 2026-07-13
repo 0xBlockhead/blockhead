@@ -554,10 +554,12 @@ export default {
 					if (transfer.amount == null) throw new Error('Etherscan_Rest: token transfer missing amount')
 					return transfer.amount
 				},
-				tokenId: (transfer) => transfer.tokenId,
 				tokenSymbol: (transfer) => transfer.tokenSymbol,
 				tokenName: (transfer) => transfer.tokenName,
 				tokenDecimals: (transfer) => transfer.tokenDecimals,
+				Nft: {
+					tokenId: (transfer) => transfer.tokenId,
+				},
 				$from: (transfer) => transfer.$from,
 				$to: (transfer) => transfer.$to,
 				$tokenContract: (transfer) => (
@@ -927,7 +929,11 @@ export default {
 				}
 			},
 		})({
-				$$tokenTransfers: (log) => log,
+				Event: {
+					Erc20Transfer: {
+						$$tokenTransfers: (log) => log,
+					},
+				},
 			}),
 
 		defineResolver(Source.Etherscan_Rest, {

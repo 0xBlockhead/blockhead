@@ -50,7 +50,7 @@
 			proofKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.proofId ?? prefetched.proofId) ?? '')].filter(Boolean).join(' ') || 'zero g storage proof')
+	const titleFallback = $derived([String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || 'zero g storage proof')
 	const viewDomId = $derived('zero-gstorage-proof-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={zeroGStorageProof}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.proofId ?? prefetched.proofId) ?? '')].filter(Boolean).join(' ') || title || 'zero g storage proof'}
+				{[String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || 'zero g storage proof'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGStorageProof}>
 			{#snippet Pending()}
-				{@const proofKind0 = prefetched.proofKind}
+				{@const proofKind0 = pendingEntity.proofKind}
 				{#if proofKind0 !== undefined && proofKind0 !== null}
 					<span data-text="muted">
 						{String((proofKind0) ?? '')}
@@ -156,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const proofId = selection.entitySelector.proofId ?? prefetched.proofId}
+							{@const proofId = pendingEntity.proofId}
 							{#if proofId !== undefined && proofId !== null}
 								{String((proofId) ?? '')}
 							{/if}
@@ -183,7 +183,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proofKind = prefetched.proofKind}
+					{@const proofKind = pendingEntity.proofKind}
 					{#if proofKind !== undefined && proofKind !== null}
 						<div>
 							<dt>proof kind</dt>
@@ -218,7 +218,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedAtBlock = prefetched.verifiedAtBlock}
+					{@const verifiedAtBlock = pendingEntity.verifiedAtBlock}
 					{#if verifiedAtBlock !== undefined && verifiedAtBlock !== null}
 						<div>
 							<dt>verified AT block</dt>
@@ -246,6 +246,8 @@
 			<ResourceBoundary
 				resource={selection.$dataBlob}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(zeroGDataBlob)}
 					{#if zeroGDataBlob != null && zeroGDataBlob[EntityMetaKey.Selector] != null}
 						<div>
@@ -266,6 +268,8 @@
 			<ResourceBoundary
 				resource={selection.$consensusNetwork}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
 						<div>

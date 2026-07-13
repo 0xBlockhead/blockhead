@@ -9,8 +9,10 @@ export enum ActivityPubActor_TimestampSelector {
 }
 export const ActivityPubActor_Timestamp = entity({
 	entityType: EntityType.ActivityPubActor_Timestamp,
-	label: 'ActivityPub actor observation',
-	labelPlural: 'ActivityPub actor observations',
+	labels: {
+		singular: 'ActivityPub actor observation',
+		plural: 'ActivityPub actor observations',
+	},
 })({
 	$actor: {
 		label: 'Actor',
@@ -21,7 +23,7 @@ export const ActivityPubActor_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	followersCount: {

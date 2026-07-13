@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const policyId = selection.entitySelector.policyId ?? prefetched.policyId}
+							{@const policyId = pendingEntity.policyId}
 							{#if policyId !== undefined && policyId !== null}
 								{String((policyId) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const assetName = selection.entitySelector.assetName ?? prefetched.assetName}
+							{@const assetName = pendingEntity.assetName}
 							{#if assetName !== undefined && assetName !== null}
 								{String((assetName) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fingerprint = prefetched.fingerprint}
+					{@const fingerprint = pendingEntity.fingerprint}
 					{#if fingerprint !== undefined && fingerprint !== null}
 						<div>
 							<dt>fingerprint</dt>

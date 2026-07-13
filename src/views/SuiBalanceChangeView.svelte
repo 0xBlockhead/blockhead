@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const changeIndex = selection.entitySelector.changeIndex ?? prefetched.changeIndex}
+							{@const changeIndex = pendingEntity.changeIndex}
 							{#if changeIndex !== undefined && changeIndex !== null}
 								{String((changeIndex) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const coinType = prefetched.coinType}
+					{@const coinType = pendingEntity.coinType}
 					{#if coinType !== undefined && coinType !== null}
 						<div>
 							<dt>coin type</dt>
@@ -157,6 +157,8 @@
 			<ResourceBoundary
 				resource={selection.$coinType}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(suiCoinType)}
 					{#if suiCoinType != null && suiCoinType[EntityMetaKey.Selector] != null}
 						<div>
@@ -187,7 +189,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const amountDelta = prefetched.amountDelta}
+							{@const amountDelta = pendingEntity.amountDelta}
 							{#if amountDelta !== undefined && amountDelta !== null}
 								{String((amountDelta) ?? '')}
 							{/if}

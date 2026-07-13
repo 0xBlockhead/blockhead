@@ -87,7 +87,7 @@
 						resource={selection.$network}
 					>
 						{#snippet children(tonNetwork)}
-							{#if tonNetwork[EntityMetaKey.Selector] != null}
+							{#if tonNetwork != null && tonNetwork[EntityMetaKey.Selector] != null}
 								<TonNetworkView
 									selection={select(EntityType.TonNetwork, tonNetwork[EntityMetaKey.Selector])}
 									prefetched={tonNetwork}
@@ -110,7 +110,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const messageHash = prefetched.messageHash}
+					{@const messageHash = pendingEntity.messageHash}
 					{#if messageHash !== undefined && messageHash !== null}
 						<div>
 							<dt>message hash</dt>
@@ -138,6 +138,8 @@
 			<ResourceBoundary
 				resource={selection.$sourceTransaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonTransaction)}
 					{#if tonTransaction != null && tonTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -165,7 +167,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outIndex = prefetched.outIndex}
+					{@const outIndex = pendingEntity.outIndex}
 					{#if outIndex !== undefined && outIndex !== null}
 						<div>
 							<dt>out index</dt>
@@ -203,7 +205,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const messageKind = prefetched.messageKind}
+							{@const messageKind = pendingEntity.messageKind}
 							{#if messageKind !== undefined && messageKind !== null}
 								{String((messageKind) ?? '')}
 							{/if}
@@ -230,7 +232,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceAddress = prefetched.sourceAddress}
+					{@const sourceAddress = pendingEntity.sourceAddress}
 					{#if sourceAddress !== undefined && sourceAddress !== null}
 						<div>
 							<dt>source address</dt>
@@ -265,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const destinationAddress = prefetched.destinationAddress}
+					{@const destinationAddress = pendingEntity.destinationAddress}
 					{#if destinationAddress !== undefined && destinationAddress !== null}
 						<div>
 							<dt>destination address</dt>
@@ -300,7 +302,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueNano = prefetched.valueNano}
+					{@const valueNano = pendingEntity.valueNano}
 					{#if valueNano !== undefined && valueNano !== null}
 						<div>
 							<dt>value nano</dt>
@@ -335,7 +337,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdLt = prefetched.createdLt}
+					{@const createdLt = pendingEntity.createdLt}
 					{#if createdLt !== undefined && createdLt !== null}
 						<div>
 							<dt>created lt</dt>
@@ -370,7 +372,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ihrDisabled = prefetched.ihrDisabled}
+					{@const ihrDisabled = pendingEntity.ihrDisabled}
 					{#if ihrDisabled !== undefined && ihrDisabled !== null}
 						<div>
 							<dt>ihr disabled</dt>
@@ -405,7 +407,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bounce = prefetched.bounce}
+					{@const bounce = pendingEntity.bounce}
 					{#if bounce !== undefined && bounce !== null}
 						<div>
 							<dt>bounce</dt>
@@ -440,7 +442,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bounced = prefetched.bounced}
+					{@const bounced = pendingEntity.bounced}
 					{#if bounced !== undefined && bounced !== null}
 						<div>
 							<dt>bounced</dt>
@@ -475,7 +477,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const opcode = prefetched.opcode}
+					{@const opcode = pendingEntity.opcode}
 					{#if opcode !== undefined && opcode !== null}
 						<div>
 							<dt>opcode</dt>
@@ -510,7 +512,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bodyHash = prefetched.bodyHash}
+					{@const bodyHash = pendingEntity.bodyHash}
 					{#if bodyHash !== undefined && bodyHash !== null}
 						<div>
 							<dt>body hash</dt>
@@ -545,7 +547,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stateInitHash = prefetched.stateInitHash}
+					{@const stateInitHash = pendingEntity.stateInitHash}
 					{#if stateInitHash !== undefined && stateInitHash !== null}
 						<div>
 							<dt>state init hash</dt>
@@ -573,6 +575,8 @@
 			<ResourceBoundary
 				resource={selection.$trace}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonTrace)}
 					{#if tonTrace != null && tonTrace[EntityMetaKey.Selector] != null}
 						<div>
@@ -593,6 +597,8 @@
 			<ResourceBoundary
 				resource={selection.$destinationTransaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonTransaction)}
 					{#if tonTransaction != null && tonTransaction[EntityMetaKey.Selector] != null}
 						<div>

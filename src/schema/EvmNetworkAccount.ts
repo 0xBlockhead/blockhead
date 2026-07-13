@@ -9,8 +9,10 @@ export enum EvmNetworkAccountSelector {
 }
 export const EvmNetworkAccount = entity({
 	entityType: EntityType.EvmNetworkAccount,
-	label: 'EVM network account',
-	labelPlural: 'EVM network accounts',
+	labels: {
+		singular: 'EVM network account',
+		plural: 'EVM network accounts',
+	},
 })({
 	$network: {
 		label: 'network',

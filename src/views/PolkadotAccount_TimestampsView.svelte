@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -122,8 +121,8 @@
 						selection={select(EntityType.PolkadotAccount_Timestamp, polkadotAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotAccountTimestampFields}
 						href={
-							(polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.$network !== undefined && polkadotAccountTimestampHrefFields.$account.$network.caip2 !== undefined && polkadotAccountTimestampHrefFields.$account.$network.caip2.namespace !== undefined && polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.$network !== undefined && polkadotAccountTimestampHrefFields.$account.$network.caip2 !== undefined && polkadotAccountTimestampHrefFields.$account.$network.caip2.reference !== undefined && polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.accountId !== undefined && polkadotAccountTimestampHrefFields.timestampMs !== undefined && polkadotAccountTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]/observation/[timestampMs=nonNegativeInteger]/[source]', {
-								networkSlug: String(networkByCaip2[String(String(polkadotAccountTimestampHrefFields.$account.$network.caip2.namespace) + ':' + String(polkadotAccountTimestampHrefFields.$account.$network.caip2.reference))].slug ?? ''),
+							(polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.$network !== undefined && polkadotAccountTimestampHrefFields.$account.$network.slug !== undefined && polkadotAccountTimestampHrefFields.$account.accountId !== undefined && polkadotAccountTimestampHrefFields.timestampMs !== undefined && polkadotAccountTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								network: String(polkadotAccountTimestampHrefFields.$account.$network.slug ?? ''),
 								accountId: String(polkadotAccountTimestampHrefFields.$account.accountId ?? ''),
 								timestampMs: String(polkadotAccountTimestampHrefFields.timestampMs ?? ''),
 								source: String(polkadotAccountTimestampHrefFields.source ?? ''),

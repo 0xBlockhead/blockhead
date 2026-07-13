@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -50,7 +49,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.slot ?? prefetched.slot) ?? '')].filter(Boolean).join(' ') || 'solana validator timestamp')
+	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana validator timestamp')
 	const viewDomId = $derived('solana-validator-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={solanaValidatorTimestamp}>
 			{#snippet Pending()}
-				{@const slot0 = selection.entitySelector.slot ?? prefetched.slot}
+				{@const slot0 = pendingEntity.slot}
 				{#if slot0 !== undefined && slot0 !== null}
 					<NumberValue value={Number(slot0)} />
 				{/if}
@@ -94,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaValidatorTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.delinquent) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.slot ?? prefetched.slot) ?? '')].filter(Boolean).join(' ') || title || 'solana validator timestamp'}
+				{[String((pendingEntity.delinquent) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || title || 'solana validator timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +106,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaValidatorTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -135,9 +134,9 @@
 					<SolanaValidatorView
 						selection={select(EntityType.SolanaValidator, selection.entitySelector.$validator, {})}
 						href={
-							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.namespace !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.reference !== undefined && selection.entitySelector.$validator.votePubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/validator/[votePubkey]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$validator.$network.caip2.namespace) + ':' + String(selection.entitySelector.$validator.$network.caip2.reference))].slug ?? ''),
-								votePubkey: String(selection.entitySelector.$validator.votePubkey ?? ''),
+							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.slug !== undefined && selection.entitySelector.$validator.votePubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+								network: String(selection.entitySelector.$validator.$network.slug ?? ''),
+								validatorId: String(selection.entitySelector.$validator.votePubkey ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -159,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -189,7 +188,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activatedStakeLamports = prefetched.activatedStakeLamports}
+					{@const activatedStakeLamports = pendingEntity.activatedStakeLamports}
 					{#if activatedStakeLamports !== undefined && activatedStakeLamports !== null}
 						<div>
 							<dt>Activated stake</dt>
@@ -227,7 +226,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commission = prefetched.commission}
+					{@const commission = pendingEntity.commission}
 					{#if commission !== undefined && commission !== null}
 						<div>
 							<dt>Commission</dt>
@@ -265,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastVoteSlot = prefetched.lastVoteSlot}
+					{@const lastVoteSlot = pendingEntity.lastVoteSlot}
 					{#if lastVoteSlot !== undefined && lastVoteSlot !== null}
 						<div>
 							<dt>Last vote slot</dt>
@@ -303,7 +302,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rootSlot = prefetched.rootSlot}
+					{@const rootSlot = pendingEntity.rootSlot}
 					{#if rootSlot !== undefined && rootSlot !== null}
 						<div>
 							<dt>Root slot</dt>

@@ -9,8 +9,10 @@ export enum ElementsPeg_TimestampSelector {
 }
 export const ElementsPeg_Timestamp = entity({
 	entityType: EntityType.ElementsPeg_Timestamp,
-	label: 'Elements peg observation',
-	labelPlural: 'Elements peg observations',
+	labels: {
+		singular: 'Elements peg observation',
+		plural: 'Elements peg observations',
+	},
 })({
 	$peg: {
 		label: 'Peg',

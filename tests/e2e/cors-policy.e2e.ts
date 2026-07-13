@@ -1,7 +1,7 @@
 /**
  * Dedicated gate for browser CORS console errors on every discovered `+page` route.
- * Other e2e suites ignore this noise; fix regressions via `$/lib/http.ts` (`corsFetch` / `getJson`)
- * and provider `origins` (`corsEnabled` + `/api-proxy` allow-list in `hooks.server.ts`).
+ * The post-settlement quiet window catches late CORS errors. Fix regressions via `$/lib/http.ts`
+ * (`corsFetch` / `getJson`) and provider `origins` (`corsEnabled` + `/api-proxy` allow-list).
  *
  * ```
  * pnpm run test:e2e:cors
@@ -23,7 +23,6 @@ import {
 } from '../_e2eBrowserHelpers.ts'
 
 import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
-import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
@@ -137,9 +136,7 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 			schemaVersion: Date.now(),
 		})
 		await installChainlistRpcsJsonStub(page)
-		const diagnostics = setupPageRuntimeDiagnostics(page, {
-			failFast: !e2eBoundaryLiveOptionalPathnames.has(probePath!),
-		})
+		const diagnostics = setupPageRuntimeDiagnostics(page)
 		const violations = collectBrowserCorsPolicyViolations(page)
 		const networkActivityCount = browserNetworkActivityCounter(page)
 		const devServerContaminationGate = routeViewSmokeDevServerContaminationGate(page)
@@ -168,9 +165,7 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 			await test.step(path, async () => {
 				console.log(`[cors-policy] ${path}`)
 				const page = await browser.newPage()
-				const diagnostics = setupPageRuntimeDiagnostics(page, {
-					failFast: !e2eBoundaryLiveOptionalPathnames.has(path),
-				})
+				const diagnostics = setupPageRuntimeDiagnostics(page)
 				const violations = collectBrowserCorsPolicyViolations(page)
 				const networkActivityCount = browserNetworkActivityCounter(page)
 				try {

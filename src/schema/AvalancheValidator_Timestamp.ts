@@ -9,8 +9,10 @@ export enum AvalancheValidator_TimestampSelector {
 }
 export const AvalancheValidator_Timestamp = entity({
 	entityType: EntityType.AvalancheValidator_Timestamp,
-	label: 'avalanche validator timestamp',
-	labelPlural: 'avalanche validator observations',
+	labels: {
+		singular: 'avalanche validator timestamp',
+		plural: 'avalanche validator observations',
+	},
 })({
 	$validator: {
 		label: 'validator',

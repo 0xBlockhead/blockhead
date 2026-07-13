@@ -9,8 +9,10 @@ export enum NetworkStackSelector {
 }
 export const NetworkStack = entity({
 	entityType: EntityType.NetworkStack,
-	label: 'network stack',
-	labelPlural: 'network stacks',
+	labels: {
+		singular: 'network stack',
+		plural: 'network stacks',
+	},
 	description: 'A curated protocol-stack classification used by network catalog rows.',
 })({
 	networkStackId: {

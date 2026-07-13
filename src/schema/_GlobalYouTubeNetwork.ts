@@ -10,8 +10,10 @@ export enum _GlobalYoutubeNetworkSelector {
 }
 export const _GlobalYoutubeNetwork = entity({
 	entityType: EntityType._GlobalYoutubeNetwork,
-	label: 'YouTube network',
-	labelPlural: 'YouTube networks',
+	labels: {
+		singular: 'YouTube network',
+		plural: 'YouTube networks',
+	},
 })({
 	scope: {
 		label: 'Scope',

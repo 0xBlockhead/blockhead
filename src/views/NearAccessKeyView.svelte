@@ -51,7 +51,7 @@
 			nonce: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.publicKey ?? prefetched.publicKey) ?? '')].filter(Boolean).join(' ') || 'near access key')
+	const titleFallback = $derived([String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || 'near access key')
 	const viewDomId = $derived('near-access-key-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearAccessKey}>
 			{#snippet Pending()}
-				{@const publicKey0 = selection.entitySelector.publicKey ?? prefetched.publicKey}
+				{@const publicKey0 = pendingEntity.publicKey}
 				{#if publicKey0 !== undefined && publicKey0 !== null}
 					<TruncatedValue value={String((publicKey0) ?? '')} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearAccessKey}>
 			{#snippet Pending()}
-				{[String((prefetched.permission) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.publicKey ?? prefetched.publicKey) ?? '')].filter(Boolean).join(' ') || title || 'near access key'}
+				{[String((pendingEntity.permission) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || title || 'near access key'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearAccessKey}>
 			{#snippet Pending()}
-				{@const nonce0 = prefetched.nonce}
+				{@const nonce0 = pendingEntity.nonce}
 				{#if nonce0 !== undefined && nonce0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(nonce0)} />
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const publicKey = selection.entitySelector.publicKey ?? prefetched.publicKey}
+							{@const publicKey = pendingEntity.publicKey}
 							{#if publicKey !== undefined && publicKey !== null}
 								<TruncatedValue value={String((publicKey) ?? '')} />
 							{/if}
@@ -184,7 +184,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nonce = prefetched.nonce}
+					{@const nonce = pendingEntity.nonce}
 					{#if nonce !== undefined && nonce !== null}
 						<div>
 							<dt>Nonce</dt>
@@ -222,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const permission = prefetched.permission}
+					{@const permission = pendingEntity.permission}
 					{#if permission !== undefined && permission !== null}
 						<div>
 							<dt>Permission</dt>

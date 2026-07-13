@@ -9,8 +9,10 @@ export enum TezosNetwork_TimestampSelector {
 }
 export const TezosNetwork_Timestamp = entity({
 	entityType: EntityType.TezosNetwork_Timestamp,
-	label: 'tezos network timestamp',
-	labelPlural: 'tezos network observations',
+	labels: {
+		singular: 'tezos network timestamp',
+		plural: 'tezos network observations',
+	},
 })({
 	$network: {
 		label: 'network',

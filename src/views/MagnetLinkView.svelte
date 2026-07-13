@@ -47,7 +47,7 @@
 			infoHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.magnetUri ?? prefetched.magnetUri) ?? '')].filter(Boolean).join(' ') || 'magnet link')
+	const titleFallback = $derived([String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.magnetUri) ?? '')].filter(Boolean).join(' ') || 'magnet link')
 	const viewDomId = $derived('magnet-link-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={magnetLink}>
 			{#snippet Pending()}
-				{[String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.magnetUri ?? prefetched.magnetUri) ?? '')].filter(Boolean).join(' ') || 'magnet link'}
+				{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.magnetUri) ?? '')].filter(Boolean).join(' ') || 'magnet link'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={magnetLink}>
 			{#snippet Pending()}
-				{@const infoHash0 = prefetched.infoHash}
+				{@const infoHash0 = pendingEntity.infoHash}
 				{#if infoHash0 !== undefined && infoHash0 !== null}
 					<TruncatedValue value={String((infoHash0) ?? '')} />
 				{/if}
@@ -117,7 +117,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const magnetUri = selection.entitySelector.magnetUri ?? prefetched.magnetUri}
+							{@const magnetUri = pendingEntity.magnetUri}
 							{#if magnetUri !== undefined && magnetUri !== null}
 								<TruncatedValue value={String((magnetUri) ?? '')} />
 							{/if}
@@ -144,7 +144,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const infoHash = prefetched.infoHash}
+					{@const infoHash = pendingEntity.infoHash}
 					{#if infoHash !== undefined && infoHash !== null}
 						<div>
 							<dt>info hash</dt>
@@ -179,7 +179,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const displayName = prefetched.displayName}
+					{@const displayName = pendingEntity.displayName}
 					{#if displayName !== undefined && displayName !== null}
 						<div>
 							<dt>display name</dt>
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const exactLength = prefetched.exactLength}
+					{@const exactLength = pendingEntity.exactLength}
 					{#if exactLength !== undefined && exactLength !== null}
 						<div>
 							<dt>exact length</dt>
@@ -254,7 +254,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const trackers = prefetched.trackers}
+							{@const trackers = pendingEntity.trackers}
 							{#if trackers !== undefined && trackers !== null}
 								{trackers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -284,7 +284,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const webSeeds = prefetched.webSeeds}
+							{@const webSeeds = pendingEntity.webSeeds}
 							{#if webSeeds !== undefined && webSeeds !== null}
 								{webSeeds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -314,7 +314,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const acceptableSources = prefetched.acceptableSources}
+							{@const acceptableSources = pendingEntity.acceptableSources}
 							{#if acceptableSources !== undefined && acceptableSources !== null}
 								{acceptableSources.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -334,6 +334,8 @@
 			<ResourceBoundary
 				resource={selection.$torrent}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(bitTorrentMetainfo)}
 					{#if bitTorrentMetainfo != null && bitTorrentMetainfo[EntityMetaKey.Selector] != null}
 						<div>

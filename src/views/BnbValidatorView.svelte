@@ -47,7 +47,7 @@
 			consensusAddress: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.moniker) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.operatorAddress ?? prefetched.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'bnb validator')
+	const titleFallback = $derived([String((pendingEntity.moniker) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'bnb validator')
 	const viewDomId = $derived('bnb-validator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bnbValidator}>
 			{#snippet Pending()}
-				{[String((prefetched.moniker) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.operatorAddress ?? prefetched.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'bnb validator'}
+				{[String((pendingEntity.moniker) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'bnb validator'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbValidator}>
 			{#snippet Pending()}
-				{[String((prefetched.consensusAddress) ?? '')].filter(Boolean).join(' ') || [String((prefetched.moniker) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.operatorAddress ?? prefetched.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'bnb validator'}
+				{[String((pendingEntity.consensusAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.moniker) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'bnb validator'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -121,7 +121,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operatorAddress = selection.entitySelector.operatorAddress ?? prefetched.operatorAddress}
+							{@const operatorAddress = pendingEntity.operatorAddress}
 							{#if operatorAddress !== undefined && operatorAddress !== null}
 								<TruncatedValue value={String((operatorAddress) ?? '')} />
 							{/if}
@@ -148,7 +148,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusAddress = prefetched.consensusAddress}
+					{@const consensusAddress = pendingEntity.consensusAddress}
 					{#if consensusAddress !== undefined && consensusAddress !== null}
 						<div>
 							<dt>consensus address</dt>
@@ -183,7 +183,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moniker = prefetched.moniker}
+					{@const moniker = pendingEntity.moniker}
 					{#if moniker !== undefined && moniker !== null}
 						<div>
 							<dt>moniker</dt>

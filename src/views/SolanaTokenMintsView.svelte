@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -120,8 +119,8 @@
 						selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaTokenMintFields}
 						href={
-							(solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined && solanaTokenMintHrefFields.$network.caip2.namespace !== undefined && solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined && solanaTokenMintHrefFields.$network.caip2.reference !== undefined && solanaTokenMintHrefFields.mintAddress !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/token-mint/[mintAddress]', {
-								networkSlug: String(networkByCaip2[String(String(solanaTokenMintHrefFields.$network.caip2.namespace) + ':' + String(solanaTokenMintHrefFields.$network.caip2.reference))].slug ?? ''),
+							(solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.slug !== undefined && solanaTokenMintHrefFields.mintAddress !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+								network: String(solanaTokenMintHrefFields.$network.slug ?? ''),
 								mintAddress: String(solanaTokenMintHrefFields.mintAddress ?? ''),
 							}) : undefined)
 						}

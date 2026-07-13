@@ -9,8 +9,10 @@ export enum BitTorrentMetainfoSelector {
 }
 export const BitTorrentMetainfo = entity({
 	entityType: EntityType.BitTorrentMetainfo,
-	label: 'bit torrent metainfo',
-	labelPlural: 'bit torrent metainfos',
+	labels: {
+		singular: 'bit torrent metainfo',
+		plural: 'bit torrent metainfos',
+	},
 })({
 	infoHash: {
 		label: 'info hash',

@@ -9,8 +9,10 @@ export enum StarknetEventSelector {
 }
 export const StarknetEvent = entity({
 	entityType: EntityType.StarknetEvent,
-	label: 'starknet event',
-	labelPlural: 'starknet events',
+	labels: {
+		singular: 'starknet event',
+		plural: 'starknet events',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

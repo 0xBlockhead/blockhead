@@ -43,6 +43,8 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AiModelProvidersView from '$/views/AiModelProvidersView.svelte'
 	import AiProviderCatalogEntriesView from '$/views/AiProviderCatalogEntriesView.svelte'
@@ -92,7 +94,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const catalogId = selection.entitySelector.catalogId ?? prefetched.catalogId}
+							{@const catalogId = pendingEntity.catalogId}
 							{#if catalogId !== undefined && catalogId !== null}
 								{String((catalogId) ?? '')}
 							{/if}
@@ -119,7 +121,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -154,7 +156,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const catalogKind = prefetched.catalogKind}
+					{@const catalogKind = pendingEntity.catalogKind}
 					{#if catalogKind !== undefined && catalogKind !== null}
 						<div>
 							<dt>catalog kind</dt>
@@ -183,54 +185,173 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AiModelProvidersView
-				selection={selection.$$providers}
-				title='providers'
-				emptyText='No AI model providers.'
-				id='AiModelProvidersView-providers'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ai-catalog-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ai-providers',
+							label: 'Providers',
+						},
+						{
+							id: 'ai-catalog-entries',
+							label: 'Catalog entries',
+						},
+						{
+							id: 'ai-models',
+							label: 'Models',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Providers and models</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AiProviderCatalogEntriesView
-				selection={selection.$$catalogEntries}
-				title='catalog entries'
-				emptyText='No AI provider catalog entries.'
-				id='AiProviderCatalogEntriesView-catalog-entries'
-			/>
+				{#snippet SectionAiProviders({ id, label, open })}
+					<AiModelProvidersView
+						selection={selection.$$providers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI model providers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AiModelsView
-				selection={selection.$$models}
-				title='models'
-				emptyText='No AI models.'
-				id='AiModelsView-models'
-			/>
+				{#snippet SectionAiCatalogEntries({ id, label, open })}
+					<AiProviderCatalogEntriesView
+						selection={selection.$$catalogEntries}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI provider catalog entries.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AiDatasetsView
-				selection={selection.$$datasets}
-				title='datasets'
-				emptyText='No AI datasets.'
-				id='AiDatasetsView-datasets'
-			/>
+				{#snippet SectionAiModels({ id, label, open })}
+					<AiModelsView
+						selection={selection.$$models}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI models.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AiBenchmarksView
-				selection={selection.$$benchmarks}
-				title='benchmarks'
-				emptyText='No AI benchmarks.'
-				id='AiBenchmarksView-benchmarks'
-			/>
+			</CollapsibleTabs>
 
-			<AiEvaluation_TimestampsView
-				selection={selection.$$evaluations}
-				title='evaluations'
-				emptyText='No AI evaluation observations.'
-				id='AiEvaluation_TimestampsView-evaluations'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ai-catalog-eval'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ai-datasets',
+							label: 'Datasets',
+						},
+						{
+							id: 'ai-benchmarks',
+							label: 'Benchmarks',
+						},
+						{
+							id: 'ai-evaluations',
+							label: 'Evaluations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-evaluation'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Datasets and evaluation</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<GlobalAiModelCatalog_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No AI model catalog observations.'
-				id='_GlobalAiModelCatalog_TimestampsView-timestamps'
-			/>
+				{#snippet SectionAiDatasets({ id, label, open })}
+					<AiDatasetsView
+						selection={selection.$$datasets}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI datasets.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAiBenchmarks({ id, label, open })}
+					<AiBenchmarksView
+						selection={selection.$$benchmarks}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI benchmarks.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAiEvaluations({ id, label, open })}
+					<AiEvaluation_TimestampsView
+						selection={selection.$$evaluations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI evaluation observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ai-catalog-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ai-catalog-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAiCatalogTimestamps({ id, label, open })}
+					<GlobalAiModelCatalog_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI model catalog observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

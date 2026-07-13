@@ -47,7 +47,7 @@
 			length: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.path) ?? '')].filter(Boolean).join(' ') || 'bit torrent file')
+	const titleFallback = $derived([String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || 'bit torrent file')
 	const viewDomId = $derived('bit-torrent-file-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bitTorrentFile}>
 			{#snippet Pending()}
-				{[String((prefetched.path) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent file'}
+				{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent file'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentFile}>
 			{#snippet Pending()}
-				{@const length0 = prefetched.length}
+				{@const length0 = pendingEntity.length}
 				{#if length0 !== undefined && length0 !== null}
 					<NumberValue value={Number(length0)} />
 				{/if}
@@ -127,7 +127,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fileIndex = selection.entitySelector.fileIndex ?? prefetched.fileIndex}
+							{@const fileIndex = pendingEntity.fileIndex}
 							{#if fileIndex !== undefined && fileIndex !== null}
 								<NumberValue value={Number(fileIndex)} />
 							{/if}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const path = prefetched.path}
+							{@const path = pendingEntity.path}
 							{#if path !== undefined && path !== null}
 								{String((path) ?? '')}
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const length = prefetched.length}
+							{@const length = pendingEntity.length}
 							{#if length !== undefined && length !== null}
 								<NumberValue value={Number(length)} />
 							{/if}
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const piecesRoot = prefetched.piecesRoot}
+					{@const piecesRoot = pendingEntity.piecesRoot}
 					{#if piecesRoot !== undefined && piecesRoot !== null}
 						<div>
 							<dt>pieces root</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fileHash = prefetched.fileHash}
+					{@const fileHash = pendingEntity.fileHash}
 					{#if fileHash !== undefined && fileHash !== null}
 						<div>
 							<dt>file hash</dt>

@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -153,6 +153,8 @@
 			<ResourceBoundary
 				resource={selection.$owner}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -180,7 +182,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownerAccountId = prefetched.ownerAccountId}
+					{@const ownerAccountId = pendingEntity.ownerAccountId}
 					{#if ownerAccountId !== undefined && ownerAccountId !== null}
 						<div>
 							<dt>owner account ID</dt>
@@ -215,7 +217,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>
@@ -250,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spenderAccountId = prefetched.spenderAccountId}
+					{@const spenderAccountId = pendingEntity.spenderAccountId}
 					{#if spenderAccountId !== undefined && spenderAccountId !== null}
 						<div>
 							<dt>spender account ID</dt>
@@ -285,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const modifiedTimestamp = prefetched.modifiedTimestamp}
+					{@const modifiedTimestamp = pendingEntity.modifiedTimestamp}
 					{#if modifiedTimestamp !== undefined && modifiedTimestamp !== null}
 						<div>
 							<dt>modified timestamp</dt>

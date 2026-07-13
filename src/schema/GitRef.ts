@@ -10,8 +10,10 @@ export enum GitRefSelector {
 }
 export const GitRef = entity({
 	entityType: EntityType.GitRef,
-	label: 'Git ref',
-	labelPlural: 'Git refs',
+	labels: {
+		singular: 'Git ref',
+		plural: 'Git refs',
+	},
 })({
 	$repository: {
 		label: 'repository',

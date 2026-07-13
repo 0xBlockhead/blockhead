@@ -9,8 +9,10 @@ export enum HyperliquidPerpMarket_TimestampSelector {
 }
 export const HyperliquidPerpMarket_Timestamp = entity({
 	entityType: EntityType.HyperliquidPerpMarket_Timestamp,
-	label: 'hyperliquid perp market timestamp',
-	labelPlural: 'hyperliquid perp market observations',
+	labels: {
+		singular: 'hyperliquid perp market timestamp',
+		plural: 'hyperliquid perp market observations',
+	},
 })({
 	$perpMarket: {
 		label: 'perp market',

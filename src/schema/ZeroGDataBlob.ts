@@ -9,8 +9,10 @@ export enum ZeroGDataBlobSelector {
 }
 export const ZeroGDataBlob = entity({
 	entityType: EntityType.ZeroGDataBlob,
-	label: 'zero g data blob',
-	labelPlural: 'zero g data blobs',
+	labels: {
+		singular: 'zero g data blob',
+		plural: 'zero g data blobs',
+	},
 })({
 	$network: {
 		label: 'network',

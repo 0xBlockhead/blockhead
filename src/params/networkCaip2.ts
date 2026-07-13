@@ -1,17 +1,18 @@
 import { caip2ParamValueFromString } from '$/lib/caip2.ts'
-import { matchSchemaPrimitiveParam } from '$/schema/$params.ts'
+import { networkByCaip2 } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { matchSchemaPrimitiveParam } from '$/schema/$params.ts'
 
 
 export const match = (param: string): param is `${string}:${string}` => {
 	const caip2 = caip2ParamValueFromString(param)
-	return (
-		caip2 !== undefined
-		&& caip2.namespace !== 'eip155'
+	if (caip2 === undefined)
+		return false
+
+	return Object.hasOwn(networkByCaip2, param)
 		&& matchSchemaPrimitiveParam(
-			EntityType.Network,
-			'caip2',
-			caip2
-		)
+		EntityType.Network,
+		'caip2',
+		caip2
 	)
 }

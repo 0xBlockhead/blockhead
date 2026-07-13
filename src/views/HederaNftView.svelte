@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const serialNumber = selection.entitySelector.serialNumber ?? prefetched.serialNumber}
+							{@const serialNumber = pendingEntity.serialNumber}
 							{#if serialNumber !== undefined && serialNumber !== null}
 								{String((serialNumber) ?? '')}
 							{/if}
@@ -128,7 +128,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadata = prefetched.metadata}
+					{@const metadata = pendingEntity.metadata}
 					{#if metadata !== undefined && metadata !== null}
 						<div>
 							<dt>metadata</dt>
@@ -163,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdTimestamp = prefetched.createdTimestamp}
+					{@const createdTimestamp = pendingEntity.createdTimestamp}
 					{#if createdTimestamp !== undefined && createdTimestamp !== null}
 						<div>
 							<dt>created timestamp</dt>

@@ -157,4 +157,17 @@
 	<p data-testid="adapter-awaited-second">{secondPromiseState}</p>
 	<p data-testid="adapter-catch">{catchState}</p>
 	<p data-testid="adapter-finally-count">{finallyCount}</p>
+	<dl>
+		<dt>current</dt>
+		<dd data-testid="adapter-direct-current">{resource.current ?? ''}</dd>
+
+		<dt>loading</dt>
+		<dd data-testid="adapter-direct-loading">{String(resource.loading)}</dd>
+
+		<dt>ready</dt>
+		<dd data-testid="adapter-direct-ready">{String(resource.ready)}</dd>
+
+		<dt>error</dt>
+		<dd data-testid="adapter-direct-error">{resource.error === undefined ? '' : String(resource.error)}</dd>
+	</dl>
 </section>

@@ -56,7 +56,7 @@
 			revoked: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EAS attestation timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EAS attestation timestamp')
 	const viewDomId = $derived('eas-attestation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -82,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={easAttestationTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -101,7 +101,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={easAttestationTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.valid) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EAS attestation timestamp'}
+				{[String((pendingEntity.valid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EAS attestation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -114,7 +114,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={easAttestationTimestamp}>
 			{#snippet Pending()}
-				{@const revoked0 = prefetched.revoked}
+				{@const revoked0 = pendingEntity.revoked}
 				{#if revoked0 !== undefined && revoked0 !== null}
 					<span data-text="muted">
 						{revoked0 ? 'Yes' : 'No'}
@@ -160,7 +160,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -190,7 +190,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -217,7 +217,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valid = prefetched.valid}
+					{@const valid = pendingEntity.valid}
 					{#if valid !== undefined && valid !== null}
 						<div>
 							<dt>Valid</dt>
@@ -252,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const revoked = prefetched.revoked}
+					{@const revoked = pendingEntity.revoked}
 					{#if revoked !== undefined && revoked !== null}
 						<div>
 							<dt>Revoked</dt>
@@ -287,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expired = prefetched.expired}
+					{@const expired = pendingEntity.expired}
 					{#if expired !== undefined && expired !== null}
 						<div>
 							<dt>Expired</dt>
@@ -322,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const revocationTime = prefetched.revocationTime}
+					{@const revocationTime = pendingEntity.revocationTime}
 					{#if revocationTime !== undefined && revocationTime !== null}
 						<div>
 							<dt>Revocation time</dt>
@@ -359,7 +359,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -394,7 +394,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>Transaction hash</dt>
@@ -429,7 +429,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const logIndex = prefetched.logIndex}
+					{@const logIndex = pendingEntity.logIndex}
 					{#if logIndex !== undefined && logIndex !== null}
 						<div>
 							<dt>Log index</dt>
@@ -464,7 +464,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const revokedTransactionHash = prefetched.revokedTransactionHash}
+					{@const revokedTransactionHash = pendingEntity.revokedTransactionHash}
 					{#if revokedTransactionHash !== undefined && revokedTransactionHash !== null}
 						<div>
 							<dt>Revoked transaction hash</dt>
@@ -499,7 +499,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const revokedLogIndex = prefetched.revokedLogIndex}
+					{@const revokedLogIndex = pendingEntity.revokedLogIndex}
 					{#if revokedLogIndex !== undefined && revokedLogIndex !== null}
 						<div>
 							<dt>Revoked log index</dt>

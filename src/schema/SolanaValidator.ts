@@ -9,8 +9,10 @@ export enum SolanaValidatorSelector {
 }
 export const SolanaValidator = entity({
 	entityType: EntityType.SolanaValidator,
-	label: 'solana validator',
-	labelPlural: 'Solana validators',
+	labels: {
+		singular: 'solana validator',
+		plural: 'Solana validators',
+	},
 })({
 	$network: {
 		label: 'Network',

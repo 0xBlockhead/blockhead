@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const topicKey = selection.entitySelector.topicKey ?? prefetched.topicKey}
+							{@const topicKey = pendingEntity.topicKey}
 							{#if topicKey !== undefined && topicKey !== null}
 								{String((topicKey) ?? '')}
 							{/if}
@@ -128,7 +128,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const claimTopic = prefetched.claimTopic}
+					{@const claimTopic = pendingEntity.claimTopic}
 					{#if claimTopic !== undefined && claimTopic !== null}
 						<div>
 							<dt>claim topic</dt>
@@ -163,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const countryScope = prefetched.countryScope}
+					{@const countryScope = pendingEntity.countryScope}
 					{#if countryScope !== undefined && countryScope !== null}
 						<div>
 							<dt>country scope</dt>

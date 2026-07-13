@@ -41,6 +41,7 @@ export const sourceFetch = (
 	init?: RequestInit
 ): Promise<Response> => (
 	corsFetch(url, {
+		delivery: binding.delivery,
 		init,
 		origins: httpOriginsForBinding(binding),
 	})
@@ -51,6 +52,7 @@ export const sourceGetJson = <_Json>(
 	url: string
 ): Promise<_Json> => (
 	getJson<_Json>(url, {
+		delivery: binding.delivery,
 		origins: httpOriginsForBinding(binding),
 	})
 )
@@ -60,6 +62,7 @@ export const sourceGetText = (
 	url: string
 ): Promise<string> => (
 	getText(url, {
+		delivery: binding.delivery,
 		origins: httpOriginsForBinding(binding),
 	})
 )

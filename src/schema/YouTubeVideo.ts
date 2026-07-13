@@ -16,8 +16,10 @@ export enum YoutubeVideoSelector {
 }
 export const YoutubeVideo = entity({
 	entityType: EntityType.YoutubeVideo,
-	label: 'YouTube video',
-	labelPlural: 'YouTube Videos',
+	labels: {
+		singular: 'YouTube video',
+		plural: 'YouTube Videos',
+	},
 })({
 	videoId: {
 		label: 'Video ID',

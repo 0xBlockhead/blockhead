@@ -118,8 +118,8 @@
 						selection={select(EntityType.LightningNetwork, lightningNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lightningNetworkFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(lightningNetworkHrefFields.$network.slug ?? ''),
+							resolve('/network/[network]', {
+								network: String(lightningNetworkHrefFields.$network.slug ?? ''),
 							})
 						}
 						layout={EntityLayout.Summary}

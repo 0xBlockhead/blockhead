@@ -116,7 +116,7 @@
 					<YoutubeNetworkView
 						selection={select(EntityType.YoutubeNetwork, youtubeNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={youtubeNetworkFields}
-						href={resolve('/(social)/(youtube)/youtube/api')}
+						href={resolve('/youtube/api')}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -10,8 +10,10 @@ export enum TronAccount_TimestampSelector {
 }
 export const TronAccount_Timestamp = entity({
 	entityType: EntityType.TronAccount_Timestamp,
-	label: 'tron account timestamp',
-	labelPlural: 'tron account observations',
+	labels: {
+		singular: 'tron account timestamp',
+		plural: 'tron account observations',
+	},
 })({
 	$account: {
 		label: 'Account',

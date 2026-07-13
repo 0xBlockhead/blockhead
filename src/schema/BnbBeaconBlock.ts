@@ -10,8 +10,10 @@ export enum BnbBeaconBlockSelector {
 }
 export const BnbBeaconBlock = entity({
 	entityType: EntityType.BnbBeaconBlock,
-	label: 'bnb beacon block',
-	labelPlural: 'bnb beacon blocks',
+	labels: {
+		singular: 'bnb beacon block',
+		plural: 'bnb beacon blocks',
+	},
 })({
 	$network: {
 		label: 'network',

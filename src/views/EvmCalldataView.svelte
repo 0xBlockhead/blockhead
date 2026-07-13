@@ -40,7 +40,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmCalldata = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.hex ?? prefetched.hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata')
+	const titleFallback = $derived([String((pendingEntity.hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata')
 	const viewDomId = $derived('evm-calldata-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -55,7 +55,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(explore)/(evm)/evm/(calldata)/calldata')}
+	href={href ?? resolve('/evm/calldata')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,7 +63,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmCalldata}>
 			{#snippet Pending()}
-				{@const hex0 = selection.entitySelector.hex ?? prefetched.hex}
+				{@const hex0 = pendingEntity.hex}
 				{#if hex0 !== undefined && hex0 !== null}
 					<TruncatedValue value={String((hex0) ?? '')} />
 				{/if}
@@ -100,7 +100,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hex = selection.entitySelector.hex ?? prefetched.hex}
+							{@const hex = pendingEntity.hex}
 							{#if hex !== undefined && hex !== null}
 								<TruncatedValue value={String((hex) ?? '')} />
 							{/if}

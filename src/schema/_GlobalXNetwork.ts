@@ -9,8 +9,10 @@ export enum _GlobalXNetworkSelector {
 }
 export const _GlobalXNetwork = entity({
 	entityType: EntityType._GlobalXNetwork,
-	label: 'global X network',
-	labelPlural: 'global X networks',
+	labels: {
+		singular: 'global X network',
+		plural: 'global X networks',
+	},
 })({
 	scope: {
 		label: 'Scope',

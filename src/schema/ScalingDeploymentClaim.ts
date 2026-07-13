@@ -9,8 +9,10 @@ export enum ScalingDeploymentClaimSelector {
 }
 export const ScalingDeploymentClaim = entity({
 	entityType: EntityType.ScalingDeploymentClaim,
-	label: 'scaling deployment claim',
-	labelPlural: 'scaling deployment claims',
+	labels: {
+		singular: 'scaling deployment claim',
+		plural: 'scaling deployment claims',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -9,8 +9,10 @@ export enum PolkadotValidatorSelector {
 }
 export const PolkadotValidator = entity({
 	entityType: EntityType.PolkadotValidator,
-	label: 'Polkadot validator',
-	labelPlural: 'Polkadot validators',
+	labels: {
+		singular: 'Polkadot validator',
+		plural: 'Polkadot validators',
+	},
 })({
 	$network: {
 		label: 'Network',

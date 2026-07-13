@@ -9,8 +9,10 @@ export enum _GlobalEnsNetwork_TimestampSelector {
 }
 export const _GlobalEnsNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalEnsNetwork_Timestamp,
-	label: 'ENS hub observation',
-	labelPlural: 'ENS hub observations',
+	labels: {
+		singular: 'ENS hub observation',
+		plural: 'ENS hub observations',
+	},
 })({
 	$hub: {
 		label: 'Hub',
@@ -21,7 +23,7 @@ export const _GlobalEnsNetwork_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

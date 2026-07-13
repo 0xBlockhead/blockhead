@@ -9,8 +9,10 @@ export enum BlockheadRadicleNodeStateSelector {
 }
 export const BlockheadRadicleNodeState = entity({
 	entityType: EntityType.BlockheadRadicleNodeState,
-	label: 'blockhead radicle node state',
-	labelPlural: 'blockhead radicle node states',
+	labels: {
+		singular: 'blockhead radicle node state',
+		plural: 'blockhead radicle node states',
+	},
 })({
 	connectionId: {
 		label: 'connection ID',

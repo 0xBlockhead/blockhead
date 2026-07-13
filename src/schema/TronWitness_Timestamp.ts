@@ -11,8 +11,10 @@ export enum TronWitness_TimestampSelector {
 }
 export const TronWitness_Timestamp = entity({
 	entityType: EntityType.TronWitness_Timestamp,
-	label: 'tron witness timestamp',
-	labelPlural: 'tron witness observations',
+	labels: {
+		singular: 'tron witness timestamp',
+		plural: 'tron witness observations',
+	},
 })({
 	$witness: {
 		label: 'Witness',

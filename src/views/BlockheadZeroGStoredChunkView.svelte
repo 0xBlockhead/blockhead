@@ -51,7 +51,7 @@
 			present: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.dataRoot ?? prefetched.dataRoot) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g stored chunk')
+	const titleFallback = $derived([String((pendingEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g stored chunk')
 	const viewDomId = $derived('blockhead-zero-gstored-chunk-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadZeroGStoredChunk}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.dataRoot ?? prefetched.dataRoot) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zero g stored chunk'}
+				{[String((pendingEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zero g stored chunk'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZeroGStoredChunk}>
 			{#snippet Pending()}
-				{@const chunkIndex0 = selection.entitySelector.chunkIndex ?? prefetched.chunkIndex}
+				{@const chunkIndex0 = pendingEntity.chunkIndex}
 				{#if chunkIndex0 !== undefined && chunkIndex0 !== null}
 					<NumberValue value={Number(chunkIndex0)} />
 				{/if}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZeroGStoredChunk}>
 			{#snippet Pending()}
-				{@const present0 = prefetched.present}
+				{@const present0 = pendingEntity.present}
 				{#if present0 !== undefined && present0 !== null}
 					<span data-text="muted">
 						{present0 ? 'Yes' : 'No'}
@@ -156,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const dataRoot = selection.entitySelector.dataRoot ?? prefetched.dataRoot}
+							{@const dataRoot = pendingEntity.dataRoot}
 							{#if dataRoot !== undefined && dataRoot !== null}
 								{String((dataRoot) ?? '')}
 							{/if}
@@ -186,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const chunkIndex = selection.entitySelector.chunkIndex ?? prefetched.chunkIndex}
+							{@const chunkIndex = pendingEntity.chunkIndex}
 							{#if chunkIndex !== undefined && chunkIndex !== null}
 								<NumberValue value={Number(chunkIndex)} />
 							{/if}
@@ -206,6 +206,8 @@
 			<ResourceBoundary
 				resource={selection.$dataBlob}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(zeroGDataBlob)}
 					{#if zeroGDataBlob != null && zeroGDataBlob[EntityMetaKey.Selector] != null}
 						<div>
@@ -226,6 +228,8 @@
 			<ResourceBoundary
 				resource={selection.$publicChunk}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(zeroGDataChunk)}
 					{#if zeroGDataChunk != null && zeroGDataChunk[EntityMetaKey.Selector] != null}
 						<div>
@@ -253,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chunkRoot = prefetched.chunkRoot}
+					{@const chunkRoot = pendingEntity.chunkRoot}
 					{#if chunkRoot !== undefined && chunkRoot !== null}
 						<div>
 							<dt>chunk root</dt>
@@ -290,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sizeBytes = prefetched.sizeBytes}
+					{@const sizeBytes = pendingEntity.sizeBytes}
 					{#if sizeBytes !== undefined && sizeBytes !== null}
 						<div>
 							<dt>size bytes</dt>
@@ -325,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const filePath = prefetched.filePath}
+					{@const filePath = pendingEntity.filePath}
 					{#if filePath !== undefined && filePath !== null}
 						<div>
 							<dt>file path</dt>
@@ -363,7 +367,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const present = prefetched.present}
+							{@const present = pendingEntity.present}
 							{#if present !== undefined && present !== null}
 								{present ? 'Yes' : 'No'}
 							{/if}
@@ -390,7 +394,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastCheckedAt = prefetched.lastCheckedAt}
+					{@const lastCheckedAt = pendingEntity.lastCheckedAt}
 					{#if lastCheckedAt !== undefined && lastCheckedAt !== null}
 						<div>
 							<dt>last checked AT</dt>

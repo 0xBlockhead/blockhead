@@ -47,7 +47,7 @@
 			version: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Fedimint gateway timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Fedimint gateway timestamp')
 	const viewDomId = $derived('fedimint-gateway-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={fedimintGatewayTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={fedimintGatewayTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.online) ?? ''), String((prefetched.version) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint gateway timestamp'}
+				{[String((pendingEntity.online) ?? ''), String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint gateway timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={fedimintGatewayTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>
@@ -242,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const online = prefetched.online}
+					{@const online = pendingEntity.online}
 					{#if online !== undefined && online !== null}
 						<div>
 							<dt>online</dt>
@@ -277,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -312,7 +312,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lightningAlias = prefetched.lightningAlias}
+					{@const lightningAlias = pendingEntity.lightningAlias}
 					{#if lightningAlias !== undefined && lightningAlias !== null}
 						<div>
 							<dt>Lightning alias</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const routingFeesJson = prefetched.routingFeesJson}
+					{@const routingFeesJson = pendingEntity.routingFeesJson}
 					{#if routingFeesJson !== undefined && routingFeesJson !== null}
 						<div>
 							<dt>routing fees JSON</dt>
@@ -384,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const federationsCount = prefetched.federationsCount}
+					{@const federationsCount = pendingEntity.federationsCount}
 					{#if federationsCount !== undefined && federationsCount !== null}
 						<div>
 							<dt>federations count</dt>
@@ -419,7 +419,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lightningBalanceMsat = prefetched.lightningBalanceMsat}
+					{@const lightningBalanceMsat = pendingEntity.lightningBalanceMsat}
 					{#if lightningBalanceMsat !== undefined && lightningBalanceMsat !== null}
 						<div>
 							<dt>Lightning balance msat</dt>
@@ -454,7 +454,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ecashBalanceMsat = prefetched.ecashBalanceMsat}
+					{@const ecashBalanceMsat = pendingEntity.ecashBalanceMsat}
 					{#if ecashBalanceMsat !== undefined && ecashBalanceMsat !== null}
 						<div>
 							<dt>ecash balance msat</dt>
@@ -489,7 +489,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const onchainBalanceSats = prefetched.onchainBalanceSats}
+					{@const onchainBalanceSats = pendingEntity.onchainBalanceSats}
 					{#if onchainBalanceSats !== undefined && onchainBalanceSats !== null}
 						<div>
 							<dt>onchain balance sats</dt>
@@ -526,7 +526,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const channelsJson = prefetched.channelsJson}
+					{@const channelsJson = pendingEntity.channelsJson}
 					{#if channelsJson !== undefined && channelsJson !== null}
 						<div>
 							<dt>channels JSON</dt>
@@ -561,7 +561,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paymentSummaryJson = prefetched.paymentSummaryJson}
+					{@const paymentSummaryJson = pendingEntity.paymentSummaryJson}
 					{#if paymentSummaryJson !== undefined && paymentSummaryJson !== null}
 						<div>
 							<dt>payment summary JSON</dt>

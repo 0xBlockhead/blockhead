@@ -1,0 +1,29 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { LayoutLoad } from './$types'
+import { error } from '@sveltejs/kit'
+import { match as matchIpfsNamespace } from '$/params/ipfsNamespace.ts'
+import { match as matchStringSegment } from '$/params/stringSegment.ts'
+import { parseEntitySelector } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
+import { IpfsResource as IpfsResourceSchema } from '$/schema/IpfsResource.ts'
+import { type as arktype } from 'arktype'
+
+export const load: LayoutLoad = ({ params }) => {
+	if (!(matchIpfsNamespace(params.namespace) && matchStringSegment(params.target))) error(404, 'Route mapping not applicable')
+
+	const ipfsResourceResourceAddressSelector = parseEntitySelector(
+		schema,
+		IpfsResourceSchema,
+		{
+			namespace: params.namespace,
+			target: params.target,
+			contentPath: '',
+		}
+	)
+	if (ipfsResourceResourceAddressSelector instanceof arktype.errors) error(404, 'Invalid IpfsResource selector')
+
+	return {
+		selector: ipfsResourceResourceAddressSelector,
+	}
+}

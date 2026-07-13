@@ -46,7 +46,7 @@
 			visibility: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.functionName ?? prefetched.functionName) ?? '')].filter(Boolean).join(' ') || 'move function')
+	const titleFallback = $derived([String((pendingEntity.functionName) ?? '')].filter(Boolean).join(' ') || 'move function')
 	const viewDomId = $derived('move-function-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -69,7 +69,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={moveFunction}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.functionName ?? prefetched.functionName) ?? '')].filter(Boolean).join(' ') || title || 'move function'}
+				{[String((pendingEntity.functionName) ?? '')].filter(Boolean).join(' ') || title || 'move function'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -82,7 +82,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={moveFunction}>
 			{#snippet Pending()}
-				{[String((prefetched.visibility) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.functionName ?? prefetched.functionName) ?? '')].filter(Boolean).join(' ') || title || 'move function'}
+				{[String((pendingEntity.visibility) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.functionName) ?? '')].filter(Boolean).join(' ') || title || 'move function'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -143,7 +143,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const functionName = selection.entitySelector.functionName ?? prefetched.functionName}
+							{@const functionName = pendingEntity.functionName}
 							{#if functionName !== undefined && functionName !== null}
 								{String((functionName) ?? '')}
 							{/if}
@@ -170,7 +170,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const visibility = prefetched.visibility}
+					{@const visibility = pendingEntity.visibility}
 					{#if visibility !== undefined && visibility !== null}
 						<div>
 							<dt>visibility</dt>
@@ -205,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isEntry = prefetched.isEntry}
+					{@const isEntry = pendingEntity.isEntry}
 					{#if isEntry !== undefined && isEntry !== null}
 						<div>
 							<dt>is entry</dt>
@@ -240,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isView = prefetched.isView}
+					{@const isView = pendingEntity.isView}
 					{#if isView !== undefined && isView !== null}
 						<div>
 							<dt>is view</dt>
@@ -280,7 +280,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const parameters = prefetched.parameters}
+							{@const parameters = pendingEntity.parameters}
 							{#if parameters !== undefined && parameters !== null}
 								{parameters.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -310,7 +310,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const returnTypes = prefetched.returnTypes}
+							{@const returnTypes = pendingEntity.returnTypes}
 							{#if returnTypes !== undefined && returnTypes !== null}
 								{returnTypes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

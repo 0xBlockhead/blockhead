@@ -9,8 +9,10 @@ export enum TezosContract_TimestampSelector {
 }
 export const TezosContract_Timestamp = entity({
 	entityType: EntityType.TezosContract_Timestamp,
-	label: 'tezos contract timestamp',
-	labelPlural: 'tezos contract observations',
+	labels: {
+		singular: 'tezos contract timestamp',
+		plural: 'tezos contract observations',
+	},
 })({
 	$contract: {
 		label: 'contract',

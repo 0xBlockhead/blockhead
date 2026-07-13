@@ -42,7 +42,7 @@
 			apiUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.gatewayId ?? prefetched.gatewayId) ?? '')].filter(Boolean).join(' ') || 'Fedimint gateway')
+	const titleFallback = $derived([String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || 'Fedimint gateway')
 	const viewDomId = $derived('fedimint-gateway-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={fedimintGateway}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.gatewayId ?? prefetched.gatewayId) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint gateway'}
+				{[String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint gateway'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -80,7 +80,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={fedimintGateway}>
 			{#snippet Pending()}
-				{[String((prefetched.apiUrl) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.gatewayId ?? prefetched.gatewayId) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint gateway'}
+				{[String((pendingEntity.apiUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint gateway'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const gatewayId = selection.entitySelector.gatewayId ?? prefetched.gatewayId}
+							{@const gatewayId = pendingEntity.gatewayId}
 							{#if gatewayId !== undefined && gatewayId !== null}
 								{String((gatewayId) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const apiUrl = prefetched.apiUrl}
+					{@const apiUrl = pendingEntity.apiUrl}
 					{#if apiUrl !== undefined && apiUrl !== null}
 						<div>
 							<dt>API URL</dt>
@@ -181,7 +181,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodePubkey = prefetched.nodePubkey}
+					{@const nodePubkey = pendingEntity.nodePubkey}
 					{#if nodePubkey !== undefined && nodePubkey !== null}
 						<div>
 							<dt>node public key</dt>

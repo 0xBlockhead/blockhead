@@ -9,8 +9,10 @@ export enum BlockheadLitecoinMwebWalletState_TimestampSelector {
 }
 export const BlockheadLitecoinMwebWalletState_Timestamp = entity({
 	entityType: EntityType.BlockheadLitecoinMwebWalletState_Timestamp,
-	label: 'blockhead litecoin mweb wallet state timestamp',
-	labelPlural: 'blockhead litecoin mweb wallet state observations',
+	labels: {
+		singular: 'blockhead litecoin mweb wallet state timestamp',
+		plural: 'blockhead litecoin mweb wallet state observations',
+	},
 })({
 	$walletState: {
 		label: 'wallet state',

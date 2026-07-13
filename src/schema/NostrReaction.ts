@@ -10,8 +10,10 @@ export enum NostrReactionSelector {
 }
 export const NostrReaction = entity({
 	entityType: EntityType.NostrReaction,
-	label: 'Nostr reaction',
-	labelPlural: 'Nostr reactions',
+	labels: {
+		singular: 'Nostr reaction',
+		plural: 'Nostr reactions',
+	},
 	description: 'A Nostr reaction is a kind-7 event keyed by event id and scoped to the note or article it reacts to.',
 })({
 	eventId: {

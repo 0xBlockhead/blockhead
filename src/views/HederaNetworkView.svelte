@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -54,8 +54,11 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import HederaNetwork_TimestampsView from '$/views/HederaNetwork_TimestampsView.svelte'
 	import HederaBlocksView from '$/views/HederaBlocksView.svelte'
 	import HederaTransactionsView from '$/views/HederaTransactionsView.svelte'
@@ -70,7 +73,6 @@
 	import HederaNetworkExchangeRate_TimestampsView from '$/views/HederaNetworkExchangeRate_TimestampsView.svelte'
 	import HederaNetworkStake_TimestampsView from '$/views/HederaNetworkStake_TimestampsView.svelte'
 	import HederaNetworkSupply_TimestampsView from '$/views/HederaNetworkSupply_TimestampsView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -90,22 +92,10 @@
 				<NetworkView
 					selection={select(EntityType.Network, selection.entitySelector.$network)}
 					href={
-						(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -118,22 +108,10 @@
 				<NetworkView
 					selection={select(EntityType.Network, selection.entitySelector.$network)}
 					href={
-						(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -146,7 +124,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={hederaNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.shard) ?? ''), String((prefetched.realm) ?? '')].filter(Boolean).join(' ') || title || 'hedera network'}
+				{[String((pendingEntity.shard) ?? ''), String((pendingEntity.realm) ?? '')].filter(Boolean).join(' ') || title || 'hedera network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -164,22 +142,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -198,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const shard = prefetched.shard}
+					{@const shard = pendingEntity.shard}
 					{#if shard !== undefined && shard !== null}
 						<div>
 							<dt>shard</dt>
@@ -233,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const realm = prefetched.realm}
+					{@const realm = pendingEntity.realm}
 					{#if realm !== undefined && realm !== null}
 						<div>
 							<dt>realm</dt>
@@ -262,103 +228,320 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<HederaNetwork_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Hedera network observations.'
-				id='HederaNetwork_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-chain-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-chain-observations',
+							label: 'Observations',
+						},
+						{
+							id: 'hedera-chain-blocks',
+							label: 'Blocks',
+						},
+						{
+							id: 'hedera-chain-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-chain-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Chain activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<HederaBlocksView
-				selection={selection.$$blocks}
-				title='blocks'
-				emptyText='No Hedera blocks.'
-				id='HederaBlocksView-blocks'
-			/>
+				{#snippet SectionHederaChainObservations({ id, label, open })}
+					<HederaNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera network observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<HederaTransactionsView
-				selection={selection.$$transactions}
-				title='transactions'
-				emptyText='No Hedera transactions.'
-				id='HederaTransactionsView-transactions'
-			/>
+				{#snippet SectionHederaChainBlocks({ id, label, open })}
+					<HederaBlocksView
+						selection={selection.$$blocks}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera blocks.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<HederaAccountsView
-				selection={selection.$$accounts}
-				title='accounts'
-				emptyText='No Hedera accounts.'
-				id='HederaAccountsView-accounts'
-			/>
+				{#snippet SectionHederaChainTransactions({ id, label, open })}
+					<HederaTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<HederaTokensView
-				selection={selection.$$tokens}
-				title='tokens'
-				emptyText='No Hedera tokens.'
-				id='HederaTokensView-tokens'
-			/>
+			</CollapsibleTabs>
 
-			<HederaNftsView
-				selection={selection.$$nfts}
-				title='NFTs'
-				emptyText='No Hedera NFTs.'
-				id='HederaNftsView-nfts'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-accounts-tokens'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-accounts',
+							label: 'Accounts',
+						},
+						{
+							id: 'hedera-tokens',
+							label: 'Tokens',
+						},
+						{
+							id: 'hedera-nfts',
+							label: 'NFTs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-accounts-tokens'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Accounts and tokens</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<HederaContractsView
-				selection={selection.$$contracts}
-				title='contracts'
-				emptyText='No Hedera contracts.'
-				id='HederaContractsView-contracts'
-			/>
+				{#snippet SectionHederaAccounts({ id, label, open })}
+					<HederaAccountsView
+						selection={selection.$$accounts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera accounts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<HederaTopicsView
-				selection={selection.$$topics}
-				title='topics'
-				emptyText='No Hedera topics.'
-				id='HederaTopicsView-topics'
-			/>
+				{#snippet SectionHederaTokens({ id, label, open })}
+					<HederaTokensView
+						selection={selection.$$tokens}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera tokens.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<HederaSchedulesView
-				selection={selection.$$schedules}
-				title='schedules'
-				emptyText='No Hedera schedules.'
-				id='HederaSchedulesView-schedules'
-			/>
+				{#snippet SectionHederaNfts({ id, label, open })}
+					<HederaNftsView
+						selection={selection.$$nfts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera NFTs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<HederaNodesView
-				selection={selection.$$nodes}
-				title='nodes'
-				emptyText='No Hedera nodes.'
-				id='HederaNodesView-nodes'
-			/>
+			</CollapsibleTabs>
 
-			<HederaNetworkFee_TimestampsView
-				selection={selection.$$feeTimestamps}
-				title='fee timestamps'
-				emptyText='No Hedera fee observations.'
-				id='HederaNetworkFee_TimestampsView-fee-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-contracts-messaging'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-contracts',
+							label: 'Contracts',
+						},
+						{
+							id: 'hedera-topics',
+							label: 'Topics',
+						},
+						{
+							id: 'hedera-schedules',
+							label: 'Schedules',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-contracts-messaging'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Contracts and messaging</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<HederaNetworkExchangeRate_TimestampsView
-				selection={selection.$$exchangeRateTimestamps}
-				title='exchange rate timestamps'
-				emptyText='No Hedera exchange-rate observations.'
-				id='HederaNetworkExchangeRate_TimestampsView-exchange-rate-timestamps'
-			/>
+				{#snippet SectionHederaContracts({ id, label, open })}
+					<HederaContractsView
+						selection={selection.$$contracts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera contracts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<HederaNetworkStake_TimestampsView
-				selection={selection.$$stakeTimestamps}
-				title='stake timestamps'
-				emptyText='No Hedera stake observations.'
-				id='HederaNetworkStake_TimestampsView-stake-timestamps'
-			/>
+				{#snippet SectionHederaTopics({ id, label, open })}
+					<HederaTopicsView
+						selection={selection.$$topics}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera topics.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<HederaNetworkSupply_TimestampsView
-				selection={selection.$$supplyTimestamps}
-				title='supply timestamps'
-				emptyText='No Hedera supply observations.'
-				id='HederaNetworkSupply_TimestampsView-supply-timestamps'
-			/>
+				{#snippet SectionHederaSchedules({ id, label, open })}
+					<HederaSchedulesView
+						selection={selection.$$schedules}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera schedules.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-nodes'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-network-nodes',
+							label: 'Nodes',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-nodes'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Nodes</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaNetworkNodes({ id, label, open })}
+					<HederaNodesView
+						selection={selection.$$nodes}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera nodes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-network-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-fee-observations',
+							label: 'Fees',
+						},
+						{
+							id: 'hedera-exchange-observations',
+							label: 'Exchange rates',
+						},
+						{
+							id: 'hedera-stake-observations',
+							label: 'Stake',
+						},
+						{
+							id: 'hedera-supply-observations',
+							label: 'Supply',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-network-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Fees, exchange, stake, and supply</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaFeeObservations({ id, label, open })}
+					<HederaNetworkFee_TimestampsView
+						selection={selection.$$feeTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera fee observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHederaExchangeObservations({ id, label, open })}
+					<HederaNetworkExchangeRate_TimestampsView
+						selection={selection.$$exchangeRateTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera exchange-rate observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHederaStakeObservations({ id, label, open })}
+					<HederaNetworkStake_TimestampsView
+						selection={selection.$$stakeTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera stake observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHederaSupplyObservations({ id, label, open })}
+					<HederaNetworkSupply_TimestampsView
+						selection={selection.$$supplyTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Hedera supply observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

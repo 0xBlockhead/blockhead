@@ -10,8 +10,10 @@ export enum FilecoinNetwork_TimestampSelector {
 }
 export const FilecoinNetwork_Timestamp = entity({
 	entityType: EntityType.FilecoinNetwork_Timestamp,
-	label: 'filecoin network timestamp',
-	labelPlural: 'filecoin network observations',
+	labels: {
+		singular: 'filecoin network timestamp',
+		plural: 'filecoin network observations',
+	},
 })({
 	$network: {
 		label: 'Network',

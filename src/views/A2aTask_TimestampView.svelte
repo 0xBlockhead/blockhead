@@ -51,7 +51,7 @@
 			error: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'A2A task timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'A2A task timestamp')
 	const viewDomId = $derived('a2a-task-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aTaskTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aTaskTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.state) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'A2A task timestamp'}
+				{[String((pendingEntity.state) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'A2A task timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aTaskTimestamp}>
 			{#snippet Pending()}
-				{@const error0 = prefetched.error}
+				{@const error0 = pendingEntity.error}
 				{#if error0 !== undefined && error0 !== null}
 					<span data-text="muted">
 						{String((error0) ?? '')}
@@ -153,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -183,7 +183,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const state = prefetched.state}
+					{@const state = pendingEntity.state}
 					{#if state !== undefined && state !== null}
 						<div>
 							<dt>state</dt>
@@ -245,7 +245,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const statusMessage = prefetched.statusMessage}
+					{@const statusMessage = pendingEntity.statusMessage}
 					{#if statusMessage !== undefined && statusMessage !== null}
 						<div>
 							<dt>status message</dt>
@@ -280,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

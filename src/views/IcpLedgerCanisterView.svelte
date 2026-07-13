@@ -47,8 +47,14 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpCanisterView from '$/views/IcpCanisterView.svelte'
+	import IcpLedgerBlocksView from '$/views/IcpLedgerBlocksView.svelte'
+	import IcpLedgerTransactionsView from '$/views/IcpLedgerTransactionsView.svelte'
+	import IcpLedgerCanister_TimestampsView from '$/views/IcpLedgerCanister_TimestampsView.svelte'
+	import IcpLedgerAccount_TimestampsView from '$/views/IcpLedgerAccount_TimestampsView.svelte'
 </script>
 
 
@@ -101,7 +107,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerStandard = prefetched.ledgerStandard}
+							{@const ledgerStandard = pendingEntity.ledgerStandard}
 							{#if ledgerStandard !== undefined && ledgerStandard !== null}
 								{String((ledgerStandard) ?? '')}
 							{/if}
@@ -118,5 +124,111 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-icp-ledger-canister-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'icp-ledger-canister-blocks',
+							label: 'Blocks',
+						},
+						{
+							id: 'icp-ledger-canister-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionIcpLedgerCanisterBlocks({ id, label, open })}
+					<IcpLedgerBlocksView
+						selection={selection.$$blocks}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No blocks.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionIcpLedgerCanisterTransactions({ id, label, open })}
+					<IcpLedgerTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-icp-ledger-canister-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'icp-ledger-canister-timestamps',
+							label: 'Timestamps',
+						},
+						{
+							id: 'icp-ledger-canister-account-timestamps',
+							label: 'Account Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionIcpLedgerCanisterTimestamps({ id, label, open })}
+					<IcpLedgerCanister_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionIcpLedgerCanisterAccountTimestamps({ id, label, open })}
+					<IcpLedgerAccount_TimestampsView
+						selection={selection.$$accountTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No account timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

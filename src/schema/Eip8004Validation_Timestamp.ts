@@ -11,8 +11,10 @@ export enum Eip8004Validation_TimestampSelector {
 }
 export const Eip8004Validation_Timestamp = entity({
 	entityType: EntityType.Eip8004Validation_Timestamp,
-	label: 'EIP-8004 validation timestamp',
-	labelPlural: 'EIP-8004 validation observations',
+	labels: {
+		singular: 'EIP-8004 validation timestamp',
+		plural: 'EIP-8004 validation observations',
+	},
 })({
 	requestHashAlgorithm: {
 		label: 'Request hash algorithm',

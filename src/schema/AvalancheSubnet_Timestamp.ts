@@ -9,8 +9,10 @@ export enum AvalancheSubnet_TimestampSelector {
 }
 export const AvalancheSubnet_Timestamp = entity({
 	entityType: EntityType.AvalancheSubnet_Timestamp,
-	label: 'avalanche subnet timestamp',
-	labelPlural: 'avalanche subnet observations',
+	labels: {
+		singular: 'avalanche subnet timestamp',
+		plural: 'avalanche subnet observations',
+	},
 })({
 	$subnet: {
 		label: 'subnet',

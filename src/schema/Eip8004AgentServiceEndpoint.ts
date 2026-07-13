@@ -10,8 +10,10 @@ export enum Eip8004AgentServiceEndpointSelector {
 }
 export const Eip8004AgentServiceEndpoint = entity({
 	entityType: EntityType.Eip8004AgentServiceEndpoint,
-	label: 'EIP-8004 agent service endpoint',
-	labelPlural: 'EIP-8004 agent service endpoints',
+	labels: {
+		singular: 'EIP-8004 agent service endpoint',
+		plural: 'EIP-8004 agent service endpoints',
+	},
 })({
 	$registrationFile: {
 		label: 'Registration file',

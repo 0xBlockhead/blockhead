@@ -9,8 +9,10 @@ export enum BlockheadSource_TimestampSelector {
 }
 export const BlockheadSource_Timestamp = entity({
 	entityType: EntityType.BlockheadSource_Timestamp,
-	label: 'blockhead source timestamp',
-	labelPlural: 'blockhead source observations',
+	labels: {
+		singular: 'blockhead source timestamp',
+		plural: 'blockhead source observations',
+	},
 })({
 	$source: {
 		label: 'Source',

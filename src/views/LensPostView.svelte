@@ -53,7 +53,7 @@
 			isDeleted: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'Lens post')
+	const titleFallback = $derived([String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'Lens post')
 	const viewDomId = $derived('lens-post-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensPost}>
 			{#snippet Pending()}
-				{[String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
+				{[String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensPost}>
 			{#snippet Pending()}
-				{[String((prefetched.timestamp) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || [String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
+				{[String((pendingEntity.timestamp) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,6 +107,8 @@
 			<ResourceBoundary
 				resource={selection.$author}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(lensAccount)}
 					{#if lensAccount != null && lensAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -136,7 +138,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestamp = prefetched.timestamp}
+					{@const timestamp = pendingEntity.timestamp}
 					{#if timestamp !== undefined && timestamp !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -173,7 +175,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isEdited = prefetched.isEdited}
+					{@const isEdited = pendingEntity.isEdited}
 					{#if isEdited !== undefined && isEdited !== null}
 						<div>
 							<dt>Edited</dt>
@@ -210,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isDeleted = prefetched.isDeleted}
+					{@const isDeleted = pendingEntity.isDeleted}
 					{#if isDeleted !== undefined && isDeleted !== null}
 						<div>
 							<dt>Deleted</dt>
@@ -247,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentUri = prefetched.contentUri}
+					{@const contentUri = pendingEntity.contentUri}
 					{#if contentUri !== undefined && contentUri !== null}
 						<div>
 							<dt>Content URI</dt>
@@ -298,7 +300,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataHash = prefetched.metadataHash}
+					{@const metadataHash = pendingEntity.metadataHash}
 					{#if metadataHash !== undefined && metadataHash !== null}
 						<div>
 							<dt>Metadata hash</dt>
@@ -328,6 +330,8 @@
 			<ResourceBoundary
 				resource={selection.$commentOn}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
@@ -350,6 +354,8 @@
 			<ResourceBoundary
 				resource={selection.$quoteOf}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
@@ -372,6 +378,8 @@
 			<ResourceBoundary
 				resource={selection.$repostOf}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
@@ -394,6 +402,8 @@
 			<ResourceBoundary
 				resource={selection.$root}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>

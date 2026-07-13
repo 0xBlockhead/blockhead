@@ -9,8 +9,10 @@ export enum AtprotoPost_TimestampSelector {
 }
 export const AtprotoPost_Timestamp = entity({
 	entityType: EntityType.AtprotoPost_Timestamp,
-	label: 'AT Protocol post observation',
-	labelPlural: 'AT Protocol post observations',
+	labels: {
+		singular: 'AT Protocol post observation',
+		plural: 'AT Protocol post observations',
+	},
 })({
 	$post: {
 		label: 'Post',
@@ -22,7 +24,7 @@ export const AtprotoPost_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	likeCount: {

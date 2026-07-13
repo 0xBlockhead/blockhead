@@ -97,7 +97,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={zeroGNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -116,7 +116,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const storageTransactionCount0 = prefetched.storageTransactionCount}
+				{@const storageTransactionCount0 = pendingEntity.storageTransactionCount}
 				{#if storageTransactionCount0 !== undefined && storageTransactionCount0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(storageTransactionCount0)} />
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -221,7 +221,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageLogSyncHeight = prefetched.storageLogSyncHeight}
+					{@const storageLogSyncHeight = pendingEntity.storageLogSyncHeight}
 					{#if storageLogSyncHeight !== undefined && storageLogSyncHeight !== null}
 						<div>
 							<dt>storage log sync height</dt>
@@ -256,7 +256,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageLayer1LogSyncHeight = prefetched.storageLayer1LogSyncHeight}
+					{@const storageLayer1LogSyncHeight = pendingEntity.storageLayer1LogSyncHeight}
 					{#if storageLayer1LogSyncHeight !== undefined && storageLayer1LogSyncHeight !== null}
 						<div>
 							<dt>storage layer1 log sync height</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageTransactionCount = prefetched.storageTransactionCount}
+					{@const storageTransactionCount = pendingEntity.storageTransactionCount}
 					{#if storageTransactionCount !== undefined && storageTransactionCount !== null}
 						<div>
 							<dt>storage transaction count</dt>
@@ -328,7 +328,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestDataRoot = prefetched.latestDataRoot}
+					{@const latestDataRoot = pendingEntity.latestDataRoot}
 					{#if latestDataRoot !== undefined && latestDataRoot !== null}
 						<div>
 							<dt>latest data root</dt>
@@ -363,7 +363,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestDataSizeBytes = prefetched.latestDataSizeBytes}
+					{@const latestDataSizeBytes = pendingEntity.latestDataSizeBytes}
 					{#if latestDataSizeBytes !== undefined && latestDataSizeBytes !== null}
 						<div>
 							<dt>latest data size bytes</dt>
@@ -398,7 +398,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestStorageTxHash = prefetched.latestStorageTxHash}
+					{@const latestStorageTxHash = pendingEntity.latestStorageTxHash}
 					{#if latestStorageTxHash !== undefined && latestStorageTxHash !== null}
 						<div>
 							<dt>latest storage transaction hash</dt>
@@ -435,7 +435,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageMinerCount = prefetched.storageMinerCount}
+					{@const storageMinerCount = pendingEntity.storageMinerCount}
 					{#if storageMinerCount !== undefined && storageMinerCount !== null}
 						<div>
 							<dt>storage miner count</dt>
@@ -470,7 +470,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestStorageMiner = prefetched.latestStorageMiner}
+					{@const latestStorageMiner = pendingEntity.latestStorageMiner}
 					{#if latestStorageMiner !== undefined && latestStorageMiner !== null}
 						<div>
 							<dt>latest storage miner</dt>
@@ -505,7 +505,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageFeeTotal = prefetched.storageFeeTotal}
+					{@const storageFeeTotal = pendingEntity.storageFeeTotal}
 					{#if storageFeeTotal !== undefined && storageFeeTotal !== null}
 						<div>
 							<dt>storage fee total</dt>
@@ -540,7 +540,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageRewardTotal = prefetched.storageRewardTotal}
+					{@const storageRewardTotal = pendingEntity.storageRewardTotal}
 					{#if storageRewardTotal !== undefined && storageRewardTotal !== null}
 						<div>
 							<dt>storage reward total</dt>
@@ -575,7 +575,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageTotalWinCount = prefetched.storageTotalWinCount}
+					{@const storageTotalWinCount = pendingEntity.storageTotalWinCount}
 					{#if storageTotalWinCount !== undefined && storageTotalWinCount !== null}
 						<div>
 							<dt>storage total win count</dt>
@@ -612,7 +612,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiredFileCount = prefetched.expiredFileCount}
+					{@const expiredFileCount = pendingEntity.expiredFileCount}
 					{#if expiredFileCount !== undefined && expiredFileCount !== null}
 						<div>
 							<dt>expired file count</dt>
@@ -647,7 +647,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const prunedFileCount = prefetched.prunedFileCount}
+					{@const prunedFileCount = pendingEntity.prunedFileCount}
 					{#if prunedFileCount !== undefined && prunedFileCount !== null}
 						<div>
 							<dt>pruned file count</dt>

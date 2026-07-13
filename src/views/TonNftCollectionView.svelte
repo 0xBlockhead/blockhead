@@ -47,10 +47,15 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TonNetworkView from '$/views/TonNetworkView.svelte'
 	import TonAccountView from '$/views/TonAccountView.svelte'
+	import TonNftItemsView from '$/views/TonNftItemsView.svelte'
+	import TonNftTransfersView from '$/views/TonNftTransfersView.svelte'
+	import TonNftCollection_TimestampsView from '$/views/TonNftCollection_TimestampsView.svelte'
 </script>
 
 
@@ -103,7 +108,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const collectionAddress = selection.entitySelector.collectionAddress ?? prefetched.collectionAddress}
+							{@const collectionAddress = pendingEntity.collectionAddress}
 							{#if collectionAddress !== undefined && collectionAddress !== null}
 								<TruncatedValue value={String((collectionAddress) ?? '')} />
 							{/if}
@@ -123,6 +128,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -140,5 +147,96 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ton-nft-collection-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ton-nft-collection-items',
+							label: 'Items',
+						},
+						{
+							id: 'ton-nft-collection-transfers',
+							label: 'Transfers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTonNftCollectionItems({ id, label, open })}
+					<TonNftItemsView
+						selection={selection.$$items}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No items.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTonNftCollectionTransfers({ id, label, open })}
+					<TonNftTransfersView
+						selection={selection.$$transfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ton-nft-collection-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ton-nft-collection-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTonNftCollectionTimestamps({ id, label, open })}
+					<TonNftCollection_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

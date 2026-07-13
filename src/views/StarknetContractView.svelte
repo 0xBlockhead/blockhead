@@ -51,18 +51,20 @@
 			Source.Voyager_Rest,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || 'starknet contract')
+	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'starknet contract')
 	const viewDomId = $derived('starknet-contract-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import StarknetAccount_TimestampsView from '$/views/StarknetAccount_TimestampsView.svelte'
-	import StarknetStorageEntriesView from '$/views/StarknetStorageEntriesView.svelte'
-	import StarknetEventsView from '$/views/StarknetEventsView.svelte'
-	import StarknetTransactionsView from '$/views/StarknetTransactionsView.svelte'
 	import StarknetNetworkView from '$/views/StarknetNetworkView.svelte'
+	import StarknetAccount_TimestampsView from '$/views/StarknetAccount_TimestampsView.svelte'
+	import StarknetEventsView from '$/views/StarknetEventsView.svelte'
+	import StarknetStorageEntriesView from '$/views/StarknetStorageEntriesView.svelte'
+	import StarknetTransactionsView from '$/views/StarknetTransactionsView.svelte'
 </script>
 
 
@@ -79,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={starknetContract}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || title || 'starknet contract'}
+				{[String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || 'starknet contract'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -136,7 +138,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -157,33 +159,107 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<StarknetAccount_TimestampsView
-				selection={selection.$$accountStates}
-				title='account states'
-				emptyText='No Starknet account observations.'
-				id='StarknetAccount_TimestampsView-account-states'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-starknet-contract-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'starknet-contract-account-states',
+							label: 'Account States',
+						},
+						{
+							id: 'starknet-contract-events',
+							label: 'Events',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<StarknetStorageEntriesView
-				selection={selection.$$storage}
-				title='storage'
-				emptyText='No Starknet storage entries.'
-				id='StarknetStorageEntriesView-storage'
-			/>
+				{#snippet SectionStarknetContractAccountStates({ id, label, open })}
+					<StarknetAccount_TimestampsView
+						selection={selection.$$accountStates}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No account states.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<StarknetEventsView
-				selection={selection.$$events}
-				title='events'
-				emptyText='No Starknet events.'
-				id='StarknetEventsView-events'
-			/>
+				{#snippet SectionStarknetContractEvents({ id, label, open })}
+					<StarknetEventsView
+						selection={selection.$$events}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No events.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<StarknetTransactionsView
-				selection={selection.$$transactions}
-				title='transactions'
-				emptyText='No Starknet transactions.'
-				id='StarknetTransactionsView-transactions'
-			/>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-starknet-contract-related'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'starknet-contract-storage',
+							label: 'Storage',
+						},
+						{
+							id: 'starknet-contract-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-related'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Related</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionStarknetContractStorage({ id, label, open })}
+					<StarknetStorageEntriesView
+						selection={selection.$$storage}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No storage.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionStarknetContractTransactions({ id, label, open })}
+					<StarknetTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

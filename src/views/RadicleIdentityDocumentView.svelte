@@ -91,7 +91,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rid = selection.entitySelector.rid ?? prefetched.rid}
+							{@const rid = pendingEntity.rid}
 							{#if rid !== undefined && rid !== null}
 								{String((rid) ?? '')}
 							{/if}
@@ -121,7 +121,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const revision = selection.entitySelector.revision ?? prefetched.revision}
+							{@const revision = pendingEntity.revision}
 							{#if revision !== undefined && revision !== null}
 								{String((revision) ?? '')}
 							{/if}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const documentHash = prefetched.documentHash}
+							{@const documentHash = pendingEntity.documentHash}
 							{#if documentHash !== undefined && documentHash !== null}
 								<TruncatedValue value={String((documentHash) ?? '')} />
 							{/if}
@@ -178,7 +178,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signatureThreshold = prefetched.signatureThreshold}
+					{@const signatureThreshold = pendingEntity.signatureThreshold}
 					{#if signatureThreshold !== undefined && signatureThreshold !== null}
 						<div>
 							<dt>signature threshold</dt>
@@ -213,7 +213,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedSignatureCount = prefetched.verifiedSignatureCount}
+					{@const verifiedSignatureCount = pendingEntity.verifiedSignatureCount}
 					{#if verifiedSignatureCount !== undefined && verifiedSignatureCount !== null}
 						<div>
 							<dt>verified signature count</dt>
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verificationStatus = prefetched.verificationStatus}
+					{@const verificationStatus = pendingEntity.verificationStatus}
 					{#if verificationStatus !== undefined && verificationStatus !== null}
 						<div>
 							<dt>verification status</dt>
@@ -276,6 +276,8 @@
 			<ResourceBoundary
 				resource={selection.$repository}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(radicleRepository)}
 					{#if radicleRepository != null && radicleRepository[EntityMetaKey.Selector] != null}
 						<div>

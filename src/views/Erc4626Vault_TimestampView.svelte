@@ -51,7 +51,7 @@
 			apyTotal: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'erc4626 vault timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'erc4626 vault timestamp')
 	const viewDomId = $derived('erc4626vault-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={erc4626VaultTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={erc4626VaultTimestamp}>
 			{#snippet Pending()}
-				{@const apyTotal0 = prefetched.apyTotal}
+				{@const apyTotal0 = pendingEntity.apyTotal}
 				{#if apyTotal0 !== undefined && apyTotal0 !== null}
 					<NumberValue value={Number(apyTotal0)} />
 				{/if}
@@ -137,7 +137,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -167,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -196,7 +196,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const apyBase = prefetched.apyBase}
+					{@const apyBase = pendingEntity.apyBase}
 					{#if apyBase !== undefined && apyBase !== null}
 						<div>
 							<dt>APY base</dt>
@@ -231,7 +231,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const apyReward = prefetched.apyReward}
+					{@const apyReward = pendingEntity.apyReward}
 					{#if apyReward !== undefined && apyReward !== null}
 						<div>
 							<dt>APY reward</dt>
@@ -266,7 +266,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const apyTotal = prefetched.apyTotal}
+					{@const apyTotal = pendingEntity.apyTotal}
 					{#if apyTotal !== undefined && apyTotal !== null}
 						<div>
 							<dt>APY total</dt>
@@ -301,7 +301,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tvlUsd = prefetched.tvlUsd}
+					{@const tvlUsd = pendingEntity.tvlUsd}
 					{#if tvlUsd !== undefined && tvlUsd !== null}
 						<div>
 							<dt>TVL USD</dt>
@@ -341,7 +341,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rewardTokens = prefetched.rewardTokens}
+							{@const rewardTokens = pendingEntity.rewardTokens}
 							{#if rewardTokens !== undefined && rewardTokens !== null}
 								{rewardTokens.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const poolId = prefetched.poolId}
+					{@const poolId = pendingEntity.poolId}
 					{#if poolId !== undefined && poolId !== null}
 						<div>
 							<dt>Pool ID</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const projectSlug = prefetched.projectSlug}
+					{@const projectSlug = pendingEntity.projectSlug}
 					{#if projectSlug !== undefined && projectSlug !== null}
 						<div>
 							<dt>Project slug</dt>
@@ -438,7 +438,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chainLabel = prefetched.chainLabel}
+					{@const chainLabel = pendingEntity.chainLabel}
 					{#if chainLabel !== undefined && chainLabel !== null}
 						<div>
 							<dt>Chain label</dt>

@@ -278,6 +278,9 @@ export default {
 					const timestamp = farcasterCastTimestampMs(cast.timestamp)
 					if (timestamp == null)
 						throw new Error('Farcaster_Rest: cast missing timestamp')
+					const parentHash = optionalNonemptyString(cast.parentHash)
+					const parentUrl = optionalNonemptyString(cast.parentUrl)
+					const channelId = optionalNonemptyString(cast.channel?.id)
 					return {
 						fid: cast.author.fid,
 						hash: castHash,
@@ -290,6 +293,29 @@ export default {
 							},
 						} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
 						text: optionalNonemptyString(cast.text) ?? '',
+						$parentCast: (
+							cast.parentAuthor?.fid == null
+							|| parentHash == null
+						) ?
+							undefined
+						:
+							({
+								[EntityMetaKey.Selector]: {
+									fid: cast.parentAuthor.fid,
+									hash: zeroXLowerHexCastHash(parentHash),
+								},
+							} satisfies Entity<typeof schema, EntityType.FarcasterCast>),
+						parentUrl,
+						$channel: (
+							channelId == null ?
+								undefined
+							:
+								({
+									[EntityMetaKey.Selector]: {
+										id: channelId,
+									},
+								} satisfies Entity<typeof schema, EntityType.FarcasterChannel>)
+						),
 						timestamp,
 						...(cast.threadHash != null && cast.threadHash !== '' && {
 							threadHash: zeroXLowerHexCastHash(cast.threadHash),
@@ -305,6 +331,9 @@ export default {
 				clientUrl: (cast) => cast.clientUrl,
 				$author: (cast) => cast.$author,
 				text: (cast) => cast.text,
+				$parentCast: (cast) => cast.$parentCast,
+				parentUrl: (cast) => cast.parentUrl,
+				$channel: (cast) => cast.$channel,
 				timestamp: (cast) => cast.timestamp,
 				threadHash: (cast) => cast.threadHash,
 			}),

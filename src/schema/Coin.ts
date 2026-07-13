@@ -3,6 +3,7 @@
 import { CoinId } from '$/constants/Coin.ts'
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CoinSelector {
@@ -10,8 +11,10 @@ export enum CoinSelector {
 }
 export const Coin = entity({
 	entityType: EntityType.Coin,
-	label: 'Coin',
-	labelPlural: 'coins',
+	labels: {
+		singular: 'Coin',
+		plural: 'coins',
+	},
 	description: 'A market-facing coin or crypto asset identity used across price, market, and network contexts.',
 })({
 	coinId: {
@@ -64,12 +67,20 @@ export const Coin = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.Coingecko_OpenApi,
+			Source.Coinpaprika_OpenApi,
+		],
 	},
 	$$marketsWithCoinAsQuote: {
 		label: 'Markets with coin as quote',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$bridgeCapabilities: {
 		label: 'Bridge capabilities',

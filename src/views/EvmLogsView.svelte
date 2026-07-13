@@ -133,8 +133,8 @@
 						selection={select(EntityType.EvmLog, evmLog[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmLogFields}
 						href={
-							(evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.$network !== undefined && evmLogHrefFields.$transaction.$network.caip2 !== undefined && evmLogHrefFields.$transaction.$network.caip2.namespace !== undefined && evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.$network !== undefined && evmLogHrefFields.$transaction.$network.caip2 !== undefined && evmLogHrefFields.$transaction.$network.caip2.reference !== undefined && evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.txHash !== undefined && evmLogHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/log/[indexInTransaction=nonNegativeInteger]', {
-								caip2: `${String(evmLogHrefFields.$transaction.$network.caip2.namespace ?? '')}:${String(evmLogHrefFields.$transaction.$network.caip2.reference ?? '')}`,
+							(evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.$network !== undefined && evmLogHrefFields.$transaction.$network.slug !== undefined && evmLogHrefFields.$transaction.txHash !== undefined && evmLogHrefFields.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]', {
+								network: String(evmLogHrefFields.$transaction.$network.slug ?? ''),
 								transactionId: String(evmLogHrefFields.$transaction.txHash ?? ''),
 								indexInTransaction: String(evmLogHrefFields.indexInTransaction ?? ''),
 							}) : undefined)

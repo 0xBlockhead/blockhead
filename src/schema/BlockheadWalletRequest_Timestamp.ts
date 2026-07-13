@@ -10,8 +10,10 @@ export enum BlockheadWalletRequest_TimestampSelector {
 }
 export const BlockheadWalletRequest_Timestamp = entity({
 	entityType: EntityType.BlockheadWalletRequest_Timestamp,
-	label: 'blockhead wallet request timestamp',
-	labelPlural: 'blockhead wallet request observations',
+	labels: {
+		singular: 'blockhead wallet request timestamp',
+		plural: 'blockhead wallet request observations',
+	},
 })({
 	$walletRequest: {
 		label: 'wallet request',

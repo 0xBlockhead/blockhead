@@ -9,8 +9,10 @@ export enum EvmRollup_TimestampSelector {
 }
 export const EvmRollup_Timestamp = entity({
 	entityType: EntityType.EvmRollup_Timestamp,
-	label: 'EVM rollup timestamp',
-	labelPlural: 'EVM rollup observations',
+	labels: {
+		singular: 'EVM rollup timestamp',
+		plural: 'EVM rollup observations',
+	},
 })({
 	$rollup: {
 		label: 'Rollup',
@@ -22,7 +24,7 @@ export const EvmRollup_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

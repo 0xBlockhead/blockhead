@@ -32,7 +32,7 @@ import { _GlobalSelector } from '$/schema/_Global.ts'
 import { CoinBridgeCapabilitySelector } from '$/schema/CoinBridgeCapability.ts'
 import { BridgeRouteSelector } from '$/schema/BridgeRoute.ts'
 import { BridgeRouteStepSelector } from '$/schema/BridgeRouteStep.ts'
-import type { BridgeRouteStepFields } from '$/sources/Lifi/Rest/routes.ts'
+import type { BridgeRouteStepFields } from '$/resolvers/Lifi/Rest/routes.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
 import {
 	CoinInstanceType,
@@ -169,10 +169,10 @@ const coinBridgeCapabilityRowsForCoin = async (
 ) => {
 	const { fetchTools } = await import('$/sources/Lifi/Rest/queries.ts')
 	const { fetchCoinInstanceStubsForCoin } = await import(
-		'$/sources/Coingecko/Rest/coinInstances.ts'
+		'$/resolvers/Coingecko/Rest/coinInstances.ts'
 	)
 	const { coinBridgeCapabilityRowsFromInstancesAndTools } = await import(
-		'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
+		'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 	)
 	return coinBridgeCapabilityRowsFromInstancesAndTools(
 		await fetchCoinInstanceStubsForCoin(coinId, context.publicEnv),
@@ -191,7 +191,7 @@ const coinIdForBridgeInstanceSelector = async (
 		return CoinId.ETH
 
 	const { resolveCoinIdForCoinInstanceEntitySelector } = await import(
-		'$/sources/Coingecko/Rest/coinInstances.ts'
+		'$/resolvers/Coingecko/Rest/coinInstances.ts'
 	)
 	const coinId = await resolveCoinIdForCoinInstanceEntitySelector(
 		entitySelector,
@@ -249,7 +249,7 @@ export default {
 			resolve: {
 				[BridgeRouteSelector.Quote]: async (entitySelector) => {
 					const { fetchBridgeRouteBundleForQuoteId } = await import(
-						'$/sources/Lifi/Rest/routes.ts'
+						'$/resolvers/Lifi/Rest/routes.ts'
 					)
 					const bundle = await fetchBridgeRouteBundleForQuoteId(entitySelector)
 					return {
@@ -275,7 +275,7 @@ export default {
 			resolve: {
 				[BridgeRouteStepSelector.RouteIndexInRoute]: async ({ $route, indexInRoute }): Promise<Omit<BridgeRouteStepFields, typeof EntityMetaKey.Selector>> => {
 					const { fetchBridgeRouteBundleForQuoteId } = await import(
-						'$/sources/Lifi/Rest/routes.ts'
+						'$/resolvers/Lifi/Rest/routes.ts'
 					)
 					const bundle = await fetchBridgeRouteBundleForQuoteId($route)
 					const step = bundle.steps[indexInRoute]
@@ -328,7 +328,7 @@ export default {
 			resolve: {
 				[EvmCoinInstanceSelector.NetworkType]: async (entitySelector, context) => {
 					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
-						'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
+						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
 					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
 					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
@@ -336,7 +336,7 @@ export default {
 				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async (entitySelector, context) => {
 					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
-						'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
+						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
 					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
 					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
@@ -352,7 +352,7 @@ export default {
 			resolve: {
 				[EvmCoinInstanceSelector.NetworkType]: async (entitySelector, context) => {
 					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
-						'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
+						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
 					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
 					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
@@ -360,7 +360,7 @@ export default {
 				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async (entitySelector, context) => {
 					const { filterCoinBridgeCapabilityRowsForInstance } = await import(
-						'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
+						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
 					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
 					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)

@@ -119,11 +119,11 @@
 						selection={select(EntityType.EnsRecord_Timestamp, ensRecordTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ensRecordTimestampFields}
 						href={
-							(ensRecordTimestampHrefFields.$record !== undefined && ensRecordTimestampHrefFields.$record.$name !== undefined && ensRecordTimestampHrefFields.$record.$name.name !== undefined && ensRecordTimestampHrefFields.$record !== undefined && ensRecordTimestampHrefFields.$record.recordKey !== undefined && ensRecordTimestampHrefFields.timestampMs !== undefined && ensRecordTimestampHrefFields.source !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/record/[recordId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								ensName: String(ensRecordTimestampHrefFields.$record.$name.name ?? ''),
-								recordId: String(ensRecordTimestampHrefFields.$record.recordKey ?? ''),
+							(ensRecordTimestampHrefFields.timestampMs !== undefined && ensRecordTimestampHrefFields.source !== undefined && ensRecordTimestampHrefFields.$record !== undefined && ensRecordTimestampHrefFields.$record.$name !== undefined && ensRecordTimestampHrefFields.$record.$name.name !== undefined && ensRecordTimestampHrefFields.$record.recordKey !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(ensRecordTimestampHrefFields.timestampMs ?? ''),
 								source: String(ensRecordTimestampHrefFields.source ?? ''),
+								ensName: String(ensRecordTimestampHrefFields.$record.$name.name ?? ''),
+								recordId: String(ensRecordTimestampHrefFields.$record.recordKey ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

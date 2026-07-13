@@ -10,8 +10,10 @@ export enum _GlobalFarcasterNetworkSelector {
 }
 export const _GlobalFarcasterNetwork = entity({
 	entityType: EntityType._GlobalFarcasterNetwork,
-	label: 'global Farcaster network',
-	labelPlural: 'global Farcaster networks',
+	labels: {
+		singular: 'global Farcaster network',
+		plural: 'global Farcaster networks',
+	},
 })({
 	scope: {
 		label: 'Scope',

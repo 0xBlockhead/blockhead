@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nodeId = selection.entitySelector.nodeId ?? prefetched.nodeId}
+							{@const nodeId = pendingEntity.nodeId}
 							{#if nodeId !== undefined && nodeId !== null}
 								{String((nodeId) ?? '')}
 							{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const refName = selection.entitySelector.refName ?? prefetched.refName}
+							{@const refName = pendingEntity.refName}
 							{#if refName !== undefined && refName !== null}
 								{String((refName) ?? '')}
 							{/if}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const targetObjectId = prefetched.targetObjectId}
+							{@const targetObjectId = pendingEntity.targetObjectId}
 							{#if targetObjectId !== undefined && targetObjectId !== null}
 								{String((targetObjectId) ?? '')}
 							{/if}
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signature = prefetched.signature}
+					{@const signature = pendingEntity.signature}
 					{#if signature !== undefined && signature !== null}
 						<div>
 							<dt>signature</dt>
@@ -219,6 +219,8 @@
 			<ResourceBoundary
 				resource={selection.$gitRef}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitRef)}
 					{#if gitRef != null && gitRef[EntityMetaKey.Selector] != null}
 						<div>
@@ -239,6 +241,8 @@
 			<ResourceBoundary
 				resource={selection.$refObservation}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitRefObservationTimestamp)}
 					{#if gitRefObservationTimestamp != null && gitRefObservationTimestamp[EntityMetaKey.Selector] != null}
 						<div>

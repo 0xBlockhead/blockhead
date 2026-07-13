@@ -10,8 +10,10 @@ export enum GitLooseObjectSelector {
 }
 export const GitLooseObject = entity({
 	entityType: EntityType.GitLooseObject,
-	label: 'Git loose object',
-	labelPlural: 'Git loose objects',
+	labels: {
+		singular: 'Git loose object',
+		plural: 'Git loose objects',
+	},
 })({
 	objectId: {
 		label: 'object ID',

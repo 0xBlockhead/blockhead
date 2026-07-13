@@ -52,7 +52,7 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.installId ?? prefetched.installId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent program install')
+	const titleFallback = $derived([String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent program install')
 	const viewDomId = $derived('blockhead-agent-program-install-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAgentProgramInstall}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.installId ?? prefetched.installId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent program install'}
+				{[String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent program install'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentProgramInstall}>
 			{#snippet Pending()}
-				{[String((prefetched.command) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.installId ?? prefetched.installId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent program install'}
+				{[String((pendingEntity.command) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent program install'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAgentProgramInstall}>
 			{#snippet Pending()}
-				{@const updatedAt0 = prefetched.updatedAt}
+				{@const updatedAt0 = pendingEntity.updatedAt}
 				{#if updatedAt0 !== undefined && updatedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(updatedAt0)} />
@@ -139,7 +139,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const installId = selection.entitySelector.installId ?? prefetched.installId}
+							{@const installId = pendingEntity.installId}
 							{#if installId !== undefined && installId !== null}
 								{String((installId) ?? '')}
 							{/if}
@@ -159,6 +159,8 @@
 			<ResourceBoundary
 				resource={selection.$source}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
 						<div>
@@ -186,7 +188,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const installPath = prefetched.installPath}
+					{@const installPath = pendingEntity.installPath}
 					{#if installPath !== undefined && installPath !== null}
 						<div>
 							<dt>install path</dt>
@@ -221,7 +223,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const command = prefetched.command}
+					{@const command = pendingEntity.command}
 					{#if command !== undefined && command !== null}
 						<div>
 							<dt>command</dt>
@@ -258,7 +260,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const argsHashAlgorithm = prefetched.argsHashAlgorithm}
+					{@const argsHashAlgorithm = pendingEntity.argsHashAlgorithm}
 					{#if argsHashAlgorithm !== undefined && argsHashAlgorithm !== null}
 						<div>
 							<dt>args hash algorithm</dt>
@@ -293,7 +295,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const argsHash = prefetched.argsHash}
+					{@const argsHash = pendingEntity.argsHash}
 					{#if argsHash !== undefined && argsHash !== null}
 						<div>
 							<dt>args hash</dt>
@@ -328,7 +330,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const environmentScope = prefetched.environmentScope}
+					{@const environmentScope = pendingEntity.environmentScope}
 					{#if environmentScope !== undefined && environmentScope !== null}
 						<div>
 							<dt>environment scope</dt>
@@ -365,7 +367,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -400,7 +402,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>

@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import {
+		createCollection,
+		localOnlyCollectionOptions,
+	} from '@tanstack/db'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { SpecificationRealm } from '$/constants/SpecificationProposal.ts'
@@ -8,10 +12,7 @@
 		type SvelteKitResource,
 		TanStackLiveQueryResource,
 	} from '$/lib/db/queryResource.svelte.ts'
-	import {
-		appClient,
-		select,
-	} from '$/routes/+layout.svelte'
+	import { select } from '$/routes/+layout.svelte'
 
 
 	let cachedBoundaryOpen = $state(
@@ -45,18 +46,6 @@
 			}
 		},
 	)
-	let directOnlyQuery = $state<TanStackLiveQuerySnapshot<string>>(initialLiveQuery)
-	const directOnlyQueryListeners = new Set<() => void>()
-	const directOnlyResource = new TanStackLiveQueryResource(
-		() => directOnlyQuery,
-		(update) => {
-			directOnlyQueryListeners.add(update)
-			return () => {
-				directOnlyQueryListeners.delete(update)
-			}
-		},
-	)
-
 	const initialFailableQuery = {
 		data: '',
 		isLoading: true,
@@ -81,6 +70,7 @@
 	let queryTaggedValue = $state('')
 	let queryTaggedReady = $state(false)
 	let showFailedResource = $state(false)
+	let showRealSelectedDirectOnlyResource = $state(false)
 	let showRealSelectedScalarResource = $state(false)
 	let showRealSelectedResource = $state(false)
 	let showRealSelectedCountResource = $state(false)
@@ -148,39 +138,46 @@
 		},
 		[Symbol.toStringTag]: 'Query',
 	} satisfies SvelteKitResource<string>
-	const realSelectedScalarResource = select(
-		EntityType.BlockheadSession,
-		{
-			id: 'e2e-probe-session',
+	const resourceFixtureSource = createCollection(localOnlyCollectionOptions<{
+		id: string
+		value: string
+	}>({
+		id: 'resource-boundary-source',
+		getKey: (row) => row.id,
+	}))
+	const createResourceFixture = (
+		id: string,
+	) => new TanStackLiveQueryResource(
+		() => ({
+			data: resourceFixtureSource.get(id)?.value ?? '',
+			isLoading: !resourceFixtureSource.isReady(),
+			isError: resourceFixtureSource.status === 'error',
+			isReady: resourceFixtureSource.isReady(),
+			status: (
+				resourceFixtureSource.status === 'error' ?
+					'error'
+				: resourceFixtureSource.isReady() ?
+					'ready'
+				:
+					'loading'
+			),
+		}),
+		(update) => {
+			resourceFixtureSource.onFirstReady(update)
+			const subscription = resourceFixtureSource.subscribeChanges(update, {
+				includeInitialState: true,
+				onStatusChange: update,
+			})
+			if (resourceFixtureSource.status === 'idle')
+				resourceFixtureSource.preload().catch(update)
+
+			return subscription.unsubscribe
 		},
-		{
-			sources: [
-				Source.Local_Internal,
-			],
-			fields: {
-				name: true,
-				status: true,
-			},
-		},
+		() => resourceFixtureSource.preload()
 	)
-	const realSelectedBoundaryOnlyResource = select(
-		EntityType.BlockheadSession,
-		{
-			id: 'e2e-probe-session',
-		},
-		{
-			sources: [
-				Source.Local_Internal,
-			],
-			fields: {
-				name: true,
-				status: true,
-			},
-		},
-	)
-	let realSelectedScalar = $derived(
-		realSelectedScalarResource.current
-	)
+	const realSelectedScalarResource = createResourceFixture('scalar')
+	const realSelectedBoundaryOnlyResource = createResourceFixture('boundary-only')
+	const realSelectedDirectOnlyResource = createResourceFixture('direct-only')
 	const applySelectedValue = (
 		value: string,
 	) => {
@@ -204,17 +201,19 @@
 			listener()
 	}
 
-	const applyDirectOnlyValue = (
+	const writeResourceFixtureValue = (
+		id: string,
 		value: string,
 	) => {
-		directOnlyQuery.data = value
-		directOnlyQuery.isLoading = false
-		directOnlyQuery.isError = false
-		directOnlyQuery.isReady = true
-		directOnlyQuery.error = undefined
-		directOnlyQuery.status = 'ready'
-		for (const listener of directOnlyQueryListeners)
-			listener()
+		if (resourceFixtureSource.has(id))
+			resourceFixtureSource.update(id, (draft) => {
+				draft.value = value
+			})
+		else
+			resourceFixtureSource.insert({
+				id,
+				value,
+			})
 	}
 
 	const applyFailableValue = (
@@ -401,44 +400,62 @@
 		Show real selection count boundary
 	</button>
 
-	<button onclick={() => undefined}>
+	<button
+		data-testid="seed-real-selection-scalar-field"
+		onclick={() => writeResourceFixtureValue('scalar', 'Boundary Session')}
+	>
 		Seed real selection scalar field
 	</button>
 
 	<button
 		data-testid="update-real-selection-scalar-field"
-		onclick={() => undefined}
+		onclick={() => writeResourceFixtureValue('scalar', 'Updated Boundary Session')}
 	>
 		Update real selection scalar field
 	</button>
 
-	<button onclick={() => undefined}>
+	<button
+		data-testid="seed-boundary-only-live-subscription-field"
+		onclick={() => writeResourceFixtureValue('boundary-only', 'Boundary Only Session')}
+	>
 		Seed boundary-only live subscription field
 	</button>
 
 	<button
 		data-testid="update-boundary-only-live-subscription-field"
-		onclick={() => undefined}
+		onclick={() => writeResourceFixtureValue('boundary-only', 'Updated Boundary Only Session')}
 	>
 		Update boundary-only live subscription field
 	</button>
 
 	<button
+		data-testid="seed-direct-only-live-subscription-field"
+		onclick={() => writeResourceFixtureValue('direct-only', 'Direct Only Session')}
+	>
+		Seed direct-only live subscription field
+	</button>
+
+	<button
+		data-testid="show-direct-only-live-subscription-field"
+		onclick={() => showRealSelectedDirectOnlyResource = true}
+	>
+		Show direct-only live subscription field
+	</button>
+
+	<button
 		data-testid="update-direct-only-live-subscription-field"
-		onclick={() => applyDirectOnlyValue('Updated direct-only value')}
+		onclick={() => writeResourceFixtureValue('direct-only', 'Updated Direct Only Session')}
 	>
 		Update direct-only live subscription field
 	</button>
 
 	{#if showRealSelectedScalarResource}
-		<p data-testid="real-resource-direct-scalars">
-			{realSelectedScalar?.name ?? ''}:{realSelectedScalar?.status ?? ''}
-		</p>
+		<p data-testid="real-resource-direct-scalars">{realSelectedScalarResource.current ?? ''}</p>
 
 		<svelte:boundary>
 			{@const value = await realSelectedScalarResource}
 
-			<p data-testid="real-resource-awaited-scalars">{value.name}:{value.status}</p>
+			<p data-testid="real-resource-awaited-scalars">{value}</p>
 
 			{#snippet pending()}
 				<p data-testid="real-resource-awaited-scalars">pending</p>
@@ -450,7 +467,7 @@
 			placeholderText="Loading real selection scalar value"
 		>
 			{#snippet children(value)}
-				<p data-testid="real-resource-boundary-scalars">{value.name}:{value.status}</p>
+				<p data-testid="real-resource-boundary-scalars">{value}</p>
 			{/snippet}
 		</ResourceBoundary>
 	{/if}
@@ -460,25 +477,27 @@
 		placeholderText="Loading real selection boundary-only resource"
 	>
 		{#snippet children(value)}
-			<p data-testid="real-resource-boundary-only-scalars">{value.name}:{value.status}</p>
+			<p data-testid="real-resource-boundary-only-value">{value}</p>
 		{/snippet}
 	</ResourceBoundary>
 
-	<p data-testid="real-resource-direct-only-current">
-		{directOnlyResource.current ?? ''}
-	</p>
+	{#if showRealSelectedDirectOnlyResource}
+		<p data-testid="real-resource-direct-only-current">
+			{realSelectedDirectOnlyResource.current ?? ''}
+		</p>
 
-	<p data-testid="real-resource-direct-only-loading">
-		{String(directOnlyResource.loading)}
-	</p>
+		<p data-testid="real-resource-direct-only-loading">
+			{String(realSelectedDirectOnlyResource.loading)}
+		</p>
 
-	<p data-testid="real-resource-direct-only-ready">
-		{String(directOnlyResource.ready)}
-	</p>
+		<p data-testid="real-resource-direct-only-ready">
+			{String(realSelectedDirectOnlyResource.ready)}
+		</p>
 
-	<p data-testid="real-resource-direct-only-error">
-		{directOnlyResource.error == null ? '' : String(directOnlyResource.error)}
-	</p>
+		<p data-testid="real-resource-direct-only-error">
+			{realSelectedDirectOnlyResource.error == null ? '' : String(realSelectedDirectOnlyResource.error)}
+		</p>
+	{/if}
 
 	{#if showRealSelectedResource}
 		<ResourceBoundary

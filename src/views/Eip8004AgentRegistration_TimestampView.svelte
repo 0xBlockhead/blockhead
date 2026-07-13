@@ -53,7 +53,7 @@
 			active: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration timestamp')
 	const viewDomId = $derived('eip8004agent-registration-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eip8004AgentRegistrationTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004AgentRegistrationTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.active) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration timestamp'}
+				{[String((pendingEntity.active) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip8004AgentRegistrationTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>Active</dt>
@@ -251,7 +251,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const agentUri = prefetched.agentUri}
+					{@const agentUri = pendingEntity.agentUri}
 					{#if agentUri !== undefined && agentUri !== null}
 						<div>
 							<dt>Agent URI</dt>
@@ -300,7 +300,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownerAddress = prefetched.ownerAddress}
+					{@const ownerAddress = pendingEntity.ownerAddress}
 					{#if ownerAddress !== undefined && ownerAddress !== null}
 						<div>
 							<dt>Owner address</dt>
@@ -335,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const agentWalletAddress = prefetched.agentWalletAddress}
+					{@const agentWalletAddress = pendingEntity.agentWalletAddress}
 					{#if agentWalletAddress !== undefined && agentWalletAddress !== null}
 						<div>
 							<dt>Agent wallet address</dt>
@@ -370,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -405,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>Transaction hash</dt>

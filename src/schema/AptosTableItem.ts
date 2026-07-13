@@ -9,8 +9,10 @@ export enum AptosTableItemSelector {
 }
 export const AptosTableItem = entity({
 	entityType: EntityType.AptosTableItem,
-	label: 'aptos table item',
-	labelPlural: 'aptos table items',
+	labels: {
+		singular: 'aptos table item',
+		plural: 'aptos table items',
+	},
 })({
 	$network: {
 		label: 'network',

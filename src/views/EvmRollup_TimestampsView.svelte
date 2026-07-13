@@ -120,8 +120,8 @@
 						selection={select(EntityType.EvmRollup_Timestamp, evmRollupTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmRollupTimestampFields}
 						href={
-							(evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.$network !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2 !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2.namespace !== undefined && evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.$network !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2 !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2.reference !== undefined && evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.projectId !== undefined && evmRollupTimestampHrefFields.timestampMs !== undefined && evmRollupTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(evmRollupTimestampHrefFields.$rollup.$network.caip2.namespace ?? '')}:${String(evmRollupTimestampHrefFields.$rollup.$network.caip2.reference ?? '')}`,
+							(evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.$network !== undefined && evmRollupTimestampHrefFields.$rollup.$network.slug !== undefined && evmRollupTimestampHrefFields.$rollup.projectId !== undefined && evmRollupTimestampHrefFields.timestampMs !== undefined && evmRollupTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								network: String(evmRollupTimestampHrefFields.$rollup.$network.slug ?? ''),
 								projectId: String(evmRollupTimestampHrefFields.$rollup.projectId ?? ''),
 								timestampMs: String(evmRollupTimestampHrefFields.timestampMs ?? ''),
 								source: String(evmRollupTimestampHrefFields.source ?? ''),

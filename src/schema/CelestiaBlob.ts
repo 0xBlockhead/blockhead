@@ -9,8 +9,10 @@ export enum CelestiaBlobSelector {
 }
 export const CelestiaBlob = entity({
 	entityType: EntityType.CelestiaBlob,
-	label: 'celestia blob',
-	labelPlural: 'celestia blobs',
+	labels: {
+		singular: 'celestia blob',
+		plural: 'celestia blobs',
+	},
 })({
 	$namespace: {
 		label: 'Namespace',

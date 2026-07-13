@@ -50,7 +50,7 @@
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.agentId ?? prefetched.agentId) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration')
+	const titleFallback = $derived([String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration')
 	const viewDomId = $derived('eip8004agent-registration-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eip8004AgentRegistration}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.agentId ?? prefetched.agentId) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration'}
+				{[String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004AgentRegistration}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.namespace ?? prefetched.namespace) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.agentId ?? prefetched.agentId) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration'}
+				{[String((pendingEntity.namespace) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 agent registration'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip8004AgentRegistration}>
 			{#snippet Pending()}
-				{@const chainId0 = selection.entitySelector.chainId ?? prefetched.chainId}
+				{@const chainId0 = pendingEntity.chainId}
 				{#if chainId0 !== undefined && chainId0 !== null}
 					<span data-text="muted">
 						{String((chainId0) ?? '')}
@@ -137,7 +137,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const namespace = selection.entitySelector.namespace ?? prefetched.namespace}
+							{@const namespace = pendingEntity.namespace}
 							{#if namespace !== undefined && namespace !== null}
 								{String((namespace) ?? '')}
 							{/if}
@@ -167,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const chainId = selection.entitySelector.chainId ?? prefetched.chainId}
+							{@const chainId = pendingEntity.chainId}
 							{#if chainId !== undefined && chainId !== null}
 								<NumberValue value={Number(chainId)} />
 							{/if}
@@ -197,7 +197,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const identityRegistry = selection.entitySelector.identityRegistry ?? prefetched.identityRegistry}
+							{@const identityRegistry = pendingEntity.identityRegistry}
 							{#if identityRegistry !== undefined && identityRegistry !== null}
 								{String((identityRegistry) ?? '')}
 							{/if}
@@ -227,7 +227,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const agentId = selection.entitySelector.agentId ?? prefetched.agentId}
+							{@const agentId = pendingEntity.agentId}
 							{#if agentId !== undefined && agentId !== null}
 								{String((agentId) ?? '')}
 							{/if}
@@ -249,6 +249,8 @@
 			<ResourceBoundary
 				resource={selection.$evmNft}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmNft)}
 					{#if evmNft != null && evmNft[EntityMetaKey.Selector] != null}
 						<div>
@@ -258,10 +260,10 @@
 									selection={select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector])}
 									prefetched={evmNft}
 									href={
-										(evmNft[EntityMetaKey.Selector].$contract !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network.caip2 !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference !== undefined && evmNft[EntityMetaKey.Selector].$contract !== undefined && evmNft[EntityMetaKey.Selector].$contract.address !== undefined && evmNft[EntityMetaKey.Selector].tokenId !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]', {
+										(evmNft[EntityMetaKey.Selector].tokenId !== undefined && evmNft[EntityMetaKey.Selector].$contract !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network.caip2 !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference !== undefined && evmNft[EntityMetaKey.Selector].$contract.address !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
+											tokenId: String(evmNft[EntityMetaKey.Selector].tokenId ?? ''),
 											chainId: String(evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference ?? ''),
 											contractAddress: String(evmNft[EntityMetaKey.Selector].$contract.address ?? ''),
-											tokenId: String(evmNft[EntityMetaKey.Selector].tokenId ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

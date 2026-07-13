@@ -52,7 +52,7 @@
 			startedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.turnId ?? prefetched.turnId) ?? '')].filter(Boolean).join(' ') || 'ACP prompt turn')
+	const titleFallback = $derived([String((pendingEntity.turnId) ?? '')].filter(Boolean).join(' ') || 'ACP prompt turn')
 	const viewDomId = $derived('acp-prompt-turn-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpPromptTurn}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.turnId ?? prefetched.turnId) ?? '')].filter(Boolean).join(' ') || title || 'ACP prompt turn'}
+				{[String((pendingEntity.turnId) ?? '')].filter(Boolean).join(' ') || title || 'ACP prompt turn'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpPromptTurn}>
 			{#snippet Pending()}
-				{[String((prefetched.stopReason) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.turnId ?? prefetched.turnId) ?? '')].filter(Boolean).join(' ') || title || 'ACP prompt turn'}
+				{[String((pendingEntity.stopReason) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.turnId) ?? '')].filter(Boolean).join(' ') || title || 'ACP prompt turn'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpPromptTurn}>
 			{#snippet Pending()}
-				{@const startedAt0 = prefetched.startedAt}
+				{@const startedAt0 = pendingEntity.startedAt}
 				{#if startedAt0 !== undefined && startedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(startedAt0)} />
@@ -149,7 +149,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const turnId = selection.entitySelector.turnId ?? prefetched.turnId}
+							{@const turnId = pendingEntity.turnId}
 							{#if turnId !== undefined && turnId !== null}
 								{String((turnId) ?? '')}
 							{/if}
@@ -176,7 +176,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stopReason = prefetched.stopReason}
+					{@const stopReason = pendingEntity.stopReason}
 					{#if stopReason !== undefined && stopReason !== null}
 						<div>
 							<dt>stop reason</dt>
@@ -213,7 +213,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startedAt = prefetched.startedAt}
+					{@const startedAt = pendingEntity.startedAt}
 					{#if startedAt !== undefined && startedAt !== null}
 						<div>
 							<dt>started AT</dt>
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const completedAt = prefetched.completedAt}
+					{@const completedAt = pendingEntity.completedAt}
 					{#if completedAt !== undefined && completedAt !== null}
 						<div>
 							<dt>completed AT</dt>
@@ -283,7 +283,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cancelledAt = prefetched.cancelledAt}
+					{@const cancelledAt = pendingEntity.cancelledAt}
 					{#if cancelledAt !== undefined && cancelledAt !== null}
 						<div>
 							<dt>cancelled AT</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const userPromptHashAlgorithm = prefetched.userPromptHashAlgorithm}
+					{@const userPromptHashAlgorithm = pendingEntity.userPromptHashAlgorithm}
 					{#if userPromptHashAlgorithm !== undefined && userPromptHashAlgorithm !== null}
 						<div>
 							<dt>user prompt hash algorithm</dt>
@@ -355,7 +355,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const userPromptHash = prefetched.userPromptHash}
+					{@const userPromptHash = pendingEntity.userPromptHash}
 					{#if userPromptHash !== undefined && userPromptHash !== null}
 						<div>
 							<dt>user prompt hash</dt>

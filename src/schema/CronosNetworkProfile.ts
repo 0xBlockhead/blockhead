@@ -9,8 +9,10 @@ export enum CronosNetworkProfileSelector {
 }
 export const CronosNetworkProfile = entity({
 	entityType: EntityType.CronosNetworkProfile,
-	label: 'cronos network profile',
-	labelPlural: 'cronos network profiles',
+	labels: {
+		singular: 'cronos network profile',
+		plural: 'cronos network profiles',
+	},
 })({
 	$network: {
 		label: 'network',

@@ -74,7 +74,7 @@
 	let {
 		entityType,
 		id = `EntitiesList:${entityType}`,
-		title = entityDefinitionByType[entityType].labelPlural,
+		title = entityDefinitionByType[entityType].labels.plural,
 		href = `#${id}`,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -215,7 +215,7 @@
 		{#if Empty}
 			{@render Empty()}
 		{:else}
-			{@const emptyLabel = entityDefinitionByType[entityType].labelPlural}
+			{@const emptyLabel = entityDefinitionByType[entityType].labels.plural}
 			<div
 				class="entity-details"
 				style:view-transition-name={`EntitiesList-Details-${id}`}
@@ -249,10 +249,10 @@
 					{@render TypeAnnotationTooltip()}
 				{/snippet}
 
-				<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
+				<span data-text="annotation">{entityDefinitionByType[entityType].labels.plural}</span>
 			</Tooltip>
 		{:else if showTypeAnnotation}
-			<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
+			<span data-text="annotation">{entityDefinitionByType[entityType].labels.plural}</span>
 		{/if}
 	{/snippet}
 
@@ -292,7 +292,7 @@
 						resource={resource}
 						placeholderText={
 						placeholderText
-						?? `Loading ${entityDefinitionByType[entityType].labelPlural.toLowerCase()}…`
+						?? `Loading ${entityDefinitionByType[entityType].labels.plural.toLowerCase()}…`
 					}
 				>
 					{#snippet children(resource)}

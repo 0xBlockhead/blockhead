@@ -67,11 +67,11 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$item !== undefined && pendingEntity.$item.feedUrl !== undefined && pendingEntity.$item !== undefined && pendingEntity.$item.guid !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(social)/(rss)/rss/item/[feedKey]/[guid]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			feedKey: String(pendingEntity.$item.feedUrl ?? ''),
-			guid: String(pendingEntity.$item.guid ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$item !== undefined && pendingEntity.$item.feedUrl !== undefined && pendingEntity.$item.guid !== undefined ? resolve('/rss/item/[feedKey=stringSegment]/[guid=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			feedKey: String(pendingEntity.$item.feedUrl ?? ''),
+			guid: String(pendingEntity.$item.guid ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -102,7 +102,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={rssItemTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -146,7 +146,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -178,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const title = prefetched.title}
+					{@const title = pendingEntity.title}
 					{#if title !== undefined && title !== null}
 						<div>
 							<dt>Title</dt>
@@ -244,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const link = prefetched.link}
+					{@const link = pendingEntity.link}
 					{#if link !== undefined && link !== null}
 						<div>
 							<dt>Link</dt>
@@ -295,7 +295,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publishedAt = prefetched.publishedAt}
+					{@const publishedAt = pendingEntity.publishedAt}
 					{#if publishedAt !== undefined && publishedAt !== null}
 						<div>
 							<dt>Published</dt>

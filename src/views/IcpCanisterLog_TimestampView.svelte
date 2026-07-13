@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastAnalyzedMessageTimeNs = prefetched.lastAnalyzedMessageTimeNs}
+					{@const lastAnalyzedMessageTimeNs = pendingEntity.lastAnalyzedMessageTimeNs}
 					{#if lastAnalyzedMessageTimeNs !== undefined && lastAnalyzedMessageTimeNs !== null}
 						<div>
 							<dt>last analyzed message time ns</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const messageCount = prefetched.messageCount}
+					{@const messageCount = pendingEntity.messageCount}
 					{#if messageCount !== undefined && messageCount !== null}
 						<div>
 							<dt>message count</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const logVisibility = prefetched.logVisibility}
+					{@const logVisibility = pendingEntity.logVisibility}
 					{#if logVisibility !== undefined && logVisibility !== null}
 						<div>
 							<dt>log visibility</dt>

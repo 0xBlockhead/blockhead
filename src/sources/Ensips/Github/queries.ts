@@ -21,7 +21,7 @@ export const getContents = (): Promise<EnsipsGithubContents> => (
 	getGithubContents({
 		endpoints: githubHttpEndpoints,
 		target: ensipsGithubRepo,
-	}) as Promise<EnsipsGithubContents>
+	})
 )
 
 export const getProposalMarkdownText = ({ number }: { number: number }) => (

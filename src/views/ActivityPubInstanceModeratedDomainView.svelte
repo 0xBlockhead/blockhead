@@ -47,7 +47,7 @@
 			comment: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.domain ?? prefetched.domain) ?? ''), String((prefetched.severity) ?? ''), String((prefetched.comment) ?? ''), String((selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')
+	const titleFallback = $derived([String((pendingEntity.domain) ?? ''), String((pendingEntity.severity) ?? ''), String((pendingEntity.comment) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')
 	const viewDomId = $derived('activity-pub-instance-moderated-domain-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -70,7 +70,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubInstanceModeratedDomain}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.domain ?? prefetched.domain) ?? ''), String((prefetched.severity) ?? ''), String((prefetched.comment) ?? ''), String((selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance moderated domain'}
+				{[String((pendingEntity.domain) ?? ''), String((pendingEntity.severity) ?? ''), String((pendingEntity.comment) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance moderated domain'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -83,7 +83,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubInstanceModeratedDomain}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.domain ?? prefetched.domain) ?? ''), String((prefetched.severity) ?? ''), String((prefetched.comment) ?? ''), String((selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance moderated domain'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.domain) ?? ''), String((pendingEntity.severity) ?? ''), String((pendingEntity.comment) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance moderated domain'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -114,7 +114,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const instanceOrigin = selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin}
+							{@const instanceOrigin = pendingEntity.instanceOrigin}
 							{#if instanceOrigin !== undefined && instanceOrigin !== null}
 								<svelte:element
 									this={'a'}
@@ -160,7 +160,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const domain = selection.entitySelector.domain ?? prefetched.domain}
+							{@const domain = pendingEntity.domain}
 							{#if domain !== undefined && domain !== null}
 								{String((domain) ?? '')}
 							{/if}
@@ -187,7 +187,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const severity = prefetched.severity}
+					{@const severity = pendingEntity.severity}
 					{#if severity !== undefined && severity !== null}
 						<div>
 							<dt>Severity</dt>
@@ -225,7 +225,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const comment = prefetched.comment}
+					{@const comment = pendingEntity.comment}
 					{#if comment !== undefined && comment !== null}
 						<div>
 							<dt>Comment</dt>

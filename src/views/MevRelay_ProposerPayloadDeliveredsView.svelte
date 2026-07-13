@@ -67,9 +67,11 @@
 		resource={
 			selection({
 				fields: {
+					slot: true,
+					value: true,
+					$builder: true,
 					$network: true,
 					relayHost: true,
-					slot: true,
 					blockHash: true,
 				},
 			})
@@ -120,14 +122,14 @@
 						selection={select(EntityType.MevRelay_ProposerPayloadDelivered, mevRelayProposerPayloadDelivered[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mevRelayProposerPayloadDeliveredFields}
 						href={
-							(mevRelayProposerPayloadDeliveredHrefFields.$network !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network.caip2 !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network.caip2.namespace !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network.caip2 !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network.caip2.reference !== undefined && mevRelayProposerPayloadDeliveredHrefFields.relayHost !== undefined && mevRelayProposerPayloadDeliveredHrefFields.slot !== undefined && mevRelayProposerPayloadDeliveredHrefFields.blockHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/payload/[relayHost]/[slot=nonNegativeInteger]/[blockHash]', {
-								caip2: `${String(mevRelayProposerPayloadDeliveredHrefFields.$network.caip2.namespace ?? '')}:${String(mevRelayProposerPayloadDeliveredHrefFields.$network.caip2.reference ?? '')}`,
+							(mevRelayProposerPayloadDeliveredHrefFields.$network !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network.slug !== undefined && mevRelayProposerPayloadDeliveredHrefFields.relayHost !== undefined && mevRelayProposerPayloadDeliveredHrefFields.slot !== undefined && mevRelayProposerPayloadDeliveredHrefFields.blockHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/payload/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]', {
+								network: String(mevRelayProposerPayloadDeliveredHrefFields.$network.slug ?? ''),
 								relayHost: String(mevRelayProposerPayloadDeliveredHrefFields.relayHost ?? ''),
 								slot: String(mevRelayProposerPayloadDeliveredHrefFields.slot ?? ''),
 								blockHash: String(mevRelayProposerPayloadDeliveredHrefFields.blockHash ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

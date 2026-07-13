@@ -9,8 +9,10 @@ export enum XrplTrustline_TimestampSelector {
 }
 export const XrplTrustline_Timestamp = entity({
 	entityType: EntityType.XrplTrustline_Timestamp,
-	label: 'xrpl trustline timestamp',
-	labelPlural: 'xrpl trustline observations',
+	labels: {
+		singular: 'xrpl trustline timestamp',
+		plural: 'xrpl trustline observations',
+	},
 })({
 	$trustline: {
 		label: 'trustline',

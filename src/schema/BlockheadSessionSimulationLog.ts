@@ -10,8 +10,10 @@ export enum BlockheadSessionSimulationLogSelector {
 }
 export const BlockheadSessionSimulationLog = entity({
 	entityType: EntityType.BlockheadSessionSimulationLog,
-	label: 'blockhead session simulation log',
-	labelPlural: 'blockhead session simulation logs',
+	labels: {
+		singular: 'blockhead session simulation log',
+		plural: 'blockhead session simulation logs',
+	},
 })({
 	simulationId: {
 		label: 'simulation ID',

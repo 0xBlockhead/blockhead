@@ -9,8 +9,10 @@ export enum StellarClaimableBalanceSelector {
 }
 export const StellarClaimableBalance = entity({
 	entityType: EntityType.StellarClaimableBalance,
-	label: 'stellar claimable balance',
-	labelPlural: 'stellar claimable balances',
+	labels: {
+		singular: 'stellar claimable balance',
+		plural: 'stellar claimable balances',
+	},
 })({
 	$network: {
 		label: 'network',

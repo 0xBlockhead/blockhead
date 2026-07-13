@@ -118,8 +118,8 @@
 						selection={select(EntityType.BeaconSyncCommittee, beaconSyncCommittee[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconSyncCommitteeFields}
 						href={
-							(beaconSyncCommitteeHrefFields.$network !== undefined && beaconSyncCommitteeHrefFields.$network.caip2 !== undefined && beaconSyncCommitteeHrefFields.$network.caip2.namespace !== undefined && beaconSyncCommitteeHrefFields.$network !== undefined && beaconSyncCommitteeHrefFields.$network.caip2 !== undefined && beaconSyncCommitteeHrefFields.$network.caip2.reference !== undefined && beaconSyncCommitteeHrefFields.period !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/sync-committee/[period=nonNegativeInteger]', {
-								caip2: `${String(beaconSyncCommitteeHrefFields.$network.caip2.namespace ?? '')}:${String(beaconSyncCommitteeHrefFields.$network.caip2.reference ?? '')}`,
+							(beaconSyncCommitteeHrefFields.$network !== undefined && beaconSyncCommitteeHrefFields.$network.slug !== undefined && beaconSyncCommitteeHrefFields.period !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/sync-committee/[period=nonNegativeInteger]', {
+								network: String(beaconSyncCommitteeHrefFields.$network.slug ?? ''),
 								period: String(beaconSyncCommitteeHrefFields.period ?? ''),
 							}) : undefined)
 						}

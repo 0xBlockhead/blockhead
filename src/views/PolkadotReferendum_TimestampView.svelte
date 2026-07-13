@@ -46,7 +46,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'Polkadot referendum timestamp')
+	const titleFallback = $derived([String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || 'Polkadot referendum timestamp')
 	const viewDomId = $derived('polkadot-referendum-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={polkadotReferendumTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot referendum timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot referendum timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotReferendumTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={polkadotReferendumTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -242,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -277,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decidedAtBlockNumber = prefetched.decidedAtBlockNumber}
+					{@const decidedAtBlockNumber = pendingEntity.decidedAtBlockNumber}
 					{#if decidedAtBlockNumber !== undefined && decidedAtBlockNumber !== null}
 						<div>
 							<dt>Decided at block number</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const confirmationStartedAtBlockNumber = prefetched.confirmationStartedAtBlockNumber}
+					{@const confirmationStartedAtBlockNumber = pendingEntity.confirmationStartedAtBlockNumber}
 					{#if confirmationStartedAtBlockNumber !== undefined && confirmationStartedAtBlockNumber !== null}
 						<div>
 							<dt>Confirmation started at block number</dt>
@@ -384,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const enactmentAtBlockNumber = prefetched.enactmentAtBlockNumber}
+					{@const enactmentAtBlockNumber = pendingEntity.enactmentAtBlockNumber}
 					{#if enactmentAtBlockNumber !== undefined && enactmentAtBlockNumber !== null}
 						<div>
 							<dt>Enactment at block number</dt>
@@ -421,7 +421,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ayeVotes = prefetched.ayeVotes}
+					{@const ayeVotes = pendingEntity.ayeVotes}
 					{#if ayeVotes !== undefined && ayeVotes !== null}
 						<div>
 							<dt>Aye votes</dt>
@@ -456,7 +456,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nayVotes = prefetched.nayVotes}
+					{@const nayVotes = pendingEntity.nayVotes}
 					{#if nayVotes !== undefined && nayVotes !== null}
 						<div>
 							<dt>Nay votes</dt>
@@ -491,7 +491,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const support = prefetched.support}
+					{@const support = pendingEntity.support}
 					{#if support !== undefined && support !== null}
 						<div>
 							<dt>Support</dt>
@@ -526,7 +526,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const approval = prefetched.approval}
+					{@const approval = pendingEntity.approval}
 					{#if approval !== undefined && approval !== null}
 						<div>
 							<dt>Approval</dt>

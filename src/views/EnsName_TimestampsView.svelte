@@ -119,10 +119,10 @@
 						selection={select(EntityType.EnsName_Timestamp, ensNameTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ensNameTimestampFields}
 						href={
-							(ensNameTimestampHrefFields.$name !== undefined && ensNameTimestampHrefFields.$name.name !== undefined && ensNameTimestampHrefFields.timestampMs !== undefined && ensNameTimestampHrefFields.source !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								ensName: String(ensNameTimestampHrefFields.$name.name ?? ''),
+							(ensNameTimestampHrefFields.timestampMs !== undefined && ensNameTimestampHrefFields.source !== undefined && ensNameTimestampHrefFields.$name !== undefined && ensNameTimestampHrefFields.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(ensNameTimestampHrefFields.timestampMs ?? ''),
 								source: String(ensNameTimestampHrefFields.source ?? ''),
+								ensName: String(ensNameTimestampHrefFields.$name.name ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

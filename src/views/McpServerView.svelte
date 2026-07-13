@@ -53,20 +53,22 @@
 			endpointUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.serverKey ?? prefetched.serverKey) ?? '')].filter(Boolean).join(' ') || 'mcp server')
+	const titleFallback = $derived([String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || 'mcp server')
 	const viewDomId = $derived('mcp-server-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import McpToolsView from '$/views/McpToolsView.svelte'
-	import McpResourcesView from '$/views/McpResourcesView.svelte'
-	import McpResourceTemplatesView from '$/views/McpResourceTemplatesView.svelte'
-	import McpPromptsView from '$/views/McpPromptsView.svelte'
-	import McpServer_TimestampsView from '$/views/McpServer_TimestampsView.svelte'
 	import BlockheadSourceView from '$/views/BlockheadSourceView.svelte'
 	import McpServerPackageVersionView from '$/views/McpServerPackageVersionView.svelte'
+	import McpToolsView from '$/views/McpToolsView.svelte'
+	import McpPromptsView from '$/views/McpPromptsView.svelte'
+	import McpResourcesView from '$/views/McpResourcesView.svelte'
+	import McpResourceTemplatesView from '$/views/McpResourceTemplatesView.svelte'
+	import McpServer_TimestampsView from '$/views/McpServer_TimestampsView.svelte'
 </script>
 
 
@@ -83,7 +85,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpServer}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.serverKey ?? prefetched.serverKey) ?? '')].filter(Boolean).join(' ') || title || 'mcp server'}
+				{[String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || title || 'mcp server'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mcpServer}>
 			{#snippet Pending()}
-				{[String((prefetched.transportKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.serverKey ?? prefetched.serverKey) ?? '')].filter(Boolean).join(' ') || title || 'mcp server'}
+				{[String((pendingEntity.transportKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || title || 'mcp server'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpServer}>
 			{#snippet Pending()}
-				{@const endpointUrl0 = prefetched.endpointUrl}
+				{@const endpointUrl0 = pendingEntity.endpointUrl}
 				{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
 					<span data-text="muted">
 						<svelte:element
@@ -158,7 +160,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const serverKey = selection.entitySelector.serverKey ?? prefetched.serverKey}
+							{@const serverKey = pendingEntity.serverKey}
 							{#if serverKey !== undefined && serverKey !== null}
 								{String((serverKey) ?? '')}
 							{/if}
@@ -178,6 +180,8 @@
 			<ResourceBoundary
 				resource={selection.$source}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
 						<div>
@@ -198,6 +202,8 @@
 			<ResourceBoundary
 				resource={selection.$packageVersion}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(mcpServerPackageVersion)}
 					{#if mcpServerPackageVersion != null && mcpServerPackageVersion[EntityMetaKey.Selector] != null}
 						<div>
@@ -225,7 +231,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transportKind = prefetched.transportKind}
+					{@const transportKind = pendingEntity.transportKind}
 					{#if transportKind !== undefined && transportKind !== null}
 						<div>
 							<dt>transport kind</dt>
@@ -260,7 +266,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endpointUrl = prefetched.endpointUrl}
+					{@const endpointUrl = pendingEntity.endpointUrl}
 					{#if endpointUrl !== undefined && endpointUrl !== null}
 						<div>
 							<dt>endpoint URL</dt>
@@ -303,40 +309,143 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<McpToolsView
-				selection={selection.$$tools}
-				title='tools'
-				emptyText='No MCP tools.'
-				id='McpToolsView-tools'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-mcp-capabilities'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'mcp-tools',
+							label: 'Tools',
+						},
+						{
+							id: 'mcp-prompts',
+							label: 'Prompts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-capabilities'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Capabilities</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<McpResourcesView
-				selection={selection.$$resources}
-				title='resources'
-				emptyText='No MCP resources.'
-				id='McpResourcesView-resources'
-			/>
+				{#snippet SectionMcpTools({ id, label, open })}
+					<McpToolsView
+						selection={selection.$$tools}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No MCP tools.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<McpResourceTemplatesView
-				selection={selection.$$resourceTemplates}
-				title='resource templates'
-				emptyText='No MCP resource templates.'
-				id='McpResourceTemplatesView-resource-templates'
-			/>
+				{#snippet SectionMcpPrompts({ id, label, open })}
+					<McpPromptsView
+						selection={selection.$$prompts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No MCP prompts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<McpPromptsView
-				selection={selection.$$prompts}
-				title='prompts'
-				emptyText='No MCP prompts.'
-				id='McpPromptsView-prompts'
-			/>
+			</CollapsibleTabs>
 
-			<McpServer_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No MCP server observations.'
-				id='McpServer_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-mcp-resources'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'mcp-resource-list',
+							label: 'Resources',
+						},
+						{
+							id: 'mcp-resource-templates',
+							label: 'Resource templates',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-resources'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Resources</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionMcpResourceList({ id, label, open })}
+					<McpResourcesView
+						selection={selection.$$resources}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No MCP resources.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionMcpResourceTemplates({ id, label, open })}
+					<McpResourceTemplatesView
+						selection={selection.$$resourceTemplates}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No MCP resource templates.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-mcp-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'mcp-server-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionMcpServerObservations({ id, label, open })}
+					<McpServer_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No MCP server observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

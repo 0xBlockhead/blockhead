@@ -9,8 +9,10 @@ export enum CardanoDRep_TimestampSelector {
 }
 export const CardanoDRep_Timestamp = entity({
 	entityType: EntityType.CardanoDRep_Timestamp,
-	label: 'cardano d rep timestamp',
-	labelPlural: 'cardano d rep observations',
+	labels: {
+		singular: 'cardano d rep timestamp',
+		plural: 'cardano d rep observations',
+	},
 })({
 	$drep: {
 		label: 'drep',

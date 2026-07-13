@@ -40,7 +40,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const atprotoActorTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation')
 	const viewDomId = $derived('atproto-actor-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -57,9 +57,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$actor !== undefined && pendingEntity.$actor.did !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]/(actor)/observations/[timestampMs=nonNegativeInteger]', {
-			did: String(pendingEntity.$actor.did ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$actor !== undefined && pendingEntity.$actor.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			did: String(pendingEntity.$actor.did ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -69,7 +69,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={atprotoActorTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -100,7 +100,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -130,7 +130,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followersCount = prefetched.followersCount}
+					{@const followersCount = pendingEntity.followersCount}
 					{#if followersCount !== undefined && followersCount !== null}
 						<div>
 							<dt>Followers</dt>
@@ -168,7 +168,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followsCount = prefetched.followsCount}
+					{@const followsCount = pendingEntity.followsCount}
 					{#if followsCount !== undefined && followsCount !== null}
 						<div>
 							<dt>Following</dt>
@@ -206,7 +206,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const postsCount = prefetched.postsCount}
+					{@const postsCount = pendingEntity.postsCount}
 					{#if postsCount !== undefined && postsCount !== null}
 						<div>
 							<dt>Posts</dt>

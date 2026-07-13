@@ -10,8 +10,10 @@ export enum RoyaltyRight_TimestampSelector {
 }
 export const RoyaltyRight_Timestamp = entity({
 	entityType: EntityType.RoyaltyRight_Timestamp,
-	label: 'royalty right timestamp',
-	labelPlural: 'royalty right observations',
+	labels: {
+		singular: 'royalty right timestamp',
+		plural: 'royalty right observations',
+	},
 })({
 	targetKey: {
 		label: 'target key',

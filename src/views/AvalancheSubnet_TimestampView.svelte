@@ -47,7 +47,7 @@
 			delegatorCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet timestamp')
 	const viewDomId = $derived('avalanche-subnet-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={avalancheSubnetTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={avalancheSubnetTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.validatorCount) ?? ''), String((prefetched.delegatorCount) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'avalanche subnet timestamp'}
+				{[String((pendingEntity.validatorCount) ?? ''), String((pendingEntity.delegatorCount) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'avalanche subnet timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={avalancheSubnetTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -209,7 +209,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validatorCount = prefetched.validatorCount}
+					{@const validatorCount = pendingEntity.validatorCount}
 					{#if validatorCount !== undefined && validatorCount !== null}
 						<div>
 							<dt>validator count</dt>
@@ -244,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatorCount = prefetched.delegatorCount}
+					{@const delegatorCount = pendingEntity.delegatorCount}
 					{#if delegatorCount !== undefined && delegatorCount !== null}
 						<div>
 							<dt>delegator count</dt>
@@ -279,7 +279,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalStakeNavax = prefetched.totalStakeNavax}
+					{@const totalStakeNavax = pendingEntity.totalStakeNavax}
 					{#if totalStakeNavax !== undefined && totalStakeNavax !== null}
 						<div>
 							<dt>total stake navax</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chainCount = prefetched.chainCount}
+					{@const chainCount = pendingEntity.chainCount}
 					{#if chainCount !== undefined && chainCount !== null}
 						<div>
 							<dt>chain count</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingValidatorCount = prefetched.pendingValidatorCount}
+					{@const pendingValidatorCount = pendingEntity.pendingValidatorCount}
 					{#if pendingValidatorCount !== undefined && pendingValidatorCount !== null}
 						<div>
 							<dt>pending validator count</dt>

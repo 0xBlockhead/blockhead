@@ -10,8 +10,10 @@ export enum AcpToolCallSelector {
 }
 export const AcpToolCall = entity({
 	entityType: EntityType.AcpToolCall,
-	label: 'acp tool call',
-	labelPlural: 'acp tool calls',
+	labels: {
+		singular: 'acp tool call',
+		plural: 'acp tool calls',
+	},
 })({
 	$promptTurn: {
 		label: 'prompt turn',

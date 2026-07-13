@@ -9,8 +9,10 @@ export enum A2aArtifactSelector {
 }
 export const A2aArtifact = entity({
 	entityType: EntityType.A2aArtifact,
-	label: 'a2a artifact',
-	labelPlural: 'a2a artifacts',
+	labels: {
+		singular: 'a2a artifact',
+		plural: 'a2a artifacts',
+	},
 })({
 	$task: {
 		label: 'task',

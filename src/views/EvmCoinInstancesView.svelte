@@ -69,8 +69,8 @@
 				fields: {
 					symbol: true,
 					name: true,
-					$network: true,
 					type: true,
+					$network: true,
 					$contract: true,
 				},
 			})
@@ -121,9 +121,12 @@
 						selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmCoinInstanceFields}
 						href={
-							(evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined && (evmCoinInstanceHrefFields.type !== undefined && (evmCoinInstanceHrefFields.type === 'NativeCurrency' ? true : evmCoinInstanceHrefFields.$contract !== undefined && evmCoinInstanceHrefFields.$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+							(evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 								chainId: String(evmCoinInstanceHrefFields.$network.caip2.reference ?? ''),
-								coinInstanceSlug: String((evmCoinInstanceHrefFields.type === 'NativeCurrency' ? 'native' : evmCoinInstanceHrefFields.$contract.address)),
+								coinInstanceSlug: String('native' ?? ''),
+							}) : evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstanceHrefFields.$contract !== undefined && evmCoinInstanceHrefFields.$contract.address !== undefined && evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+								coinInstanceSlug: String(evmCoinInstanceHrefFields.$contract.address ?? ''),
+								chainId: String(evmCoinInstanceHrefFields.$network.caip2.reference ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

@@ -9,8 +9,10 @@ export enum _GlobalActivityPubNetworkSelector {
 }
 export const _GlobalActivityPubNetwork = entity({
 	entityType: EntityType._GlobalActivityPubNetwork,
-	label: 'global ActivityPub network',
-	labelPlural: 'global ActivityPub networks',
+	labels: {
+		singular: 'global ActivityPub network',
+		plural: 'global ActivityPub networks',
+	},
 })({
 	scope: {
 		label: 'Scope',

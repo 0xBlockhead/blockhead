@@ -54,7 +54,7 @@
 			submittedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.orderId) ?? '')].filter(Boolean).join(' ') || 'blockhead intent order')
+	const titleFallback = $derived([String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || 'blockhead intent order')
 	const viewDomId = $derived('blockhead-intent-order-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -81,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadIntentOrder}>
 			{#snippet Pending()}
-				{[String((prefetched.orderId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent order'}
+				{[String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent order'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadIntentOrder}>
 			{#snippet Pending()}
-				{[String((prefetched.providerProtocol) ?? '')].filter(Boolean).join(' ') || [String((prefetched.orderId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent order'}
+				{[String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent order'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadIntentOrder}>
 			{#snippet Pending()}
-				{@const submittedAt0 = prefetched.submittedAt}
+				{@const submittedAt0 = pendingEntity.submittedAt}
 				{#if submittedAt0 !== undefined && submittedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(submittedAt0)} />
@@ -142,7 +142,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
 							{/if}
@@ -172,7 +172,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -202,7 +202,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const orderId = prefetched.orderId}
+							{@const orderId = pendingEntity.orderId}
 							{#if orderId !== undefined && orderId !== null}
 								{String((orderId) ?? '')}
 							{/if}
@@ -222,6 +222,8 @@
 			<ResourceBoundary
 				resource={selection.$quote}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadIntentQuote)}
 					{#if blockheadIntentQuote != null && blockheadIntentQuote[EntityMetaKey.Selector] != null}
 						<div>
@@ -242,6 +244,8 @@
 			<ResourceBoundary
 				resource={selection.$sessionAction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSessionAction)}
 					{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
 						<div>
@@ -272,7 +276,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const providerProtocol = prefetched.providerProtocol}
+							{@const providerProtocol = pendingEntity.providerProtocol}
 							{#if providerProtocol !== undefined && providerProtocol !== null}
 								{String((providerProtocol) ?? '')}
 							{/if}
@@ -304,7 +308,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const submittedAt = prefetched.submittedAt}
+							{@const submittedAt = pendingEntity.submittedAt}
 							{#if submittedAt !== undefined && submittedAt !== null}
 								<Timestamp timestamp={Number(submittedAt)} />
 							{/if}
@@ -331,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signatureHash = prefetched.signatureHash}
+					{@const signatureHash = pendingEntity.signatureHash}
 					{#if signatureHash !== undefined && signatureHash !== null}
 						<div>
 							<dt>signature hash</dt>
@@ -366,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const orderPayloadHash = prefetched.orderPayloadHash}
+					{@const orderPayloadHash = pendingEntity.orderPayloadHash}
 					{#if orderPayloadHash !== undefined && orderPayloadHash !== null}
 						<div>
 							<dt>order payload hash</dt>

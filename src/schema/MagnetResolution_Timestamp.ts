@@ -9,8 +9,10 @@ export enum MagnetResolution_TimestampSelector {
 }
 export const MagnetResolution_Timestamp = entity({
 	entityType: EntityType.MagnetResolution_Timestamp,
-	label: 'magnet resolution timestamp',
-	labelPlural: 'magnet resolution observations',
+	labels: {
+		singular: 'magnet resolution timestamp',
+		plural: 'magnet resolution observations',
+	},
 })({
 	magnetUri: {
 		label: 'magnet URI',

@@ -9,8 +9,10 @@ export enum MoveStructSelector {
 }
 export const MoveStruct = entity({
 	entityType: EntityType.MoveStruct,
-	label: 'move struct',
-	labelPlural: 'move structs',
+	labels: {
+		singular: 'move struct',
+		plural: 'move structs',
+	},
 })({
 	$module: {
 		label: 'module',

@@ -9,8 +9,10 @@ export enum Erc4337Bundler_TimestampSelector {
 }
 export const Erc4337Bundler_Timestamp = entity({
 	entityType: EntityType.Erc4337Bundler_Timestamp,
-	label: 'ERC-4337 bundler timestamp',
-	labelPlural: 'ERC-4337 bundler observations',
+	labels: {
+		singular: 'ERC-4337 bundler timestamp',
+		plural: 'ERC-4337 bundler observations',
+	},
 })({
 	$bundler: {
 		label: 'Bundler',
@@ -22,7 +24,7 @@ export const Erc4337Bundler_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

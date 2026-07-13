@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -57,21 +57,24 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel')
+	const titleFallback = $derived([String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel')
 	const viewDomId = $derived('blockhead-state-channel-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import BlockheadStateChannel_TimestampsView from '$/views/BlockheadStateChannel_TimestampsView.svelte'
-	import BlockheadStateChannelTransfersView from '$/views/BlockheadStateChannelTransfersView.svelte'
-	import BlockheadStateChannelStatesView from '$/views/BlockheadStateChannelStatesView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
+	import BlockheadStateChannelTransfersView from '$/views/BlockheadStateChannelTransfersView.svelte'
+	import BlockheadStateChannelStatesView from '$/views/BlockheadStateChannelStatesView.svelte'
+	import BlockheadStateChannelDepositsView from '$/views/BlockheadStateChannelDepositsView.svelte'
+	import BlockheadStateChannel_TimestampsView from '$/views/BlockheadStateChannel_TimestampsView.svelte'
 </script>
 
 
@@ -81,7 +84,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.id !== undefined ? resolve('/channel/[channelId]', {
+		href ?? (pendingEntity.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
 			channelId: String(pendingEntity.id ?? ''),
 		}) : undefined)
 	}
@@ -92,7 +95,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadStateChannel}>
 			{#snippet Pending()}
-				{@const id0 = selection.entitySelector.id ?? prefetched.id}
+				{@const id0 = pendingEntity.id}
 				{#if id0 !== undefined && id0 !== null}
 					<TruncatedValue value={String((id0) ?? '')} />
 				{/if}
@@ -111,7 +114,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadStateChannel}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<Timestamp timestamp={Number(createdAt0)} />
 				{/if}
@@ -136,27 +139,15 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network[EntityMetaKey.Selector] != null}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-											networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(network[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -177,12 +168,12 @@
 						resource={selection.$participant0}
 					>
 						{#snippet children(evmAccount)}
-							{#if evmAccount[EntityMetaKey.Selector] != null}
+							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -204,12 +195,12 @@
 						resource={selection.$participant1}
 					>
 						{#snippet children(evmAccount)}
-							{#if evmAccount[EntityMetaKey.Selector] != null}
+							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -231,14 +222,17 @@
 						resource={selection.$asset}
 					>
 						{#snippet children(evmCoinInstance)}
-							{#if evmCoinInstance[EntityMetaKey.Selector] != null}
+							{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 								<EvmCoinInstanceView
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									prefetched={evmCoinInstance}
 									href={
-										(evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? true : evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+										(evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-											coinInstanceSlug: String((evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? 'native' : evmCoinInstance[EntityMetaKey.Selector].$contract.address)),
+											coinInstanceSlug: String('native' ?? ''),
+										}) : evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+											coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
+											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -255,6 +249,8 @@
 			<ResourceBoundary
 				resource={selection.$room}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadRoom)}
 					{#if blockheadRoom != null && blockheadRoom[EntityMetaKey.Selector] != null}
 						<div>
@@ -287,7 +283,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}
@@ -308,26 +304,107 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BlockheadStateChannel_TimestampsView
-				selection={selection.$$timestamps}
-				title='Observations'
-				emptyText='No observations yet.'
-				id='BlockheadStateChannel_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-state-channel-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'state-channel-transfers',
+							label: 'Transfers',
+						},
+						{
+							id: 'state-channel-states',
+							label: 'States',
+						},
+						{
+							id: 'state-channel-deposits',
+							label: 'Deposits',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BlockheadStateChannelTransfersView
-				selection={selection.$$transfers}
-				title='Transfers'
-				emptyText='No transfers yet.'
-				id='BlockheadStateChannelTransfersView-transfers'
-			/>
+				{#snippet SectionStateChannelTransfers({ id, label, open })}
+					<BlockheadStateChannelTransfersView
+						selection={selection.$$transfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transfers yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadStateChannelStatesView
-				selection={selection.$$states}
-				title='States'
-				emptyText='No states yet.'
-				id='BlockheadStateChannelStatesView-states'
-			/>
+				{#snippet SectionStateChannelStates({ id, label, open })}
+					<BlockheadStateChannelStatesView
+						selection={selection.$$states}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No states yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionStateChannelDeposits({ id, label, open })}
+					<BlockheadStateChannelDepositsView
+						selection={selection.$$deposits}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No deposits yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-state-channel-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'state-channel-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionStateChannelTimestamps({ id, label, open })}
+					<BlockheadStateChannel_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

@@ -9,8 +9,10 @@ export enum IcpSubnet_TimestampSelector {
 }
 export const IcpSubnet_Timestamp = entity({
 	entityType: EntityType.IcpSubnet_Timestamp,
-	label: 'icp subnet timestamp',
-	labelPlural: 'icp subnet observations',
+	labels: {
+		singular: 'icp subnet timestamp',
+		plural: 'icp subnet observations',
+	},
 })({
 	$subnet: {
 		label: 'subnet',

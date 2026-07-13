@@ -9,8 +9,10 @@ export enum StellarLiquidityPool_TimestampSelector {
 }
 export const StellarLiquidityPool_Timestamp = entity({
 	entityType: EntityType.StellarLiquidityPool_Timestamp,
-	label: 'stellar liquidity pool timestamp',
-	labelPlural: 'stellar liquidity pool observations',
+	labels: {
+		singular: 'stellar liquidity pool timestamp',
+		plural: 'stellar liquidity pool observations',
+	},
 })({
 	$liquidityPool: {
 		label: 'liquidity pool',

@@ -9,8 +9,10 @@ export enum AiDocumentClaimSelector {
 }
 export const AiDocumentClaim = entity({
 	entityType: EntityType.AiDocumentClaim,
-	label: 'AI document claim',
-	labelPlural: 'AI document claims',
+	labels: {
+		singular: 'AI document claim',
+		plural: 'AI document claims',
+	},
 })({
 	$document: {
 		label: 'document',

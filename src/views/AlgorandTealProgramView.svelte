@@ -48,17 +48,19 @@
 			tealVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.programHash ?? prefetched.programHash) ?? '')].filter(Boolean).join(' ') || 'algorand teal program')
+	const titleFallback = $derived([String((pendingEntity.programHash) ?? '')].filter(Boolean).join(' ') || 'algorand teal program')
 	const viewDomId = $derived('algorand-teal-program-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import AlgorandTealProgram_TimestampsView from '$/views/AlgorandTealProgram_TimestampsView.svelte'
+	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
 	import AlgorandApplicationsView from '$/views/AlgorandApplicationsView.svelte'
 	import AlgorandTransactionsView from '$/views/AlgorandTransactionsView.svelte'
-	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
+	import AlgorandTealProgram_TimestampsView from '$/views/AlgorandTealProgram_TimestampsView.svelte'
 </script>
 
 
@@ -75,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={algorandTealProgram}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.programHash ?? prefetched.programHash) ?? '')].filter(Boolean).join(' ') || title || 'algorand teal program'}
+				{[String((pendingEntity.programHash) ?? '')].filter(Boolean).join(' ') || title || 'algorand teal program'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -88,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={algorandTealProgram}>
 			{#snippet Pending()}
-				{[String((prefetched.programKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.programHash ?? prefetched.programHash) ?? '')].filter(Boolean).join(' ') || title || 'algorand teal program'}
+				{[String((pendingEntity.programKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.programHash) ?? '')].filter(Boolean).join(' ') || title || 'algorand teal program'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={algorandTealProgram}>
 			{#snippet Pending()}
-				{@const tealVersion0 = prefetched.tealVersion}
+				{@const tealVersion0 = pendingEntity.tealVersion}
 				{#if tealVersion0 !== undefined && tealVersion0 !== null}
 					<span data-text="muted">
 						{String((tealVersion0) ?? '')}
@@ -147,7 +149,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const programHash = selection.entitySelector.programHash ?? prefetched.programHash}
+							{@const programHash = pendingEntity.programHash}
 							{#if programHash !== undefined && programHash !== null}
 								<TruncatedValue value={String((programHash) ?? '')} />
 							{/if}
@@ -174,7 +176,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const programKind = prefetched.programKind}
+					{@const programKind = pendingEntity.programKind}
 					{#if programKind !== undefined && programKind !== null}
 						<div>
 							<dt>program kind</dt>
@@ -209,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tealVersion = prefetched.tealVersion}
+					{@const tealVersion = pendingEntity.tealVersion}
 					{#if tealVersion !== undefined && tealVersion !== null}
 						<div>
 							<dt>teal version</dt>
@@ -238,26 +240,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AlgorandTealProgram_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Algorand TEAL program observations.'
-				id='AlgorandTealProgram_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-algorand-teal-usage'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'algorand-teal-applications',
+							label: 'Applications',
+						},
+						{
+							id: 'algorand-teal-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-usage'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Usage</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AlgorandApplicationsView
-				selection={selection.$$applications}
-				title='applications'
-				emptyText='No Algorand applications.'
-				id='AlgorandApplicationsView-applications'
-			/>
+				{#snippet SectionAlgorandTealApplications({ id, label, open })}
+					<AlgorandApplicationsView
+						selection={selection.$$applications}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand applications.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AlgorandTransactionsView
-				selection={selection.$$transactions}
-				title='transactions'
-				emptyText='No Algorand transactions.'
-				id='AlgorandTransactionsView-transactions'
-			/>
+				{#snippet SectionAlgorandTealTransactions({ id, label, open })}
+					<AlgorandTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-algorand-teal-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'algorand-teal-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAlgorandTealTimestamps({ id, label, open })}
+					<AlgorandTealProgram_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand TEAL program observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

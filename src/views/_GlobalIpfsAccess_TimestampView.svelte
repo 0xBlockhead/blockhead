@@ -67,7 +67,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(ipfs)/ipfs/access/observations/[timestampMs=nonNegativeInteger]/[source]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/ipfs/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
 		}) : undefined)
@@ -81,7 +81,7 @@
 			{#snippet Pending()}
 				<GlobalIpfsAccessView
 					selection={select(EntityType._GlobalIpfsAccess, selection.entitySelector.$hub)}
-					href={resolve('/(explore)/(ipfs)/ipfs/access')}
+					href={resolve('/ipfs/access')}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -91,7 +91,7 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<GlobalIpfsAccessView
 					selection={select(EntityType._GlobalIpfsAccess, selection.entitySelector.$hub)}
-					href={resolve('/(explore)/(ipfs)/ipfs/access')}
+					href={resolve('/ipfs/access')}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -102,7 +102,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalIpfsAccessTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -125,7 +125,7 @@
 				<dd>
 					<GlobalIpfsAccessView
 						selection={select(EntityType._GlobalIpfsAccess, selection.entitySelector.$hub, {})}
-						href={resolve('/(explore)/(ipfs)/ipfs/access')}
+						href={resolve('/ipfs/access')}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -177,7 +177,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const declaredAccessEndpointCount = prefetched.declaredAccessEndpointCount}
+					{@const declaredAccessEndpointCount = pendingEntity.declaredAccessEndpointCount}
 					{#if declaredAccessEndpointCount !== undefined && declaredAccessEndpointCount !== null}
 						<div>
 							<dt>Declared access endpoints</dt>
@@ -239,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachableAccessEndpointCount = prefetched.reachableAccessEndpointCount}
+					{@const reachableAccessEndpointCount = pendingEntity.reachableAccessEndpointCount}
 					{#if reachableAccessEndpointCount !== undefined && reachableAccessEndpointCount !== null}
 						<div>
 							<dt>Reachable access endpoints</dt>
@@ -274,7 +274,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedResourceCount = prefetched.observedResourceCount}
+					{@const observedResourceCount = pendingEntity.observedResourceCount}
 					{#if observedResourceCount !== undefined && observedResourceCount !== null}
 						<div>
 							<dt>Observed resources</dt>
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededExampleCount = prefetched.seededExampleCount}
+					{@const seededExampleCount = pendingEntity.seededExampleCount}
 					{#if seededExampleCount !== undefined && seededExampleCount !== null}
 						<div>
 							<dt>Seeded examples</dt>
@@ -344,7 +344,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>

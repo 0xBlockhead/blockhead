@@ -9,8 +9,10 @@ export enum HederaNode_TimestampSelector {
 }
 export const HederaNode_Timestamp = entity({
 	entityType: EntityType.HederaNode_Timestamp,
-	label: 'hedera node timestamp',
-	labelPlural: 'hedera node observations',
+	labels: {
+		singular: 'hedera node timestamp',
+		plural: 'hedera node observations',
+	},
 })({
 	$node: {
 		label: 'node',

@@ -9,8 +9,10 @@ export enum EvmNetwork_GasFee_BlockSelector {
 }
 export const EvmNetwork_GasFee_Block = entity({
 	entityType: EntityType.EvmNetwork_GasFee_Block,
-	label: 'EVM network gas fee block',
-	labelPlural: 'EVM network gas fee blocks',
+	labels: {
+		singular: 'EVM network gas fee block',
+		plural: 'EVM network gas fee blocks',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -22,7 +24,7 @@ export const EvmNetwork_GasFee_Block = entity({
 		label: 'Block number',
 		description: 'The block height or number in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	baseFeePerGas: {

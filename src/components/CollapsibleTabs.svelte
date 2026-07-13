@@ -116,6 +116,7 @@
 	let activeSectionId = $derived<CollapsibleTabsSectionIds<Sections> | string>(
 		selectedSectionId ?? initialSection ?? sections[0].id,
 	)
+	let loadedSectionIds = $state<CollapsibleTabsSectionIds<Sections>[]>([])
 
 
 	// Functions
@@ -164,6 +165,8 @@
 						href={`#${sectionAnchorId(section.id)}`}
 						onclick={() => {
 							selectedSectionId = section.id
+							if (!loadedSectionIds.includes(section.id))
+								loadedSectionIds.push(section.id)
 						}}
 					>{section.label}</a>
 				</Tooltip>
@@ -174,6 +177,8 @@
 					href={`#${sectionAnchorId(section.id)}`}
 					onclick={() => {
 						selectedSectionId = section.id
+						if (!loadedSectionIds.includes(section.id))
+							loadedSectionIds.push(section.id)
 					}}
 				>{section.label}</a>
 			{/if}
@@ -187,7 +192,7 @@
 				id={sectionAnchorId(section.id)}
 				data-active={section.id === activeSectionId}
 			>
-				{#if Section}
+				{#if Section && (section.id === activeSectionId || loadedSectionIds.includes(section.id))}
 					{@render Section(
 						{
 							id: sectionAnchorId(section.id),

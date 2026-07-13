@@ -53,7 +53,7 @@
 			imageUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? ''), String((selection.entitySelector.feedUrl ?? prefetched.feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed')
+	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed')
 	const viewDomId = $derived('rss-feed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={rssFeed}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? ''), String((selection.entitySelector.feedUrl ?? prefetched.feedUrl) ?? '')].filter(Boolean).join(' ') || title || 'RSS feed'}
+				{[String((pendingEntity.title) ?? ''), String((pendingEntity.feedUrl) ?? '')].filter(Boolean).join(' ') || title || 'RSS feed'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={rssFeed}>
 			{#snippet Pending()}
-				{@const feedUrl0 = selection.entitySelector.feedUrl ?? prefetched.feedUrl}
+				{@const feedUrl0 = pendingEntity.feedUrl}
 				{#if feedUrl0 !== undefined && feedUrl0 !== null}
 					<TruncatedValue value={String((feedUrl0) ?? '')} />
 				{/if}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={rssFeed}>
 			{#snippet Pending()}
-				{@const lastBuildDate0 = prefetched.lastBuildDate}
+				{@const lastBuildDate0 = pendingEntity.lastBuildDate}
 				{#if lastBuildDate0 !== undefined && lastBuildDate0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(lastBuildDate0)} />
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const feedUrl = selection.entitySelector.feedUrl ?? prefetched.feedUrl}
+							{@const feedUrl = pendingEntity.feedUrl}
 							{#if feedUrl !== undefined && feedUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -187,7 +187,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const link = prefetched.link}
+					{@const link = pendingEntity.link}
 					{#if link !== undefined && link !== null}
 						<div>
 							<dt>Link</dt>
@@ -238,7 +238,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const siteUrl = prefetched.siteUrl}
+					{@const siteUrl = pendingEntity.siteUrl}
 					{#if siteUrl !== undefined && siteUrl !== null}
 						<div>
 							<dt>Site URL</dt>
@@ -289,7 +289,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const language = prefetched.language}
+					{@const language = pendingEntity.language}
 					{#if language !== undefined && language !== null}
 						<div>
 							<dt>Language</dt>
@@ -326,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastBuildDate = prefetched.lastBuildDate}
+					{@const lastBuildDate = pendingEntity.lastBuildDate}
 					{#if lastBuildDate !== undefined && lastBuildDate !== null}
 						<div>
 							<dt>Last build</dt>

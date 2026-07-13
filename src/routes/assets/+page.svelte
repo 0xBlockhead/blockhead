@@ -51,7 +51,7 @@
 
 		{#snippet SectionCoins()}
 			<CoinsView
-				href={resolve('/(assets)/coins')}
+												href={resolve('/coins')}
 				selection={select(EntityType._Global, { scope: '$$coins' }).$$coins}
 				id='coins'
 				open={true}
@@ -60,7 +60,7 @@
 
 		{#snippet SectionCurrencies()}
 			<CurrenciesView
-				href={resolve('/(assets)/(currencies)/currencies')}
+												href={resolve('/currencies')}
 				selection={select(EntityType._Global, { scope: '$$currencies' }).$$currencies}
 				open={true}
 			/>
@@ -68,7 +68,7 @@
 
 		{#snippet SectionPools()}
 			<LiquidityPoolsView
-				href={resolve('/(assets)/pools')}
+												href={resolve('/pools')}
 				selection={select(EntityType._Global, { scope: '$$liquidityPools' }).$$liquidityPools}
 				id='pools'
 				open={false}

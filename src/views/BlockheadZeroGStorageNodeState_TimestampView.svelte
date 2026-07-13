@@ -51,7 +51,7 @@
 			localChunkCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state timestamp')
 	const viewDomId = $derived('blockhead-zero-gstorage-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -116,7 +116,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const localChunkCount0 = prefetched.localChunkCount}
+				{@const localChunkCount0 = pendingEntity.localChunkCount}
 				{#if localChunkCount0 !== undefined && localChunkCount0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(localChunkCount0)} />
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const syncedAt = prefetched.syncedAt}
+					{@const syncedAt = pendingEntity.syncedAt}
 					{#if syncedAt !== undefined && syncedAt !== null}
 						<div>
 							<dt>synced AT</dt>
@@ -256,7 +256,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const localFileCount = prefetched.localFileCount}
+					{@const localFileCount = pendingEntity.localFileCount}
 					{#if localFileCount !== undefined && localFileCount !== null}
 						<div>
 							<dt>local file count</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const localChunkCount = prefetched.localChunkCount}
+					{@const localChunkCount = pendingEntity.localChunkCount}
 					{#if localChunkCount !== undefined && localChunkCount !== null}
 						<div>
 							<dt>local chunk count</dt>
@@ -326,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const localProofCount = prefetched.localProofCount}
+					{@const localProofCount = pendingEntity.localProofCount}
 					{#if localProofCount !== undefined && localProofCount !== null}
 						<div>
 							<dt>local proof count</dt>

@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -56,7 +56,7 @@
 			issuedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.domain) ?? '')].filter(Boolean).join(' ') || 'blockhead siwe challenge')
+	const titleFallback = $derived([String((pendingEntity.domain) ?? '')].filter(Boolean).join(' ') || 'blockhead siwe challenge')
 	const viewDomId = $derived('blockhead-siwe-challenge-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -83,7 +83,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadSiweChallenge}>
 			{#snippet Pending()}
-				{[String((prefetched.domain) ?? '')].filter(Boolean).join(' ') || title || 'blockhead siwe challenge'}
+				{[String((pendingEntity.domain) ?? '')].filter(Boolean).join(' ') || title || 'blockhead siwe challenge'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSiweChallenge}>
 			{#snippet Pending()}
-				{[String((prefetched.verified) ?? '')].filter(Boolean).join(' ') || [String((prefetched.domain) ?? '')].filter(Boolean).join(' ') || title || 'blockhead siwe challenge'}
+				{[String((pendingEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.domain) ?? '')].filter(Boolean).join(' ') || title || 'blockhead siwe challenge'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadSiweChallenge}>
 			{#snippet Pending()}
-				{@const issuedAt0 = prefetched.issuedAt}
+				{@const issuedAt0 = pendingEntity.issuedAt}
 				{#if issuedAt0 !== undefined && issuedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(issuedAt0)} />
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
 							{/if}
@@ -168,27 +168,15 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network[EntityMetaKey.Selector] != null}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-											networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(network[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -207,7 +195,7 @@
 						resource={selection.$room}
 					>
 						{#snippet children(blockheadRoom)}
-							{#if blockheadRoom[EntityMetaKey.Selector] != null}
+							{#if blockheadRoom != null && blockheadRoom[EntityMetaKey.Selector] != null}
 								<BlockheadRoomView
 									selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
 									prefetched={blockheadRoom}
@@ -233,7 +221,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fromPeerId = prefetched.fromPeerId}
+							{@const fromPeerId = pendingEntity.fromPeerId}
 							{#if fromPeerId !== undefined && fromPeerId !== null}
 								{String((fromPeerId) ?? '')}
 							{/if}
@@ -263,7 +251,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const toPeerId = prefetched.toPeerId}
+							{@const toPeerId = pendingEntity.toPeerId}
 							{#if toPeerId !== undefined && toPeerId !== null}
 								{String((toPeerId) ?? '')}
 							{/if}
@@ -287,12 +275,12 @@
 						resource={selection.$signer}
 					>
 						{#snippet children(evmAccount)}
-							{#if evmAccount[EntityMetaKey.Selector] != null}
+							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -318,7 +306,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -348,7 +336,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const verified = prefetched.verified}
+							{@const verified = pendingEntity.verified}
 							{#if verified !== undefined && verified !== null}
 								{verified ? 'Yes' : 'No'}
 							{/if}
@@ -377,7 +365,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const scheme = prefetched.scheme}
+					{@const scheme = pendingEntity.scheme}
 					{#if scheme !== undefined && scheme !== null}
 						<div>
 							<dt>scheme</dt>
@@ -415,7 +403,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const domain = prefetched.domain}
+							{@const domain = pendingEntity.domain}
 							{#if domain !== undefined && domain !== null}
 								{String((domain) ?? '')}
 							{/if}
@@ -445,7 +433,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const uri = prefetched.uri}
+							{@const uri = pendingEntity.uri}
 							{#if uri !== undefined && uri !== null}
 								<svelte:element
 									this={'a'}
@@ -489,7 +477,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const version = prefetched.version}
+							{@const version = pendingEntity.version}
 							{#if version !== undefined && version !== null}
 								{String((version) ?? '')}
 							{/if}
@@ -519,7 +507,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const chainId = prefetched.chainId}
+							{@const chainId = pendingEntity.chainId}
 							{#if chainId !== undefined && chainId !== null}
 								{String((chainId) ?? '')}
 							{/if}
@@ -549,7 +537,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nonce = prefetched.nonce}
+							{@const nonce = pendingEntity.nonce}
 							{#if nonce !== undefined && nonce !== null}
 								{String((nonce) ?? '')}
 							{/if}
@@ -576,7 +564,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const statement = prefetched.statement}
+					{@const statement = pendingEntity.statement}
 					{#if statement !== undefined && statement !== null}
 						<div>
 							<dt>statement</dt>
@@ -611,7 +599,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestId = prefetched.requestId}
+					{@const requestId = pendingEntity.requestId}
 					{#if requestId !== undefined && requestId !== null}
 						<div>
 							<dt>request ID</dt>
@@ -649,7 +637,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const resources = prefetched.resources}
+							{@const resources = pendingEntity.resources}
 							{#if resources !== undefined && resources !== null}
 								{resources.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -676,7 +664,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestOrigin = prefetched.requestOrigin}
+					{@const requestOrigin = pendingEntity.requestOrigin}
 					{#if requestOrigin !== undefined && requestOrigin !== null}
 						<div>
 							<dt>request origin</dt>
@@ -713,7 +701,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signature = prefetched.signature}
+					{@const signature = pendingEntity.signature}
 					{#if signature !== undefined && signature !== null}
 						<div>
 							<dt>signature</dt>
@@ -748,7 +736,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signatureKind = prefetched.signatureKind}
+					{@const signatureKind = pendingEntity.signatureKind}
 					{#if signatureKind !== undefined && signatureKind !== null}
 						<div>
 							<dt>signature kind</dt>
@@ -783,7 +771,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verificationMethod = prefetched.verificationMethod}
+					{@const verificationMethod = pendingEntity.verificationMethod}
 					{#if verificationMethod !== undefined && verificationMethod !== null}
 						<div>
 							<dt>verification method</dt>
@@ -818,7 +806,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verificationError = prefetched.verificationError}
+					{@const verificationError = pendingEntity.verificationError}
 					{#if verificationError !== undefined && verificationError !== null}
 						<div>
 							<dt>verification error</dt>
@@ -858,7 +846,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const issuedAt = prefetched.issuedAt}
+							{@const issuedAt = pendingEntity.issuedAt}
 							{#if issuedAt !== undefined && issuedAt !== null}
 								<Timestamp timestamp={Number(issuedAt)} />
 							{/if}
@@ -885,7 +873,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiresAt = prefetched.expiresAt}
+					{@const expiresAt = pendingEntity.expiresAt}
 					{#if expiresAt !== undefined && expiresAt !== null}
 						<div>
 							<dt>expires AT</dt>
@@ -920,7 +908,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const notBefore = prefetched.notBefore}
+					{@const notBefore = pendingEntity.notBefore}
 					{#if notBefore !== undefined && notBefore !== null}
 						<div>
 							<dt>not before</dt>
@@ -955,7 +943,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedAt = prefetched.verifiedAt}
+					{@const verifiedAt = pendingEntity.verifiedAt}
 					{#if verifiedAt !== undefined && verifiedAt !== null}
 						<div>
 							<dt>verified AT</dt>

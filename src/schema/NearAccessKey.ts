@@ -10,8 +10,10 @@ export enum NearAccessKeySelector {
 }
 export const NearAccessKey = entity({
 	entityType: EntityType.NearAccessKey,
-	label: 'near access key',
-	labelPlural: 'near access keys',
+	labels: {
+		singular: 'near access key',
+		plural: 'near access keys',
+	},
 })({
 	$account: {
 		label: 'Account',

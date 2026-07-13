@@ -43,7 +43,7 @@
 			registryName: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.scope ?? prefetched.scope) ?? '')].filter(Boolean).join(' ') || 'Nostr network')
+	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || 'Nostr network')
 	const viewDomId = $derived('nostr-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,7 +66,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.scope ?? prefetched.scope) ?? '')].filter(Boolean).join(' ') || 'Nostr network'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || 'Nostr network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -79,7 +79,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nostrNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.registryName) ?? '')].filter(Boolean).join(' ') || [String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.scope ?? prefetched.scope) ?? '')].filter(Boolean).join(' ') || 'Nostr network'}
+				{[String((pendingEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || 'Nostr network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const scope = selection.entitySelector.scope ?? prefetched.scope}
+							{@const scope = pendingEntity.scope}
 							{#if scope !== undefined && scope !== null}
 								{String((scope) ?? '')}
 							{/if}
@@ -140,7 +140,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolName = prefetched.protocolName}
+							{@const protocolName = pendingEntity.protocolName}
 							{#if protocolName !== undefined && protocolName !== null}
 								{String((protocolName) ?? '')}
 							{/if}
@@ -170,7 +170,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const registryName = prefetched.registryName}
+							{@const registryName = pendingEntity.registryName}
 							{#if registryName !== undefined && registryName !== null}
 								{String((registryName) ?? '')}
 							{/if}
@@ -200,7 +200,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const relationshipModel = prefetched.relationshipModel}
+							{@const relationshipModel = pendingEntity.relationshipModel}
 							{#if relationshipModel !== undefined && relationshipModel !== null}
 								{String((relationshipModel) ?? '')}
 							{/if}
@@ -232,7 +232,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const homeUrl = prefetched.homeUrl}
+							{@const homeUrl = pendingEntity.homeUrl}
 							{#if homeUrl !== undefined && homeUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -273,7 +273,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const docsUrl = prefetched.docsUrl}
+					{@const docsUrl = pendingEntity.docsUrl}
 					{#if docsUrl !== undefined && docsUrl !== null}
 						<div>
 							<dt>docs URL</dt>

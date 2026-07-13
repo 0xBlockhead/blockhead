@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const replyHash = prefetched.replyHash}
+					{@const replyHash = pendingEntity.replyHash}
 					{#if replyHash !== undefined && replyHash !== null}
 						<div>
 							<dt>reply hash</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rejectCode = prefetched.rejectCode}
+					{@const rejectCode = pendingEntity.rejectCode}
 					{#if rejectCode !== undefined && rejectCode !== null}
 						<div>
 							<dt>reject code</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rejectMessage = prefetched.rejectMessage}
+					{@const rejectMessage = pendingEntity.rejectMessage}
 					{#if rejectMessage !== undefined && rejectMessage !== null}
 						<div>
 							<dt>reject message</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const certifiedAtMs = prefetched.certifiedAtMs}
+					{@const certifiedAtMs = pendingEntity.certifiedAtMs}
 					{#if certifiedAtMs !== undefined && certifiedAtMs !== null}
 						<div>
 							<dt>certified AT ms</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const certificateHash = prefetched.certificateHash}
+					{@const certificateHash = pendingEntity.certificateHash}
 					{#if certificateHash !== undefined && certificateHash !== null}
 						<div>
 							<dt>certificate hash</dt>

@@ -9,8 +9,10 @@ export enum _GlobalYoutubeNetwork_TimestampSelector {
 }
 export const _GlobalYoutubeNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalYoutubeNetwork_Timestamp,
-	label: 'YouTube hub observation',
-	labelPlural: 'YouTube hub observations',
+	labels: {
+		singular: 'YouTube hub observation',
+		plural: 'YouTube hub observations',
+	},
 })({
 	$hub: {
 		label: 'Hub',

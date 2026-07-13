@@ -9,8 +9,10 @@ export enum BlockheadWalletSelector {
 }
 export const BlockheadWallet = entity({
 	entityType: EntityType.BlockheadWallet,
-	label: 'blockhead wallet',
-	labelPlural: 'blockhead wallets',
+	labels: {
+		singular: 'blockhead wallet',
+		plural: 'blockhead wallets',
+	},
 })({
 	id: {
 		label: 'ID',

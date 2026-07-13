@@ -11,8 +11,10 @@ export enum EigenLayerSlashingEventSelector {
 }
 export const EigenLayerSlashingEvent = entity({
 	entityType: EntityType.EigenLayerSlashingEvent,
-	label: 'eigen layer slashing event',
-	labelPlural: 'eigen layer slashing events',
+	labels: {
+		singular: 'eigen layer slashing event',
+		plural: 'eigen layer slashing events',
+	},
 })({
 	$network: {
 		label: 'network',

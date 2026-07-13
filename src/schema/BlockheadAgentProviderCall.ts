@@ -10,8 +10,10 @@ export enum BlockheadAgentProviderCallSelector {
 }
 export const BlockheadAgentProviderCall = entity({
 	entityType: EntityType.BlockheadAgentProviderCall,
-	label: 'blockhead agent provider call',
-	labelPlural: 'blockhead agent provider calls',
+	labels: {
+		singular: 'blockhead agent provider call',
+		plural: 'blockhead agent provider calls',
+	},
 })({
 	$turn: {
 		label: 'turn',
@@ -47,6 +49,30 @@ export const BlockheadAgentProviderCall = entity({
 		label: 'operation',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.AiProviderApiOperation,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$mcpToolCall: {
+		label: 'MCP tool call',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.McpToolCall,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$a2aTask: {
+		label: 'A2A task',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.A2aTask,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$acpSession: {
+		label: 'ACP session',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.AcpSession,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$acpPromptTurn: {
+		label: 'ACP prompt turn',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.AcpPromptTurn,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	providerRequestId: {

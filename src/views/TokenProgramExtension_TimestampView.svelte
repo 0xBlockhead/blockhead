@@ -43,7 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const tokenProgramExtensionTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.extensionKind ?? prefetched.extensionKind) ?? '')].filter(Boolean).join(' ') || 'token program extension timestamp')
+	const titleFallback = $derived([String((pendingEntity.extensionKind) ?? '')].filter(Boolean).join(' ') || 'token program extension timestamp')
 	const viewDomId = $derived('token-program-extension-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,7 +68,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={tokenProgramExtensionTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.extensionKind ?? prefetched.extensionKind) ?? '')].filter(Boolean).join(' ') || title || 'token program extension timestamp'}
+				{[String((pendingEntity.extensionKind) ?? '')].filter(Boolean).join(' ') || title || 'token program extension timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -81,7 +81,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={tokenProgramExtensionTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.extensionScope ?? prefetched.extensionScope) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.extensionKind ?? prefetched.extensionKind) ?? '')].filter(Boolean).join(' ') || title || 'token program extension timestamp'}
+				{[String((pendingEntity.extensionScope) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.extensionKind) ?? '')].filter(Boolean).join(' ') || title || 'token program extension timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +94,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={tokenProgramExtensionTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -129,7 +129,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const extensionKind = selection.entitySelector.extensionKind ?? prefetched.extensionKind}
+							{@const extensionKind = pendingEntity.extensionKind}
 							{#if extensionKind !== undefined && extensionKind !== null}
 								{String((extensionKind) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const extensionScope = selection.entitySelector.extensionScope ?? prefetched.extensionScope}
+							{@const extensionScope = pendingEntity.extensionScope}
 							{#if extensionScope !== undefined && extensionScope !== null}
 								{String((extensionScope) ?? '')}
 							{/if}
@@ -189,7 +189,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -219,7 +219,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateKind = prefetched.ledgerCoordinateKind}
+					{@const ledgerCoordinateKind = pendingEntity.ledgerCoordinateKind}
 					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
 						<div>
 							<dt>Ledger coordinate kind</dt>
@@ -283,7 +283,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateValue = prefetched.ledgerCoordinateValue}
+					{@const ledgerCoordinateValue = pendingEntity.ledgerCoordinateValue}
 					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
 						<div>
 							<dt>Ledger coordinate value</dt>
@@ -314,8 +314,8 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
 						href={
-							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)

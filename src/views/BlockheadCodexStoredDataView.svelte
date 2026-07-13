@@ -50,7 +50,7 @@
 			firstSeenAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.cid ?? prefetched.cid) ?? '')].filter(Boolean).join(' ') || 'blockhead codex stored data')
+	const titleFallback = $derived([String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'blockhead codex stored data')
 	const viewDomId = $derived('blockhead-codex-stored-data-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadCodexStoredData}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.cid ?? prefetched.cid) ?? '')].filter(Boolean).join(' ') || title || 'blockhead codex stored data'}
+				{[String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || title || 'blockhead codex stored data'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadCodexStoredData}>
 			{#snippet Pending()}
-				{@const firstSeenAt0 = prefetched.firstSeenAt}
+				{@const firstSeenAt0 = pendingEntity.firstSeenAt}
 				{#if firstSeenAt0 !== undefined && firstSeenAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(firstSeenAt0)} />
@@ -156,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const cid = selection.entitySelector.cid ?? prefetched.cid}
+							{@const cid = pendingEntity.cid}
 							{#if cid !== undefined && cid !== null}
 								{String((cid) ?? '')}
 							{/if}
@@ -176,6 +176,8 @@
 			<ResourceBoundary
 				resource={selection.$dataset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(codexDataset)}
 					{#if codexDataset != null && codexDataset[EntityMetaKey.Selector] != null}
 						<div>
@@ -203,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const firstSeenAt = prefetched.firstSeenAt}
+					{@const firstSeenAt = pendingEntity.firstSeenAt}
 					{#if firstSeenAt !== undefined && firstSeenAt !== null}
 						<div>
 							<dt>first seen AT</dt>

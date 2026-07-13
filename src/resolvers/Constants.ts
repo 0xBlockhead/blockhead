@@ -5,7 +5,7 @@ import {
 	CoinInstanceRepresentation,
 } from '$/constants/Bridge.ts'
 import { ChainId } from '$/constants/ChainId.ts'
-import { CoinId } from '$/constants/Coin.ts'
+import { CoinId, coins } from '$/constants/Coin.ts'
 import {
 	currencies,
 	currencyByIso4217,
@@ -19,7 +19,6 @@ import {
 	MarketAssetKind,
 	MarketKind,
 	marketOhlcDailyTimeInterval,
-	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
 import {
 	seededCoinSpotUsdMarkets,
@@ -42,6 +41,9 @@ import {
 	NetworkNamespace,
 	networks,
 } from '$/constants/Network.ts'
+import {
+	networkNamespaceByNamespace,
+} from '$/constants/NetworkNamespace.ts'
 import {
 	networkStackByNetworkStackId,
 } from '$/constants/NetworkStack.ts'
@@ -117,14 +119,15 @@ import { EthereumConsensusUpgradeSelector } from '$/schema/EthereumConsensusUpgr
 import { CurrencySelector } from '$/schema/Currency.ts'
 import { Currency_TimestampSelector } from '$/schema/Currency_Timestamp.ts'
 import { MarketSelector } from '$/schema/Market.ts'
+import { MarketAssetSelector } from '$/schema/MarketAsset.ts'
 import { MarketVenueSelector } from '$/schema/MarketVenue.ts'
+import { EvmAccountSelector } from '$/schema/EvmAccount.ts'
 import { EvmContractSelector } from '$/schema/EvmContract.ts'
 import { EvmProtocolSelector } from '$/schema/EvmProtocol.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
 import { EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
 import { CoinBridgeCapabilitySelector } from '$/schema/CoinBridgeCapability.ts'
 import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
-import { Market_TimeInterval_TimestampSelector } from '$/schema/Market_TimeInterval_Timestamp.ts'
 import { UrlSelector } from '$/schema/Url.ts'
 import { MevRelaySelector } from '$/schema/MevRelay.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
@@ -158,7 +161,6 @@ import { XNetworkSelector } from '$/schema/XNetwork.ts'
 import { XPostSelector } from '$/schema/XPost.ts'
 import { XmtpNetworkSelector } from '$/schema/XmtpNetwork.ts'
 import { YoutubeChannelSelector } from '$/schema/YoutubeChannel.ts'
-import { YoutubeChannel_TimestampSelector } from '$/schema/YoutubeChannel_Timestamp.ts'
 import { YoutubeNetworkSelector } from '$/schema/YoutubeNetwork.ts'
 import { _GlobalYoutubeNetworkSelector } from '$/schema/_GlobalYoutubeNetwork.ts'
 import { _GlobalRedditNetworkSelector } from '$/schema/_GlobalRedditNetwork.ts'
@@ -219,28 +221,37 @@ const networkResourceUrlEntitySelectors = (
 const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinCurrencyMarket) => ({
 	$base: {
 		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.baseCoinId },
+		assetKey: catalogMarket.baseCoinId,
 	},
 	$quote: {
 		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.quoteIso4217 },
+		assetKey: catalogMarket.quoteIso4217,
 	},
 	$marketVenue: {
 		marketVenueId: catalogMarket.marketVenueId,
 	},
 	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
+}) satisfies EntitySelector<
+	typeof schema,
+	EntityType.Market
+>
 
 const catalogCoinCurrencyMarketMatchesMarket = (
-	catalogMarket: CatalogCoinCurrencyMarket,
 	market: EntitySelector<typeof schema, EntityType.Market>
-) => (
-	market.marketKind === catalogMarket.marketKind
-	&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
-	&& market.$base.kind === MarketAssetKind.Coin
-	&& market.$base.$coin.coinId === catalogMarket.baseCoinId
+): market is EntitySelector<typeof schema, EntityType.Market> & {
+	readonly $base: {
+		readonly kind: MarketAssetKind.Coin
+		readonly assetKey: CoinId
+	}
+} => (
+	market.$base.kind === MarketAssetKind.Coin
 	&& market.$quote.kind === MarketAssetKind.Currency
-	&& market.$quote.$currency.iso4217 === catalogMarket.quoteIso4217
+	&& seededCoinSpotUsdMarkets.some((catalogMarket) => (
+		market.marketKind === catalogMarket.marketKind
+		&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
+		&& market.$base.assetKey === catalogMarket.baseCoinId
+		&& market.$quote.assetKey === catalogMarket.quoteIso4217
+	))
 )
 
 const ethNativeCoinInstanceRepresentationByChainId = {
@@ -253,32 +264,38 @@ const ethNativeCoinInstanceRepresentationByChainId = {
 const marketSelectorFromCatalogCoinCoinMarket = (catalogMarket: CatalogCoinCoinMarket) => ({
 	$base: {
 		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.baseCoinId },
+		assetKey: catalogMarket.baseCoinId,
 	},
 	$quote: {
 		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.quoteCoinId },
+		assetKey: catalogMarket.quoteCoinId,
 	},
 	$marketVenue: {
 		marketVenueId: catalogMarket.marketVenueId,
 	},
 	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
+}) satisfies EntitySelector<
+	typeof schema,
+	EntityType.Market
+>
 
 const marketSelectorFromCatalogCurrencyCurrencyMarket = (catalogMarket: CatalogCurrencyCurrencyMarket) => ({
 	$base: {
 		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.baseIso4217 },
+		assetKey: catalogMarket.baseIso4217,
 	},
 	$quote: {
 		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.quoteIso4217 },
+		assetKey: catalogMarket.quoteIso4217,
 	},
 	$marketVenue: {
 		marketVenueId: catalogMarket.marketVenueId,
 	},
 	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
+}) satisfies EntitySelector<
+	typeof schema,
+	EntityType.Market
+>
 
 const evmNetworkUpgradeSelector = (row: {
 	readonly chainId: number
@@ -786,6 +803,17 @@ export default {
 			}),
 
 		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.EvmAccount,
+			resolve: {
+				[EvmAccountSelector.Address]: async ({ address }) => ({
+					address,
+				}),
+			},
+		})({
+				address: (account) => account.address,
+			}),
+
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				[EvmCoinInstanceSelector.NetworkType]: async ({ $network, type }) => {
@@ -802,10 +830,25 @@ export default {
 						symbol: 'ETH',
 						decimals: 18,
 						representation,
+						caip19: `eip155:${$network.caip2.reference}/slip44:60`,
 					}
 				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $network, type }) => {
+				[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $contract, $network, type }) => {
 					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
+					if (
+						type === CoinInstanceType.Erc20Token
+						&& $network.caip2.namespace === 'eip155'
+						&& $network.caip2.reference === '1'
+						&& $contract.address.toLowerCase() === '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+					)
+						return {
+							coinId: CoinId.USDC,
+							name: 'USD Coin',
+							symbol: 'USDC',
+							decimals: 6,
+							caip19: `eip155:1/erc20:${$contract.address.toLowerCase()}`,
+						}
+
 					if (
 					type !== CoinInstanceType.NativeCurrency
 					|| representation == null
@@ -818,6 +861,7 @@ export default {
 						symbol: 'ETH',
 						decimals: 18,
 						representation,
+						caip19: `eip155:${$network.caip2.reference}/slip44:60`,
 					}
 				},
 			},
@@ -827,6 +871,7 @@ export default {
 				symbol: (coinInstance) => coinInstance.symbol,
 				decimals: (coinInstance) => coinInstance.decimals,
 				representation: (coinInstance) => coinInstance.representation,
+				caip19: (coinInstance) => coinInstance.caip19,
 			}),
 
 		defineResolver(Source.Constants_Internal, {
@@ -980,7 +1025,7 @@ export default {
 						namespace: network.namespace,
 						ledgerModels: network.ledgerModels,
 						executionModels: network.executionModels,
-						networkStackId: network.networkStackId,
+						networkStackId: networkNamespaceByNamespace[network.namespace].networkStackId,
 						environment: network.environment,
 						...(network.slug === networkBySlug['0g'].slug && {
 							zeroGChainId,
@@ -1020,7 +1065,7 @@ export default {
 						namespace: network.namespace,
 						ledgerModels: network.ledgerModels,
 						executionModels: network.executionModels,
-						networkStackId: network.networkStackId,
+						networkStackId: networkNamespaceByNamespace[network.namespace].networkStackId,
 						environment: network.environment,
 						...(network.slug === networkBySlug['0g'].slug && {
 							zeroGChainId,
@@ -1047,11 +1092,16 @@ export default {
 				namespace: (network) => network.namespace,
 				ledgerModels: (network) => network.ledgerModels,
 				executionModels: (network) => network.executionModels,
-				$networkStack: (network) => ({
-					[EntityMetaKey.Selector]: {
-						networkStackId: network.networkStackId,
-					},
-				}),
+				$networkStack: (network) => (
+					network.networkStackId == null ?
+						undefined
+					:
+						{
+							[EntityMetaKey.Selector]: {
+								networkStackId: network.networkStackId,
+							},
+						}
+				),
 				environment: (network) => network.environment,
 				Evm: {
 					consensusProtocol: (network) => network.evmConsensusProtocol,
@@ -1059,6 +1109,8 @@ export default {
 				},
 				ZeroG: {
 					chainId: (network) => network.zeroGChainId,
+				},
+				Lightning: {
 				},
 				Near: {
 					rpcEndpoints: (network) => (
@@ -1419,8 +1471,6 @@ export default {
 							relayUrl: relay.relayUrl,
 						},
 					})),
-					$$observedReposts: [],
-					$$observedArticles: [],
 				})
 			},
 		})({
@@ -1432,8 +1482,6 @@ export default {
 				$$observedProfiles: (network) => network.$$observedProfiles,
 				$$observedNotes: (network) => network.$$observedNotes,
 				$$observedRelays: (network) => network.$$observedRelays,
-				$$observedReposts: (network) => network.$$observedReposts,
-				$$observedArticles: (network) => network.$$observedArticles,
 			}),
 
 		defineResolver(Source.Constants_Internal, {
@@ -1454,16 +1502,12 @@ export default {
 									eventId: note.eventId,
 								},
 							})),
-						$$articles: [],
-						$$reposts: [],
 					}
 				}
 			},
 		})({
 				pubkey: (profile) => profile.pubkey,
 				$$notes: (profile) => profile.$$notes,
-				$$articles: (profile) => profile.$$articles,
-				$$reposts: (profile) => profile.$$reposts,
 			}),
 
 		defineResolver(Source.Constants_Internal, {
@@ -1504,8 +1548,6 @@ export default {
 								pubkey: note.pubkey,
 							},
 						},
-						$$replies: [],
-						$$reactions: [],
 					}
 				}
 			},
@@ -1516,8 +1558,6 @@ export default {
 				content: (note) => note.content,
 				createdAt: (note) => note.createdAt,
 				$author: (note) => note.$author,
-				$$replies: (note) => note.$$replies,
-				$$reactions: (note) => note.$$reactions,
 			}),
 
 		defineResolver(Source.Constants_Internal, {
@@ -1625,26 +1665,6 @@ export default {
 				},
 				})({
 						title: (entity) => entity.title,
-					}),
-
-				defineResolver(Source.Constants_Internal, {
-					entityType: EntityType.YoutubeChannel_Timestamp,
-					resolve: {
-						[YoutubeChannel_TimestampSelector.YoutubeChannelTimestampMs]: async ({ $channel, timestampMs }) => {
-							const channel = youtubeNetworkSeedChannelByChannelId[$channel.channelId]
-							if (channel == null || timestampMs !== 0) throw new Error(`Constants_Internal: YoutubeChannel_Timestamp ${$channel.channelId}:${String(timestampMs)} not found`)
-
-							return {
-								$channel: {
-									[EntityMetaKey.Selector]: $channel,
-								},
-								timestampMs,
-							}
-						}
-					},
-				})({
-						$channel: (entity) => entity.$channel,
-						timestampMs: (entity) => entity.timestampMs,
 					}),
 
 				defineResolver(Source.Constants_Internal, {
@@ -1937,14 +1957,12 @@ export default {
 				},
 				[NetworkSelector.Slug]: async ({ slug }) => {
 					const network = networkBySlug[slug]
-					if (network == null) return {
-						nativeAssets: [],
-					}
+					if (network == null)
+						throw new Error('Constants_Internal: Network not found')
 					const namespace: NetworkNamespace = network.namespace
 					const coinId = nativeAssetCoinIdByNamespace[namespace]
-					if (coinId == null) return {
-						nativeAssets: [],
-					}
+					if (coinId == null)
+						throw new Error(`Constants_Internal: native asset not cataloged for ${namespace}`)
 					return {
 						nativeCoin: {
 							[EntityMetaKey.Selector]: {
@@ -1985,6 +2003,10 @@ export default {
 				},
 			},
 		})({
+				Evm: {
+					$nativeCoin: (entity) => entity.nativeCoin,
+					$nativeCoinInstance: (entity) => entity.nativeCoinInstance,
+				},
 				$$nativeAssets: (entity) => entity.nativeAssets,
 			}),
 
@@ -2080,15 +2102,20 @@ export default {
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
 					const { coins } = await import('$/constants/Coin.ts')
-					return [
-						...coins.map((coin) => (
+					return (
+						coins.map((coin) => (
 							{
 								[EntityMetaKey.Selector]: {
 									coinId: coin.id,
 								},
+								[EntityMetaKey.Fields]: {
+									coinId: coin.id,
+									name: coin.symbol,
+									symbol: coin.symbol,
+								},
 							}
-						)),
-					]
+						))
+					)
 				}
 			},
 		})({
@@ -2132,7 +2159,8 @@ export default {
 			resolve: {
 				[CurrencySelector.Iso4217]: async (entitySelector: EntitySelector<typeof schema, EntityType.Currency>) => {
 					const currency = currencyByIso4217[entitySelector.iso4217]
-					if (currency == null) return []
+						if (currency == null)
+							throw new Error(`Constants_Internal: Currency not found for ${entitySelector.iso4217}`)
 					return [
 						{
 							[EntityMetaKey.Selector]: {
@@ -2276,35 +2304,55 @@ export default {
 			}),
 
 		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.EvmCoinInstance,
+			entityType: EntityType.MarketAsset,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: async ({ $network, type }) => {
-					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
-					if (type === CoinInstanceType.NativeCurrency && representation != null)
-						return representation
+				[MarketAssetSelector.KindAssetKey]: async ({ kind, assetKey }: EntitySelector<typeof schema, EntityType.MarketAsset>) => {
+					const coin = kind === MarketAssetKind.Coin ? coins.find((row) => row.id === assetKey) : undefined
+					const currency = kind === MarketAssetKind.Currency ? currencies.find((row) => row.iso4217 === assetKey) : undefined
+					if (kind === MarketAssetKind.Coin && coin == null)
+						throw new Error(`Constants_Internal: Coin market asset not found for ${assetKey}`)
+					if (kind === MarketAssetKind.Currency && currency == null)
+						throw new Error(`Constants_Internal: Currency market asset not found for ${assetKey}`)
 
-					throw new Error('Constants_Internal: CoinInstance representation unsupported')
-				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $network, type }) => {
-					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
-					if (type === CoinInstanceType.NativeCurrency && representation != null)
-						return representation
-
-					throw new Error('Constants_Internal: CoinInstance representation unsupported')
-				},
+					return {
+						kind,
+						assetKey,
+						...(coin != null && {
+							$coin: {
+								[EntityMetaKey.Selector]: {
+									coinId: coin.id,
+								},
+							},
+						}),
+						...(currency != null && {
+							$currency: {
+								[EntityMetaKey.Selector]: {
+									iso4217: currency.iso4217,
+								},
+							},
+						}),
+					}
+				}
 			},
 		})({
-				representation: (entity) => entity,
+				kind: (entity) => entity.kind,
+				assetKey: (entity) => entity.assetKey,
+				Coin: {
+					$coin: (entity) => entity.$coin,
+				},
+				Currency: {
+					$currency: (entity) => entity.$currency,
+				},
 			}),
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Market,
 			resolve: {
-				[MarketSelector.BaseQuoteMarketVenueKind]: async ({ $base }: EntitySelector<typeof schema, EntityType.Market>) => (
-					$base.kind === MarketAssetKind.Coin ?
+				[MarketSelector.BaseQuoteMarketVenueKind]: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>) => (
+					catalogCoinCurrencyMarketMatchesMarket(entitySelector) ?
 						{
 							[EntityMetaKey.Selector]: {
-								coinId: $base.$coin.coinId,
+								coinId: entitySelector.$base.assetKey,
 							},
 						}
 					:
@@ -2321,7 +2369,7 @@ export default {
 				[MarketSelector.BaseQuoteMarketVenueKind]: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>) => (
 					(
 						entitySelector.$base.kind === MarketAssetKind.Coin
-					&& catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector)
+					&& catalogCoinCurrencyMarketMatchesMarket(entitySelector)
 					) ?
 						[
 							{
@@ -2342,19 +2390,6 @@ export default {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[MarketPriceSelector.Market]: async ({ $market }: EntitySelector<typeof schema, EntityType.MarketPrice>) => (
-					{
-						[EntityMetaKey.Selector]: $market,
-					}
-				)
-			},
-		})({
-				$parentMarket: (entity) => entity,
-			}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.Market_TimeInterval_Timestamp,
-			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: async ({ $market }) => (
 					{
 						[EntityMetaKey.Selector]: $market,
 					}

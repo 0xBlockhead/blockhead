@@ -10,8 +10,10 @@ export enum StarknetClassSelector {
 }
 export const StarknetClass = entity({
 	entityType: EntityType.StarknetClass,
-	label: 'starknet class',
-	labelPlural: 'starknet classes',
+	labels: {
+		singular: 'starknet class',
+		plural: 'starknet classes',
+	},
 })({
 	$network: {
 		label: 'network',

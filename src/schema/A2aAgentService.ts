@@ -10,8 +10,10 @@ export enum A2aAgentServiceSelector {
 }
 export const A2aAgentService = entity({
 	entityType: EntityType.A2aAgentService,
-	label: 'a2a agent service',
-	labelPlural: 'a2a agent services',
+	labels: {
+		singular: 'a2a agent service',
+		plural: 'a2a agent services',
+	},
 })({
 	$card: {
 		label: 'card',

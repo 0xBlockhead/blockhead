@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -48,7 +48,7 @@
 			finalizedCheckpointEpoch: true,
 		},
 	}))
-	const titleFallback = $derived([(String((prefetched.finalizedCheckpointEpoch) ?? '') ? 'Finalized epoch ' + String((prefetched.finalizedCheckpointEpoch) ?? '') : '')].filter(Boolean).join(' ') || 'ethereum beacon finality timestamp')
+	const titleFallback = $derived([(String((pendingEntity.finalizedCheckpointEpoch) ?? '') ? 'Finalized epoch ' + String((pendingEntity.finalizedCheckpointEpoch) ?? '') : '')].filter(Boolean).join(' ') || 'ethereum beacon finality timestamp')
 	const viewDomId = $derived('ethereum-beacon-finality-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,8 +67,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/finality/[timestampMs=nonNegativeInteger]', {
-			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/finality/[timestampMs=nonNegativeInteger]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 		}) : undefined)
 	}
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={ethereumBeaconFinalityTimestamp}>
 			{#snippet Pending()}
-				{@const finalizedCheckpointEpoch0 = prefetched.finalizedCheckpointEpoch}
+				{@const finalizedCheckpointEpoch0 = pendingEntity.finalizedCheckpointEpoch}
 				{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
 					<span>Finalized epoch </span>
 					<NumberValue value={Number(finalizedCheckpointEpoch0)} />
@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={ethereumBeaconFinalityTimestamp}>
 			{#snippet Pending()}
-				{@const finalizedCheckpointEpoch0 = prefetched.finalizedCheckpointEpoch}
+				{@const finalizedCheckpointEpoch0 = pendingEntity.finalizedCheckpointEpoch}
 				{#if finalizedCheckpointEpoch0 !== undefined && finalizedCheckpointEpoch0 !== null}
 					<NumberValue value={Number(finalizedCheckpointEpoch0)} />
 				{/if}
@@ -119,7 +119,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={ethereumBeaconFinalityTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const finalizedCheckpointEpoch = prefetched.finalizedCheckpointEpoch}
+							{@const finalizedCheckpointEpoch = pendingEntity.finalizedCheckpointEpoch}
 							{#if finalizedCheckpointEpoch !== undefined && finalizedCheckpointEpoch !== null}
 								<NumberValue value={Number(finalizedCheckpointEpoch)} />
 							{/if}
@@ -214,7 +214,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const finalizedCheckpointRoot = prefetched.finalizedCheckpointRoot}
+							{@const finalizedCheckpointRoot = pendingEntity.finalizedCheckpointRoot}
 							{#if finalizedCheckpointRoot !== undefined && finalizedCheckpointRoot !== null}
 								<TruncatedValue value={String((finalizedCheckpointRoot) ?? '')} />
 							{/if}
@@ -246,7 +246,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const currentJustifiedCheckpointEpoch = prefetched.currentJustifiedCheckpointEpoch}
+							{@const currentJustifiedCheckpointEpoch = pendingEntity.currentJustifiedCheckpointEpoch}
 							{#if currentJustifiedCheckpointEpoch !== undefined && currentJustifiedCheckpointEpoch !== null}
 								<NumberValue value={Number(currentJustifiedCheckpointEpoch)} />
 							{/if}
@@ -276,7 +276,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const currentJustifiedCheckpointRoot = prefetched.currentJustifiedCheckpointRoot}
+							{@const currentJustifiedCheckpointRoot = pendingEntity.currentJustifiedCheckpointRoot}
 							{#if currentJustifiedCheckpointRoot !== undefined && currentJustifiedCheckpointRoot !== null}
 								<TruncatedValue value={String((currentJustifiedCheckpointRoot) ?? '')} />
 							{/if}
@@ -306,7 +306,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const previousJustifiedCheckpointEpoch = prefetched.previousJustifiedCheckpointEpoch}
+							{@const previousJustifiedCheckpointEpoch = pendingEntity.previousJustifiedCheckpointEpoch}
 							{#if previousJustifiedCheckpointEpoch !== undefined && previousJustifiedCheckpointEpoch !== null}
 								<NumberValue value={Number(previousJustifiedCheckpointEpoch)} />
 							{/if}
@@ -336,7 +336,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const previousJustifiedCheckpointRoot = prefetched.previousJustifiedCheckpointRoot}
+							{@const previousJustifiedCheckpointRoot = pendingEntity.previousJustifiedCheckpointRoot}
 							{#if previousJustifiedCheckpointRoot !== undefined && previousJustifiedCheckpointRoot !== null}
 								<TruncatedValue value={String((previousJustifiedCheckpointRoot) ?? '')} />
 							{/if}
@@ -359,22 +359,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

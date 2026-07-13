@@ -10,8 +10,10 @@ export enum GitFetchObservationSelector {
 }
 export const GitFetchObservation = entity({
 	entityType: EntityType.GitFetchObservation,
-	label: 'Git fetch observation',
-	labelPlural: 'Git fetch observations',
+	labels: {
+		singular: 'Git fetch observation',
+		plural: 'Git fetch observations',
+	},
 })({
 	$repository: {
 		label: 'repository',

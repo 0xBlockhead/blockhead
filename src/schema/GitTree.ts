@@ -10,8 +10,10 @@ export enum GitTreeSelector {
 }
 export const GitTree = entity({
 	entityType: EntityType.GitTree,
-	label: 'Git tree',
-	labelPlural: 'Git trees',
+	labels: {
+		singular: 'Git tree',
+		plural: 'Git trees',
+	},
 })({
 	objectId: {
 		label: 'object ID',

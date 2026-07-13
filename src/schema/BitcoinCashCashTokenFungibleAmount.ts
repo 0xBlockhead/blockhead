@@ -10,8 +10,10 @@ export enum BitcoinCashCashTokenFungibleAmountSelector {
 }
 export const BitcoinCashCashTokenFungibleAmount = entity({
 	entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
-	label: 'Bitcoin Cash CashToken fungible amount',
-	labelPlural: 'Bitcoin Cash CashToken fungible amounts',
+	labels: {
+		singular: 'Bitcoin Cash CashToken fungible amount',
+		plural: 'Bitcoin Cash CashToken fungible amounts',
+	},
 })({
 	$output: {
 		label: 'Output',

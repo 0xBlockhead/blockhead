@@ -47,7 +47,7 @@
 			packageVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'move module timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'move module timestamp')
 	const viewDomId = $derived('move-module-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={moveModuleTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={moveModuleTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.ledgerVersion) ?? ''), String((prefetched.packageVersion) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'move module timestamp'}
+				{[String((pendingEntity.ledgerVersion) ?? ''), String((pendingEntity.packageVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'move module timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={moveModuleTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -153,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -183,7 +183,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerVersion = prefetched.ledgerVersion}
+					{@const ledgerVersion = pendingEntity.ledgerVersion}
 					{#if ledgerVersion !== undefined && ledgerVersion !== null}
 						<div>
 							<dt>ledger version</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packageVersion = prefetched.packageVersion}
+					{@const packageVersion = pendingEntity.packageVersion}
 					{#if packageVersion !== undefined && packageVersion !== null}
 						<div>
 							<dt>package version</dt>
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packageDigest = prefetched.packageDigest}
+					{@const packageDigest = pendingEntity.packageDigest}
 					{#if packageDigest !== undefined && packageDigest !== null}
 						<div>
 							<dt>package digest</dt>
@@ -317,7 +317,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bytecode = prefetched.bytecode}
+					{@const bytecode = pendingEntity.bytecode}
 					{#if bytecode !== undefined && bytecode !== null}
 						<div>
 							<dt>bytecode</dt>
@@ -352,7 +352,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceDigest = prefetched.sourceDigest}
+					{@const sourceDigest = pendingEntity.sourceDigest}
 					{#if sourceDigest !== undefined && sourceDigest !== null}
 						<div>
 							<dt>source digest</dt>

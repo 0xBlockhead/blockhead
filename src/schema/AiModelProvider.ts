@@ -11,8 +11,10 @@ export enum AiModelProviderSelector {
 }
 export const AiModelProvider = entity({
 	entityType: EntityType.AiModelProvider,
-	label: 'AI model provider',
-	labelPlural: 'AI model providers',
+	labels: {
+		singular: 'AI model provider',
+		plural: 'AI model providers',
+	},
 })({
 	domain: {
 		label: 'domain',

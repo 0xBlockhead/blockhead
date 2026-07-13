@@ -119,8 +119,8 @@
 						selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmBlockFields}
 						href={
-							(evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.caip2 !== undefined && evmBlockHrefFields.$network.caip2.namespace !== undefined && evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.caip2 !== undefined && evmBlockHrefFields.$network.caip2.reference !== undefined && evmBlockHrefFields.blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-								caip2: `${String(evmBlockHrefFields.$network.caip2.namespace ?? '')}:${String(evmBlockHrefFields.$network.caip2.reference ?? '')}`,
+							(evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.slug !== undefined && evmBlockHrefFields.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+								network: String(evmBlockHrefFields.$network.slug ?? ''),
 								blockNumber: String(evmBlockHrefFields.blockNumber ?? ''),
 							}) : undefined)
 						}

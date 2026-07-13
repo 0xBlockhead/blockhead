@@ -10,8 +10,10 @@ export enum BlockheadCodexStorageNodeStateSelector {
 }
 export const BlockheadCodexStorageNodeState = entity({
 	entityType: EntityType.BlockheadCodexStorageNodeState,
-	label: 'blockhead codex storage node state',
-	labelPlural: 'blockhead codex storage node states',
+	labels: {
+		singular: 'blockhead codex storage node state',
+		plural: 'blockhead codex storage node states',
+	},
 })({
 	connectionId: {
 		label: 'connection ID',

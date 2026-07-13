@@ -9,8 +9,10 @@ export enum BlockheadFedimintClientStateSelector {
 }
 export const BlockheadFedimintClientState = entity({
 	entityType: EntityType.BlockheadFedimintClientState,
-	label: 'blockhead Fedimint client state',
-	labelPlural: 'blockhead Fedimint client states',
+	labels: {
+		singular: 'blockhead Fedimint client state',
+		plural: 'blockhead Fedimint client states',
+	},
 })({
 	clientId: {
 		label: 'client ID',

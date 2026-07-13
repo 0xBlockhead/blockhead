@@ -47,7 +47,7 @@
 			endpoint: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.peerId ?? prefetched.peerId) ?? '')].filter(Boolean).join(' ') || 'blockhead codex storage node state')
+	const titleFallback = $derived([String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'blockhead codex storage node state')
 	const viewDomId = $derived('blockhead-codex-storage-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadCodexStorageNodeState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.peerId ?? prefetched.peerId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead codex storage node state'}
+				{[String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead codex storage node state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCodexStorageNodeState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.peerId ?? prefetched.peerId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead codex storage node state'}
+				{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead codex storage node state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -98,7 +98,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadCodexStorageNodeState}>
 			{#snippet Pending()}
-				{@const endpoint0 = prefetched.endpoint}
+				{@const endpoint0 = pendingEntity.endpoint}
 				{#if endpoint0 !== undefined && endpoint0 !== null}
 					<span data-text="muted">
 						<svelte:element
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const connectionId = selection.entitySelector.connectionId ?? prefetched.connectionId}
+							{@const connectionId = pendingEntity.connectionId}
 							{#if connectionId !== undefined && connectionId !== null}
 								{String((connectionId) ?? '')}
 							{/if}
@@ -177,7 +177,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const peerId = selection.entitySelector.peerId ?? prefetched.peerId}
+							{@const peerId = pendingEntity.peerId}
 							{#if peerId !== undefined && peerId !== null}
 								{String((peerId) ?? '')}
 							{/if}
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endpoint = prefetched.endpoint}
+					{@const endpoint = pendingEntity.endpoint}
 					{#if endpoint !== undefined && endpoint !== null}
 						<div>
 							<dt>endpoint</dt>
@@ -253,7 +253,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signedPeerRecord = prefetched.signedPeerRecord}
+					{@const signedPeerRecord = pendingEntity.signedPeerRecord}
 					{#if signedPeerRecord !== undefined && signedPeerRecord !== null}
 						<div>
 							<dt>signed peer record</dt>

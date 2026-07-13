@@ -42,7 +42,7 @@
 			verified: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 endpoint domain verification timestamp')
+	const titleFallback = $derived([String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 endpoint domain verification timestamp')
 	const viewDomId = $derived('eip8004endpoint-domain-verification-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,7 +66,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
 			{#snippet Pending()}
-				{@const endpointUrl0 = selection.entitySelector.endpointUrl ?? prefetched.endpointUrl}
+				{@const endpointUrl0 = pendingEntity.endpointUrl}
 				{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
 					<svelte:element
 						this={'a'}
@@ -99,7 +99,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.verified) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 endpoint domain verification timestamp'}
+				{[String((pendingEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 endpoint domain verification timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -112,7 +112,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const endpointUrl = selection.entitySelector.endpointUrl ?? prefetched.endpointUrl}
+							{@const endpointUrl = pendingEntity.endpointUrl}
 							{#if endpointUrl !== undefined && endpointUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -191,7 +191,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -221,7 +221,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -250,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verified = prefetched.verified}
+					{@const verified = pendingEntity.verified}
 					{#if verified !== undefined && verified !== null}
 						<div>
 							<dt>Verified</dt>
@@ -285,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>Error</dt>

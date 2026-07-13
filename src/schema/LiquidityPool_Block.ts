@@ -10,8 +10,10 @@ export enum LiquidityPool_BlockSelector {
 }
 export const LiquidityPool_Block = entity({
 	entityType: EntityType.LiquidityPool_Block,
-	label: 'liquidity pool block',
-	labelPlural: 'liquidity pool blocks',
+	labels: {
+		singular: 'liquidity pool block',
+		plural: 'liquidity pool blocks',
+	},
 })({
 	$liquidityPool: {
 		label: 'Liquidity pool',
@@ -23,7 +25,7 @@ export const LiquidityPool_Block = entity({
 		label: 'Block number',
 		description: 'The block height or number in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$parentLiquidityPool: {

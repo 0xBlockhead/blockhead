@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rangeStart = selection.entitySelector.rangeStart ?? prefetched.rangeStart}
+							{@const rangeStart = pendingEntity.rangeStart}
 							{#if rangeStart !== undefined && rangeStart !== null}
 								{String((rangeStart) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rangeEnd = selection.entitySelector.rangeEnd ?? prefetched.rangeEnd}
+							{@const rangeEnd = pendingEntity.rangeEnd}
 							{#if rangeEnd !== undefined && rangeEnd !== null}
 								{String((rangeEnd) ?? '')}
 							{/if}
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const registryVersion = selection.entitySelector.registryVersion ?? prefetched.registryVersion}
+							{@const registryVersion = pendingEntity.registryVersion}
 							{#if registryVersion !== undefined && registryVersion !== null}
 								{String((registryVersion) ?? '')}
 							{/if}
@@ -191,7 +191,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -218,7 +218,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>

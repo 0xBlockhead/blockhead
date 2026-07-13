@@ -10,8 +10,10 @@ export enum EvmInternalTransferSelector {
 }
 export const EvmInternalTransfer = entity({
 	entityType: EntityType.EvmInternalTransfer,
-	label: 'EVM internal transfer',
-	labelPlural: 'EVM internal transfers',
+	labels: {
+		singular: 'EVM internal transfer',
+		plural: 'EVM internal transfers',
+	},
 	description: 'Native currency moved inside EVM transaction execution.',
 })({
 	$transaction: {
@@ -23,7 +25,7 @@ export const EvmInternalTransfer = entity({
 	indexInTransaction: {
 		label: 'Index in transaction',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$from: {

@@ -11,8 +11,10 @@ export enum McpServerPackageSelector {
 }
 export const McpServerPackage = entity({
 	entityType: EntityType.McpServerPackage,
-	label: 'MCP server package',
-	labelPlural: 'MCP server packages',
+	labels: {
+		singular: 'MCP server package',
+		plural: 'MCP server packages',
+	},
 })({
 	registryServerName: {
 		label: 'registry server name',

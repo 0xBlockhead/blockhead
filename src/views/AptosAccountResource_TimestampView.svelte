@@ -46,7 +46,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.ledgerVersion ?? prefetched.ledgerVersion) ?? '')].filter(Boolean).join(' ') || 'aptos account resource timestamp')
+	const titleFallback = $derived([String((pendingEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || 'aptos account resource timestamp')
 	const viewDomId = $derived('aptos-account-resource-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosAccountResourceTimestamp}>
 			{#snippet Pending()}
-				{@const ledgerVersion0 = selection.entitySelector.ledgerVersion ?? prefetched.ledgerVersion}
+				{@const ledgerVersion0 = pendingEntity.ledgerVersion}
 				{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
 					<NumberValue value={Number(ledgerVersion0)} />
 				{/if}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosAccountResourceTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aptosAccountResourceTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerVersion = selection.entitySelector.ledgerVersion ?? prefetched.ledgerVersion}
+							{@const ledgerVersion = pendingEntity.ledgerVersion}
 							{#if ledgerVersion !== undefined && ledgerVersion !== null}
 								<NumberValue value={Number(ledgerVersion)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>

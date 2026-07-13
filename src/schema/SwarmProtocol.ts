@@ -10,8 +10,10 @@ export enum SwarmProtocolSelector {
 }
 export const SwarmProtocol = entity({
 	entityType: EntityType.SwarmProtocol,
-	label: 'Swarm protocol',
-	labelPlural: 'Swarm protocols',
+	labels: {
+		singular: 'Swarm protocol',
+		plural: 'Swarm protocols',
+	},
 })({
 	scope: {
 		label: 'Scope',

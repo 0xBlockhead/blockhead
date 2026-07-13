@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -120,9 +119,9 @@
 						selection={select(EntityType.SolanaValidator, solanaValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaValidatorFields}
 						href={
-							(solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined && solanaValidatorHrefFields.$network.caip2.namespace !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined && solanaValidatorHrefFields.$network.caip2.reference !== undefined && solanaValidatorHrefFields.votePubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/validator/[votePubkey]', {
-								networkSlug: String(networkByCaip2[String(String(solanaValidatorHrefFields.$network.caip2.namespace) + ':' + String(solanaValidatorHrefFields.$network.caip2.reference))].slug ?? ''),
-								votePubkey: String(solanaValidatorHrefFields.votePubkey ?? ''),
+							(solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.slug !== undefined && solanaValidatorHrefFields.votePubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+								network: String(solanaValidatorHrefFields.$network.slug ?? ''),
+								validatorId: String(solanaValidatorHrefFields.votePubkey ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

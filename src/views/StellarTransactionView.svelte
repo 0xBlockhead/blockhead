@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hash = selection.entitySelector.hash ?? prefetched.hash}
+							{@const hash = pendingEntity.hash}
 							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceAccount = prefetched.sourceAccount}
+					{@const sourceAccount = pendingEntity.sourceAccount}
 					{#if sourceAccount !== undefined && sourceAccount !== null}
 						<div>
 							<dt>source account</dt>

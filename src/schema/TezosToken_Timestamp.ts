@@ -9,8 +9,10 @@ export enum TezosToken_TimestampSelector {
 }
 export const TezosToken_Timestamp = entity({
 	entityType: EntityType.TezosToken_Timestamp,
-	label: 'tezos token timestamp',
-	labelPlural: 'tezos token observations',
+	labels: {
+		singular: 'tezos token timestamp',
+		plural: 'tezos token observations',
+	},
 })({
 	$token: {
 		label: 'token',

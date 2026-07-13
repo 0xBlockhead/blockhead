@@ -11,8 +11,10 @@ export enum Eip8004CrossRegistrationSelector {
 }
 export const Eip8004CrossRegistration = entity({
 	entityType: EntityType.Eip8004CrossRegistration,
-	label: 'EIP-8004 cross registration',
-	labelPlural: 'EIP-8004 cross registrations',
+	labels: {
+		singular: 'EIP-8004 cross registration',
+		plural: 'EIP-8004 cross registrations',
+	},
 })({
 	$registrationFile: {
 		label: 'Registration file',

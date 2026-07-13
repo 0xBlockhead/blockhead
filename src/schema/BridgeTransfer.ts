@@ -10,8 +10,10 @@ export enum BridgeTransferSelector {
 }
 export const BridgeTransfer = entity({
 	entityType: EntityType.BridgeTransfer,
-	label: 'bridge transfer',
-	labelPlural: 'bridge transfers',
+	labels: {
+		singular: 'bridge transfer',
+		plural: 'bridge transfers',
+	},
 })({
 	source: {
 		label: 'Source',

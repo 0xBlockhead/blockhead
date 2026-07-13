@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -121,8 +120,8 @@
 						selection={select(EntityType.PolkadotExtrinsic, polkadotExtrinsic[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotExtrinsicFields}
 						href={
-							(polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.$network !== undefined && polkadotExtrinsicHrefFields.$block.$network.caip2 !== undefined && polkadotExtrinsicHrefFields.$block.$network.caip2.namespace !== undefined && polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.$network !== undefined && polkadotExtrinsicHrefFields.$block.$network.caip2 !== undefined && polkadotExtrinsicHrefFields.$block.$network.caip2.reference !== undefined && polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.blockNumber !== undefined && polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.hash !== undefined && polkadotExtrinsicHrefFields.indexInBlock !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(String(polkadotExtrinsicHrefFields.$block.$network.caip2.namespace) + ':' + String(polkadotExtrinsicHrefFields.$block.$network.caip2.reference))].slug ?? ''),
+							(polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.$network !== undefined && polkadotExtrinsicHrefFields.$block.$network.slug !== undefined && polkadotExtrinsicHrefFields.$block.blockNumber !== undefined && polkadotExtrinsicHrefFields.$block.hash !== undefined && polkadotExtrinsicHrefFields.indexInBlock !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
+								network: String(polkadotExtrinsicHrefFields.$block.$network.slug ?? ''),
 								blockNumber: String(polkadotExtrinsicHrefFields.$block.blockNumber ?? ''),
 								hash: String(polkadotExtrinsicHrefFields.$block.hash ?? ''),
 								extrinsicIndex: String(polkadotExtrinsicHrefFields.indexInBlock ?? ''),

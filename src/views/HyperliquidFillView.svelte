@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tid = selection.entitySelector.tid ?? prefetched.tid}
+							{@const tid = pendingEntity.tid}
 							{#if tid !== undefined && tid !== null}
 								{String((tid) ?? '')}
 							{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const oid = prefetched.oid}
+							{@const oid = pendingEntity.oid}
 							{#if oid !== undefined && oid !== null}
 								{String((oid) ?? '')}
 							{/if}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const coin = prefetched.coin}
+							{@const coin = pendingEntity.coin}
 							{#if coin !== undefined && coin !== null}
 								{String((coin) ?? '')}
 							{/if}
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const side = prefetched.side}
+					{@const side = pendingEntity.side}
 					{#if side !== undefined && side !== null}
 						<div>
 							<dt>side</dt>
@@ -226,7 +226,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const direction = prefetched.direction}
+					{@const direction = pendingEntity.direction}
 					{#if direction !== undefined && direction !== null}
 						<div>
 							<dt>direction</dt>
@@ -261,7 +261,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const price = prefetched.price}
+					{@const price = pendingEntity.price}
 					{#if price !== undefined && price !== null}
 						<div>
 							<dt>price</dt>
@@ -296,7 +296,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const size = prefetched.size}
+					{@const size = pendingEntity.size}
 					{#if size !== undefined && size !== null}
 						<div>
 							<dt>size</dt>
@@ -331,7 +331,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startPosition = prefetched.startPosition}
+					{@const startPosition = pendingEntity.startPosition}
 					{#if startPosition !== undefined && startPosition !== null}
 						<div>
 							<dt>start position</dt>
@@ -366,7 +366,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const closedPnl = prefetched.closedPnl}
+					{@const closedPnl = pendingEntity.closedPnl}
 					{#if closedPnl !== undefined && closedPnl !== null}
 						<div>
 							<dt>closed pnl</dt>
@@ -401,7 +401,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fee = prefetched.fee}
+					{@const fee = pendingEntity.fee}
 					{#if fee !== undefined && fee !== null}
 						<div>
 							<dt>fee</dt>
@@ -436,7 +436,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeToken = prefetched.feeToken}
+					{@const feeToken = pendingEntity.feeToken}
 					{#if feeToken !== undefined && feeToken !== null}
 						<div>
 							<dt>fee token</dt>
@@ -471,7 +471,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timeMs = prefetched.timeMs}
+					{@const timeMs = pendingEntity.timeMs}
 					{#if timeMs !== undefined && timeMs !== null}
 						<div>
 							<dt>time ms</dt>
@@ -506,7 +506,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hash = prefetched.hash}
+					{@const hash = pendingEntity.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>
@@ -541,7 +541,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const crossed = prefetched.crossed}
+					{@const crossed = pendingEntity.crossed}
 					{#if crossed !== undefined && crossed !== null}
 						<div>
 							<dt>crossed</dt>
@@ -569,6 +569,8 @@
 			<ResourceBoundary
 				resource={selection.$order}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hyperliquidOrder)}
 					{#if hyperliquidOrder != null && hyperliquidOrder[EntityMetaKey.Selector] != null}
 						<div>
@@ -589,6 +591,8 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hyperliquidTransaction)}
 					{#if hyperliquidTransaction != null && hyperliquidTransaction[EntityMetaKey.Selector] != null}
 						<div>

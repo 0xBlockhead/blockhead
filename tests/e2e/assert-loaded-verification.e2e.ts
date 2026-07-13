@@ -15,7 +15,6 @@ import RedditRest from '$/resolvers/Reddit-Rest.ts'
 import YoutubeRest from '$/resolvers/Youtube-Rest.ts'
 import {
 	EntityMetaKey,
-	entityFieldConditionKey,
 	entityFieldDefinitions,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -76,14 +75,17 @@ test.describe('assertLoaded verification', () => {
 	})
 
 	test('schema exposes scalar and array-item conditional fields', () => {
-		const tokenId = entityFieldDefinitions(entityDefinitionByType[EntityType.EvmTokenTransfer])
-			.find((field) => field.name === 'tokenId')
-
-		if (tokenId === undefined)
-			throw new Error('Missing tokenId field definition')
-
-		expect(tokenId.when.fieldName).toBe('standard')
-		expect(entityFieldConditionKey(tokenId.when)).toBe('standard')
+		expect(entityDefinitionByType[EntityType.EvmTokenTransfer].facets?.[0]).toMatchObject({
+			id: 'Nft',
+			condition: {
+				path: ['standard'],
+				isOneOf: [
+					'ERC-721',
+					'ERC-1155',
+				],
+			},
+			fields: [{ name: 'tokenId' }],
+		})
 	})
 
 	test('YouTube list fields expose provider totals through count selectors', () => {
@@ -140,8 +142,6 @@ test.describe('assertLoaded verification', () => {
 			'probe runner must report resolverValuePartCount'
 		).toBeGreaterThan(0)
 
-		expect(body.conditionalScalarDiscriminatorCount).toBeGreaterThan(0)
-		expect(body.conditionalItemDiscriminatorCount).toBeGreaterThan(0)
 		expect(body.countResolverPartCount).toBeGreaterThan(0)
 		expect(body.countResolverFields).toEqual(expect.arrayContaining([
 			'EvmBlock.$$transactions',

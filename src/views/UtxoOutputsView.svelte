@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -121,9 +120,9 @@
 						selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={utxoOutputFields}
 						href={
-							(utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.$network !== undefined && utxoOutputHrefFields.$transaction.$network.caip2 !== undefined && utxoOutputHrefFields.$transaction.$network.caip2.namespace !== undefined && utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.$network !== undefined && utxoOutputHrefFields.$transaction.$network.caip2 !== undefined && utxoOutputHrefFields.$transaction.$network.caip2.reference !== undefined && utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.txId !== undefined && utxoOutputHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(String(utxoOutputHrefFields.$transaction.$network.caip2.namespace) + ':' + String(utxoOutputHrefFields.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(utxoOutputHrefFields.$transaction.txId ?? ''),
+							(utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.$network !== undefined && utxoOutputHrefFields.$transaction.$network.slug !== undefined && utxoOutputHrefFields.$transaction.txId !== undefined && utxoOutputHrefFields.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+								network: String(utxoOutputHrefFields.$transaction.$network.slug ?? ''),
+								transactionId: String(utxoOutputHrefFields.$transaction.txId ?? ''),
 								outputIndex: String(utxoOutputHrefFields.indexInTransaction ?? ''),
 							}) : undefined)
 						}

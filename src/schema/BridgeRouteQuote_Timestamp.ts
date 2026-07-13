@@ -11,8 +11,10 @@ export enum BridgeRouteQuote_TimestampSelector {
 }
 export const BridgeRouteQuote_Timestamp = entity({
 	entityType: EntityType.BridgeRouteQuote_Timestamp,
-	label: 'bridge route quote timestamp',
-	labelPlural: 'bridge route quote observations',
+	labels: {
+		singular: 'bridge route quote timestamp',
+		plural: 'bridge route quote observations',
+	},
 })({
 	source: {
 		label: 'Source',

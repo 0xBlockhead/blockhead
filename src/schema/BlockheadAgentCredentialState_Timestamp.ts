@@ -9,8 +9,10 @@ export enum BlockheadAgentCredentialState_TimestampSelector {
 }
 export const BlockheadAgentCredentialState_Timestamp = entity({
 	entityType: EntityType.BlockheadAgentCredentialState_Timestamp,
-	label: 'blockhead agent credential state timestamp',
-	labelPlural: 'blockhead agent credential state observations',
+	labels: {
+		singular: 'blockhead agent credential state timestamp',
+		plural: 'blockhead agent credential state observations',
+	},
 })({
 	$credential: {
 		label: 'credential',

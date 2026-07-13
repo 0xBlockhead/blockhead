@@ -53,7 +53,7 @@
 			joinedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || [String((prefetched.peerId) ?? '')].filter(Boolean).join(' ') || 'contact')
+	const titleFallback = $derived([String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'contact')
 	const viewDomId = $derived('blockhead-room-peer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadRoomPeer}>
 			{#snippet Pending()}
-				{[String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.peerId) ?? '')].filter(Boolean).join(' ') || 'contact'}
+				{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'contact'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRoomPeer}>
 			{#snippet Pending()}
-				{[String((prefetched.isConnected) ?? '')].filter(Boolean).join(' ') || [String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.peerId) ?? '')].filter(Boolean).join(' ') || 'contact'}
+				{[String((pendingEntity.isConnected) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'contact'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 						resource={selection.$room}
 					>
 						{#snippet children(blockheadRoom)}
-							{#if blockheadRoom[EntityMetaKey.Selector] != null}
+							{#if blockheadRoom != null && blockheadRoom[EntityMetaKey.Selector] != null}
 								<BlockheadRoomView
 									selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
 									prefetched={blockheadRoom}
@@ -136,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const peerId = prefetched.peerId}
+							{@const peerId = pendingEntity.peerId}
 							{#if peerId !== undefined && peerId !== null}
 								{String((peerId) ?? '')}
 							{/if}
@@ -166,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const isConnected = prefetched.isConnected}
+							{@const isConnected = pendingEntity.isConnected}
 							{#if isConnected !== undefined && isConnected !== null}
 								{isConnected ? 'Yes' : 'No'}
 							{/if}
@@ -198,7 +198,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const joinedAt = prefetched.joinedAt}
+							{@const joinedAt = pendingEntity.joinedAt}
 							{#if joinedAt !== undefined && joinedAt !== null}
 								<Timestamp timestamp={Number(joinedAt)} />
 							{/if}
@@ -225,7 +225,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSeenAt = prefetched.lastSeenAt}
+					{@const lastSeenAt = pendingEntity.lastSeenAt}
 					{#if lastSeenAt !== undefined && lastSeenAt !== null}
 						<div>
 							<dt>Last seen</dt>
@@ -260,7 +260,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const connectedAt = prefetched.connectedAt}
+					{@const connectedAt = pendingEntity.connectedAt}
 					{#if connectedAt !== undefined && connectedAt !== null}
 						<div>
 							<dt>Connected</dt>
@@ -295,7 +295,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const disconnectedAt = prefetched.disconnectedAt}
+					{@const disconnectedAt = pendingEntity.disconnectedAt}
 					{#if disconnectedAt !== undefined && disconnectedAt !== null}
 						<div>
 							<dt>Disconnected</dt>

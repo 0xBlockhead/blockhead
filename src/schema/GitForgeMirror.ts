@@ -10,8 +10,10 @@ export enum GitForgeMirrorSelector {
 }
 export const GitForgeMirror = entity({
 	entityType: EntityType.GitForgeMirror,
-	label: 'Git forge mirror',
-	labelPlural: 'Git forge mirrors',
+	labels: {
+		singular: 'Git forge mirror',
+		plural: 'Git forge mirrors',
+	},
 })({
 	forgeHost: {
 		label: 'forge host',

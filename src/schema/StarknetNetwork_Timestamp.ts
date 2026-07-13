@@ -9,8 +9,10 @@ export enum StarknetNetwork_TimestampSelector {
 }
 export const StarknetNetwork_Timestamp = entity({
 	entityType: EntityType.StarknetNetwork_Timestamp,
-	label: 'starknet network timestamp',
-	labelPlural: 'starknet network observations',
+	labels: {
+		singular: 'starknet network timestamp',
+		plural: 'starknet network observations',
+	},
 })({
 	$network: {
 		label: 'network',

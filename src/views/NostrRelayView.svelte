@@ -46,7 +46,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.relayUrl ?? prefetched.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay')
 	const viewDomId = $derived('nostr-relay-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrRelay}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.relayUrl ?? prefetched.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const relayUrl = selection.entitySelector.relayUrl ?? prefetched.relayUrl}
+							{@const relayUrl = pendingEntity.relayUrl}
 							{#if relayUrl !== undefined && relayUrl !== null}
 								<TruncatedValue value={String((relayUrl) ?? '')} />
 							{/if}
@@ -134,7 +134,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -174,7 +174,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const description = prefetched.description}
+						{@const description = pendingEntity.description}
 						{#if description !== undefined && description !== null}
 							<div>
 								<dt>Description</dt>
@@ -215,7 +215,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const software = prefetched.software}
+						{@const software = pendingEntity.software}
 						{#if software !== undefined && software !== null}
 							<div>
 								<dt>Software</dt>
@@ -256,7 +256,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const version = prefetched.version}
+						{@const version = pendingEntity.version}
 						{#if version !== undefined && version !== null}
 							<div>
 								<dt>Version</dt>
@@ -297,7 +297,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const supportedNipCount = prefetched.supportedNipCount}
+						{@const supportedNipCount = pendingEntity.supportedNipCount}
 						{#if supportedNipCount !== undefined && supportedNipCount !== null}
 							<div>
 								<dt>Supported NIPs</dt>
@@ -338,7 +338,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const isPaid = prefetched.isPaid}
+						{@const isPaid = pendingEntity.isPaid}
 						{#if isPaid !== undefined && isPaid !== null}
 							<div>
 								<dt>Paid relay</dt>
@@ -379,7 +379,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const limit = prefetched.limit}
+						{@const limit = pendingEntity.limit}
 						{#if limit !== undefined && limit !== null}
 							<div>
 								<dt>Event limit</dt>

@@ -9,8 +9,10 @@ export enum XrplTransaction_TimestampSelector {
 }
 export const XrplTransaction_Timestamp = entity({
 	entityType: EntityType.XrplTransaction_Timestamp,
-	label: 'xrpl transaction timestamp',
-	labelPlural: 'xrpl transaction observations',
+	labels: {
+		singular: 'xrpl transaction timestamp',
+		plural: 'xrpl transaction observations',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

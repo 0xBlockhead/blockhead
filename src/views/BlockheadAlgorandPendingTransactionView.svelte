@@ -50,7 +50,7 @@
 			transactionType: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || 'blockhead algorand pending transaction')
+	const titleFallback = $derived([String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'blockhead algorand pending transaction')
 	const viewDomId = $derived('blockhead-algorand-pending-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAlgorandPendingTransaction}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand pending transaction'}
+				{[String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand pending transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -88,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAlgorandPendingTransaction}>
 			{#snippet Pending()}
-				{[String((prefetched.transactionType) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand pending transaction'}
+				{[String((pendingEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand pending transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,7 +101,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAlgorandPendingTransaction}>
 			{#snippet Pending()}
-				{@const observedAtMs0 = selection.entitySelector.observedAtMs ?? prefetched.observedAtMs}
+				{@const observedAtMs0 = pendingEntity.observedAtMs}
 				{#if observedAtMs0 !== undefined && observedAtMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(observedAtMs0)} />
@@ -136,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nodeId = selection.entitySelector.nodeId ?? prefetched.nodeId}
+							{@const nodeId = pendingEntity.nodeId}
 							{#if nodeId !== undefined && nodeId !== null}
 								{String((nodeId) ?? '')}
 							{/if}
@@ -166,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const txId = selection.entitySelector.txId ?? prefetched.txId}
+							{@const txId = pendingEntity.txId}
 							{#if txId !== undefined && txId !== null}
 								{String((txId) ?? '')}
 							{/if}
@@ -196,7 +196,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const observedAtMs = selection.entitySelector.observedAtMs ?? prefetched.observedAtMs}
+							{@const observedAtMs = pendingEntity.observedAtMs}
 							{#if observedAtMs !== undefined && observedAtMs !== null}
 								<Timestamp timestamp={Number(observedAtMs)} />
 							{/if}
@@ -216,6 +216,8 @@
 			<ResourceBoundary
 				resource={selection.$network}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(algorandNetwork)}
 					{#if algorandNetwork != null && algorandNetwork[EntityMetaKey.Selector] != null}
 						<div>
@@ -243,7 +245,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sender = prefetched.sender}
+					{@const sender = pendingEntity.sender}
 					{#if sender !== undefined && sender !== null}
 						<div>
 							<dt>sender</dt>
@@ -278,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionType = prefetched.transactionType}
+					{@const transactionType = pendingEntity.transactionType}
 					{#if transactionType !== undefined && transactionType !== null}
 						<div>
 							<dt>transaction type</dt>
@@ -315,7 +317,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fee = prefetched.fee}
+					{@const fee = pendingEntity.fee}
 					{#if fee !== undefined && fee !== null}
 						<div>
 							<dt>fee</dt>
@@ -350,7 +352,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const firstValidRound = prefetched.firstValidRound}
+					{@const firstValidRound = pendingEntity.firstValidRound}
 					{#if firstValidRound !== undefined && firstValidRound !== null}
 						<div>
 							<dt>first valid round</dt>
@@ -385,7 +387,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastValidRound = prefetched.lastValidRound}
+					{@const lastValidRound = pendingEntity.lastValidRound}
 					{#if lastValidRound !== undefined && lastValidRound !== null}
 						<div>
 							<dt>last valid round</dt>
@@ -420,7 +422,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const group = prefetched.group}
+					{@const group = pendingEntity.group}
 					{#if group !== undefined && group !== null}
 						<div>
 							<dt>group</dt>
@@ -455,7 +457,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const poolPriority = prefetched.poolPriority}
+					{@const poolPriority = pendingEntity.poolPriority}
 					{#if poolPriority !== undefined && poolPriority !== null}
 						<div>
 							<dt>pool priority</dt>

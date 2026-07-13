@@ -9,8 +9,10 @@ export enum HyperliquidOrderbook_TimestampSelector {
 }
 export const HyperliquidOrderbook_Timestamp = entity({
 	entityType: EntityType.HyperliquidOrderbook_Timestamp,
-	label: 'hyperliquid orderbook timestamp',
-	labelPlural: 'hyperliquid orderbook observations',
+	labels: {
+		singular: 'hyperliquid orderbook timestamp',
+		plural: 'hyperliquid orderbook observations',
+	},
 })({
 	$network: {
 		label: 'network',

@@ -52,7 +52,7 @@
 			mimeType: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.partIndex ?? prefetched.partIndex) ?? '')].filter(Boolean).join(' ') || 'A2A message part')
+	const titleFallback = $derived([String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || 'A2A message part')
 	const viewDomId = $derived('a2a-message-part-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aMessagePart}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.partIndex ?? prefetched.partIndex) ?? '')].filter(Boolean).join(' ') || title || 'A2A message part'}
+				{[String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || title || 'A2A message part'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aMessagePart}>
 			{#snippet Pending()}
-				{[String((prefetched.partKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.partIndex ?? prefetched.partIndex) ?? '')].filter(Boolean).join(' ') || title || 'A2A message part'}
+				{[String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || title || 'A2A message part'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aMessagePart}>
 			{#snippet Pending()}
-				{@const mimeType0 = prefetched.mimeType}
+				{@const mimeType0 = pendingEntity.mimeType}
 				{#if mimeType0 !== undefined && mimeType0 !== null}
 					<span data-text="muted">
 						{String((mimeType0) ?? '')}
@@ -129,6 +129,8 @@
 			<ResourceBoundary
 				resource={selection.$message}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(a2aMessage)}
 					{#if a2aMessage != null && a2aMessage[EntityMetaKey.Selector] != null}
 						<div>
@@ -149,6 +151,8 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(a2aArtifact)}
 					{#if a2aArtifact != null && a2aArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -179,7 +183,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const partIndex = selection.entitySelector.partIndex ?? prefetched.partIndex}
+							{@const partIndex = pendingEntity.partIndex}
 							{#if partIndex !== undefined && partIndex !== null}
 								{String((partIndex) ?? '')}
 							{/if}
@@ -209,7 +213,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const partKind = prefetched.partKind}
+							{@const partKind = pendingEntity.partKind}
 							{#if partKind !== undefined && partKind !== null}
 								{String((partKind) ?? '')}
 							{/if}
@@ -236,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const text = prefetched.text}
+					{@const text = pendingEntity.text}
 					{#if text !== undefined && text !== null}
 						<div>
 							<dt>text</dt>
@@ -271,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uri = prefetched.uri}
+					{@const uri = pendingEntity.uri}
 					{#if uri !== undefined && uri !== null}
 						<div>
 							<dt>URI</dt>
@@ -320,7 +324,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mimeType = prefetched.mimeType}
+					{@const mimeType = pendingEntity.mimeType}
 					{#if mimeType !== undefined && mimeType !== null}
 						<div>
 							<dt>mime type</dt>
@@ -348,6 +352,8 @@
 			<ResourceBoundary
 				resource={selection.$aiArtifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>

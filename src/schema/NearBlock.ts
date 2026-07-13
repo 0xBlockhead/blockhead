@@ -11,8 +11,10 @@ export enum NearBlockSelector {
 }
 export const NearBlock = entity({
 	entityType: EntityType.NearBlock,
-	label: 'near block',
-	labelPlural: 'near blocks',
+	labels: {
+		singular: 'near block',
+		plural: 'near blocks',
+	},
 })({
 	$network: {
 		label: 'Network',

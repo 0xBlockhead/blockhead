@@ -9,8 +9,10 @@ export enum BlockheadZeroGStoredChunkSelector {
 }
 export const BlockheadZeroGStoredChunk = entity({
 	entityType: EntityType.BlockheadZeroGStoredChunk,
-	label: 'blockhead zero g stored chunk',
-	labelPlural: 'blockhead zero g stored chunks',
+	labels: {
+		singular: 'blockhead zero g stored chunk',
+		plural: 'blockhead zero g stored chunks',
+	},
 })({
 	$nodeState: {
 		label: 'node state',

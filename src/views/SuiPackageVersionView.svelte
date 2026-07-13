@@ -93,6 +93,8 @@
 			<ResourceBoundary
 				resource={selection.$package}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(suiPackage)}
 					{#if suiPackage != null && suiPackage[EntityMetaKey.Selector] != null}
 						<div>
@@ -123,7 +125,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const packageId = selection.entitySelector.packageId ?? prefetched.packageId}
+							{@const packageId = pendingEntity.packageId}
 							{#if packageId !== undefined && packageId !== null}
 								{String((packageId) ?? '')}
 							{/if}
@@ -153,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const version = selection.entitySelector.version ?? prefetched.version}
+							{@const version = pendingEntity.version}
 							{#if version !== undefined && version !== null}
 								{String((version) ?? '')}
 							{/if}
@@ -183,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const digest = selection.entitySelector.digest ?? prefetched.digest}
+							{@const digest = pendingEntity.digest}
 							{#if digest !== undefined && digest !== null}
 								<TruncatedValue value={String((digest) ?? '')} />
 							{/if}
@@ -210,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousPackageId = prefetched.previousPackageId}
+					{@const previousPackageId = pendingEntity.previousPackageId}
 					{#if previousPackageId !== undefined && previousPackageId !== null}
 						<div>
 							<dt>previous package ID</dt>
@@ -245,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const upgradePolicy = prefetched.upgradePolicy}
+					{@const upgradePolicy = pendingEntity.upgradePolicy}
 					{#if upgradePolicy !== undefined && upgradePolicy !== null}
 						<div>
 							<dt>upgrade policy</dt>

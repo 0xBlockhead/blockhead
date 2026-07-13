@@ -9,8 +9,10 @@ export enum BlockheadZcashNoteState_TimestampSelector {
 }
 export const BlockheadZcashNoteState_Timestamp = entity({
 	entityType: EntityType.BlockheadZcashNoteState_Timestamp,
-	label: 'blockhead zcash note state timestamp',
-	labelPlural: 'blockhead zcash note state observations',
+	labels: {
+		singular: 'blockhead zcash note state timestamp',
+		plural: 'blockhead zcash note state observations',
+	},
 })({
 	$noteState: {
 		label: 'note state',

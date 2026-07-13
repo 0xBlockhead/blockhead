@@ -9,8 +9,10 @@ export enum SorobanWasm_TimestampSelector {
 }
 export const SorobanWasm_Timestamp = entity({
 	entityType: EntityType.SorobanWasm_Timestamp,
-	label: 'soroban Wasm timestamp',
-	labelPlural: 'soroban Wasm observations',
+	labels: {
+		singular: 'soroban Wasm timestamp',
+		plural: 'soroban Wasm observations',
+	},
 })({
 	$wasm: {
 		label: 'Wasm',

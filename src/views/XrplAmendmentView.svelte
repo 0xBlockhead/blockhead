@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const amendmentId = selection.entitySelector.amendmentId ?? prefetched.amendmentId}
+							{@const amendmentId = pendingEntity.amendmentId}
 							{#if amendmentId !== undefined && amendmentId !== null}
 								{String((amendmentId) ?? '')}
 							{/if}
@@ -128,7 +128,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>

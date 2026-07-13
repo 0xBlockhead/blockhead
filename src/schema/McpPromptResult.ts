@@ -10,8 +10,10 @@ export enum McpPromptResultSelector {
 }
 export const McpPromptResult = entity({
 	entityType: EntityType.McpPromptResult,
-	label: 'mcp prompt result',
-	labelPlural: 'mcp prompt results',
+	labels: {
+		singular: 'mcp prompt result',
+		plural: 'mcp prompt results',
+	},
 })({
 	$prompt: {
 		label: 'prompt',

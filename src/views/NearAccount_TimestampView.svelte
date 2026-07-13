@@ -51,7 +51,7 @@
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'near account timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'near account timestamp')
 	const viewDomId = $derived('near-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearAccountTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearAccountTimestamp}>
 			{#snippet Pending()}
-				{@const amountYoctoNear0 = prefetched.amountYoctoNear}
+				{@const amountYoctoNear0 = pendingEntity.amountYoctoNear}
 				{#if amountYoctoNear0 !== undefined && amountYoctoNear0 !== null}
 					<NumberValue value={Number(amountYoctoNear0)} />
 				{/if}
@@ -115,7 +115,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearAccountTimestamp}>
 			{#snippet Pending()}
-				{@const blockHeight0 = prefetched.blockHeight}
+				{@const blockHeight0 = pendingEntity.blockHeight}
 				{#if blockHeight0 !== undefined && blockHeight0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(blockHeight0)} />
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -191,7 +191,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -218,7 +218,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>Block height</dt>
@@ -253,7 +253,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountYoctoNear = prefetched.amountYoctoNear}
+					{@const amountYoctoNear = pendingEntity.amountYoctoNear}
 					{#if amountYoctoNear !== undefined && amountYoctoNear !== null}
 						<div>
 							<dt>Amount yocto near</dt>
@@ -326,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lockedYoctoNear = prefetched.lockedYoctoNear}
+					{@const lockedYoctoNear = pendingEntity.lockedYoctoNear}
 					{#if lockedYoctoNear !== undefined && lockedYoctoNear !== null}
 						<div>
 							<dt>Locked yocto near</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageUsageBytes = prefetched.storageUsageBytes}
+					{@const storageUsageBytes = pendingEntity.storageUsageBytes}
 					{#if storageUsageBytes !== undefined && storageUsageBytes !== null}
 						<div>
 							<dt>Storage usage bytes</dt>
@@ -402,7 +402,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const codeHash = prefetched.codeHash}
+					{@const codeHash = pendingEntity.codeHash}
 					{#if codeHash !== undefined && codeHash !== null}
 						<div>
 							<dt>Code hash</dt>
@@ -437,7 +437,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>Deleted</dt>

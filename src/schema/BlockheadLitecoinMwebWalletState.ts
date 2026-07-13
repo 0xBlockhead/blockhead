@@ -9,8 +9,10 @@ export enum BlockheadLitecoinMwebWalletStateSelector {
 }
 export const BlockheadLitecoinMwebWalletState = entity({
 	entityType: EntityType.BlockheadLitecoinMwebWalletState,
-	label: 'blockhead litecoin mweb wallet state',
-	labelPlural: 'blockhead litecoin mweb wallet states',
+	labels: {
+		singular: 'blockhead litecoin mweb wallet state',
+		plural: 'blockhead litecoin mweb wallet states',
+	},
 })({
 	walletId: {
 		label: 'wallet ID',

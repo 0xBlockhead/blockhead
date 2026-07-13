@@ -11,8 +11,10 @@ export enum AiModelVersionSelector {
 }
 export const AiModelVersion = entity({
 	entityType: EntityType.AiModelVersion,
-	label: 'AI model version',
-	labelPlural: 'AI model versions',
+	labels: {
+		singular: 'AI model version',
+		plural: 'AI model versions',
+	},
 })({
 	$model: {
 		label: 'model',

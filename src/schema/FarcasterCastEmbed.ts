@@ -10,8 +10,10 @@ export enum FarcasterCastEmbedSelector {
 }
 export const FarcasterCastEmbed = entity({
 	entityType: EntityType.FarcasterCastEmbed,
-	label: 'Farcaster cast embed',
-	labelPlural: 'Farcaster cast embeds',
+	labels: {
+		singular: 'Farcaster cast embed',
+		plural: 'Farcaster cast embeds',
+	},
 })({
 	$cast: {
 		label: 'Cast',
@@ -22,7 +24,7 @@ export const FarcasterCastEmbed = entity({
 	indexInCast: {
 		label: 'Index in cast',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	url: {

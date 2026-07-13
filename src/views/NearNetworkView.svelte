@@ -49,11 +49,13 @@
 			namespace: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? ''), String((selection.entitySelector.slug ?? prefetched.slug) ?? '')].filter(Boolean).join(' ') || 'near network')
+	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || 'near network')
 	const viewDomId = $derived('near-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NearNetwork_TimestampsView from '$/views/NearNetwork_TimestampsView.svelte'
 	import NearBlocksView from '$/views/NearBlocksView.svelte'
@@ -74,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? ''), String((selection.entitySelector.slug ?? prefetched.slug) ?? '')].filter(Boolean).join(' ') || title || 'near network'}
+				{[String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || title || 'near network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.environment) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((selection.entitySelector.slug ?? prefetched.slug) ?? '')].filter(Boolean).join(' ') || title || 'near network'}
+				{[String((pendingEntity.environment) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || title || 'near network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -100,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearNetwork}>
 			{#snippet Pending()}
-				{@const namespace0 = prefetched.namespace}
+				{@const namespace0 = pendingEntity.namespace}
 				{#if namespace0 !== undefined && namespace0 !== null}
 					<span data-text="muted">
 						{String((namespace0) ?? '')}
@@ -144,7 +146,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rpcEndpoints = prefetched.rpcEndpoints}
+							{@const rpcEndpoints = pendingEntity.rpcEndpoints}
 							{#if rpcEndpoints !== undefined && rpcEndpoints !== null}
 								{rpcEndpoints.values.map((value) => String((value.url) ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -165,41 +167,107 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<NearNetwork_TimestampsView
-				selection={
-						selection.$$timestamps({
-							sources: [
-								Source.NearRpc_JsonRpc,
-							],
-						})
-					}
-				title='Observations'
-				id='NearNetwork_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-near-chain-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'near-chain-observations',
+							label: 'Observations',
+						},
+						{
+							id: 'near-chain-blocks',
+							label: 'Blocks',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-chain-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Chain activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<NearBlocksView
-				selection={
-						selection.$$blocks({
-							sources: [
-								Source.NearRpc_JsonRpc,
-							],
-						})
-					}
-				title='Blocks'
-				id='NearBlocksView-blocks'
-			/>
+				{#snippet SectionNearChainObservations({ id, label, open })}
+					<NearNetwork_TimestampsView
+						selection={
+							selection.$$timestamps({
+								sources: [
+									Source.NearRpc_JsonRpc,
+								],
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<NearValidatorsView
-				selection={
-						selection.$$validators({
-							sources: [
-								Source.NearRpc_JsonRpc,
-							],
-						})
-					}
-				title='Validators'
-				id='NearValidatorsView-validators'
-			/>
+				{#snippet SectionNearChainBlocks({ id, label, open })}
+					<NearBlocksView
+						selection={
+							selection.$$blocks({
+								sources: [
+									Source.NearRpc_JsonRpc,
+								],
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-near-validators'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'near-validator-list',
+							label: 'Validators',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-validators'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Validators</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionNearValidatorList({ id, label, open })}
+					<NearValidatorsView
+						selection={
+							selection.$$validators({
+								sources: [
+									Source.NearRpc_JsonRpc,
+								],
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

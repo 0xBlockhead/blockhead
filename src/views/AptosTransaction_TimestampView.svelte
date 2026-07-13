@@ -48,7 +48,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.ledgerVersion ?? prefetched.ledgerVersion) ?? '')].filter(Boolean).join(' ') || 'aptos transaction timestamp')
+	const titleFallback = $derived([String((pendingEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || 'aptos transaction timestamp')
 	const viewDomId = $derived('aptos-transaction-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosTransactionTimestamp}>
 			{#snippet Pending()}
-				{@const ledgerVersion0 = selection.entitySelector.ledgerVersion ?? prefetched.ledgerVersion}
+				{@const ledgerVersion0 = pendingEntity.ledgerVersion}
 				{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
 					<NumberValue value={Number(ledgerVersion0)} />
 				{/if}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosTransactionTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.success) ?? ''), String((prefetched.vmStatus) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.ledgerVersion ?? prefetched.ledgerVersion) ?? '')].filter(Boolean).join(' ') || title || 'aptos transaction timestamp'}
+				{[String((pendingEntity.success) ?? ''), String((pendingEntity.vmStatus) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || title || 'aptos transaction timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +106,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aptosTransactionTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -152,7 +152,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerVersion = selection.entitySelector.ledgerVersion ?? prefetched.ledgerVersion}
+							{@const ledgerVersion = pendingEntity.ledgerVersion}
 							{#if ledgerVersion !== undefined && ledgerVersion !== null}
 								<NumberValue value={Number(ledgerVersion)} />
 							{/if}
@@ -182,7 +182,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -209,7 +209,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>block height</dt>
@@ -281,7 +281,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const success = prefetched.success}
+					{@const success = pendingEntity.success}
 					{#if success !== undefined && success !== null}
 						<div>
 							<dt>success</dt>
@@ -316,7 +316,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const vmStatus = prefetched.vmStatus}
+					{@const vmStatus = pendingEntity.vmStatus}
 					{#if vmStatus !== undefined && vmStatus !== null}
 						<div>
 							<dt>vm status</dt>
@@ -353,7 +353,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUnitPrice = prefetched.gasUnitPrice}
+					{@const gasUnitPrice = pendingEntity.gasUnitPrice}
 					{#if gasUnitPrice !== undefined && gasUnitPrice !== null}
 						<div>
 							<dt>gas unit price</dt>
@@ -388,7 +388,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>gas used</dt>
@@ -423,7 +423,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accumulatorRootHash = prefetched.accumulatorRootHash}
+					{@const accumulatorRootHash = pendingEntity.accumulatorRootHash}
 					{#if accumulatorRootHash !== undefined && accumulatorRootHash !== null}
 						<div>
 							<dt>accumulator root hash</dt>

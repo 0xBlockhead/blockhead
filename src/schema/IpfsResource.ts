@@ -10,14 +10,16 @@ export enum IpfsResourceSelector {
 }
 export const IpfsResource = entity({
 	entityType: EntityType.IpfsResource,
-	label: 'IPFS resource',
-	labelPlural: 'IPFS resources',
+	labels: {
+		singular: 'IPFS resource',
+		plural: 'IPFS resources',
+	},
 })({
 	namespace: {
 		label: 'Namespace',
 		description: 'The namespace that qualifies the identifier.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: (type('"ipfs" | "ipns"')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	target: {

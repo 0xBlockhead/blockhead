@@ -47,7 +47,7 @@
 			message: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || 'Git commit')
+	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git commit')
 	const viewDomId = $derived('git-commit-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitCommit}>
 			{#snippet Pending()}
-				{@const objectId0 = selection.entitySelector.objectId ?? prefetched.objectId}
+				{@const objectId0 = pendingEntity.objectId}
 				{#if objectId0 !== undefined && objectId0 !== null}
 					<TruncatedValue value={String((objectId0) ?? '')} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitCommit}>
 			{#snippet Pending()}
-				{[String((prefetched.message) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git commit'}
+				{[String((pendingEntity.message) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git commit'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitCommit}>
 			{#snippet Pending()}
-				{@const objectFormat0 = selection.entitySelector.objectFormat ?? prefetched.objectFormat}
+				{@const objectFormat0 = pendingEntity.objectFormat}
 				{#if objectFormat0 !== undefined && objectFormat0 !== null}
 					<span data-text="muted">
 						{String((objectFormat0) ?? '')}
@@ -140,7 +140,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectId = selection.entitySelector.objectId ?? prefetched.objectId}
+							{@const objectId = pendingEntity.objectId}
 							{#if objectId !== undefined && objectId !== null}
 								<TruncatedValue value={String((objectId) ?? '')} />
 							{/if}
@@ -170,7 +170,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectFormat = selection.entitySelector.objectFormat ?? prefetched.objectFormat}
+							{@const objectFormat = pendingEntity.objectFormat}
 							{#if objectFormat !== undefined && objectFormat !== null}
 								{String((objectFormat) ?? '')}
 							{/if}
@@ -200,7 +200,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const treeObjectId = prefetched.treeObjectId}
+							{@const treeObjectId = pendingEntity.treeObjectId}
 							{#if treeObjectId !== undefined && treeObjectId !== null}
 								<TruncatedValue value={String((treeObjectId) ?? '')} />
 							{/if}
@@ -224,7 +224,7 @@
 						resource={selection.$object}
 					>
 						{#snippet children(gitObject)}
-							{#if gitObject[EntityMetaKey.Selector] != null}
+							{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 								<GitObjectView
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorName = prefetched.authorName}
+					{@const authorName = pendingEntity.authorName}
 					{#if authorName !== undefined && authorName !== null}
 						<div>
 							<dt>author name</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorEmail = prefetched.authorEmail}
+					{@const authorEmail = pendingEntity.authorEmail}
 					{#if authorEmail !== undefined && authorEmail !== null}
 						<div>
 							<dt>author email</dt>
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorTimestampMs = prefetched.authorTimestampMs}
+					{@const authorTimestampMs = pendingEntity.authorTimestampMs}
 					{#if authorTimestampMs !== undefined && authorTimestampMs !== null}
 						<div>
 							<dt>author timestamp ms</dt>
@@ -354,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const committerName = prefetched.committerName}
+					{@const committerName = pendingEntity.committerName}
 					{#if committerName !== undefined && committerName !== null}
 						<div>
 							<dt>committer name</dt>
@@ -389,7 +389,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const committerEmail = prefetched.committerEmail}
+					{@const committerEmail = pendingEntity.committerEmail}
 					{#if committerEmail !== undefined && committerEmail !== null}
 						<div>
 							<dt>committer email</dt>
@@ -424,7 +424,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const committerTimestampMs = prefetched.committerTimestampMs}
+					{@const committerTimestampMs = pendingEntity.committerTimestampMs}
 					{#if committerTimestampMs !== undefined && committerTimestampMs !== null}
 						<div>
 							<dt>committer timestamp ms</dt>

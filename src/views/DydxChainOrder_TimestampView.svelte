@@ -51,7 +51,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain order timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain order timestamp')
 	const viewDomId = $derived('dydx-chain-order-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={dydxChainOrderTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainOrderTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain order timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain order timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -130,7 +130,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -160,7 +160,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -187,7 +187,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>block height</dt>
@@ -222,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const price = prefetched.price}
+					{@const price = pendingEntity.price}
 					{#if price !== undefined && price !== null}
 						<div>
 							<dt>price</dt>
@@ -294,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const size = prefetched.size}
+					{@const size = pendingEntity.size}
 					{#if size !== undefined && size !== null}
 						<div>
 							<dt>size</dt>
@@ -329,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const remainingSize = prefetched.remainingSize}
+					{@const remainingSize = pendingEntity.remainingSize}
 					{#if remainingSize !== undefined && remainingSize !== null}
 						<div>
 							<dt>remaining size</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const filledSize = prefetched.filledSize}
+					{@const filledSize = pendingEntity.filledSize}
 					{#if filledSize !== undefined && filledSize !== null}
 						<div>
 							<dt>filled size</dt>
@@ -399,7 +399,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalFilled = prefetched.totalFilled}
+					{@const totalFilled = pendingEntity.totalFilled}
 					{#if totalFilled !== undefined && totalFilled !== null}
 						<div>
 							<dt>total filled</dt>

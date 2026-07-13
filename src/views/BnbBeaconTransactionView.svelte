@@ -45,10 +45,9 @@
 		fields: {
 			txType: true,
 			tokenSymbol: true,
-			$block: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || 'bnb beacon transaction')
+	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'bnb beacon transaction')
 	const viewDomId = $derived('bnb-beacon-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bnbBeaconTransaction}>
 			{#snippet Pending()}
-				{@const txHash0 = selection.entitySelector.txHash ?? prefetched.txHash}
+				{@const txHash0 = pendingEntity.txHash}
 				{#if txHash0 !== undefined && txHash0 !== null}
 					<TruncatedValue value={String((txHash0) ?? '')} />
 				{/if}
@@ -94,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconTransaction}>
 			{#snippet Pending()}
-				{[String((prefetched.txType) ?? ''), String((prefetched.tokenSymbol) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon transaction'}
+				{[String((pendingEntity.txType) ?? ''), String((pendingEntity.tokenSymbol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -173,7 +172,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const txHash = selection.entitySelector.txHash ?? prefetched.txHash}
+							{@const txHash = pendingEntity.txHash}
 							{#if txHash !== undefined && txHash !== null}
 								<TruncatedValue value={String((txHash) ?? '')} />
 							{/if}
@@ -200,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const txType = prefetched.txType}
+					{@const txType = pendingEntity.txType}
 					{#if txType !== undefined && txType !== null}
 						<div>
 							<dt>transaction type</dt>
@@ -237,7 +236,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceAddress = prefetched.sourceAddress}
+					{@const sourceAddress = pendingEntity.sourceAddress}
 					{#if sourceAddress !== undefined && sourceAddress !== null}
 						<div>
 							<dt>source address</dt>
@@ -272,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const destinationAddress = prefetched.destinationAddress}
+					{@const destinationAddress = pendingEntity.destinationAddress}
 					{#if destinationAddress !== undefined && destinationAddress !== null}
 						<div>
 							<dt>destination address</dt>
@@ -307,7 +306,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -342,7 +341,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeAmount = prefetched.feeAmount}
+					{@const feeAmount = pendingEntity.feeAmount}
 					{#if feeAmount !== undefined && feeAmount !== null}
 						<div>
 							<dt>fee amount</dt>
@@ -377,7 +376,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenSymbol = prefetched.tokenSymbol}
+					{@const tokenSymbol = pendingEntity.tokenSymbol}
 					{#if tokenSymbol !== undefined && tokenSymbol !== null}
 						<div>
 							<dt>token symbol</dt>
@@ -414,7 +413,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo}
+					{@const memo = pendingEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>memo</dt>
@@ -449,7 +448,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const orderId = prefetched.orderId}
+					{@const orderId = pendingEntity.orderId}
 					{#if orderId !== undefined && orderId !== null}
 						<div>
 							<dt>order ID</dt>
@@ -484,7 +483,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequence = prefetched.sequence}
+					{@const sequence = pendingEntity.sequence}
 					{#if sequence !== undefined && sequence !== null}
 						<div>
 							<dt>sequence</dt>
@@ -519,7 +518,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const code = prefetched.code}
+					{@const code = pendingEntity.code}
 					{#if code !== undefined && code !== null}
 						<div>
 							<dt>code</dt>
@@ -554,7 +553,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const log = prefetched.log}
+					{@const log = pendingEntity.log}
 					{#if log !== undefined && log !== null}
 						<div>
 							<dt>log</dt>

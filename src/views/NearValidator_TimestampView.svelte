@@ -51,7 +51,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.epochId ?? prefetched.epochId) ?? '')].filter(Boolean).join(' ') || 'near validator timestamp')
+	const titleFallback = $derived([String((pendingEntity.epochId) ?? '')].filter(Boolean).join(' ') || 'near validator timestamp')
 	const viewDomId = $derived('near-validator-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearValidatorTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.epochId ?? prefetched.epochId) ?? '')].filter(Boolean).join(' ') || title || 'near validator timestamp'}
+				{[String((pendingEntity.epochId) ?? '')].filter(Boolean).join(' ') || title || 'near validator timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearValidatorTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.validatorSetRole) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.epochId ?? prefetched.epochId) ?? '')].filter(Boolean).join(' ') || title || 'near validator timestamp'}
+				{[String((pendingEntity.validatorSetRole) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.epochId) ?? '')].filter(Boolean).join(' ') || title || 'near validator timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearValidatorTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -149,7 +149,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const epochId = selection.entitySelector.epochId ?? prefetched.epochId}
+							{@const epochId = pendingEntity.epochId}
 							{#if epochId !== undefined && epochId !== null}
 								{String((epochId) ?? '')}
 							{/if}
@@ -179,7 +179,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -206,7 +206,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -244,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epochHeight = prefetched.epochHeight}
+					{@const epochHeight = pendingEntity.epochHeight}
 					{#if epochHeight !== undefined && epochHeight !== null}
 						<div>
 							<dt>Epoch height</dt>
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epochStartHeight = prefetched.epochStartHeight}
+					{@const epochStartHeight = pendingEntity.epochStartHeight}
 					{#if epochStartHeight !== undefined && epochStartHeight !== null}
 						<div>
 							<dt>Epoch start height</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validatorSetRole = prefetched.validatorSetRole}
+					{@const validatorSetRole = pendingEntity.validatorSetRole}
 					{#if validatorSetRole !== undefined && validatorSetRole !== null}
 						<div>
 							<dt>Validator set role</dt>
@@ -358,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publicKey = prefetched.publicKey}
+					{@const publicKey = pendingEntity.publicKey}
 					{#if publicKey !== undefined && publicKey !== null}
 						<div>
 							<dt>Public key</dt>
@@ -396,7 +396,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakeYoctoNear = prefetched.stakeYoctoNear}
+					{@const stakeYoctoNear = pendingEntity.stakeYoctoNear}
 					{#if stakeYoctoNear !== undefined && stakeYoctoNear !== null}
 						<div>
 							<dt>Stake yocto near</dt>
@@ -434,7 +434,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isSlashed = prefetched.isSlashed}
+					{@const isSlashed = pendingEntity.isSlashed}
 					{#if isSlashed !== undefined && isSlashed !== null}
 						<div>
 							<dt>Slashed</dt>
@@ -474,7 +474,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expectedBlocks = prefetched.expectedBlocks}
+					{@const expectedBlocks = pendingEntity.expectedBlocks}
 					{#if expectedBlocks !== undefined && expectedBlocks !== null}
 						<div>
 							<dt>Expected blocks</dt>
@@ -512,7 +512,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const producedBlocks = prefetched.producedBlocks}
+					{@const producedBlocks = pendingEntity.producedBlocks}
 					{#if producedBlocks !== undefined && producedBlocks !== null}
 						<div>
 							<dt>Produced blocks</dt>
@@ -550,7 +550,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expectedChunks = prefetched.expectedChunks}
+					{@const expectedChunks = pendingEntity.expectedChunks}
 					{#if expectedChunks !== undefined && expectedChunks !== null}
 						<div>
 							<dt>Expected chunks</dt>
@@ -588,7 +588,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const producedChunks = prefetched.producedChunks}
+					{@const producedChunks = pendingEntity.producedChunks}
 					{#if producedChunks !== undefined && producedChunks !== null}
 						<div>
 							<dt>Produced chunks</dt>
@@ -626,7 +626,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const shards = prefetched.shards}
+							{@const shards = pendingEntity.shards}
 							{#if shards !== undefined && shards !== null}
 								{shards.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

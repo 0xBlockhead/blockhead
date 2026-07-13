@@ -51,7 +51,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet request timestamp')
+	const titleFallback = $derived([String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet request timestamp')
 	const viewDomId = $derived('blockhead-wallet-request-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadWalletRequestTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet request timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet request timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletRequestTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadWalletRequestTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -242,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const walletStatusCode = prefetched.walletStatusCode}
+					{@const walletStatusCode = pendingEntity.walletStatusCode}
 					{#if walletStatusCode !== undefined && walletStatusCode !== null}
 						<div>
 							<dt>wallet status code</dt>
@@ -277,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const walletCallBundleStatus = prefetched.walletCallBundleStatus}
+					{@const walletCallBundleStatus = pendingEntity.walletCallBundleStatus}
 					{#if walletCallBundleStatus !== undefined && walletCallBundleStatus !== null}
 						<div>
 							<dt>wallet call bundle status</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const atomic = prefetched.atomic}
+					{@const atomic = pendingEntity.atomic}
 					{#if atomic !== undefined && atomic !== null}
 						<div>
 							<dt>atomic</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const receiptCount = prefetched.receiptCount}
+					{@const receiptCount = pendingEntity.receiptCount}
 					{#if receiptCount !== undefined && receiptCount !== null}
 						<div>
 							<dt>receipt count</dt>
@@ -384,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>transaction hash</dt>
@@ -419,7 +419,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionId = prefetched.transactionId}
+					{@const transactionId = pendingEntity.transactionId}
 					{#if transactionId !== undefined && transactionId !== null}
 						<div>
 							<dt>transaction ID</dt>
@@ -454,7 +454,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signatureHash = prefetched.signatureHash}
+					{@const signatureHash = pendingEntity.signatureHash}
 					{#if signatureHash !== undefined && signatureHash !== null}
 						<div>
 							<dt>signature hash</dt>
@@ -489,7 +489,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const statusPayloadHash = prefetched.statusPayloadHash}
+					{@const statusPayloadHash = pendingEntity.statusPayloadHash}
 					{#if statusPayloadHash !== undefined && statusPayloadHash !== null}
 						<div>
 							<dt>status payload hash</dt>
@@ -524,7 +524,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

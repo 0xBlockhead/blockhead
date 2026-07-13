@@ -67,9 +67,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$account !== undefined && pendingEntity.$account.address !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(lens)/lens/account/[address=evmAddress]/(account)/observations/[timestampMs=nonNegativeInteger]', {
-			address: String(pendingEntity.$account.address ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			address: String(pendingEntity.$account.address ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensAccountTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -173,7 +173,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followerCount = prefetched.followerCount}
+					{@const followerCount = pendingEntity.followerCount}
 					{#if followerCount !== undefined && followerCount !== null}
 						<div>
 							<dt>Followers</dt>
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followingCount = prefetched.followingCount}
+					{@const followingCount = pendingEntity.followingCount}
 					{#if followingCount !== undefined && followingCount !== null}
 						<div>
 							<dt>Following</dt>

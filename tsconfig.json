@@ -2,6 +2,14 @@
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
 		"allowImportingTsExtensions": true,
+	"paths": {
+			"$": [
+				"./src"
+			],
+			"$/*": [
+				"./src/*"
+			]
+		},
 		"rewriteRelativeImportExtensions": false,
 		"allowJs": true,
 		"checkJs": true,

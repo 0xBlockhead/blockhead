@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const round = selection.entitySelector.round ?? prefetched.round}
+							{@const round = pendingEntity.round}
 							{#if round !== undefined && round !== null}
 								{String((round) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -161,7 +161,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -196,7 +196,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingRewards = prefetched.pendingRewards}
+					{@const pendingRewards = pendingEntity.pendingRewards}
 					{#if pendingRewards !== undefined && pendingRewards !== null}
 						<div>
 							<dt>pending rewards</dt>
@@ -231,7 +231,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardsBase = prefetched.rewardsBase}
+					{@const rewardsBase = pendingEntity.rewardsBase}
 					{#if rewardsBase !== undefined && rewardsBase !== null}
 						<div>
 							<dt>rewards base</dt>
@@ -266,7 +266,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>

@@ -10,8 +10,10 @@ export enum RedditSubredditSelector {
 }
 export const RedditSubreddit = entity({
 	entityType: EntityType.RedditSubreddit,
-	label: 'Reddit subreddit',
-	labelPlural: 'Reddit subreddits',
+	labels: {
+		singular: 'Reddit subreddit',
+		plural: 'Reddit subreddits',
+	},
 })({
 	name: {
 		label: 'Name',

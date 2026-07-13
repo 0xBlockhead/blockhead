@@ -14,8 +14,10 @@ export enum BlockheadSessionSelector {
 }
 export const BlockheadSession = entity({
 	entityType: EntityType.BlockheadSession,
-	label: 'session',
-	labelPlural: 'sessions',
+	labels: {
+		singular: 'session',
+		plural: 'sessions',
+	},
 })({
 	id: {
 		label: 'ID',

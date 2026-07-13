@@ -10,8 +10,10 @@ export enum Erc4337AccountFactorySelector {
 }
 export const Erc4337AccountFactory = entity({
 	entityType: EntityType.Erc4337AccountFactory,
-	label: 'ERC-4337 account factory',
-	labelPlural: 'ERC-4337 account factories',
+	labels: {
+		singular: 'ERC-4337 account factory',
+		plural: 'ERC-4337 account factories',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -9,8 +9,10 @@ export enum _GlobalArweaveNetworkSelector {
 }
 export const _GlobalArweaveNetwork = entity({
 	entityType: EntityType._GlobalArweaveNetwork,
-	label: 'global Arweave network',
-	labelPlural: 'global Arweave networks',
+	labels: {
+		singular: 'global Arweave network',
+		plural: 'global Arweave networks',
+	},
 })({
 	scope: {
 		label: 'Scope',

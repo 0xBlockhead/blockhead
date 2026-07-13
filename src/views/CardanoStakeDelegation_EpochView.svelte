@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const epoch = selection.entitySelector.epoch ?? prefetched.epoch}
+							{@const epoch = pendingEntity.epoch}
 							{#if epoch !== undefined && epoch !== null}
 								{String((epoch) ?? '')}
 							{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -154,6 +154,8 @@
 			<ResourceBoundary
 				resource={selection.$stakePool}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoStakePool)}
 					{#if cardanoStakePool != null && cardanoStakePool[EntityMetaKey.Selector] != null}
 						<div>
@@ -174,6 +176,8 @@
 			<ResourceBoundary
 				resource={selection.$drep}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoDRep)}
 					{#if cardanoDRep != null && cardanoDRep[EntityMetaKey.Selector] != null}
 						<div>
@@ -201,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activeStake = prefetched.activeStake}
+					{@const activeStake = pendingEntity.activeStake}
 					{#if activeStake !== undefined && activeStake !== null}
 						<div>
 							<dt>active stake</dt>
@@ -236,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardAmount = prefetched.rewardAmount}
+					{@const rewardAmount = pendingEntity.rewardAmount}
 					{#if rewardAmount !== undefined && rewardAmount !== null}
 						<div>
 							<dt>reward amount</dt>
@@ -271,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const withdrawalAmount = prefetched.withdrawalAmount}
+					{@const withdrawalAmount = pendingEntity.withdrawalAmount}
 					{#if withdrawalAmount !== undefined && withdrawalAmount !== null}
 						<div>
 							<dt>withdrawal amount</dt>
@@ -306,7 +310,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registered = prefetched.registered}
+					{@const registered = pendingEntity.registered}
 					{#if registered !== undefined && registered !== null}
 						<div>
 							<dt>registered</dt>
@@ -341,7 +345,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deregistered = prefetched.deregistered}
+					{@const deregistered = pendingEntity.deregistered}
 					{#if deregistered !== undefined && deregistered !== null}
 						<div>
 							<dt>deregistered</dt>

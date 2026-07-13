@@ -9,8 +9,10 @@ export enum McpServer_TimestampSelector {
 }
 export const McpServer_Timestamp = entity({
 	entityType: EntityType.McpServer_Timestamp,
-	label: 'mcp server timestamp',
-	labelPlural: 'mcp server observations',
+	labels: {
+		singular: 'mcp server timestamp',
+		plural: 'mcp server observations',
+	},
 })({
 	$server: {
 		label: 'server',

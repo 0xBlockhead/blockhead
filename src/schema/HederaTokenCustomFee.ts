@@ -9,8 +9,10 @@ export enum HederaTokenCustomFeeSelector {
 }
 export const HederaTokenCustomFee = entity({
 	entityType: EntityType.HederaTokenCustomFee,
-	label: 'hedera token custom fee',
-	labelPlural: 'hedera token custom fees',
+	labels: {
+		singular: 'hedera token custom fee',
+		plural: 'hedera token custom fees',
+	},
 })({
 	$tokenTimestamp: {
 		label: 'token timestamp',

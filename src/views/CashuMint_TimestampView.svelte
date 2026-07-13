@@ -48,7 +48,7 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Cashu mint timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Cashu mint timestamp')
 	const viewDomId = $derived('cashu-mint-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cashuMintTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cashuMintTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? ''), String((prefetched.version) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Cashu mint timestamp'}
+				{[String((pendingEntity.name) ?? ''), String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Cashu mint timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cashuMintTimestamp}>
 			{#snippet Pending()}
-				{@const reachable0 = prefetched.reachable}
+				{@const reachable0 = pendingEntity.reachable}
 				{#if reachable0 !== undefined && reachable0 !== null}
 					<span data-text="muted">
 						{reachable0 ? 'Yes' : 'No'}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>
@@ -245,7 +245,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -280,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -315,7 +315,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const serverTimeMs = prefetched.serverTimeMs}
+					{@const serverTimeMs = pendingEntity.serverTimeMs}
 					{#if serverTimeMs !== undefined && serverTimeMs !== null}
 						<div>
 							<dt>server time ms</dt>
@@ -352,7 +352,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pubkey = prefetched.pubkey}
+					{@const pubkey = pendingEntity.pubkey}
 					{#if pubkey !== undefined && pubkey !== null}
 						<div>
 							<dt>public key</dt>
@@ -387,7 +387,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -422,7 +422,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const descriptionLong = prefetched.descriptionLong}
+					{@const descriptionLong = pendingEntity.descriptionLong}
 					{#if descriptionLong !== undefined && descriptionLong !== null}
 						<div>
 							<dt>description long</dt>
@@ -457,7 +457,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const motd = prefetched.motd}
+					{@const motd = pendingEntity.motd}
 					{#if motd !== undefined && motd !== null}
 						<div>
 							<dt>motd</dt>
@@ -494,7 +494,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const iconUrl = prefetched.iconUrl}
+					{@const iconUrl = pendingEntity.iconUrl}
 					{#if iconUrl !== undefined && iconUrl !== null}
 						<div>
 							<dt>icon URL</dt>
@@ -543,7 +543,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tosUrl = prefetched.tosUrl}
+					{@const tosUrl = pendingEntity.tosUrl}
 					{#if tosUrl !== undefined && tosUrl !== null}
 						<div>
 							<dt>tos URL</dt>
@@ -592,7 +592,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contactJson = prefetched.contactJson}
+					{@const contactJson = pendingEntity.contactJson}
 					{#if contactJson !== undefined && contactJson !== null}
 						<div>
 							<dt>contact JSON</dt>
@@ -627,7 +627,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nutsJson = prefetched.nutsJson}
+					{@const nutsJson = pendingEntity.nutsJson}
 					{#if nutsJson !== undefined && nutsJson !== null}
 						<div>
 							<dt>nuts JSON</dt>
@@ -662,7 +662,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mintMethodsJson = prefetched.mintMethodsJson}
+					{@const mintMethodsJson = pendingEntity.mintMethodsJson}
 					{#if mintMethodsJson !== undefined && mintMethodsJson !== null}
 						<div>
 							<dt>mint methods JSON</dt>
@@ -697,7 +697,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const meltMethodsJson = prefetched.meltMethodsJson}
+					{@const meltMethodsJson = pendingEntity.meltMethodsJson}
 					{#if meltMethodsJson !== undefined && meltMethodsJson !== null}
 						<div>
 							<dt>melt methods JSON</dt>

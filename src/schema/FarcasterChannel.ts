@@ -10,8 +10,10 @@ export enum FarcasterChannelSelector {
 }
 export const FarcasterChannel = entity({
 	entityType: EntityType.FarcasterChannel,
-	label: 'Farcaster channel',
-	labelPlural: 'Farcaster channels',
+	labels: {
+		singular: 'Farcaster channel',
+		plural: 'Farcaster channels',
+	},
 })({
 	id: {
 		label: 'ID',

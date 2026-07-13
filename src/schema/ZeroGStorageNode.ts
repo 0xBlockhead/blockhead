@@ -12,8 +12,10 @@ export enum ZeroGStorageNodeSelector {
 }
 export const ZeroGStorageNode = entity({
 	entityType: EntityType.ZeroGStorageNode,
-	label: 'zero g storage node',
-	labelPlural: 'zero g storage nodes',
+	labels: {
+		singular: 'zero g storage node',
+		plural: 'zero g storage nodes',
+	},
 })({
 	$network: {
 		label: 'network',

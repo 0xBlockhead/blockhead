@@ -10,8 +10,10 @@ export enum TonTransactionSelector {
 }
 export const TonTransaction = entity({
 	entityType: EntityType.TonTransaction,
-	label: 'ton transaction',
-	labelPlural: 'ton transactions',
+	labels: {
+		singular: 'ton transaction',
+		plural: 'ton transactions',
+	},
 })({
 	$account: {
 		label: 'account',

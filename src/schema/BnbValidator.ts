@@ -9,8 +9,10 @@ export enum BnbValidatorSelector {
 }
 export const BnbValidator = entity({
 	entityType: EntityType.BnbValidator,
-	label: 'bnb validator',
-	labelPlural: 'bnb validators',
+	labels: {
+		singular: 'bnb validator',
+		plural: 'bnb validators',
+	},
 })({
 	$network: {
 		label: 'network',

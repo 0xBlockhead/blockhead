@@ -51,7 +51,7 @@
 			peerCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead waku node state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead waku node state timestamp')
 	const viewDomId = $derived('blockhead-waku-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadWakuNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWakuNodeStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.health) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead waku node state timestamp'}
+				{[String((pendingEntity.health) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead waku node state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadWakuNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const peerCount0 = prefetched.peerCount}
+				{@const peerCount0 = pendingEntity.peerCount}
 				{#if peerCount0 !== undefined && peerCount0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(peerCount0)} />
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const health = prefetched.health}
+					{@const health = pendingEntity.health}
 					{#if health !== undefined && health !== null}
 						<div>
 							<dt>health</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>peer count</dt>
@@ -322,7 +322,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const listenAddresses = prefetched.listenAddresses}
+							{@const listenAddresses = pendingEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
 								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const enrUri = prefetched.enrUri}
+					{@const enrUri = pendingEntity.enrUri}
 					{#if enrUri !== undefined && enrUri !== null}
 						<div>
 							<dt>ENR URI</dt>
@@ -400,7 +400,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const relayEnabled = prefetched.relayEnabled}
+					{@const relayEnabled = pendingEntity.relayEnabled}
 					{#if relayEnabled !== undefined && relayEnabled !== null}
 						<div>
 							<dt>relay enabled</dt>
@@ -435,7 +435,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storeEnabled = prefetched.storeEnabled}
+					{@const storeEnabled = pendingEntity.storeEnabled}
 					{#if storeEnabled !== undefined && storeEnabled !== null}
 						<div>
 							<dt>store enabled</dt>
@@ -470,7 +470,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const filterEnabled = prefetched.filterEnabled}
+					{@const filterEnabled = pendingEntity.filterEnabled}
 					{#if filterEnabled !== undefined && filterEnabled !== null}
 						<div>
 							<dt>filter enabled</dt>
@@ -505,7 +505,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lightpushEnabled = prefetched.lightpushEnabled}
+					{@const lightpushEnabled = pendingEntity.lightpushEnabled}
 					{#if lightpushEnabled !== undefined && lightpushEnabled !== null}
 						<div>
 							<dt>lightpush enabled</dt>
@@ -540,7 +540,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rlnRelayEnabled = prefetched.rlnRelayEnabled}
+					{@const rlnRelayEnabled = pendingEntity.rlnRelayEnabled}
 					{#if rlnRelayEnabled !== undefined && rlnRelayEnabled !== null}
 						<div>
 							<dt>RLN relay enabled</dt>
@@ -580,7 +580,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subscribedPubsubTopics = prefetched.subscribedPubsubTopics}
+							{@const subscribedPubsubTopics = pendingEntity.subscribedPubsubTopics}
 							{#if subscribedPubsubTopics !== undefined && subscribedPubsubTopics !== null}
 								{subscribedPubsubTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -610,7 +610,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subscribedContentTopics = prefetched.subscribedContentTopics}
+							{@const subscribedContentTopics = pendingEntity.subscribedContentTopics}
 							{#if subscribedContentTopics !== undefined && subscribedContentTopics !== null}
 								{subscribedContentTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

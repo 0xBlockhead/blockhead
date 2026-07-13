@@ -114,7 +114,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const round = selection.entitySelector.round ?? prefetched.round}
+							{@const round = pendingEntity.round}
 							{#if round !== undefined && round !== null}
 								{String((round) ?? '')}
 							{/if}
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -173,7 +173,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const frozen = prefetched.frozen}
+					{@const frozen = pendingEntity.frozen}
 					{#if frozen !== undefined && frozen !== null}
 						<div>
 							<dt>frozen</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const optedInAtRound = prefetched.optedInAtRound}
+					{@const optedInAtRound = pendingEntity.optedInAtRound}
 					{#if optedInAtRound !== undefined && optedInAtRound !== null}
 						<div>
 							<dt>opted in AT round</dt>
@@ -278,7 +278,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>

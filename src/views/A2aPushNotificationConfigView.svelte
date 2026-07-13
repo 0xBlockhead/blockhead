@@ -52,7 +52,7 @@
 			url: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.configId ?? prefetched.configId) ?? '')].filter(Boolean).join(' ') || 'A2A push notification config')
+	const titleFallback = $derived([String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || 'A2A push notification config')
 	const viewDomId = $derived('a2a-push-notification-config-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aPushNotificationConfig}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.configId ?? prefetched.configId) ?? '')].filter(Boolean).join(' ') || title || 'A2A push notification config'}
+				{[String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || title || 'A2A push notification config'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aPushNotificationConfig}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.configId ?? prefetched.configId) ?? '')].filter(Boolean).join(' ') || title || 'A2A push notification config'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || title || 'A2A push notification config'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aPushNotificationConfig}>
 			{#snippet Pending()}
-				{@const url0 = prefetched.url}
+				{@const url0 = pendingEntity.url}
 				{#if url0 !== undefined && url0 !== null}
 					<span data-text="muted">
 						<svelte:element
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const configId = selection.entitySelector.configId ?? prefetched.configId}
+							{@const configId = pendingEntity.configId}
 							{#if configId !== undefined && configId !== null}
 								{String((configId) ?? '')}
 							{/if}
@@ -190,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const url = prefetched.url}
+					{@const url = pendingEntity.url}
 					{#if url !== undefined && url !== null}
 						<div>
 							<dt>URL</dt>
@@ -239,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authKind = prefetched.authKind}
+					{@const authKind = pendingEntity.authKind}
 					{#if authKind !== undefined && authKind !== null}
 						<div>
 							<dt>auth kind</dt>
@@ -274,7 +274,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deletedAt = prefetched.deletedAt}
+					{@const deletedAt = pendingEntity.deletedAt}
 					{#if deletedAt !== undefined && deletedAt !== null}
 						<div>
 							<dt>deleted AT</dt>
@@ -344,7 +344,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>

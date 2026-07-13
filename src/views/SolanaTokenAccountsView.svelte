@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -120,8 +119,8 @@
 						selection={select(EntityType.SolanaTokenAccount, solanaTokenAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaTokenAccountFields}
 						href={
-							(solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.caip2 !== undefined && solanaTokenAccountHrefFields.$network.caip2.namespace !== undefined && solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.caip2 !== undefined && solanaTokenAccountHrefFields.$network.caip2.reference !== undefined && solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/token-account/[tokenAccountPubkey]', {
-								networkSlug: String(networkByCaip2[String(String(solanaTokenAccountHrefFields.$network.caip2.namespace) + ':' + String(solanaTokenAccountHrefFields.$network.caip2.reference))].slug ?? ''),
+							(solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.slug !== undefined && solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
+								network: String(solanaTokenAccountHrefFields.$network.slug ?? ''),
 								tokenAccountPubkey: String(solanaTokenAccountHrefFields.tokenAccountPubkey ?? ''),
 							}) : undefined)
 						}

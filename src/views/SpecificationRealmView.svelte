@@ -54,7 +54,7 @@
 			slug: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.realm ?? prefetched.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm')
 	const viewDomId = $derived('specification-realm-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.realm !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+		href ?? (pendingEntity.realm !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
 			specificationRealmSlug: String(specificationRealmById[String(pendingEntity.realm)].slug ?? ''),
 		}) : undefined)
 	}
@@ -82,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={specificationRealm}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.realm ?? prefetched.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={specificationRealm}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.realm ?? prefetched.realm) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || 'Specification realm'}
+				{[String((pendingEntity.realm) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || 'Specification realm'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -123,7 +123,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const labelPlural = prefetched.labelPlural}
+					{@const labelPlural = pendingEntity.labelPlural}
 					{#if labelPlural !== undefined && labelPlural !== null}
 						<div>
 							<dt>Label plural</dt>
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const slug = prefetched.slug}
+							{@const slug = pendingEntity.slug}
 							{#if slug !== undefined && slug !== null}
 								{String((slug) ?? '')}
 							{/if}
@@ -185,7 +185,7 @@
 			<SpecificationProposalKindsView
 				selection={selection.$$proposalKinds}
 				title='Proposal kinds'
-				href={resolve('/(explore)/(proposals)/proposals')}
+				href='/proposals'
 				emptyText='No proposal kinds for this realm.'
 				id='SpecificationProposalKindsView-proposal-kinds'
 			/>

@@ -9,8 +9,10 @@ export enum AvalanchePChainTransactionSelector {
 }
 export const AvalanchePChainTransaction = entity({
 	entityType: EntityType.AvalanchePChainTransaction,
-	label: 'avalanche p chain transaction',
-	labelPlural: 'avalanche p chain transactions',
+	labels: {
+		singular: 'avalanche p chain transaction',
+		plural: 'avalanche p chain transactions',
+	},
 })({
 	$network: {
 		label: 'network',

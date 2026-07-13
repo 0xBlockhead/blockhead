@@ -47,7 +47,7 @@
 			mime: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || 'Git blob')
+	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git blob')
 	const viewDomId = $derived('git-blob-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitBlob}>
 			{#snippet Pending()}
-				{@const objectId0 = selection.entitySelector.objectId ?? prefetched.objectId}
+				{@const objectId0 = pendingEntity.objectId}
 				{#if objectId0 !== undefined && objectId0 !== null}
 					<TruncatedValue value={String((objectId0) ?? '')} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitBlob}>
 			{#snippet Pending()}
-				{[String((prefetched.mime) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git blob'}
+				{[String((pendingEntity.mime) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git blob'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -117,7 +117,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectId = selection.entitySelector.objectId ?? prefetched.objectId}
+							{@const objectId = pendingEntity.objectId}
 							{#if objectId !== undefined && objectId !== null}
 								<TruncatedValue value={String((objectId) ?? '')} />
 							{/if}
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectFormat = selection.entitySelector.objectFormat ?? prefetched.objectFormat}
+							{@const objectFormat = pendingEntity.objectFormat}
 							{#if objectFormat !== undefined && objectFormat !== null}
 								{String((objectFormat) ?? '')}
 							{/if}
@@ -171,7 +171,7 @@
 						resource={selection.$object}
 					>
 						{#snippet children(gitObject)}
-							{#if gitObject[EntityMetaKey.Selector] != null}
+							{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 								<GitObjectView
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mime = prefetched.mime}
+					{@const mime = pendingEntity.mime}
 					{#if mime !== undefined && mime !== null}
 						<div>
 							<dt>mime</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const byteSize = prefetched.byteSize}
+					{@const byteSize = pendingEntity.byteSize}
 					{#if byteSize !== undefined && byteSize !== null}
 						<div>
 							<dt>byte size</dt>

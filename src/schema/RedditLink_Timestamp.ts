@@ -9,8 +9,10 @@ export enum RedditLink_TimestampSelector {
 }
 export const RedditLink_Timestamp = entity({
 	entityType: EntityType.RedditLink_Timestamp,
-	label: 'Reddit submission timestamp',
-	labelPlural: 'Reddit submission observations',
+	labels: {
+		singular: 'Reddit submission timestamp',
+		plural: 'Reddit submission observations',
+	},
 })({
 	$link: {
 		label: 'Submission',
@@ -22,7 +24,7 @@ export const RedditLink_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

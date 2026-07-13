@@ -10,8 +10,10 @@ export enum CelestiaBlockSelector {
 }
 export const CelestiaBlock = entity({
 	entityType: EntityType.CelestiaBlock,
-	label: 'celestia block',
-	labelPlural: 'celestia blocks',
+	labels: {
+		singular: 'celestia block',
+		plural: 'celestia blocks',
+	},
 })({
 	$network: {
 		label: 'network',

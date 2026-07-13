@@ -9,8 +9,10 @@ export enum CardanoGovernanceProposal_TimestampSelector {
 }
 export const CardanoGovernanceProposal_Timestamp = entity({
 	entityType: EntityType.CardanoGovernanceProposal_Timestamp,
-	label: 'cardano governance proposal timestamp',
-	labelPlural: 'cardano governance proposal observations',
+	labels: {
+		singular: 'cardano governance proposal timestamp',
+		plural: 'cardano governance proposal observations',
+	},
 })({
 	$proposal: {
 		label: 'proposal',

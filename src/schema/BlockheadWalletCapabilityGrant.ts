@@ -9,8 +9,10 @@ export enum BlockheadWalletCapabilityGrantSelector {
 }
 export const BlockheadWalletCapabilityGrant = entity({
 	entityType: EntityType.BlockheadWalletCapabilityGrant,
-	label: 'blockhead wallet capability grant',
-	labelPlural: 'blockhead wallet capability grants',
+	labels: {
+		singular: 'blockhead wallet capability grant',
+		plural: 'blockhead wallet capability grants',
+	},
 })({
 	grantId: {
 		label: 'grant ID',

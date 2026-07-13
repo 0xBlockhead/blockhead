@@ -47,8 +47,13 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TezosContractView from '$/views/TezosContractView.svelte'
+	import TezosBigMapKeysView from '$/views/TezosBigMapKeysView.svelte'
+	import TezosBigMapDiffsView from '$/views/TezosBigMapDiffsView.svelte'
+	import TezosBigMap_TimestampsView from '$/views/TezosBigMap_TimestampsView.svelte'
 </script>
 
 
@@ -101,7 +106,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const bigMapId = selection.entitySelector.bigMapId ?? prefetched.bigMapId}
+							{@const bigMapId = pendingEntity.bigMapId}
 							{#if bigMapId !== undefined && bigMapId !== null}
 								{String((bigMapId) ?? '')}
 							{/if}
@@ -128,7 +133,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const path = prefetched.path}
+					{@const path = pendingEntity.path}
 					{#if path !== undefined && path !== null}
 						<div>
 							<dt>path</dt>
@@ -153,5 +158,96 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tezos-big-map-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tezos-big-map-keys',
+							label: 'Keys',
+						},
+						{
+							id: 'tezos-big-map-updates',
+							label: 'Updates',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTezosBigMapKeys({ id, label, open })}
+					<TezosBigMapKeysView
+						selection={selection.$$keys}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No keys.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTezosBigMapUpdates({ id, label, open })}
+					<TezosBigMapDiffsView
+						selection={selection.$$updates}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No updates.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tezos-big-map-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tezos-big-map-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTezosBigMapTimestamps({ id, label, open })}
+					<TezosBigMap_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

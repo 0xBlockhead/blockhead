@@ -46,7 +46,7 @@
 			client: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.peerId ?? prefetched.peerId) ?? '')].filter(Boolean).join(' ') || 'bit torrent peer timestamp')
+	const titleFallback = $derived([String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'bit torrent peer timestamp')
 	const viewDomId = $derived('bit-torrent-peer-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bitTorrentPeerTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.peerId ?? prefetched.peerId) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent peer timestamp'}
+				{[String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent peer timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentPeerTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.client) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.peerId ?? prefetched.peerId) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent peer timestamp'}
+				{[String((pendingEntity.client) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent peer timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -98,7 +98,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bitTorrentPeerTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const peerId = selection.entitySelector.peerId ?? prefetched.peerId}
+							{@const peerId = pendingEntity.peerId}
 							{#if peerId !== undefined && peerId !== null}
 								{String((peerId) ?? '')}
 							{/if}
@@ -174,7 +174,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -204,7 +204,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -233,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const address = prefetched.address}
+					{@const address = pendingEntity.address}
 					{#if address !== undefined && address !== null}
 						<div>
 							<dt>Address</dt>
@@ -268,7 +268,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const port = prefetched.port}
+					{@const port = pendingEntity.port}
 					{#if port !== undefined && port !== null}
 						<div>
 							<dt>port</dt>
@@ -303,7 +303,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const client = prefetched.client}
+					{@const client = pendingEntity.client}
 					{#if client !== undefined && client !== null}
 						<div>
 							<dt>client</dt>
@@ -338,7 +338,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const completedPercent = prefetched.completedPercent}
+					{@const completedPercent = pendingEntity.completedPercent}
 					{#if completedPercent !== undefined && completedPercent !== null}
 						<div>
 							<dt>completed percent</dt>
@@ -373,7 +373,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportsDht = prefetched.supportsDht}
+					{@const supportsDht = pendingEntity.supportsDht}
 					{#if supportsDht !== undefined && supportsDht !== null}
 						<div>
 							<dt>supports DHT</dt>
@@ -408,7 +408,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportsPex = prefetched.supportsPex}
+					{@const supportsPex = pendingEntity.supportsPex}
 					{#if supportsPex !== undefined && supportsPex !== null}
 						<div>
 							<dt>supports pex</dt>

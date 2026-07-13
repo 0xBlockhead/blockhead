@@ -9,8 +9,10 @@ export enum SuiRegulatedCoinState_TimestampSelector {
 }
 export const SuiRegulatedCoinState_Timestamp = entity({
 	entityType: EntityType.SuiRegulatedCoinState_Timestamp,
-	label: 'sui regulated coin state timestamp',
-	labelPlural: 'sui regulated coin state observations',
+	labels: {
+		singular: 'sui regulated coin state timestamp',
+		plural: 'sui regulated coin state observations',
+	},
 })({
 	$coinType: {
 		label: 'coin type',

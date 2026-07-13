@@ -9,8 +9,10 @@ export enum KaspaAddress_TimestampSelector {
 }
 export const KaspaAddress_Timestamp = entity({
 	entityType: EntityType.KaspaAddress_Timestamp,
-	label: 'kaspa address timestamp',
-	labelPlural: 'kaspa address observations',
+	labels: {
+		singular: 'kaspa address timestamp',
+		plural: 'kaspa address observations',
+	},
 })({
 	$address: {
 		label: 'Address',

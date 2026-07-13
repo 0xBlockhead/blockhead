@@ -41,7 +41,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const media = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.url ?? prefetched.url) ?? '')].filter(Boolean).join(' ') || 'Media')
+	const titleFallback = $derived([String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || 'Media')
 	const viewDomId = $derived('media-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -57,7 +57,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.url !== undefined ? resolve('/(explore)/media/[url]', {
+		href ?? (pendingEntity.url !== undefined ? resolve('/media/[url=absoluteUrl]', {
 			url: String(pendingEntity.url ?? ''),
 		}) : undefined)
 	}
@@ -117,7 +117,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={media}>
 			{#snippet Pending()}
-				{@const url0 = selection.entitySelector.url ?? prefetched.url}
+				{@const url0 = pendingEntity.url}
 				{#if url0 !== undefined && url0 !== null}
 					<svelte:element
 						this={'a'}
@@ -206,7 +206,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const url = selection.entitySelector.url ?? prefetched.url}
+							{@const url = pendingEntity.url}
 							{#if url !== undefined && url !== null}
 								<svelte:element
 									this={'a'}
@@ -250,7 +250,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const type = prefetched.type}
+							{@const type = pendingEntity.type}
 							{#if type !== undefined && type !== null}
 								{String((type) ?? '')}
 							{/if}
@@ -280,7 +280,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transport = prefetched.transport}
+							{@const transport = pendingEntity.transport}
 							{#if transport !== undefined && transport !== null}
 								{String((transport) ?? '')}
 							{/if}
@@ -307,7 +307,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hash = prefetched.hash}
+					{@const hash = pendingEntity.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>

@@ -9,8 +9,10 @@ export enum HyperliquidSpotPair_TimestampSelector {
 }
 export const HyperliquidSpotPair_Timestamp = entity({
 	entityType: EntityType.HyperliquidSpotPair_Timestamp,
-	label: 'hyperliquid spot pair timestamp',
-	labelPlural: 'hyperliquid spot pair observations',
+	labels: {
+		singular: 'hyperliquid spot pair timestamp',
+		plural: 'hyperliquid spot pair observations',
+	},
 })({
 	$spotPair: {
 		label: 'spot pair',

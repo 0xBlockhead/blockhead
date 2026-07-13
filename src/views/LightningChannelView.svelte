@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -56,7 +56,7 @@
 			fundingOutputIndex: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.shortChannelId) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.channelId ?? prefetched.channelId) ?? '')].filter(Boolean).join(' ') || 'Lightning channel')
+	const titleFallback = $derived([String((pendingEntity.shortChannelId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || 'Lightning channel')
 	const viewDomId = $derived('lightning-channel-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,8 +78,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-			networkSlug: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			channelId: String(pendingEntity.channelId ?? ''),
 		}) : undefined)
 	}
@@ -90,7 +90,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lightningChannel}>
 			{#snippet Pending()}
-				{[String((prefetched.shortChannelId) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.channelId ?? prefetched.channelId) ?? '')].filter(Boolean).join(' ') || 'Lightning channel'}
+				{[String((pendingEntity.shortChannelId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || 'Lightning channel'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -112,8 +112,8 @@
 								selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 								prefetched={lightningNode}
 								href={
-									(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-										networkSlug: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+									(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+										network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
 										pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
 									}) : undefined)
 								}
@@ -136,8 +136,8 @@
 								selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 								prefetched={lightningNode}
 								href={
-									(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-										networkSlug: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+									(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+										network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
 										pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
 									}) : undefined)
 								}
@@ -166,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const channelId = selection.entitySelector.channelId ?? prefetched.channelId}
+							{@const channelId = pendingEntity.channelId}
 							{#if channelId !== undefined && channelId !== null}
 								<TruncatedValue value={String((channelId) ?? '')} />
 							{/if}
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const shortChannelId = prefetched.shortChannelId}
+					{@const shortChannelId = pendingEntity.shortChannelId}
 					{#if shortChannelId !== undefined && shortChannelId !== null}
 						<div>
 							<dt>Short channel ID</dt>
@@ -224,22 +224,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -253,6 +241,8 @@
 			<ResourceBoundary
 				resource={selection.$node1}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(lightningNode)}
 					{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
 						<div>
@@ -262,8 +252,8 @@
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									prefetched={lightningNode}
 									href={
-										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-											networkSlug: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+											network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
 											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
 										}) : undefined)
 									}
@@ -286,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fundingTransactionId = prefetched.fundingTransactionId}
+					{@const fundingTransactionId = pendingEntity.fundingTransactionId}
 					{#if fundingTransactionId !== undefined && fundingTransactionId !== null}
 						<div>
 							<dt>Funding transaction ID</dt>
@@ -321,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fundingOutputIndex = prefetched.fundingOutputIndex}
+					{@const fundingOutputIndex = pendingEntity.fundingOutputIndex}
 					{#if fundingOutputIndex !== undefined && fundingOutputIndex !== null}
 						<div>
 							<dt>Funding output index</dt>
@@ -356,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const openedAtMs = prefetched.openedAtMs}
+					{@const openedAtMs = pendingEntity.openedAtMs}
 					{#if openedAtMs !== undefined && openedAtMs !== null}
 						<div>
 							<dt>Opened</dt>

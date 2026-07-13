@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sequence = selection.entitySelector.sequence ?? prefetched.sequence}
+							{@const sequence = pendingEntity.sequence}
 							{#if sequence !== undefined && sequence !== null}
 								{String((sequence) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hash = prefetched.hash}
+					{@const hash = pendingEntity.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const closeTimeMs = prefetched.closeTimeMs}
+					{@const closeTimeMs = pendingEntity.closeTimeMs}
 					{#if closeTimeMs !== undefined && closeTimeMs !== null}
 						<div>
 							<dt>close time ms</dt>
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount}
+					{@const transactionCount = pendingEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>transaction count</dt>
@@ -269,7 +269,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const operationCount = prefetched.operationCount}
+					{@const operationCount = pendingEntity.operationCount}
 					{#if operationCount !== undefined && operationCount !== null}
 						<div>
 							<dt>operation count</dt>
@@ -304,7 +304,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const successfulTransactionCount = prefetched.successfulTransactionCount}
+					{@const successfulTransactionCount = pendingEntity.successfulTransactionCount}
 					{#if successfulTransactionCount !== undefined && successfulTransactionCount !== null}
 						<div>
 							<dt>successful transaction count</dt>
@@ -339,7 +339,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const failedTransactionCount = prefetched.failedTransactionCount}
+					{@const failedTransactionCount = pendingEntity.failedTransactionCount}
 					{#if failedTransactionCount !== undefined && failedTransactionCount !== null}
 						<div>
 							<dt>failed transaction count</dt>

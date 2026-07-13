@@ -9,8 +9,10 @@ export enum HyperliquidVaultSelector {
 }
 export const HyperliquidVault = entity({
 	entityType: EntityType.HyperliquidVault,
-	label: 'hyperliquid vault',
-	labelPlural: 'hyperliquid vaults',
+	labels: {
+		singular: 'hyperliquid vault',
+		plural: 'hyperliquid vaults',
+	},
 })({
 	$network: {
 		label: 'network',

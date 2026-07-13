@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestId = selection.entitySelector.requestId ?? prefetched.requestId}
+							{@const requestId = pendingEntity.requestId}
 							{#if requestId !== undefined && requestId !== null}
 								{String((requestId) ?? '')}
 							{/if}
@@ -122,6 +122,8 @@
 			<ResourceBoundary
 				resource={selection.$canister}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(icpCanister)}
 					{#if icpCanister != null && icpCanister[EntityMetaKey.Selector] != null}
 						<div>
@@ -149,7 +151,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const methodName = prefetched.methodName}
+					{@const methodName = pendingEntity.methodName}
 					{#if methodName !== undefined && methodName !== null}
 						<div>
 							<dt>method name</dt>
@@ -184,7 +186,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestKind = prefetched.requestKind}
+					{@const requestKind = pendingEntity.requestKind}
 					{#if requestKind !== undefined && requestKind !== null}
 						<div>
 							<dt>request kind</dt>
@@ -219,7 +221,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const callerPrincipal = prefetched.callerPrincipal}
+					{@const callerPrincipal = pendingEntity.callerPrincipal}
 					{#if callerPrincipal !== undefined && callerPrincipal !== null}
 						<div>
 							<dt>caller principal</dt>
@@ -254,7 +256,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ingressExpiryNs = prefetched.ingressExpiryNs}
+					{@const ingressExpiryNs = pendingEntity.ingressExpiryNs}
 					{#if ingressExpiryNs !== undefined && ingressExpiryNs !== null}
 						<div>
 							<dt>ingress expiry ns</dt>

@@ -11,8 +11,10 @@ export enum EvmBlockSelector {
 }
 export const EvmBlock = entity({
 	entityType: EntityType.EvmBlock,
-	label: 'EVM block',
-	labelPlural: 'EVM blocks',
+	labels: {
+		singular: 'EVM block',
+		plural: 'EVM blocks',
+	},
 	description: 'A block in an EVM-compatible execution chain.',
 })({
 	$network: {
@@ -25,7 +27,7 @@ export const EvmBlock = entity({
 		label: 'Block',
 		description: 'The block height or number in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {

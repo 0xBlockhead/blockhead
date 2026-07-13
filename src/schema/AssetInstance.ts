@@ -16,8 +16,10 @@ export enum AssetInstanceSelector {
 }
 export const AssetInstance = entity({
 	entityType: EntityType.AssetInstance,
-	label: 'Asset instance',
-	labelPlural: 'asset instances',
+	labels: {
+		singular: 'Asset instance',
+		plural: 'asset instances',
+	},
 	description: 'A concrete asset on a specific network or venue, such as a native coin, token, share, or collectible.',
 })({
 	$network: {

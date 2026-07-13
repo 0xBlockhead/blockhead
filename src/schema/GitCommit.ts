@@ -10,8 +10,10 @@ export enum GitCommitSelector {
 }
 export const GitCommit = entity({
 	entityType: EntityType.GitCommit,
-	label: 'Git commit',
-	labelPlural: 'Git commits',
+	labels: {
+		singular: 'Git commit',
+		plural: 'Git commits',
+	},
 })({
 	objectId: {
 		label: 'object ID',

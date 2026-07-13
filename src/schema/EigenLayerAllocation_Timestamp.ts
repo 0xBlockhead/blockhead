@@ -9,8 +9,10 @@ export enum EigenLayerAllocation_TimestampSelector {
 }
 export const EigenLayerAllocation_Timestamp = entity({
 	entityType: EntityType.EigenLayerAllocation_Timestamp,
-	label: 'eigen layer allocation timestamp',
-	labelPlural: 'eigen layer allocation observations',
+	labels: {
+		singular: 'eigen layer allocation timestamp',
+		plural: 'eigen layer allocation observations',
+	},
 })({
 	$operator: {
 		label: 'operator',

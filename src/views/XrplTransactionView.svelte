@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hash = selection.entitySelector.hash ?? prefetched.hash}
+							{@const hash = pendingEntity.hash}
 							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionType = prefetched.transactionType}
+							{@const transactionType = pendingEntity.transactionType}
 							{#if transactionType !== undefined && transactionType !== null}
 								{String((transactionType) ?? '')}
 							{/if}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const account = prefetched.account}
+							{@const account = pendingEntity.account}
 							{#if account !== undefined && account !== null}
 								<TruncatedValue value={String((account) ?? '')} />
 							{/if}
@@ -189,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequence = prefetched.sequence}
+					{@const sequence = pendingEntity.sequence}
 					{#if sequence !== undefined && sequence !== null}
 						<div>
 							<dt>sequence</dt>

@@ -11,8 +11,10 @@ export enum EthereumNetworkUpgradeSelector {
 }
 export const EthereumNetworkUpgrade = entity({
 	entityType: EntityType.EthereumNetworkUpgrade,
-	label: 'Ethereum network upgrade',
-	labelPlural: 'Ethereum network upgrades',
+	labels: {
+		singular: 'Ethereum network upgrade',
+		plural: 'Ethereum network upgrades',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -153,6 +153,8 @@
 			<ResourceBoundary
 				resource={selection.$subnet}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(icpSubnet)}
 					{#if icpSubnet != null && icpSubnet[EntityMetaKey.Selector] != null}
 						<div>
@@ -180,7 +182,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subnetId = prefetched.subnetId}
+					{@const subnetId = pendingEntity.subnetId}
 					{#if subnetId !== undefined && subnetId !== null}
 						<div>
 							<dt>subnet ID</dt>
@@ -215,7 +217,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canisterKind = prefetched.canisterKind}
+					{@const canisterKind = pendingEntity.canisterKind}
 					{#if canisterKind !== undefined && canisterKind !== null}
 						<div>
 							<dt>canister kind</dt>
@@ -250,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const candidInterfaceHash = prefetched.candidInterfaceHash}
+					{@const candidInterfaceHash = pendingEntity.candidInterfaceHash}
 					{#if candidInterfaceHash !== undefined && candidInterfaceHash !== null}
 						<div>
 							<dt>candid interface hash</dt>
@@ -285,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -320,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleHash = prefetched.moduleHash}
+					{@const moduleHash = pendingEntity.moduleHash}
 					{#if moduleHash !== undefined && moduleHash !== null}
 						<div>
 							<dt>module hash</dt>
@@ -358,7 +360,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const controllers = prefetched.controllers}
+							{@const controllers = pendingEntity.controllers}
 							{#if controllers !== undefined && controllers !== null}
 								{controllers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -385,7 +387,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cyclesBalance = prefetched.cyclesBalance}
+					{@const cyclesBalance = pendingEntity.cyclesBalance}
 					{#if cyclesBalance !== undefined && cyclesBalance !== null}
 						<div>
 							<dt>cycles balance</dt>
@@ -420,7 +422,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memorySizeBytes = prefetched.memorySizeBytes}
+					{@const memorySizeBytes = pendingEntity.memorySizeBytes}
 					{#if memorySizeBytes !== undefined && memorySizeBytes !== null}
 						<div>
 							<dt>memory size bytes</dt>
@@ -455,7 +457,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freezingThresholdSeconds = prefetched.freezingThresholdSeconds}
+					{@const freezingThresholdSeconds = pendingEntity.freezingThresholdSeconds}
 					{#if freezingThresholdSeconds !== undefined && freezingThresholdSeconds !== null}
 						<div>
 							<dt>freezing threshold seconds</dt>
@@ -490,7 +492,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const idleCyclesBurnedPerDay = prefetched.idleCyclesBurnedPerDay}
+					{@const idleCyclesBurnedPerDay = pendingEntity.idleCyclesBurnedPerDay}
 					{#if idleCyclesBurnedPerDay !== undefined && idleCyclesBurnedPerDay !== null}
 						<div>
 							<dt>idle cycles burned per day</dt>
@@ -525,7 +527,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canisterVersion = prefetched.canisterVersion}
+					{@const canisterVersion = pendingEntity.canisterVersion}
 					{#if canisterVersion !== undefined && canisterVersion !== null}
 						<div>
 							<dt>canister version</dt>
@@ -560,7 +562,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reservedCycles = prefetched.reservedCycles}
+					{@const reservedCycles = pendingEntity.reservedCycles}
 					{#if reservedCycles !== undefined && reservedCycles !== null}
 						<div>
 							<dt>reserved cycles</dt>

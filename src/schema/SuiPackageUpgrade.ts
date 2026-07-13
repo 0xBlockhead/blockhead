@@ -9,8 +9,10 @@ export enum SuiPackageUpgradeSelector {
 }
 export const SuiPackageUpgrade = entity({
 	entityType: EntityType.SuiPackageUpgrade,
-	label: 'sui package upgrade',
-	labelPlural: 'sui package upgrades',
+	labels: {
+		singular: 'sui package upgrade',
+		plural: 'sui package upgrades',
+	},
 })({
 	$package: {
 		label: 'package',

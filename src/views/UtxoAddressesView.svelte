@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -119,8 +118,8 @@
 						selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={utxoAddressFields}
 						href={
-							(utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.caip2 !== undefined && utxoAddressHrefFields.$network.caip2.namespace !== undefined && utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.caip2 !== undefined && utxoAddressHrefFields.$network.caip2.reference !== undefined && utxoAddressHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
-								networkSlug: String(networkByCaip2[String(String(utxoAddressHrefFields.$network.caip2.namespace) + ':' + String(utxoAddressHrefFields.$network.caip2.reference))].slug ?? ''),
+							(utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.slug !== undefined && utxoAddressHrefFields.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+								network: String(utxoAddressHrefFields.$network.slug ?? ''),
 								address: String(utxoAddressHrefFields.address ?? ''),
 							}) : undefined)
 						}

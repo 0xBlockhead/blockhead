@@ -10,13 +10,15 @@ export enum FarcasterUserSelector {
 }
 export const FarcasterUser = entity({
 	entityType: EntityType.FarcasterUser,
-	label: 'Farcaster user',
-	labelPlural: 'Farcaster users',
+	labels: {
+		singular: 'Farcaster user',
+		plural: 'Farcaster users',
+	},
 })({
 	fid: {
 		label: 'FID',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	username: {

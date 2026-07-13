@@ -46,7 +46,7 @@
 			amount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.assetType ?? prefetched.assetType) ?? '')].filter(Boolean).join(' ') || 'aptos coin balance timestamp')
+	const titleFallback = $derived([String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || 'aptos coin balance timestamp')
 	const viewDomId = $derived('aptos-coin-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.assetType ?? prefetched.assetType) ?? '')].filter(Boolean).join(' ') || title || 'aptos coin balance timestamp'}
+				{[String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || 'aptos coin balance timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
 			{#snippet Pending()}
-				{@const amount0 = prefetched.amount}
+				{@const amount0 = pendingEntity.amount}
 				{#if amount0 !== undefined && amount0 !== null}
 					<NumberValue value={Number(amount0)} />
 				{/if}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
 			{#snippet Pending()}
-				{@const ledgerVersion0 = selection.entitySelector.ledgerVersion ?? prefetched.ledgerVersion}
+				{@const ledgerVersion0 = pendingEntity.ledgerVersion}
 				{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(ledgerVersion0)} />
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const assetType = selection.entitySelector.assetType ?? prefetched.assetType}
+							{@const assetType = pendingEntity.assetType}
 							{#if assetType !== undefined && assetType !== null}
 								{String((assetType) ?? '')}
 							{/if}
@@ -177,7 +177,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const coinType = prefetched.coinType}
+					{@const coinType = pendingEntity.coinType}
 					{#if coinType !== undefined && coinType !== null}
 						<div>
 							<dt>coin type</dt>
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -252,7 +252,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerVersion = selection.entitySelector.ledgerVersion ?? prefetched.ledgerVersion}
+							{@const ledgerVersion = pendingEntity.ledgerVersion}
 							{#if ledgerVersion !== undefined && ledgerVersion !== null}
 								<NumberValue value={Number(ledgerVersion)} />
 							{/if}
@@ -282,7 +282,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -344,7 +344,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownerAddress = prefetched.ownerAddress}
+					{@const ownerAddress = pendingEntity.ownerAddress}
 					{#if ownerAddress !== undefined && ownerAddress !== null}
 						<div>
 							<dt>owner address</dt>

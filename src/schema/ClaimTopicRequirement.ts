@@ -9,8 +9,10 @@ export enum ClaimTopicRequirementSelector {
 }
 export const ClaimTopicRequirement = entity({
 	entityType: EntityType.ClaimTopicRequirement,
-	label: 'claim topic requirement',
-	labelPlural: 'claim topic requirements',
+	labels: {
+		singular: 'claim topic requirement',
+		plural: 'claim topic requirements',
+	},
 })({
 	$profile: {
 		label: 'profile',

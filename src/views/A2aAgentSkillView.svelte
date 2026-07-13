@@ -50,7 +50,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.skillId ?? prefetched.skillId) ?? '')].filter(Boolean).join(' ') || 'A2A agent skill')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.skillId) ?? '')].filter(Boolean).join(' ') || 'A2A agent skill')
 	const viewDomId = $derived('a2a-agent-skill-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aAgentSkill}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.skillId ?? prefetched.skillId) ?? '')].filter(Boolean).join(' ') || 'A2A agent skill'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.skillId) ?? '')].filter(Boolean).join(' ') || 'A2A agent skill'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -130,7 +130,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const skillId = selection.entitySelector.skillId ?? prefetched.skillId}
+							{@const skillId = pendingEntity.skillId}
 							{#if skillId !== undefined && skillId !== null}
 								{String((skillId) ?? '')}
 							{/if}
@@ -157,7 +157,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -192,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>

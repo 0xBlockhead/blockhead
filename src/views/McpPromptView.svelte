@@ -50,7 +50,7 @@
 			title: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.name ?? prefetched.name) ?? '')].filter(Boolean).join(' ') || 'mcp prompt')
+	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'mcp prompt')
 	const viewDomId = $derived('mcp-prompt-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpPrompt}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.name ?? prefetched.name) ?? '')].filter(Boolean).join(' ') || 'mcp prompt'}
+				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'mcp prompt'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const name = selection.entitySelector.name ?? prefetched.name}
+							{@const name = pendingEntity.name}
 							{#if name !== undefined && name !== null}
 								{String((name) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const title = prefetched.title}
+					{@const title = pendingEntity.title}
 					{#if title !== undefined && title !== null}
 						<div>
 							<dt>title</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>

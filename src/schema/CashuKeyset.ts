@@ -10,8 +10,10 @@ export enum CashuKeysetSelector {
 }
 export const CashuKeyset = entity({
 	entityType: EntityType.CashuKeyset,
-	label: 'Cashu keyset',
-	labelPlural: 'Cashu keysets',
+	labels: {
+		singular: 'Cashu keyset',
+		plural: 'Cashu keysets',
+	},
 })({
 	$mint: {
 		label: 'mint',

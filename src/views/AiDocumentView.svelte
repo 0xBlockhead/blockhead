@@ -54,7 +54,7 @@
 			mediaType: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.documentKind) ?? '')].filter(Boolean).join(' ') || 'AI document')
+	const titleFallback = $derived([String((pendingEntity.documentKind) ?? '')].filter(Boolean).join(' ') || 'AI document')
 	const viewDomId = $derived('ai-document-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiDocument}>
 			{#snippet Pending()}
-				{[String((prefetched.documentKind) ?? '')].filter(Boolean).join(' ') || title || 'AI document'}
+				{[String((pendingEntity.documentKind) ?? '')].filter(Boolean).join(' ') || title || 'AI document'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiDocument}>
 			{#snippet Pending()}
-				{[String((prefetched.mediaType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.documentKind) ?? '')].filter(Boolean).join(' ') || title || 'AI document'}
+				{[String((pendingEntity.mediaType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.documentKind) ?? '')].filter(Boolean).join(' ') || title || 'AI document'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiDocument}>
 			{#snippet Pending()}
-				{@const documentUrl0 = prefetched.documentUrl}
+				{@const documentUrl0 = pendingEntity.documentUrl}
 				{#if documentUrl0 !== undefined && documentUrl0 !== null}
 					<span data-text="muted">
 						<svelte:element
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const documentKind = prefetched.documentKind}
+							{@const documentKind = pendingEntity.documentKind}
 							{#if documentKind !== undefined && documentKind !== null}
 								{String((documentKind) ?? '')}
 							{/if}
@@ -181,7 +181,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentHashAlgorithm = prefetched.contentHashAlgorithm}
+					{@const contentHashAlgorithm = pendingEntity.contentHashAlgorithm}
 					{#if contentHashAlgorithm !== undefined && contentHashAlgorithm !== null}
 						<div>
 							<dt>content hash algorithm</dt>
@@ -216,7 +216,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentHash = prefetched.contentHash}
+					{@const contentHash = pendingEntity.contentHash}
 					{#if contentHash !== undefined && contentHash !== null}
 						<div>
 							<dt>content hash</dt>
@@ -244,6 +244,8 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -271,7 +273,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const documentUrl = prefetched.documentUrl}
+					{@const documentUrl = pendingEntity.documentUrl}
 					{#if documentUrl !== undefined && documentUrl !== null}
 						<div>
 							<dt>document URL</dt>
@@ -322,7 +324,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mediaType = prefetched.mediaType}
+					{@const mediaType = pendingEntity.mediaType}
 					{#if mediaType !== undefined && mediaType !== null}
 						<div>
 							<dt>media type</dt>
@@ -357,7 +359,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceFormat = prefetched.sourceFormat}
+					{@const sourceFormat = pendingEntity.sourceFormat}
 					{#if sourceFormat !== undefined && sourceFormat !== null}
 						<div>
 							<dt>source format</dt>
@@ -392,7 +394,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const schemaVersion = prefetched.schemaVersion}
+					{@const schemaVersion = pendingEntity.schemaVersion}
 					{#if schemaVersion !== undefined && schemaVersion !== null}
 						<div>
 							<dt>schema version</dt>
@@ -427,7 +429,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const conformsTo = prefetched.conformsTo}
+					{@const conformsTo = pendingEntity.conformsTo}
 					{#if conformsTo !== undefined && conformsTo !== null}
 						<div>
 							<dt>conforms to</dt>
@@ -462,7 +464,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const declaredSubjectKind = prefetched.declaredSubjectKind}
+					{@const declaredSubjectKind = pendingEntity.declaredSubjectKind}
 					{#if declaredSubjectKind !== undefined && declaredSubjectKind !== null}
 						<div>
 							<dt>declared subject kind</dt>

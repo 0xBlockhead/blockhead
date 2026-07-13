@@ -9,8 +9,10 @@ export enum IcpSubnetCanisterRange_TimestampSelector {
 }
 export const IcpSubnetCanisterRange_Timestamp = entity({
 	entityType: EntityType.IcpSubnetCanisterRange_Timestamp,
-	label: 'icp subnet canister range timestamp',
-	labelPlural: 'icp subnet canister range observations',
+	labels: {
+		singular: 'icp subnet canister range timestamp',
+		plural: 'icp subnet canister range observations',
+	},
 })({
 	$subnet: {
 		label: 'subnet',

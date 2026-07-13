@@ -51,7 +51,7 @@
 			health: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain network timestamp')
 	const viewDomId = $derived('dydx-chain-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={dydxChainNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.health) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain network timestamp'}
+				{[String((pendingEntity.health) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -188,7 +188,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const health = prefetched.health}
+					{@const health = pendingEntity.health}
 					{#if health !== undefined && health !== null}
 						<div>
 							<dt>health</dt>
@@ -225,7 +225,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>block height</dt>
@@ -260,7 +260,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const indexerHeight = prefetched.indexerHeight}
+					{@const indexerHeight = pendingEntity.indexerHeight}
 					{#if indexerHeight !== undefined && indexerHeight !== null}
 						<div>
 							<dt>indexer height</dt>
@@ -295,7 +295,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const marketCount = prefetched.marketCount}
+					{@const marketCount = pendingEntity.marketCount}
 					{#if marketCount !== undefined && marketCount !== null}
 						<div>
 							<dt>market count</dt>
@@ -330,7 +330,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subaccountCount = prefetched.subaccountCount}
+					{@const subaccountCount = pendingEntity.subaccountCount}
 					{#if subaccountCount !== undefined && subaccountCount !== null}
 						<div>
 							<dt>subaccount count</dt>
@@ -365,7 +365,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const openOrderCount = prefetched.openOrderCount}
+					{@const openOrderCount = pendingEntity.openOrderCount}
 					{#if openOrderCount !== undefined && openOrderCount !== null}
 						<div>
 							<dt>open order count</dt>
@@ -400,7 +400,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const openPositionCount = prefetched.openPositionCount}
+					{@const openPositionCount = pendingEntity.openPositionCount}
 					{#if openPositionCount !== undefined && openPositionCount !== null}
 						<div>
 							<dt>open position count</dt>

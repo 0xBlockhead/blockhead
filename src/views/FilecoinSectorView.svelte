@@ -50,7 +50,7 @@
 			sealedCid: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.sectorNumber ?? prefetched.sectorNumber) ?? '')].filter(Boolean).join(' ') || 'filecoin sector')
+	const titleFallback = $derived([String((pendingEntity.sectorNumber) ?? '')].filter(Boolean).join(' ') || 'filecoin sector')
 	const viewDomId = $derived('filecoin-sector-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={filecoinSector}>
 			{#snippet Pending()}
-				{@const sectorNumber0 = selection.entitySelector.sectorNumber ?? prefetched.sectorNumber}
+				{@const sectorNumber0 = pendingEntity.sectorNumber}
 				{#if sectorNumber0 !== undefined && sectorNumber0 !== null}
 					<NumberValue value={Number(sectorNumber0)} />
 				{/if}
@@ -114,7 +114,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinSector}>
 			{#snippet Pending()}
-				{@const sealedCid0 = prefetched.sealedCid}
+				{@const sealedCid0 = pendingEntity.sealedCid}
 				{#if sealedCid0 !== undefined && sealedCid0 !== null}
 					<span data-text="muted">
 						{String((sealedCid0) ?? '')}
@@ -160,7 +160,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sectorNumber = selection.entitySelector.sectorNumber ?? prefetched.sectorNumber}
+							{@const sectorNumber = pendingEntity.sectorNumber}
 							{#if sectorNumber !== undefined && sectorNumber !== null}
 								<NumberValue value={Number(sectorNumber)} />
 							{/if}
@@ -190,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sealedCid = prefetched.sealedCid}
+					{@const sealedCid = pendingEntity.sealedCid}
 					{#if sealedCid !== undefined && sealedCid !== null}
 						<div>
 							<dt>Sealed CID</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activationEpoch = prefetched.activationEpoch}
+					{@const activationEpoch = pendingEntity.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -266,7 +266,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expirationEpoch = prefetched.expirationEpoch}
+					{@const expirationEpoch = pendingEntity.expirationEpoch}
 					{#if expirationEpoch !== undefined && expirationEpoch !== null}
 						<div>
 							<dt>Expiration epoch</dt>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestCheckpointSequence = prefetched.latestCheckpointSequence}
+					{@const latestCheckpointSequence = pendingEntity.latestCheckpointSequence}
 					{#if latestCheckpointSequence !== undefined && latestCheckpointSequence !== null}
 						<div>
 							<dt>latest checkpoint sequence</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestCheckpointDigest = prefetched.latestCheckpointDigest}
+					{@const latestCheckpointDigest = pendingEntity.latestCheckpointDigest}
 					{#if latestCheckpointDigest !== undefined && latestCheckpointDigest !== null}
 						<div>
 							<dt>latest checkpoint digest</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epoch = prefetched.epoch}
+					{@const epoch = pendingEntity.epoch}
 					{#if epoch !== undefined && epoch !== null}
 						<div>
 							<dt>epoch</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalTransactionCount = prefetched.totalTransactionCount}
+					{@const totalTransactionCount = pendingEntity.totalTransactionCount}
 					{#if totalTransactionCount !== undefined && totalTransactionCount !== null}
 						<div>
 							<dt>total transaction count</dt>

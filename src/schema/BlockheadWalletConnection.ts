@@ -11,13 +11,21 @@ export enum BlockheadConnectionStatus {
 	Error = 'error',
 }
 export enum BlockheadWalletConnectionSelector {
-	BlockheadWallet = 'BlockheadWallet',
+	ConnectionKey = 'ConnectionKey',
 }
 export const BlockheadWalletConnection = entity({
 	entityType: EntityType.BlockheadWalletConnection,
-	label: 'wallet connection',
-	labelPlural: 'wallet connections',
+	labels: {
+		singular: 'wallet connection',
+		plural: 'wallet connections',
+	},
 })({
+	connectionKey: {
+		label: 'connection key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
 	$wallet: {
 		label: 'Wallet',
 		type: EntityFieldType.EntityReference,
@@ -98,8 +106,8 @@ export const BlockheadWalletConnection = entity({
 	},
 })({
 	selectors: {
-		BlockheadWallet: [
-			'$wallet',
+		ConnectionKey: [
+			'connectionKey',
 		],
 	},
 })

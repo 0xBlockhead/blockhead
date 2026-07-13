@@ -9,8 +9,10 @@ export enum ZeroGStorageLogEntrySelector {
 }
 export const ZeroGStorageLogEntry = entity({
 	entityType: EntityType.ZeroGStorageLogEntry,
-	label: 'zero g storage log entry',
-	labelPlural: 'zero g storage log entries',
+	labels: {
+		singular: 'zero g storage log entry',
+		plural: 'zero g storage log entries',
+	},
 })({
 	$network: {
 		label: 'network',

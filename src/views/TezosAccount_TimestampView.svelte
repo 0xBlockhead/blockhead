@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const level = selection.entitySelector.level ?? prefetched.level}
+							{@const level = pendingEntity.level}
 							{#if level !== undefined && level !== null}
 								{String((level) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceMutez = prefetched.balanceMutez}
+					{@const balanceMutez = pendingEntity.balanceMutez}
 					{#if balanceMutez !== undefined && balanceMutez !== null}
 						<div>
 							<dt>balance mutez</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const counter = prefetched.counter}
+					{@const counter = pendingEntity.counter}
 					{#if counter !== undefined && counter !== null}
 						<div>
 							<dt>counter</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegate = prefetched.delegate}
+					{@const delegate = pendingEntity.delegate}
 					{#if delegate !== undefined && delegate !== null}
 						<div>
 							<dt>delegate</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isRevealed = prefetched.isRevealed}
+					{@const isRevealed = pendingEntity.isRevealed}
 					{#if isRevealed !== undefined && isRevealed !== null}
 						<div>
 							<dt>is revealed</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publicKey = prefetched.publicKey}
+					{@const publicKey = pendingEntity.publicKey}
 					{#if publicKey !== undefined && publicKey !== null}
 						<div>
 							<dt>public key</dt>

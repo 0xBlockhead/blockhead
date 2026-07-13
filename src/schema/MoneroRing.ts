@@ -10,8 +10,10 @@ export enum MoneroRingSelector {
 }
 export const MoneroRing = entity({
 	entityType: EntityType.MoneroRing,
-	label: 'monero ring',
-	labelPlural: 'monero rings',
+	labels: {
+		singular: 'monero ring',
+		plural: 'monero rings',
+	},
 })({
 	$keyImage: {
 		label: 'Key image',

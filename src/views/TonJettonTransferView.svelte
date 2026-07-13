@@ -106,7 +106,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transferId = selection.entitySelector.transferId ?? prefetched.transferId}
+							{@const transferId = pendingEntity.transferId}
 							{#if transferId !== undefined && transferId !== null}
 								{String((transferId) ?? '')}
 							{/if}
@@ -136,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -156,6 +156,8 @@
 			<ResourceBoundary
 				resource={selection.$jetton}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonJetton)}
 					{#if tonJetton != null && tonJetton[EntityMetaKey.Selector] != null}
 						<div>
@@ -176,6 +178,8 @@
 			<ResourceBoundary
 				resource={selection.$from}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -196,6 +200,8 @@
 			<ResourceBoundary
 				resource={selection.$to}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -216,6 +222,8 @@
 			<ResourceBoundary
 				resource={selection.$trace}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonTrace)}
 					{#if tonTrace != null && tonTrace[EntityMetaKey.Selector] != null}
 						<div>
@@ -236,6 +244,8 @@
 			<ResourceBoundary
 				resource={selection.$message}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonMessage)}
 					{#if tonMessage != null && tonMessage[EntityMetaKey.Selector] != null}
 						<div>
@@ -263,7 +273,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionLt = prefetched.transactionLt}
+					{@const transactionLt = pendingEntity.transactionLt}
 					{#if transactionLt !== undefined && transactionLt !== null}
 						<div>
 							<dt>transaction lt</dt>
@@ -298,7 +308,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>transaction hash</dt>
@@ -333,7 +343,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -368,7 +378,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountNano = prefetched.amountNano}
+					{@const amountNano = pendingEntity.amountNano}
 					{#if amountNano !== undefined && amountNano !== null}
 						<div>
 							<dt>amount nano</dt>
@@ -403,7 +413,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const queryId = prefetched.queryId}
+					{@const queryId = pendingEntity.queryId}
 					{#if queryId !== undefined && queryId !== null}
 						<div>
 							<dt>query ID</dt>
@@ -438,7 +448,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const forwardTonAmountNano = prefetched.forwardTonAmountNano}
+					{@const forwardTonAmountNano = pendingEntity.forwardTonAmountNano}
 					{#if forwardTonAmountNano !== undefined && forwardTonAmountNano !== null}
 						<div>
 							<dt>forward TON amount nano</dt>
@@ -473,7 +483,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const responseDestination = prefetched.responseDestination}
+					{@const responseDestination = pendingEntity.responseDestination}
 					{#if responseDestination !== undefined && responseDestination !== null}
 						<div>
 							<dt>response destination</dt>
@@ -508,7 +518,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const customPayloadHash = prefetched.customPayloadHash}
+					{@const customPayloadHash = pendingEntity.customPayloadHash}
 					{#if customPayloadHash !== undefined && customPayloadHash !== null}
 						<div>
 							<dt>custom payload hash</dt>

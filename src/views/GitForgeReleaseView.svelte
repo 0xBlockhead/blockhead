@@ -47,7 +47,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.releaseTagName ?? prefetched.releaseTagName) ?? '')].filter(Boolean).join(' ') || 'Git forge release')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.releaseTagName) ?? '')].filter(Boolean).join(' ') || 'Git forge release')
 	const viewDomId = $derived('git-forge-release-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitForgeRelease}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.releaseTagName ?? prefetched.releaseTagName) ?? '')].filter(Boolean).join(' ') || 'Git forge release'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.releaseTagName) ?? '')].filter(Boolean).join(' ') || 'Git forge release'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitForgeRelease}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.releaseTagName ?? prefetched.releaseTagName) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'Git forge release'}
+				{[String((pendingEntity.releaseTagName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'Git forge release'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -121,7 +121,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const releaseTagName = selection.entitySelector.releaseTagName ?? prefetched.releaseTagName}
+							{@const releaseTagName = pendingEntity.releaseTagName}
 							{#if releaseTagName !== undefined && releaseTagName !== null}
 								{String((releaseTagName) ?? '')}
 							{/if}
@@ -148,7 +148,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -183,7 +183,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetObjectId = prefetched.targetObjectId}
+					{@const targetObjectId = pendingEntity.targetObjectId}
 					{#if targetObjectId !== undefined && targetObjectId !== null}
 						<div>
 							<dt>target object ID</dt>
@@ -218,7 +218,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const draft = prefetched.draft}
+					{@const draft = pendingEntity.draft}
 					{#if draft !== undefined && draft !== null}
 						<div>
 							<dt>draft</dt>
@@ -253,7 +253,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const prerelease = prefetched.prerelease}
+					{@const prerelease = pendingEntity.prerelease}
 					{#if prerelease !== undefined && prerelease !== null}
 						<div>
 							<dt>prerelease</dt>
@@ -290,7 +290,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -325,7 +325,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publishedAt = prefetched.publishedAt}
+					{@const publishedAt = pendingEntity.publishedAt}
 					{#if publishedAt !== undefined && publishedAt !== null}
 						<div>
 							<dt>published AT</dt>

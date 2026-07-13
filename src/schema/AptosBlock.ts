@@ -10,8 +10,10 @@ export enum AptosBlockSelector {
 }
 export const AptosBlock = entity({
 	entityType: EntityType.AptosBlock,
-	label: 'aptos block',
-	labelPlural: 'aptos blocks',
+	labels: {
+		singular: 'aptos block',
+		plural: 'aptos blocks',
+	},
 })({
 	$network: {
 		label: 'network',

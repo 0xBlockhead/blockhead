@@ -47,7 +47,7 @@
 			uptimePercent: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'avalanche validator timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'avalanche validator timestamp')
 	const viewDomId = $derived('avalanche-validator-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={avalancheValidatorTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={avalancheValidatorTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.connected) ?? ''), String((prefetched.uptimePercent) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'avalanche validator timestamp'}
+				{[String((pendingEntity.connected) ?? ''), String((pendingEntity.uptimePercent) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'avalanche validator timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={avalancheValidatorTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -209,7 +209,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const connected = prefetched.connected}
+					{@const connected = pendingEntity.connected}
 					{#if connected !== undefined && connected !== null}
 						<div>
 							<dt>connected</dt>
@@ -244,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uptimePercent = prefetched.uptimePercent}
+					{@const uptimePercent = pendingEntity.uptimePercent}
 					{#if uptimePercent !== undefined && uptimePercent !== null}
 						<div>
 							<dt>uptime percent</dt>
@@ -279,7 +279,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validatorSetKind = prefetched.validatorSetKind}
+					{@const validatorSetKind = pendingEntity.validatorSetKind}
 					{#if validatorSetKind !== undefined && validatorSetKind !== null}
 						<div>
 							<dt>validator set kind</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedStakeNavax = prefetched.observedStakeNavax}
+					{@const observedStakeNavax = pendingEntity.observedStakeNavax}
 					{#if observedStakeNavax !== undefined && observedStakeNavax !== null}
 						<div>
 							<dt>observed stake navax</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedDelegatorCount = prefetched.observedDelegatorCount}
+					{@const observedDelegatorCount = pendingEntity.observedDelegatorCount}
 					{#if observedDelegatorCount !== undefined && observedDelegatorCount !== null}
 						<div>
 							<dt>observed delegator count</dt>

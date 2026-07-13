@@ -119,8 +119,8 @@
 						selection={select(EntityType.BeaconCommittee, beaconCommittee[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconCommitteeFields}
 						href={
-							(beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.caip2 !== undefined && beaconCommitteeHrefFields.$network.caip2.namespace !== undefined && beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.caip2 !== undefined && beaconCommitteeHrefFields.$network.caip2.reference !== undefined && beaconCommitteeHrefFields.slot !== undefined && beaconCommitteeHrefFields.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
-								caip2: `${String(beaconCommitteeHrefFields.$network.caip2.namespace ?? '')}:${String(beaconCommitteeHrefFields.$network.caip2.reference ?? '')}`,
+							(beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.slug !== undefined && beaconCommitteeHrefFields.slot !== undefined && beaconCommitteeHrefFields.indexInSlot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
+								network: String(beaconCommitteeHrefFields.$network.slug ?? ''),
 								slot: String(beaconCommitteeHrefFields.slot ?? ''),
 								index: String(beaconCommitteeHrefFields.indexInSlot ?? ''),
 							}) : undefined)

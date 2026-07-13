@@ -10,8 +10,10 @@ export enum BlockheadKaspaNodeStateSelector {
 }
 export const BlockheadKaspaNodeState = entity({
 	entityType: EntityType.BlockheadKaspaNodeState,
-	label: 'blockhead kaspa node state',
-	labelPlural: 'blockhead kaspa node states',
+	labels: {
+		singular: 'blockhead kaspa node state',
+		plural: 'blockhead kaspa node states',
+	},
 })({
 	connectionId: {
 		label: 'connection ID',

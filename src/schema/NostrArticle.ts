@@ -11,8 +11,10 @@ export enum NostrArticleSelector {
 }
 export const NostrArticle = entity({
 	entityType: EntityType.NostrArticle,
-	label: 'Nostr article',
-	labelPlural: 'Nostr articles',
+	labels: {
+		singular: 'Nostr article',
+		plural: 'Nostr articles',
+	},
 	description: 'A Nostr long-form article is a replaceable kind-30023 event addressed by author public key and identifier.',
 })({
 	pubkey: {

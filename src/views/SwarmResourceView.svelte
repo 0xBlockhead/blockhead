@@ -60,7 +60,7 @@
 			isContentTypeInferred: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.canonicalUri) ?? '')].filter(Boolean).join(' ') || 'Swarm resource')
+	const titleFallback = $derived([String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || 'Swarm resource')
 	const viewDomId = $derived('swarm-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.reference !== undefined ? resolve('/(explore)/(swarm)/swarm/[reference]', {
+		href ?? (pendingEntity.reference !== undefined ? resolve('/swarm/[reference=stringSegment]', {
 			reference: String(pendingEntity.reference ?? ''),
 		}) : undefined)
 	}
@@ -89,7 +89,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={swarmResource}>
 			{#snippet Pending()}
-				{@const canonicalUri0 = prefetched.canonicalUri}
+				{@const canonicalUri0 = pendingEntity.canonicalUri}
 				{#if canonicalUri0 !== undefined && canonicalUri0 !== null}
 					<TruncatedValue value={String((canonicalUri0) ?? '')} />
 				{/if}
@@ -108,7 +108,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={swarmResource}>
 			{#snippet Pending()}
-				{[String((prefetched.contentType) ?? ''), String((prefetched.displayType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.canonicalUri) ?? '')].filter(Boolean).join(' ') || title || 'Swarm resource'}
+				{[String((pendingEntity.contentType) ?? ''), String((pendingEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || title || 'Swarm resource'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const reference = selection.entitySelector.reference ?? prefetched.reference}
+							{@const reference = pendingEntity.reference}
 							{#if reference !== undefined && reference !== null}
 								<TruncatedValue value={String((reference) ?? '')} />
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const contentPath = selection.entitySelector.contentPath ?? prefetched.contentPath}
+							{@const contentPath = pendingEntity.contentPath}
 							{#if contentPath !== undefined && contentPath !== null}
 								{String((contentPath) ?? '')}
 							{/if}
@@ -193,7 +193,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const canonicalUri = prefetched.canonicalUri}
+							{@const canonicalUri = pendingEntity.canonicalUri}
 							{#if canonicalUri !== undefined && canonicalUri !== null}
 								<svelte:element
 									this={'a'}
@@ -237,7 +237,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const gatewayUrl = prefetched.gatewayUrl}
+							{@const gatewayUrl = pendingEntity.gatewayUrl}
 							{#if gatewayUrl !== undefined && gatewayUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -283,7 +283,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const gatewayOrigin = prefetched.gatewayOrigin}
+							{@const gatewayOrigin = pendingEntity.gatewayOrigin}
 							{#if gatewayOrigin !== undefined && gatewayOrigin !== null}
 								{String((gatewayOrigin) ?? '')}
 							{/if}
@@ -310,7 +310,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fileName = prefetched.fileName}
+					{@const fileName = pendingEntity.fileName}
 					{#if fileName !== undefined && fileName !== null}
 						<div>
 							<dt>File name</dt>
@@ -345,7 +345,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const extension = prefetched.extension}
+					{@const extension = pendingEntity.extension}
 					{#if extension !== undefined && extension !== null}
 						<div>
 							<dt>Extension</dt>
@@ -380,7 +380,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentType = prefetched.contentType}
+					{@const contentType = pendingEntity.contentType}
 					{#if contentType !== undefined && contentType !== null}
 						<div>
 							<dt>Content type</dt>
@@ -415,7 +415,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentLength = prefetched.contentLength}
+					{@const contentLength = pendingEntity.contentLength}
 					{#if contentLength !== undefined && contentLength !== null}
 						<div>
 							<dt>Content length</dt>
@@ -453,7 +453,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const displayType = prefetched.displayType}
+							{@const displayType = pendingEntity.displayType}
 							{#if displayType !== undefined && displayType !== null}
 								{String((displayType) ?? '')}
 							{/if}
@@ -483,7 +483,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const isContentTypeInferred = prefetched.isContentTypeInferred}
+							{@const isContentTypeInferred = pendingEntity.isContentTypeInferred}
 							{#if isContentTypeInferred !== undefined && isContentTypeInferred !== null}
 								{isContentTypeInferred ? 'Yes' : 'No'}
 							{/if}
@@ -503,6 +503,8 @@
 			<ResourceBoundary
 				resource={selection.$media}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(media)}
 					{#if media != null && media[EntityMetaKey.Selector] != null}
 						<div>
@@ -512,7 +514,7 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/(explore)/media/[url]', {
+										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
 											url: String(media[EntityMetaKey.Selector].url ?? ''),
 										}) : undefined)
 									}

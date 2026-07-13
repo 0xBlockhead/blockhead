@@ -51,7 +51,7 @@
 			tick: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block')
+	const titleFallback = $derived([String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block')
 	const viewDomId = $derived('liquidity-pool-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,10 +68,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$liquidityPool !== undefined && pendingEntity.$liquidityPool.$network !== undefined && pendingEntity.$liquidityPool.$network.caip2 !== undefined && pendingEntity.$liquidityPool.$network.caip2.reference !== undefined && pendingEntity.$liquidityPool !== undefined && pendingEntity.$liquidityPool.id !== undefined && pendingEntity.blockNumber !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]/block/[blockNumber=nonNegativeInteger]', {
+		href ?? (pendingEntity.blockNumber !== undefined && pendingEntity.$liquidityPool !== undefined && pendingEntity.$liquidityPool.$network !== undefined && pendingEntity.$liquidityPool.$network.caip2 !== undefined && pendingEntity.$liquidityPool.$network.caip2.reference !== undefined && pendingEntity.$liquidityPool.id !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/block/[blockNumber=nonNegativeBigInt]', {
+			blockNumber: String(pendingEntity.blockNumber ?? ''),
 			chainId: String(pendingEntity.$liquidityPool.$network.caip2.reference ?? ''),
 			poolId: String(pendingEntity.$liquidityPool.id ?? ''),
-			blockNumber: String(pendingEntity.blockNumber ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -81,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={liquidityPoolBlock}>
 			{#snippet Pending()}
-				{@const blockNumber0 = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
+				{@const blockNumber0 = pendingEntity.blockNumber}
 				{#if blockNumber0 !== undefined && blockNumber0 !== null}
 					<NumberValue value={Number(blockNumber0)} />
 				{/if}
@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={liquidityPoolBlock}>
 			{#snippet Pending()}
-				{@const tick0 = prefetched.tick}
+				{@const tick0 = pendingEntity.tick}
 				{#if tick0 !== undefined && tick0 !== null}
 					<NumberValue value={Number(tick0)} />
 				{/if}
@@ -123,9 +123,9 @@
 					<LiquidityPoolView
 						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
 						href={
-							(selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined && selection.entitySelector.$liquidityPool.id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
+							(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
+								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -140,9 +140,9 @@
 					<LiquidityPoolView
 						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
 						href={
-							(selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined && selection.entitySelector.$liquidityPool.id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
+							(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
+								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -161,9 +161,9 @@
 					<LiquidityPoolView
 						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool, {})}
 						href={
-							(selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined && selection.entitySelector.$liquidityPool.id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
+							(selection.entitySelector.$liquidityPool.id !== undefined && selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
+								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockNumber = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
+							{@const blockNumber = pendingEntity.blockNumber}
 							{#if blockNumber !== undefined && blockNumber !== null}
 								<NumberValue value={Number(blockNumber)} />
 							{/if}
@@ -215,14 +215,14 @@
 						}
 					>
 						{#snippet children(liquidityPool)}
-							{#if liquidityPool[EntityMetaKey.Selector] != null}
+							{#if liquidityPool != null && liquidityPool[EntityMetaKey.Selector] != null}
 								<LiquidityPoolView
 									selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
 									prefetched={liquidityPool}
 									href={
-										(liquidityPool[EntityMetaKey.Selector].$network !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2 !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2.reference !== undefined && liquidityPool[EntityMetaKey.Selector].id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-											chainId: String(liquidityPool[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+										(liquidityPool[EntityMetaKey.Selector].id !== undefined && liquidityPool[EntityMetaKey.Selector].$network !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2 !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
 											poolId: String(liquidityPool[EntityMetaKey.Selector].id ?? ''),
+											chainId: String(liquidityPool[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sqrtPriceX96 = prefetched.sqrtPriceX96}
+					{@const sqrtPriceX96 = pendingEntity.sqrtPriceX96}
 					{#if sqrtPriceX96 !== undefined && sqrtPriceX96 !== null}
 						<div>
 							<dt>Sqrt price X96</dt>
@@ -281,7 +281,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const liquidity = prefetched.liquidity}
+					{@const liquidity = pendingEntity.liquidity}
 					{#if liquidity !== undefined && liquidity !== null}
 						<div>
 							<dt>Liquidity</dt>
@@ -316,7 +316,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tick = prefetched.tick}
+					{@const tick = pendingEntity.tick}
 					{#if tick !== undefined && tick !== null}
 						<div>
 							<dt>Tick</dt>
@@ -351,7 +351,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeProtocol = prefetched.feeProtocol}
+					{@const feeProtocol = pendingEntity.feeProtocol}
 					{#if feeProtocol !== undefined && feeProtocol !== null}
 						<div>
 							<dt>Fee protocol</dt>
@@ -386,7 +386,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unlocked = prefetched.unlocked}
+					{@const unlocked = pendingEntity.unlocked}
 					{#if unlocked !== undefined && unlocked !== null}
 						<div>
 							<dt>Unlocked</dt>
@@ -423,7 +423,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observationIndex = prefetched.observationIndex}
+					{@const observationIndex = pendingEntity.observationIndex}
 					{#if observationIndex !== undefined && observationIndex !== null}
 						<div>
 							<dt>Observation index</dt>
@@ -458,7 +458,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observationCardinality = prefetched.observationCardinality}
+					{@const observationCardinality = pendingEntity.observationCardinality}
 					{#if observationCardinality !== undefined && observationCardinality !== null}
 						<div>
 							<dt>Observation cardinality</dt>
@@ -493,7 +493,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observationCardinalityNext = prefetched.observationCardinalityNext}
+					{@const observationCardinalityNext = pendingEntity.observationCardinalityNext}
 					{#if observationCardinalityNext !== undefined && observationCardinalityNext !== null}
 						<div>
 							<dt>Observation cardinality next</dt>

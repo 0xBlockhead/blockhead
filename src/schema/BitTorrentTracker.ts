@@ -9,8 +9,10 @@ export enum BitTorrentTrackerSelector {
 }
 export const BitTorrentTracker = entity({
 	entityType: EntityType.BitTorrentTracker,
-	label: 'bit torrent tracker',
-	labelPlural: 'bit torrent trackers',
+	labels: {
+		singular: 'bit torrent tracker',
+		plural: 'bit torrent trackers',
+	},
 })({
 	trackerUrl: {
 		label: 'tracker URL',

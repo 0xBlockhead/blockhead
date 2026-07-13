@@ -13,8 +13,10 @@ export enum LensAccountSelector {
 }
 export const LensAccount = entity({
 	entityType: EntityType.LensAccount,
-	label: 'Lens account',
-	labelPlural: 'Lens accounts',
+	labels: {
+		singular: 'Lens account',
+		plural: 'Lens accounts',
+	},
 })({
 	address: {
 		label: 'Address',

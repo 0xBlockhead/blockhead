@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,18 +42,27 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaAddress = $derived(selection({}))
+	const kaspaAddress = $derived(selection({
+		sources: [
+			Source.KaspaExplorer_Rest,
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Rest,
+			Source.KaspaNode_Wrpc,
+		],
+	}))
 	const titleFallback = $derived('kaspa address')
 	const viewDomId = $derived('kaspa-address-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
 	import KaspaTransactionsView from '$/views/KaspaTransactionsView.svelte'
 	import KaspaAddressUtxo_TimestampsView from '$/views/KaspaAddressUtxo_TimestampsView.svelte'
 	import KaspaAddress_TimestampsView from '$/views/KaspaAddress_TimestampsView.svelte'
-	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
 </script>
 
 
@@ -105,7 +115,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -126,26 +136,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<KaspaTransactionsView
-				selection={selection.$$transactions}
-				title='transactions'
-				emptyText='No Kaspa transactions.'
-				id='KaspaTransactionsView-transactions'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-kaspa-address-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'kaspa-address-transactions',
+							label: 'Transactions',
+						},
+						{
+							id: 'kaspa-address-utxos',
+							label: 'UTXOs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<KaspaAddressUtxo_TimestampsView
-				selection={selection.$$utxos}
-				title='UTXOs'
-				emptyText='No Kaspa UTXO observations.'
-				id='KaspaAddressUtxo_TimestampsView-utxos'
-			/>
+				{#snippet SectionKaspaAddressTransactions({ id, label, open })}
+					<KaspaTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Kaspa transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<KaspaAddress_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Kaspa address observations.'
-				id='KaspaAddress_TimestampsView-timestamps'
-			/>
+				{#snippet SectionKaspaAddressUtxos({ id, label, open })}
+					<KaspaAddressUtxo_TimestampsView
+						selection={selection.$$utxos}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Kaspa UTXO observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-kaspa-address-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'kaspa-address-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionKaspaAddressTimestamps({ id, label, open })}
+					<KaspaAddress_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Kaspa address observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

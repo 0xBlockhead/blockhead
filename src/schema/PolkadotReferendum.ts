@@ -9,8 +9,10 @@ export enum PolkadotReferendumSelector {
 }
 export const PolkadotReferendum = entity({
 	entityType: EntityType.PolkadotReferendum,
-	label: 'Polkadot referendum',
-	labelPlural: 'Polkadot referendums',
+	labels: {
+		singular: 'Polkadot referendum',
+		plural: 'Polkadot referendums',
+	},
 })({
 	$network: {
 		label: 'Network',

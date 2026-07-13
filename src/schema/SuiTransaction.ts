@@ -9,8 +9,10 @@ export enum SuiTransactionSelector {
 }
 export const SuiTransaction = entity({
 	entityType: EntityType.SuiTransaction,
-	label: 'sui transaction',
-	labelPlural: 'sui transactions',
+	labels: {
+		singular: 'sui transaction',
+		plural: 'sui transactions',
+	},
 })({
 	$network: {
 		label: 'network',

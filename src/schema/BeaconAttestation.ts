@@ -9,8 +9,10 @@ export enum BeaconAttestationSelector {
 }
 export const BeaconAttestation = entity({
 	entityType: EntityType.BeaconAttestation,
-	label: 'beacon attestation',
-	labelPlural: 'Beacon attestations',
+	labels: {
+		singular: 'beacon attestation',
+		plural: 'Beacon attestations',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -21,13 +23,13 @@ export const BeaconAttestation = entity({
 	slot: {
 		label: 'Slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInSlot: {
 		label: 'Index in slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	committeeIndex: {

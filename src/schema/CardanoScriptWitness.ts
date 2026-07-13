@@ -9,8 +9,10 @@ export enum CardanoScriptWitnessSelector {
 }
 export const CardanoScriptWitness = entity({
 	entityType: EntityType.CardanoScriptWitness,
-	label: 'cardano script witness',
-	labelPlural: 'cardano script witnesses',
+	labels: {
+		singular: 'cardano script witness',
+		plural: 'cardano script witnesses',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

@@ -121,7 +121,7 @@
 						selection={select(EntityType.IpfsResource, ipfsResource[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ipfsResourceFields}
 						href={
-							(ipfsResourceHrefFields.namespace !== undefined && ipfsResourceHrefFields.target !== undefined ? resolve('/(explore)/(ipfs)/ipfs/[namespace]/[target]', {
+							(ipfsResourceHrefFields.namespace !== undefined && ipfsResourceHrefFields.target !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
 								namespace: String(ipfsResourceHrefFields.namespace ?? ''),
 								target: String(ipfsResourceHrefFields.target ?? ''),
 							}) : undefined)

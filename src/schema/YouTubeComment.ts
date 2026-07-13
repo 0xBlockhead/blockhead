@@ -10,8 +10,10 @@ export enum YoutubeCommentSelector {
 }
 export const YoutubeComment = entity({
 	entityType: EntityType.YoutubeComment,
-	label: 'YouTube comment',
-	labelPlural: 'YouTube comments',
+	labels: {
+		singular: 'YouTube comment',
+		plural: 'YouTube comments',
+	},
 })({
 	videoId: {
 		label: 'Video ID',

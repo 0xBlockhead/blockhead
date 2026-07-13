@@ -48,7 +48,7 @@
 			blockNumber: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'EVM network actor coin balance timestamp')
+	const titleFallback = $derived([String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'EVM network actor coin balance timestamp')
 	const viewDomId = $derived('evm-network-actor-coin-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'EVM network actor coin balance timestamp'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'EVM network actor coin balance timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.balance) ?? ''), String((prefetched.usdValue) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'EVM network actor coin balance timestamp'}
+				{[String((pendingEntity.balance) ?? ''), String((pendingEntity.usdValue) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'EVM network actor coin balance timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -98,7 +98,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
 			{#snippet Pending()}
-				{@const blockNumber0 = prefetched.blockNumber}
+				{@const blockNumber0 = pendingEntity.blockNumber}
 				{#if blockNumber0 !== undefined && blockNumber0 !== null}
 					<span data-text="muted">
 						{String((blockNumber0) ?? '')}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -190,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -225,7 +225,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>Balance</dt>
@@ -262,7 +262,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const usdValue = prefetched.usdValue}
+					{@const usdValue = pendingEntity.usdValue}
 					{#if usdValue !== undefined && usdValue !== null}
 						<div>
 							<dt>USD value</dt>
@@ -297,7 +297,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const priceUsd = prefetched.priceUsd}
+					{@const priceUsd = pendingEntity.priceUsd}
 					{#if priceUsd !== undefined && priceUsd !== null}
 						<div>
 							<dt>Price USD</dt>

@@ -9,8 +9,10 @@ export enum CardanoProtocolParameters_EpochSelector {
 }
 export const CardanoProtocolParameters_Epoch = entity({
 	entityType: EntityType.CardanoProtocolParameters_Epoch,
-	label: 'cardano protocol parameters epoch',
-	labelPlural: 'cardano protocol parameters epoches',
+	labels: {
+		singular: 'cardano protocol parameters epoch',
+		plural: 'cardano protocol parameters epoches',
+	},
 })({
 	$network: {
 		label: 'network',

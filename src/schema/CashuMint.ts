@@ -10,8 +10,10 @@ export enum CashuMintSelector {
 }
 export const CashuMint = entity({
 	entityType: EntityType.CashuMint,
-	label: 'Cashu mint',
-	labelPlural: 'Cashu mints',
+	labels: {
+		singular: 'Cashu mint',
+		plural: 'Cashu mints',
+	},
 })({
 	mintUrl: {
 		label: 'mint URL',

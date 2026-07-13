@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -50,8 +50,15 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import TronNetwork_TimestampsView from '$/views/TronNetwork_TimestampsView.svelte'
+	import TronBlocksView from '$/views/TronBlocksView.svelte'
+	import TronTokensView from '$/views/TronTokensView.svelte'
+	import TronTokenTransfersView from '$/views/TronTokenTransfersView.svelte'
+	import TronWitnessesView from '$/views/TronWitnessesView.svelte'
 </script>
 
 
@@ -68,12 +75,47 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={tronNetwork}>
 			{#snippet Pending()}
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<NetworkView
+					selection={select(EntityType.Network, selection.entitySelector.$network)}
+					href={
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={tronNetwork}>
+			{#snippet Pending()}
 				{title || 'tron network'}
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{title || titleFallback}
+				{titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,22 +128,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -109,41 +139,168 @@
 					/>
 				</dd>
 			</div>
+		</dl>
+	{/snippet}
 
-			<div>
-				<dt>REST endpoints</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tron-chain-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tron-chain-observations',
+							label: 'Observations',
+						},
+						{
+							id: 'tron-chain-blocks',
+							label: 'Blocks',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-chain-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Chain activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTronChainObservations({ id, label, open })}
+					<TronNetwork_TimestampsView
+						selection={
+							selection.$$timestamps({
+								sources: [
+									Source.TronGrid_Rest,
+								],
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Tron network observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTronChainBlocks({ id, label, open })}
+					<TronBlocksView
+						selection={
+							selection.$$blocks({
 								sources: [
 									Source.TronGrid_Rest,
 									Source.TronFullNode_Rest,
 									Source.TronSolidityNode_Rest,
 								],
-								fields: {
-									restEndpoints: true,
-								},
 							})
 						}
-					>
-						{#snippet Pending()}
-							{@const restEndpoints = prefetched.restEndpoints}
-							{#if restEndpoints !== undefined && restEndpoints !== null}
-								{restEndpoints.values.map((value) => String((value.url) ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Tron blocks.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const restEndpoints = resolvedEntity.restEndpoints}
-							{#if restEndpoints !== undefined && restEndpoints !== null}
-								{restEndpoints.values.map((value) => String((value.url) ?? '')).filter(Boolean).join(', ')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tron-tokens'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tron-token-list',
+							label: 'Tokens',
+						},
+						{
+							id: 'tron-token-transfers',
+							label: 'Token transfers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-tokens'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Tokens</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTronTokenList({ id, label, open })}
+					<TronTokensView
+						selection={selection.$$tokens}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Tron tokens.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTronTokenTransfers({ id, label, open })}
+					<TronTokenTransfersView
+						selection={selection.$$tokenTransfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Tron token transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tron-witnesses'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tron-witness-list',
+							label: 'Witnesses',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-witnesses'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Witnesses</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTronWitnessList({ id, label, open })}
+					<TronWitnessesView
+						selection={
+							selection.$$witnesses({
+								sources: [
+									Source.TronGrid_Rest,
+								],
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Tron witnesses.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

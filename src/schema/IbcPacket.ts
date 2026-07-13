@@ -9,8 +9,10 @@ export enum IbcPacketSelector {
 }
 export const IbcPacket = entity({
 	entityType: EntityType.IbcPacket,
-	label: 'IBC packet',
-	labelPlural: 'IBC packets',
+	labels: {
+		singular: 'IBC packet',
+		plural: 'IBC packets',
+	},
 })({
 	$channel: {
 		label: 'Channel',

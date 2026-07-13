@@ -10,8 +10,10 @@ export enum FilecoinNetworkSelector {
 }
 export const FilecoinNetwork = entity({
 	entityType: EntityType.FilecoinNetwork,
-	label: 'filecoin network',
-	labelPlural: 'filecoin networks',
+	labels: {
+		singular: 'filecoin network',
+		plural: 'filecoin networks',
+	},
 	description: 'Filecoin-specific view over a canonical Network row, including Lotus endpoints, chain head observations, and tipsets.',
 })({
 	$network: {

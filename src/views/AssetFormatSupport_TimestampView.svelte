@@ -47,7 +47,7 @@
 			confidence: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.formatId ?? prefetched.formatId) ?? '')].filter(Boolean).join(' ') || 'asset format support timestamp')
+	const titleFallback = $derived([String((pendingEntity.formatId) ?? '')].filter(Boolean).join(' ') || 'asset format support timestamp')
 	const viewDomId = $derived('asset-format-support-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={assetFormatSupportTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.formatId ?? prefetched.formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
+				{[String((pendingEntity.formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={assetFormatSupportTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.formatId ?? prefetched.formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
+				{[String((pendingEntity.formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -98,7 +98,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={assetFormatSupportTimestamp}>
 			{#snippet Pending()}
-				{@const confidence0 = prefetched.confidence}
+				{@const confidence0 = pendingEntity.confidence}
 				{#if confidence0 !== undefined && confidence0 !== null}
 					<span data-text="muted">
 						{String((confidence0) ?? '')}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const formatId = selection.entitySelector.formatId ?? prefetched.formatId}
+							{@const formatId = pendingEntity.formatId}
 							{#if formatId !== undefined && formatId !== null}
 								{String((formatId) ?? '')}
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -193,7 +193,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -220,7 +220,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const confidence = prefetched.confidence}
+					{@const confidence = pendingEntity.confidence}
 					{#if confidence !== undefined && confidence !== null}
 						<div>
 							<dt>Confidence</dt>
@@ -255,7 +255,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evidenceKind = prefetched.evidenceKind}
+					{@const evidenceKind = pendingEntity.evidenceKind}
 					{#if evidenceKind !== undefined && evidenceKind !== null}
 						<div>
 							<dt>Evidence kind</dt>
@@ -290,7 +290,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateKind = prefetched.ledgerCoordinateKind}
+					{@const ledgerCoordinateKind = pendingEntity.ledgerCoordinateKind}
 					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
 						<div>
 							<dt>Ledger coordinate kind</dt>
@@ -325,7 +325,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateValue = prefetched.ledgerCoordinateValue}
+					{@const ledgerCoordinateValue = pendingEntity.ledgerCoordinateValue}
 					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
 						<div>
 							<dt>Ledger coordinate value</dt>
@@ -362,7 +362,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const interfaceId = prefetched.interfaceId}
+					{@const interfaceId = pendingEntity.interfaceId}
 					{#if interfaceId !== undefined && interfaceId !== null}
 						<div>
 							<dt>Interface ID</dt>
@@ -397,7 +397,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const programId = prefetched.programId}
+					{@const programId = pendingEntity.programId}
 					{#if programId !== undefined && programId !== null}
 						<div>
 							<dt>Program ID</dt>
@@ -432,7 +432,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleId = prefetched.moduleId}
+					{@const moduleId = pendingEntity.moduleId}
 					{#if moduleId !== undefined && moduleId !== null}
 						<div>
 							<dt>Module ID</dt>
@@ -467,7 +467,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractAddress = prefetched.contractAddress}
+					{@const contractAddress = pendingEntity.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>Contract address</dt>
@@ -502,7 +502,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenProgram = prefetched.tokenProgram}
+					{@const tokenProgram = pendingEntity.tokenProgram}
 					{#if tokenProgram !== undefined && tokenProgram !== null}
 						<div>
 							<dt>Token program</dt>
@@ -537,7 +537,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const notes = prefetched.notes}
+					{@const notes = pendingEntity.notes}
 					{#if notes !== undefined && notes !== null}
 						<div>
 							<dt>Notes</dt>
@@ -568,8 +568,8 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
 						href={
-							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)

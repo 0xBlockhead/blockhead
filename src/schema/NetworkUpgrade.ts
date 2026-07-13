@@ -10,8 +10,10 @@ export enum NetworkUpgradeSelector {
 }
 export const NetworkUpgrade = entity({
 	entityType: EntityType.NetworkUpgrade,
-	label: 'network upgrade',
-	labelPlural: 'network upgrades',
+	labels: {
+		singular: 'network upgrade',
+		plural: 'network upgrades',
+	},
 	description: 'A generic network-upgrade compatibility row keyed by network and upgrade id. Rich Ethereum-specific upgrade modeling remains on EthereumNetworkUpgrade and related execution/consensus rows.',
 })({
 	$network: {

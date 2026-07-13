@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -58,20 +58,22 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.operatorAddress ?? prefetched.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'eigen layer operator')
+	const titleFallback = $derived([String((pendingEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'eigen layer operator')
 	const viewDomId = $derived('eigen-layer-operator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import EigenLayerDelegation_TimestampsView from '$/views/EigenLayerDelegation_TimestampsView.svelte'
 	import EigenLayerAllocation_TimestampsView from '$/views/EigenLayerAllocation_TimestampsView.svelte'
 	import EigenLayerReward_TimestampsView from '$/views/EigenLayerReward_TimestampsView.svelte'
 	import EigenLayerSlashingEventsView from '$/views/EigenLayerSlashingEventsView.svelte'
-	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -88,7 +90,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eigenLayerOperator}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.operatorAddress ?? prefetched.operatorAddress) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer operator'}
+				{[String((pendingEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer operator'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,7 +103,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerOperator}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.operatorAddress ?? prefetched.operatorAddress) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer operator'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || title || 'eigen layer operator'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -118,22 +120,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -148,22 +138,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -189,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operatorAddress = selection.entitySelector.operatorAddress ?? prefetched.operatorAddress}
+							{@const operatorAddress = pendingEntity.operatorAddress}
 							{#if operatorAddress !== undefined && operatorAddress !== null}
 								<TruncatedValue value={String((operatorAddress) ?? '')} />
 							{/if}
@@ -216,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -251,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const website = prefetched.website}
+					{@const website = pendingEntity.website}
 					{#if website !== undefined && website !== null}
 						<div>
 							<dt>website</dt>
@@ -300,7 +278,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataUri = prefetched.metadataUri}
+					{@const metadataUri = pendingEntity.metadataUri}
 					{#if metadataUri !== undefined && metadataUri !== null}
 						<div>
 							<dt>metadata URI</dt>
@@ -351,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const earningsReceiver = prefetched.earningsReceiver}
+					{@const earningsReceiver = pendingEntity.earningsReceiver}
 					{#if earningsReceiver !== undefined && earningsReceiver !== null}
 						<div>
 							<dt>earnings receiver</dt>
@@ -386,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegationApprover = prefetched.delegationApprover}
+					{@const delegationApprover = pendingEntity.delegationApprover}
 					{#if delegationApprover !== undefined && delegationApprover !== null}
 						<div>
 							<dt>delegation approver</dt>
@@ -421,7 +399,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakerOptOutWindowBlocks = prefetched.stakerOptOutWindowBlocks}
+					{@const stakerOptOutWindowBlocks = pendingEntity.stakerOptOutWindowBlocks}
 					{#if stakerOptOutWindowBlocks !== undefined && stakerOptOutWindowBlocks !== null}
 						<div>
 							<dt>staker opt out window blocks</dt>
@@ -449,6 +427,8 @@
 			<ResourceBoundary
 				resource={selection.$operatorAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null && evmNetworkAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -470,33 +450,107 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<EigenLayerDelegation_TimestampsView
-				selection={selection.$$delegations}
-				title='delegations'
-				emptyText='No EigenLayer delegation observations.'
-				id='EigenLayerDelegation_TimestampsView-delegations'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-eigenlayer-operator-stake'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'eigenlayer-operator-delegations',
+							label: 'Delegations',
+						},
+						{
+							id: 'eigenlayer-operator-allocations',
+							label: 'Allocations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-stake'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Stake</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<EigenLayerAllocation_TimestampsView
-				selection={selection.$$allocations}
-				title='allocations'
-				emptyText='No EigenLayer allocation observations.'
-				id='EigenLayerAllocation_TimestampsView-allocations'
-			/>
+				{#snippet SectionEigenlayerOperatorDelegations({ id, label, open })}
+					<EigenLayerDelegation_TimestampsView
+						selection={selection.$$delegations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No EigenLayer delegation observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<EigenLayerReward_TimestampsView
-				selection={selection.$$rewards}
-				title='rewards'
-				emptyText='No EigenLayer reward observations.'
-				id='EigenLayerReward_TimestampsView-rewards'
-			/>
+				{#snippet SectionEigenlayerOperatorAllocations({ id, label, open })}
+					<EigenLayerAllocation_TimestampsView
+						selection={selection.$$allocations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No EigenLayer allocation observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<EigenLayerSlashingEventsView
-				selection={selection.$$slashingEvents}
-				title='slashing events'
-				emptyText='No EigenLayer slashing events.'
-				id='EigenLayerSlashingEventsView-slashing-events'
-			/>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-eigenlayer-operator-economics'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'eigenlayer-operator-rewards',
+							label: 'Rewards',
+						},
+						{
+							id: 'eigenlayer-operator-slashing',
+							label: 'Slashing events',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-economics'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Rewards and slashing</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionEigenlayerOperatorRewards({ id, label, open })}
+					<EigenLayerReward_TimestampsView
+						selection={selection.$$rewards}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No EigenLayer reward observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionEigenlayerOperatorSlashing({ id, label, open })}
+					<EigenLayerSlashingEventsView
+						selection={selection.$$slashingEvents}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No EigenLayer slashing events.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

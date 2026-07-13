@@ -9,8 +9,10 @@ export enum BlockheadStateChannelDepositSelector {
 }
 export const BlockheadStateChannelDeposit = entity({
 	entityType: EntityType.BlockheadStateChannelDeposit,
-	label: 'blockhead state channel deposit',
-	labelPlural: 'blockhead state channel deposits',
+	labels: {
+		singular: 'blockhead state channel deposit',
+		plural: 'blockhead state channel deposits',
+	},
 })({
 	$channel: {
 		label: 'channel',

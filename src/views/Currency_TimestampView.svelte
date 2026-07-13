@@ -65,9 +65,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$currency !== undefined && pendingEntity.$currency.iso4217 !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
-			iso4217: String(pendingEntity.$currency.iso4217 ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$currency !== undefined && pendingEntity.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			iso4217: String(pendingEntity.$currency.iso4217 ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -80,7 +80,7 @@
 				<CurrencyView
 					selection={select(EntityType.Currency, selection.entitySelector.$currency)}
 					href={
-						(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+						(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
 							iso4217: String(selection.entitySelector.$currency.iso4217 ?? ''),
 						}) : undefined)
 					}
@@ -94,7 +94,7 @@
 				<CurrencyView
 					selection={select(EntityType.Currency, selection.entitySelector.$currency)}
 					href={
-						(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+						(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
 							iso4217: String(selection.entitySelector.$currency.iso4217 ?? ''),
 						}) : undefined)
 					}
@@ -108,7 +108,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={currencyTimestamp}>
 			{#snippet Pending()}
-				{@const marketCap0 = prefetched.marketCap}
+				{@const marketCap0 = pendingEntity.marketCap}
 				{#if marketCap0 !== undefined && marketCap0 !== null}
 					<NumberValue
 						value={Number(marketCap0)}
@@ -133,7 +133,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={currencyTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -165,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const marketCap = prefetched.marketCap}
+					{@const marketCap = pendingEntity.marketCap}
 					{#if marketCap !== undefined && marketCap !== null}
 						<div>
 							<dt>Market cap</dt>
@@ -209,7 +209,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -232,7 +232,7 @@
 					<CurrencyView
 						selection={select(EntityType.Currency, selection.entitySelector.$currency, {})}
 						href={
-							(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+							(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
 								iso4217: String(selection.entitySelector.$currency.iso4217 ?? ''),
 							}) : undefined)
 						}

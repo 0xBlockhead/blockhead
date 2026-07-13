@@ -9,8 +9,10 @@ export enum BlockheadCashuProofSelector {
 }
 export const BlockheadCashuProof = entity({
 	entityType: EntityType.BlockheadCashuProof,
-	label: 'blockhead Cashu proof',
-	labelPlural: 'blockhead Cashu proofs',
+	labels: {
+		singular: 'blockhead Cashu proof',
+		plural: 'blockhead Cashu proofs',
+	},
 })({
 	walletId: {
 		label: 'wallet ID',

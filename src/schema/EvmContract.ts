@@ -10,8 +10,10 @@ export enum EvmContractSelector {
 }
 export const EvmContract = entity({
 	entityType: EntityType.EvmContract,
-	label: 'EVM contract',
-	labelPlural: 'EVM contracts',
+	labels: {
+		singular: 'EVM contract',
+		plural: 'EVM contracts',
+	},
 	description: 'A smart contract account and its contract-specific metadata on an EVM-compatible network.',
 })({
 	$network: {

@@ -1,5 +1,9 @@
 import { execFileSync } from 'node:child_process'
-import ts from 'typescript'
+import { readFileSync, writeFileSync } from 'node:fs'
+
+const typeScript = (await import('typescript')).default
+const usesLegacyCompilerApi = Number(typeScript.versionMajorMinor.split('.')[0]) < 7
+const typeScriptAst = usesLegacyCompilerApi ? typeScript : await import('typescript/unstable/ast')
 
 const files = execFileSync(
 	'rg',
@@ -21,6 +25,10 @@ const files = execFileSync(
 
 const failures = []
 const shouldFix = process.argv.includes('--fix')
+const api = usesLegacyCompilerApi ? undefined : new (await import('typescript/unstable/sync')).API()
+const snapshot = api?.updateSnapshot({
+	openFiles: files,
+})
 
 const report = (file, lineAndCharacter, message) => {
 	failures.push(`${file}:${lineAndCharacter.line + 1}:${lineAndCharacter.character + 1} ${message}`)
@@ -28,6 +36,15 @@ const report = (file, lineAndCharacter, message) => {
 
 const reportNode = (file, sourceFile, node, message) => {
 	report(file, sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)), message)
+}
+
+const getLineAndCharacterOfPosition = (text, position) => {
+	const lines = text.slice(0, position).split('\n')
+
+	return {
+		line: lines.length - 1,
+		character: lines.at(-1).length,
+	}
 }
 
 const removeTrailingComma = (edits, nodeArray) => {
@@ -43,7 +60,7 @@ const removeTrailingComma = (edits, nodeArray) => {
 const checkNode = (file, sourceFile, node) => {
 	const edits = editsByFile.get(file)
 	if (
-		ts.isCallExpression(node)
+		typeScriptAst.isCallExpression(node)
 		&& node.arguments.hasTrailingComma
 	) {
 		reportNode(file, sourceFile, node, 'Remove trailing comma from call arguments.')
@@ -51,7 +68,7 @@ const checkNode = (file, sourceFile, node) => {
 	}
 
 	if (
-		ts.isNewExpression(node)
+		typeScriptAst.isNewExpression(node)
 		&& node.arguments?.hasTrailingComma
 	) {
 		reportNode(file, sourceFile, node, 'Remove trailing comma from constructor arguments.')
@@ -74,14 +91,16 @@ const checkNode = (file, sourceFile, node) => {
 		if (edits) removeTrailingComma(edits, node.typeArguments)
 	}
 
-	ts.forEachChild(node, (child) => checkNode(file, sourceFile, child))
+	node.forEachChild((child) => checkNode(file, sourceFile, child))
 }
 
 const editsByFile = new Map()
 
 for (const file of files) {
-	const text = ts.sys.readFile(file)
-	if (text === undefined) {
+	let text
+	try {
+		text = readFileSync(file, 'utf8')
+	} catch {
 		failures.push(`${file}:1:1 Unable to read file.`)
 		continue
 	}
@@ -109,10 +128,7 @@ for (const file of files) {
 
 	const excessiveLineBreaks = /\n{4,}/.exec(text)
 	if (excessiveLineBreaks) {
-		report(file, ts.getLineAndCharacterOfPosition(
-			{ text },
-			excessiveLineBreaks.index,
-		), 'Use at most 3 consecutive line breaks.')
+		report(file, getLineAndCharacterOfPosition(text, excessiveLineBreaks.index), 'Use at most 3 consecutive line breaks.')
 		if (shouldFix) {
 			for (const match of text.matchAll(/\n{4,}/g))
 				edits.push({
@@ -124,10 +140,7 @@ for (const file of files) {
 	}
 
 	for (const match of text.matchAll(/[ \t]+$/gm)) {
-		report(file, ts.getLineAndCharacterOfPosition(
-			{ text },
-			match.index,
-		), 'Remove trailing whitespace.')
+		report(file, getLineAndCharacterOfPosition(text, match.index), 'Remove trailing whitespace.')
 		if (shouldFix) edits.push({
 			start: match.index,
 			end: match.index + match[0].length,
@@ -135,16 +148,33 @@ for (const file of files) {
 		})
 	}
 
-	const sourceFile = ts.createSourceFile(
-		file,
-		text,
-		ts.ScriptTarget.Latest,
-		true,
-		ts.ScriptKind.TS,
-	)
+	const project = snapshot?.getDefaultProjectForFile(file)
+	const sourceFile = usesLegacyCompilerApi ?
+		typeScript.createSourceFile(
+			file,
+			text,
+			typeScript.ScriptTarget.Latest,
+			true,
+			typeScript.ScriptKind.TS,
+		)
+		:
+		project?.program.getSourceFile(file)
+	if (!sourceFile) {
+		failures.push(`${file}:1:1 Unable to parse file.`)
+		continue
+	}
 
-	for (const diagnostic of sourceFile.parseDiagnostics)
-		report(file, sourceFile.getLineAndCharacterOfPosition(diagnostic.start ?? 0), ts.flattenDiagnosticMessageText(diagnostic.messageText, ' '))
+	if (usesLegacyCompilerApi) {
+		for (const diagnostic of sourceFile.parseDiagnostics)
+			report(
+				file,
+				sourceFile.getLineAndCharacterOfPosition(diagnostic.start ?? 0),
+				typeScript.flattenDiagnosticMessageText(diagnostic.messageText, ' '),
+			)
+	} else {
+		for (const diagnostic of project.program.getSyntacticDiagnostics(file))
+			report(file, sourceFile.getLineAndCharacterOfPosition(diagnostic.pos), diagnostic.text)
+	}
 
 	checkNode(file, sourceFile, sourceFile)
 
@@ -153,9 +183,12 @@ for (const file of files) {
 		for (const edit of edits.sort((a, b) => b.start - a.start))
 			fixedText = fixedText.slice(0, edit.start) + edit.replacement + fixedText.slice(edit.end)
 
-		ts.sys.writeFile(file, fixedText)
+		writeFileSync(file, fixedText)
 	}
 }
+
+snapshot?.dispose()
+api?.close()
 
 if (failures.length) {
 	console.error(failures.join('\n'))

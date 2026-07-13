@@ -48,7 +48,7 @@
 			activeUserCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit timestamp')
 	const viewDomId = $derived('reddit-subreddit-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,10 +66,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$subreddit !== undefined && pendingEntity.$subreddit.name !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(social)/(reddit)/reddit/r/[name]/(subreddit)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			name: String(pendingEntity.$subreddit.name ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$subreddit !== undefined && pendingEntity.$subreddit.name !== undefined ? resolve('/reddit/r/[name=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			name: String(pendingEntity.$subreddit.name ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={redditSubredditTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={redditSubredditTimestamp}>
 			{#snippet Pending()}
-				{@const subscriberCount0 = prefetched.subscriberCount}
+				{@const subscriberCount0 = pendingEntity.subscriberCount}
 				{#if subscriberCount0 !== undefined && subscriberCount0 !== null}
 					<NumberValue value={Number(subscriberCount0)} />
 				{/if}
@@ -117,13 +117,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={redditSubredditTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
 					</span>
 				{/if}
-				{@const activeUserCount1 = prefetched.activeUserCount}
+				{@const activeUserCount1 = pendingEntity.activeUserCount}
 				{#if activeUserCount1 !== undefined && activeUserCount1 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(activeUserCount1)} />
@@ -168,7 +168,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -198,7 +198,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -225,7 +225,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subscriberCount = prefetched.subscriberCount}
+					{@const subscriberCount = pendingEntity.subscriberCount}
 					{#if subscriberCount !== undefined && subscriberCount !== null}
 						<div>
 							<dt>Subscribers</dt>
@@ -260,7 +260,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activeUserCount = prefetched.activeUserCount}
+					{@const activeUserCount = pendingEntity.activeUserCount}
 					{#if activeUserCount !== undefined && activeUserCount !== null}
 						<div>
 							<dt>Active users</dt>

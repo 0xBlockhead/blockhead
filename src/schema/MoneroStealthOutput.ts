@@ -10,8 +10,10 @@ export enum MoneroStealthOutputSelector {
 }
 export const MoneroStealthOutput = entity({
 	entityType: EntityType.MoneroStealthOutput,
-	label: 'monero stealth output',
-	labelPlural: 'monero stealth outputs',
+	labels: {
+		singular: 'monero stealth output',
+		plural: 'monero stealth outputs',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',

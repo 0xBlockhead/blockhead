@@ -9,8 +9,10 @@ export enum CoinBridgeCapabilitySelector {
 }
 export const CoinBridgeCapability = entity({
 	entityType: EntityType.CoinBridgeCapability,
-	label: 'Coin bridge capability',
-	labelPlural: 'coin bridge capabilities',
+	labels: {
+		singular: 'Coin bridge capability',
+		plural: 'coin bridge capabilities',
+	},
 	description: 'A supported bridge path between two EVM coin instances through a specific bridge tool.',
 })({
 	$fromInstance: {

@@ -122,10 +122,10 @@
 						selection={select(EntityType.Coin_Timestamp, coinTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={coinTimestampFields}
 						href={
-							(coinTimestampHrefFields.$coin !== undefined && coinTimestampHrefFields.$coin.coinId !== undefined && coinTimestampHrefFields.timestampMs !== undefined && coinTimestampHrefFields.source !== undefined ? resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								coinId: String(coinTimestampHrefFields.$coin.coinId ?? ''),
+							(coinTimestampHrefFields.timestampMs !== undefined && coinTimestampHrefFields.source !== undefined && coinTimestampHrefFields.$coin !== undefined && coinTimestampHrefFields.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(coinTimestampHrefFields.timestampMs ?? ''),
 								source: String(coinTimestampHrefFields.source ?? ''),
+								coinId: String(coinTimestampHrefFields.$coin.coinId ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

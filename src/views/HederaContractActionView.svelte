@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const callDepth = selection.entitySelector.callDepth ?? prefetched.callDepth}
+							{@const callDepth = pendingEntity.callDepth}
 							{#if callDepth !== undefined && callDepth !== null}
 								{String((callDepth) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const callIndex = selection.entitySelector.callIndex ?? prefetched.callIndex}
+							{@const callIndex = pendingEntity.callIndex}
 							{#if callIndex !== undefined && callIndex !== null}
 								{String((callIndex) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const callType = prefetched.callType}
+					{@const callType = pendingEntity.callType}
 					{#if callType !== undefined && callType !== null}
 						<div>
 							<dt>call type</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fromAddress = prefetched.fromAddress}
+					{@const fromAddress = pendingEntity.fromAddress}
 					{#if fromAddress !== undefined && fromAddress !== null}
 						<div>
 							<dt>from address</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toAddress = prefetched.toAddress}
+					{@const toAddress = pendingEntity.toAddress}
 					{#if toAddress !== undefined && toAddress !== null}
 						<div>
 							<dt>to address</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gas = prefetched.gas}
+					{@const gas = pendingEntity.gas}
 					{#if gas !== undefined && gas !== null}
 						<div>
 							<dt>gas</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>gas used</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueTinybar = prefetched.valueTinybar}
+					{@const valueTinybar = pendingEntity.valueTinybar}
 					{#if valueTinybar !== undefined && valueTinybar !== null}
 						<div>
 							<dt>value tinybar</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const input = prefetched.input}
+					{@const input = pendingEntity.input}
 					{#if input !== undefined && input !== null}
 						<div>
 							<dt>input</dt>
@@ -404,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const output = prefetched.output}
+					{@const output = pendingEntity.output}
 					{#if output !== undefined && output !== null}
 						<div>
 							<dt>output</dt>
@@ -439,7 +439,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

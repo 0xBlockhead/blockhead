@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={zeroGConsensusNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -136,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -166,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sharedStakingStatusSource = prefetched.sharedStakingStatusSource}
+					{@const sharedStakingStatusSource = pendingEntity.sharedStakingStatusSource}
 					{#if sharedStakingStatusSource !== undefined && sharedStakingStatusSource !== null}
 						<div>
 							<dt>shared staking status source</dt>

@@ -119,10 +119,10 @@
 						selection={select(EntityType.RssFeed_Timestamp, rssFeedTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={rssFeedTimestampFields}
 						href={
-							(rssFeedTimestampHrefFields.$feed !== undefined && rssFeedTimestampHrefFields.$feed.feedUrl !== undefined && rssFeedTimestampHrefFields.timestampMs !== undefined && rssFeedTimestampHrefFields.source !== undefined ? resolve('/(social)/(rss)/rss/feed/[feedKey]/(feed)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								feedKey: String(rssFeedTimestampHrefFields.$feed.feedUrl ?? ''),
+							(rssFeedTimestampHrefFields.timestampMs !== undefined && rssFeedTimestampHrefFields.source !== undefined && rssFeedTimestampHrefFields.$feed !== undefined && rssFeedTimestampHrefFields.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(rssFeedTimestampHrefFields.timestampMs ?? ''),
 								source: String(rssFeedTimestampHrefFields.source ?? ''),
+								feedKey: String(rssFeedTimestampHrefFields.$feed.feedUrl ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

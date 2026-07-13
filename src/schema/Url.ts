@@ -10,8 +10,10 @@ export enum UrlSelector {
 }
 export const Url = entity({
 	entityType: EntityType.Url,
-	label: 'URL',
-	labelPlural: 'URLs',
+	labels: {
+		singular: 'URL',
+		plural: 'URLs',
+	},
 	description: 'A web URL that is modeled as a referenced resource rather than an inline string.',
 })({
 	url: {

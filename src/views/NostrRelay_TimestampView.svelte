@@ -48,7 +48,7 @@
 			software: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? ''), String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp')
+	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp')
 	const viewDomId = $derived('nostr-relay-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrRelayTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? ''), String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Nostr relay timestamp'}
+				{[String((pendingEntity.name) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Nostr relay timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nostrRelayTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.reachable) ?? ''), String((prefetched.software) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Nostr relay timestamp'}
+				{[String((pendingEntity.reachable) ?? ''), String((pendingEntity.software) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Nostr relay timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,7 +99,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nostrRelayTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -226,7 +226,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const software = prefetched.software}
+					{@const software = pendingEntity.software}
 					{#if software !== undefined && software !== null}
 						<div>
 							<dt>Software</dt>
@@ -261,7 +261,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>Version</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedNips = prefetched.supportedNips}
+					{@const supportedNips = pendingEntity.supportedNips}
 					{#if supportedNips !== undefined && supportedNips !== null}
 						<div>
 							<dt>Supported NIPs</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isPaid = prefetched.isPaid}
+					{@const isPaid = pendingEntity.isPaid}
 					{#if isPaid !== undefined && isPaid !== null}
 						<div>
 							<dt>Paid relay</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activeUsers = prefetched.activeUsers}
+					{@const activeUsers = pendingEntity.activeUsers}
 					{#if activeUsers !== undefined && activeUsers !== null}
 						<div>
 							<dt>Active users</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const eventsPerDay = prefetched.eventsPerDay}
+					{@const eventsPerDay = pendingEntity.eventsPerDay}
 					{#if eventsPerDay !== undefined && eventsPerDay !== null}
 						<div>
 							<dt>Events per day</dt>
@@ -438,7 +438,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rank = prefetched.rank}
+					{@const rank = pendingEntity.rank}
 					{#if rank !== undefined && rank !== null}
 						<div>
 							<dt>Rank</dt>
@@ -473,7 +473,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>
@@ -510,7 +510,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paymentsUrl = prefetched.paymentsUrl}
+					{@const paymentsUrl = pendingEntity.paymentsUrl}
 					{#if paymentsUrl !== undefined && paymentsUrl !== null}
 						<div>
 							<dt>Payments URL</dt>
@@ -559,7 +559,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const termsOfServiceUrl = prefetched.termsOfServiceUrl}
+					{@const termsOfServiceUrl = pendingEntity.termsOfServiceUrl}
 					{#if termsOfServiceUrl !== undefined && termsOfServiceUrl !== null}
 						<div>
 							<dt>Terms of service URL</dt>
@@ -608,7 +608,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const iconUrl = prefetched.iconUrl}
+					{@const iconUrl = pendingEntity.iconUrl}
 					{#if iconUrl !== undefined && iconUrl !== null}
 						<div>
 							<dt>Icon URL</dt>
@@ -657,7 +657,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bannerUrl = prefetched.bannerUrl}
+					{@const bannerUrl = pendingEntity.bannerUrl}
 					{#if bannerUrl !== undefined && bannerUrl !== null}
 						<div>
 							<dt>Banner URL</dt>
@@ -708,7 +708,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pubkey = prefetched.pubkey}
+					{@const pubkey = pendingEntity.pubkey}
 					{#if pubkey !== undefined && pubkey !== null}
 						<div>
 							<dt>Public key</dt>
@@ -743,7 +743,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>Error</dt>

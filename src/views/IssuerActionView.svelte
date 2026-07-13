@@ -93,7 +93,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const issuerActionId = selection.entitySelector.issuerActionId ?? prefetched.issuerActionId}
+							{@const issuerActionId = pendingEntity.issuerActionId}
 							{#if issuerActionId !== undefined && issuerActionId !== null}
 								<TruncatedValue value={String((issuerActionId) ?? '')} />
 							{/if}
@@ -123,7 +123,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const actionKind = prefetched.actionKind}
+							{@const actionKind = pendingEntity.actionKind}
 							{#if actionKind !== undefined && actionKind !== null}
 								{String((actionKind) ?? '')}
 							{/if}
@@ -147,13 +147,13 @@
 						resource={selection.$assetInstance}
 					>
 						{#snippet children(assetInstance)}
-							{#if assetInstance[EntityMetaKey.Selector] != null}
+							{#if assetInstance != null && assetInstance[EntityMetaKey.Selector] != null}
 								<AssetInstanceView
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									href={
-										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-											caip2: `${String(assetInstance[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(assetInstance[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.slug !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+											network: String(assetInstance[EntityMetaKey.Selector].$network.slug ?? ''),
 											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
 											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
 										}) : undefined)
@@ -179,7 +179,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -207,6 +207,8 @@
 			<ResourceBoundary
 				resource={selection.$issuerPower}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(issuerPower)}
 					{#if issuerPower != null && issuerPower[EntityMetaKey.Selector] != null}
 						<div>

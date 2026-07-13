@@ -9,8 +9,10 @@ export enum BitTorrentFileSelector {
 }
 export const BitTorrentFile = entity({
 	entityType: EntityType.BitTorrentFile,
-	label: 'bit torrent file',
-	labelPlural: 'bit torrent files',
+	labels: {
+		singular: 'bit torrent file',
+		plural: 'bit torrent files',
+	},
 })({
 	$torrent: {
 		label: 'torrent',

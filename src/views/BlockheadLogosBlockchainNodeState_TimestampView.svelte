@@ -50,7 +50,7 @@
 			peerCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain node state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain node state timestamp')
 	const viewDomId = $derived('blockhead-logos-blockchain-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLogosBlockchainNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLogosBlockchainNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const peerCount0 = prefetched.peerCount}
+				{@const peerCount0 = pendingEntity.peerCount}
 				{#if peerCount0 !== undefined && peerCount0 !== null}
 					<NumberValue value={Number(peerCount0)} />
 				{/if}
@@ -114,7 +114,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLogosBlockchainNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -160,7 +160,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -190,7 +190,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -220,7 +220,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const listenAddresses = prefetched.listenAddresses}
+							{@const listenAddresses = pendingEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
 								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>peer count</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const connectionCount = prefetched.connectionCount}
+					{@const connectionCount = pendingEntity.connectionCount}
 					{#if connectionCount !== undefined && connectionCount !== null}
 						<div>
 							<dt>connection count</dt>
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingConnectionCount = prefetched.pendingConnectionCount}
+					{@const pendingConnectionCount = pendingEntity.pendingConnectionCount}
 					{#if pendingConnectionCount !== undefined && pendingConnectionCount !== null}
 						<div>
 							<dt>pending connection count</dt>

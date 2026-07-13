@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -160,7 +160,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commission = prefetched.commission}
+					{@const commission = pendingEntity.commission}
 					{#if commission !== undefined && commission !== null}
 						<div>
 							<dt>commission</dt>
@@ -195,7 +195,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const recentBlockCount = prefetched.recentBlockCount}
+					{@const recentBlockCount = pendingEntity.recentBlockCount}
 					{#if recentBlockCount !== undefined && recentBlockCount !== null}
 						<div>
 							<dt>recent block count</dt>
@@ -230,7 +230,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isActive = prefetched.isActive}
+					{@const isActive = pendingEntity.isActive}
 					{#if isActive !== undefined && isActive !== null}
 						<div>
 							<dt>is active</dt>
@@ -265,7 +265,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stake = prefetched.stake}
+					{@const stake = pendingEntity.stake}
 					{#if stake !== undefined && stake !== null}
 						<div>
 							<dt>stake</dt>
@@ -300,7 +300,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isJailed = prefetched.isJailed}
+					{@const isJailed = pendingEntity.isJailed}
 					{#if isJailed !== undefined && isJailed !== null}
 						<div>
 							<dt>is jailed</dt>
@@ -335,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signerAddress = prefetched.signerAddress}
+					{@const signerAddress = pendingEntity.signerAddress}
 					{#if signerAddress !== undefined && signerAddress !== null}
 						<div>
 							<dt>signer address</dt>
@@ -363,6 +363,8 @@
 			<ResourceBoundary
 				resource={selection.$signer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hyperliquidAccount)}
 					{#if hyperliquidAccount != null && hyperliquidAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -390,7 +392,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -425,7 +427,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>

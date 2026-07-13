@@ -9,8 +9,10 @@ export enum CosmosValidatorSelector {
 }
 export const CosmosValidator = entity({
 	entityType: EntityType.CosmosValidator,
-	label: 'Cosmos validator',
-	labelPlural: 'Cosmos validators',
+	labels: {
+		singular: 'Cosmos validator',
+		plural: 'Cosmos validators',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const changeIndex = selection.entitySelector.changeIndex ?? prefetched.changeIndex}
+							{@const changeIndex = pendingEntity.changeIndex}
 							{#if changeIndex !== undefined && changeIndex !== null}
 								{String((changeIndex) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const changeKind = prefetched.changeKind}
+							{@const changeKind = pendingEntity.changeKind}
 							{#if changeKind !== undefined && changeKind !== null}
 								{String((changeKind) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const objectId = prefetched.objectId}
+					{@const objectId = pendingEntity.objectId}
 					{#if objectId !== undefined && objectId !== null}
 						<div>
 							<dt>object ID</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const objectType = prefetched.objectType}
+					{@const objectType = pendingEntity.objectType}
 					{#if objectType !== undefined && objectType !== null}
 						<div>
 							<dt>object type</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const digest = prefetched.digest}
+					{@const digest = pendingEntity.digest}
 					{#if digest !== undefined && digest !== null}
 						<div>
 							<dt>digest</dt>

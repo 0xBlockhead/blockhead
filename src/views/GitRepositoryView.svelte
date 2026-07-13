@@ -43,11 +43,13 @@
 			objectFormat: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.repositoryId) ?? ''), String((prefetched.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || 'Git repository')
+	const titleFallback = $derived([String((pendingEntity.repositoryId) ?? ''), String((pendingEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || 'Git repository')
 	const viewDomId = $derived('git-repository-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import GitRefsView from '$/views/GitRefsView.svelte'
@@ -70,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitRepository}>
 			{#snippet Pending()}
-				{[String((prefetched.repositoryId) ?? ''), String((prefetched.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || title || 'Git repository'}
+				{[String((pendingEntity.repositoryId) ?? ''), String((pendingEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || title || 'Git repository'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -83,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRepository}>
 			{#snippet Pending()}
-				{[String((prefetched.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((prefetched.repositoryId) ?? ''), String((prefetched.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || title || 'Git repository'}
+				{[String((pendingEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.repositoryId) ?? ''), String((pendingEntity.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || title || 'Git repository'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +110,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const repositoryId = prefetched.repositoryId}
+							{@const repositoryId = pendingEntity.repositoryId}
 							{#if repositoryId !== undefined && repositoryId !== null}
 								{String((repositoryId) ?? '')}
 							{/if}
@@ -135,7 +137,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canonicalRemoteUrl = prefetched.canonicalRemoteUrl}
+					{@const canonicalRemoteUrl = pendingEntity.canonicalRemoteUrl}
 					{#if canonicalRemoteUrl !== undefined && canonicalRemoteUrl !== null}
 						<div>
 							<dt>canonical remote URL</dt>
@@ -187,7 +189,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectFormat = prefetched.objectFormat}
+							{@const objectFormat = pendingEntity.objectFormat}
 							{#if objectFormat !== undefined && objectFormat !== null}
 								{String((objectFormat) ?? '')}
 							{/if}
@@ -214,7 +216,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const defaultRefName = prefetched.defaultRefName}
+					{@const defaultRefName = pendingEntity.defaultRefName}
 					{#if defaultRefName !== undefined && defaultRefName !== null}
 						<div>
 							<dt>default ref name</dt>
@@ -243,33 +245,107 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<GitRefsView
-				selection={selection.$$refs}
-				title='refs'
-				emptyText='No refs.'
-				id='GitRefsView-refs'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-git-repository-objects'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'git-repository-refs',
+							label: 'Refs',
+						},
+						{
+							id: 'git-repository-object-list',
+							label: 'Objects',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-refs-objects'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Refs and objects</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<GitObjectsView
-				selection={selection.$$objects}
-				title='objects'
-				emptyText='No objects.'
-				id='GitObjectsView-objects'
-			/>
+				{#snippet SectionGitRepositoryRefs({ id, label, open })}
+					<GitRefsView
+						selection={selection.$$refs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No refs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<GitRemotesView
-				selection={selection.$$remotes}
-				title='remotes'
-				emptyText='No remotes.'
-				id='GitRemotesView-remotes'
-			/>
+				{#snippet SectionGitRepositoryObjectList({ id, label, open })}
+					<GitObjectsView
+						selection={selection.$$objects}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No objects.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<GitFetchObservationsView
-				selection={selection.$$fetches}
-				title='fetches'
-				emptyText='No fetch observations.'
-				id='GitFetchObservationsView-fetches'
-			/>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-git-repository-remotes'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'git-repository-remote-list',
+							label: 'Remotes',
+						},
+						{
+							id: 'git-repository-fetches',
+							label: 'Fetches',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-remotes'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Remotes and fetches</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionGitRepositoryRemoteList({ id, label, open })}
+					<GitRemotesView
+						selection={selection.$$remotes}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No remotes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionGitRepositoryFetches({ id, label, open })}
+					<GitFetchObservationsView
+						selection={selection.$$fetches}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No fetch observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

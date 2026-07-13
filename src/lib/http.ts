@@ -1,4 +1,5 @@
 import type { SourceOrigin } from '$/sources/SourceProvider.ts'
+import { SourceDelivery } from '$/sources/SourceBinding.ts'
 import { isJsonObject, jsonMessage, type JsonValue } from '$/typescript/JsonValue.ts'
 
 
@@ -17,7 +18,7 @@ const defaultRetry: Required<RetryOptions> = {
 	maxDelayMs: 30_000,
 }
 
-const fetchTimeoutMs = 30_000
+const fetchTimeoutMs = 10_000
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
@@ -52,6 +53,7 @@ const retryAfterMs = (response: Response): number | undefined => {
 export type CorsAwareFetchOptions = {
 	/** Provider-scoped rows — `corsEnabled` for `url`’s origin is read from here (single definition with `hooks` allow-list). */
 	origins: readonly SourceOrigin[]
+	delivery?: SourceDelivery
 	init?: RequestInit
 	retry?: RetryOptions
 }
@@ -68,14 +70,32 @@ const doFetch = async (
 	if (sourceOrigin == null)
 		throw new Error(`Unregistered source origin for ${url}`)
 
-	return (
-		typeof window === 'undefined' ?
-			fetch(url, withTimeout(options.init))
-		: sourceOrigin.corsEnabled ?
-			fetch(url, withTimeout(options.init))
-		:
-			fetch(`/api-proxy/${url}`, withTimeout(options.init))
+	if (typeof window === 'undefined')
+		return fetch(url, withTimeout(options.init))
+
+	if (options.delivery === SourceDelivery.RemoteQuery)
+		throw new Error(`RemoteQuery source HTTP must run through a SvelteKit query for ${url}`)
+
+	if (options.delivery === SourceDelivery.RemoteLive)
+		throw new Error(`RemoteLive source HTTP must run through sourceLive for ${url}`)
+
+	if (
+		options.delivery === SourceDelivery.ServerOnly
+		|| options.delivery === SourceDelivery.LocalOnly
+		|| options.delivery === SourceDelivery.Unsupported
 	)
+		throw new Error(`${options.delivery} source HTTP is unavailable in the browser for ${url}`)
+
+	if (options.delivery === SourceDelivery.HttpProxy)
+		return fetch(`/api-proxy/${url}`, withTimeout(options.init))
+
+	if (options.delivery === SourceDelivery.BrowserDirect && !sourceOrigin.corsEnabled)
+		throw new Error(`BrowserDirect source origin is not CORS-enabled for ${url}`)
+
+	return sourceOrigin.corsEnabled ?
+		fetch(url, withTimeout(options.init))
+	:
+		fetch(`/api-proxy/${url}`, withTimeout(options.init))
 }
 
 export const corsFetch = async (

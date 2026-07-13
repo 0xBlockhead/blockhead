@@ -9,8 +9,10 @@ export enum BitTorrentDhtNode_TimestampSelector {
 }
 export const BitTorrentDhtNode_Timestamp = entity({
 	entityType: EntityType.BitTorrentDhtNode_Timestamp,
-	label: 'bit torrent DHT node timestamp',
-	labelPlural: 'bit torrent DHT node observations',
+	labels: {
+		singular: 'bit torrent DHT node timestamp',
+		plural: 'bit torrent DHT node observations',
+	},
 })({
 	nodeId: {
 		label: 'node ID',

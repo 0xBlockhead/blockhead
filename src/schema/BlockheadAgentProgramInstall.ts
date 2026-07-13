@@ -10,8 +10,10 @@ export enum BlockheadAgentProgramInstallSelector {
 }
 export const BlockheadAgentProgramInstall = entity({
 	entityType: EntityType.BlockheadAgentProgramInstall,
-	label: 'blockhead agent program install',
-	labelPlural: 'blockhead agent program installs',
+	labels: {
+		singular: 'blockhead agent program install',
+		plural: 'blockhead agent program installs',
+	},
 })({
 	installId: {
 		label: 'install ID',

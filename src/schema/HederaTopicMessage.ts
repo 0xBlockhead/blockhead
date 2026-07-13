@@ -9,8 +9,10 @@ export enum HederaTopicMessageSelector {
 }
 export const HederaTopicMessage = entity({
 	entityType: EntityType.HederaTopicMessage,
-	label: 'hedera topic message',
-	labelPlural: 'hedera topic messages',
+	labels: {
+		singular: 'hedera topic message',
+		plural: 'hedera topic messages',
+	},
 })({
 	$topic: {
 		label: 'topic',

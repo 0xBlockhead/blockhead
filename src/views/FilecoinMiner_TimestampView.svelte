@@ -51,7 +51,7 @@
 			height: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin miner timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin miner timestamp')
 	const viewDomId = $derived('filecoin-miner-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={filecoinMinerTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -97,7 +97,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={filecoinMinerTimestamp}>
 			{#snippet Pending()}
-				{@const qualityAdjustedPower0 = prefetched.qualityAdjustedPower}
+				{@const qualityAdjustedPower0 = pendingEntity.qualityAdjustedPower}
 				{#if qualityAdjustedPower0 !== undefined && qualityAdjustedPower0 !== null}
 					<NumberValue value={Number(qualityAdjustedPower0)} />
 				{/if}
@@ -116,7 +116,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinMinerTimestamp}>
 			{#snippet Pending()}
-				{@const height0 = prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(height0)} />
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const height = prefetched.height}
+					{@const height = pendingEntity.height}
 					{#if height !== undefined && height !== null}
 						<div>
 							<dt>Height</dt>
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tipsetKey = prefetched.tipsetKey}
+					{@const tipsetKey = pendingEntity.tipsetKey}
 					{#if tipsetKey !== undefined && tipsetKey !== null}
 						<div>
 							<dt>Tipset key</dt>
@@ -282,6 +282,8 @@
 			<ResourceBoundary
 				resource={selection.$tipset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinTipset)}
 					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
 						<div>
@@ -308,6 +310,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
 						<div>
@@ -334,6 +338,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
 						<div>
@@ -364,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerId = prefetched.peerId}
+					{@const peerId = pendingEntity.peerId}
 					{#if peerId !== undefined && peerId !== null}
 						<div>
 							<dt>Peer ID</dt>
@@ -404,7 +410,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rawBytePower = prefetched.rawBytePower}
+					{@const rawBytePower = pendingEntity.rawBytePower}
 					{#if rawBytePower !== undefined && rawBytePower !== null}
 						<div>
 							<dt>Raw byte power</dt>
@@ -442,7 +448,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const qualityAdjustedPower = prefetched.qualityAdjustedPower}
+					{@const qualityAdjustedPower = pendingEntity.qualityAdjustedPower}
 					{#if qualityAdjustedPower !== undefined && qualityAdjustedPower !== null}
 						<div>
 							<dt>Quality adjusted power</dt>
@@ -480,7 +486,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const networkRawBytePower = prefetched.networkRawBytePower}
+					{@const networkRawBytePower = pendingEntity.networkRawBytePower}
 					{#if networkRawBytePower !== undefined && networkRawBytePower !== null}
 						<div>
 							<dt>Network raw byte power</dt>
@@ -518,7 +524,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const networkQualityAdjustedPower = prefetched.networkQualityAdjustedPower}
+					{@const networkQualityAdjustedPower = pendingEntity.networkQualityAdjustedPower}
 					{#if networkQualityAdjustedPower !== undefined && networkQualityAdjustedPower !== null}
 						<div>
 							<dt>Network quality adjusted power</dt>
@@ -556,7 +562,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const liveSectorCount = prefetched.liveSectorCount}
+					{@const liveSectorCount = pendingEntity.liveSectorCount}
 					{#if liveSectorCount !== undefined && liveSectorCount !== null}
 						<div>
 							<dt>Live sectors</dt>
@@ -591,7 +597,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const faultySectorCount = prefetched.faultySectorCount}
+					{@const faultySectorCount = pendingEntity.faultySectorCount}
 					{#if faultySectorCount !== undefined && faultySectorCount !== null}
 						<div>
 							<dt>Faulty sectors</dt>

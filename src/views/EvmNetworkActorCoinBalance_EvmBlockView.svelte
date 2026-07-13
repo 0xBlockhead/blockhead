@@ -75,8 +75,8 @@
 				<EvmBlockView
 					selection={select(EntityType.EvmBlock, selection.entitySelector.$block)}
 					href={
-						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-							caip2: `${String(selection.entitySelector.$block.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$block.$network.caip2.reference ?? '')}`,
+						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+							network: String(selection.entitySelector.$block.$network.slug ?? ''),
 							blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
 						}) : undefined)
 					}
@@ -90,8 +90,8 @@
 				<EvmBlockView
 					selection={select(EntityType.EvmBlock, selection.entitySelector.$block)}
 					href={
-						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-							caip2: `${String(selection.entitySelector.$block.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$block.$network.caip2.reference ?? '')}`,
+						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+							network: String(selection.entitySelector.$block.$network.slug ?? ''),
 							blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
 						}) : undefined)
 					}
@@ -105,7 +105,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkActorCoinBalanceEvmBlock}>
 			{#snippet Pending()}
-				{[String((prefetched.balance) ?? ''), String((prefetched.usdValue) ?? '')].filter(Boolean).join(' ') || title || 'EVM network actor coin balance EVM block'}
+				{[String((pendingEntity.balance) ?? ''), String((pendingEntity.usdValue) ?? '')].filter(Boolean).join(' ') || title || 'EVM network actor coin balance EVM block'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -148,8 +148,8 @@
 					<EvmBlockView
 						selection={select(EntityType.EvmBlock, selection.entitySelector.$block, {})}
 						href={
-							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-								caip2: `${String(selection.entitySelector.$block.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$block.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+								network: String(selection.entitySelector.$block.$network.slug ?? ''),
 								blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
 							}) : undefined)
 						}
@@ -183,7 +183,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const balance = prefetched.balance}
+							{@const balance = pendingEntity.balance}
 							{#if balance !== undefined && balance !== null}
 								{String((balance) ?? '')}
 							{/if}
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const usdValue = prefetched.usdValue}
+					{@const usdValue = pendingEntity.usdValue}
 					{#if usdValue !== undefined && usdValue !== null}
 						<div>
 							<dt>USD value</dt>

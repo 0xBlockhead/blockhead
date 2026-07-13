@@ -10,8 +10,10 @@ export enum TronTransactionReceiptSelector {
 }
 export const TronTransactionReceipt = entity({
 	entityType: EntityType.TronTransactionReceipt,
-	label: 'tron transaction receipt',
-	labelPlural: 'tron transaction receipts',
+	labels: {
+		singular: 'tron transaction receipt',
+		plural: 'tron transaction receipts',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',

@@ -9,8 +9,10 @@ export enum Coin_TimestampSelector {
 }
 export const Coin_Timestamp = entity({
 	entityType: EntityType.Coin_Timestamp,
-	label: 'coin timestamp',
-	labelPlural: 'coin observations',
+	labels: {
+		singular: 'coin timestamp',
+		plural: 'coin observations',
+	},
 })({
 	$coin: {
 		label: 'Coin',
@@ -22,7 +24,7 @@ export const Coin_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

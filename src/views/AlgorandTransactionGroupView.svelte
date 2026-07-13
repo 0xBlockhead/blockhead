@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const group = selection.entitySelector.group ?? prefetched.group}
+							{@const group = pendingEntity.group}
 							{#if group !== undefined && group !== null}
 								{String((group) ?? '')}
 							{/if}

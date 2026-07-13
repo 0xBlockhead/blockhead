@@ -9,8 +9,10 @@ export enum CardanoStakeCredentialSelector {
 }
 export const CardanoStakeCredential = entity({
 	entityType: EntityType.CardanoStakeCredential,
-	label: 'cardano stake credential',
-	labelPlural: 'cardano stake credentials',
+	labels: {
+		singular: 'cardano stake credential',
+		plural: 'cardano stake credentials',
+	},
 })({
 	$network: {
 		label: 'network',

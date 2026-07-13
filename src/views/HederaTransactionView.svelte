@@ -47,11 +47,16 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import HederaNetworkView from '$/views/HederaNetworkView.svelte'
 	import HederaBlockView from '$/views/HederaBlockView.svelte'
 	import HederaScheduleView from '$/views/HederaScheduleView.svelte'
+	import HederaHbarTransfersView from '$/views/HederaHbarTransfersView.svelte'
+	import HederaTokenTransfersView from '$/views/HederaTokenTransfersView.svelte'
+	import HederaContractResultsView from '$/views/HederaContractResultsView.svelte'
 </script>
 
 
@@ -101,7 +106,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusTimestamp = prefetched.consensusTimestamp}
+					{@const consensusTimestamp = pendingEntity.consensusTimestamp}
 					{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
 						<div>
 							<dt>consensus timestamp</dt>
@@ -136,7 +141,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionId = prefetched.transactionId}
+					{@const transactionId = pendingEntity.transactionId}
 					{#if transactionId !== undefined && transactionId !== null}
 						<div>
 							<dt>transaction ID</dt>
@@ -171,7 +176,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nonce = prefetched.nonce}
+					{@const nonce = pendingEntity.nonce}
 					{#if nonce !== undefined && nonce !== null}
 						<div>
 							<dt>nonce</dt>
@@ -209,7 +214,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionType = prefetched.transactionType}
+							{@const transactionType = pendingEntity.transactionType}
 							{#if transactionType !== undefined && transactionType !== null}
 								{String((transactionType) ?? '')}
 							{/if}
@@ -236,7 +241,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payerAccount = prefetched.payerAccount}
+					{@const payerAccount = pendingEntity.payerAccount}
 					{#if payerAccount !== undefined && payerAccount !== null}
 						<div>
 							<dt>payer account</dt>
@@ -271,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const result = prefetched.result}
+					{@const result = pendingEntity.result}
 					{#if result !== undefined && result !== null}
 						<div>
 							<dt>result</dt>
@@ -306,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chargedTxFeeTinybar = prefetched.chargedTxFeeTinybar}
+					{@const chargedTxFeeTinybar = pendingEntity.chargedTxFeeTinybar}
 					{#if chargedTxFeeTinybar !== undefined && chargedTxFeeTinybar !== null}
 						<div>
 							<dt>charged transaction fee tinybar</dt>
@@ -341,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validStartTimestamp = prefetched.validStartTimestamp}
+					{@const validStartTimestamp = pendingEntity.validStartTimestamp}
 					{#if validStartTimestamp !== undefined && validStartTimestamp !== null}
 						<div>
 							<dt>valid start timestamp</dt>
@@ -376,7 +381,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeAccountId = prefetched.nodeAccountId}
+					{@const nodeAccountId = pendingEntity.nodeAccountId}
 					{#if nodeAccountId !== undefined && nodeAccountId !== null}
 						<div>
 							<dt>node account ID</dt>
@@ -411,7 +416,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const scheduled = prefetched.scheduled}
+					{@const scheduled = pendingEntity.scheduled}
 					{#if scheduled !== undefined && scheduled !== null}
 						<div>
 							<dt>scheduled</dt>
@@ -439,6 +444,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaBlock)}
 					{#if hederaBlock != null && hederaBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -459,6 +466,8 @@
 			<ResourceBoundary
 				resource={selection.$schedule}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaSchedule)}
 					{#if hederaSchedule != null && hederaSchedule[EntityMetaKey.Selector] != null}
 						<div>
@@ -476,5 +485,96 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-transaction-activity-a'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-transaction-hbar-transfers',
+							label: 'Hbar Transfers',
+						},
+						{
+							id: 'hedera-transaction-token-transfers',
+							label: 'Token Transfers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-a'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaTransactionHbarTransfers({ id, label, open })}
+					<HederaHbarTransfersView
+						selection={selection.$$hbarTransfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No hbar transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHederaTransactionTokenTransfers({ id, label, open })}
+					<HederaTokenTransfersView
+						selection={selection.$$tokenTransfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No token transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-transaction-activity-b'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-transaction-contract-results',
+							label: 'Contract Results',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-b'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity continued</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaTransactionContractResults({ id, label, open })}
+					<HederaContractResultsView
+						selection={selection.$$contractResults}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No contract results.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

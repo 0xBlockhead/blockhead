@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const keyHash = selection.entitySelector.keyHash ?? prefetched.keyHash}
+							{@const keyHash = pendingEntity.keyHash}
 							{#if keyHash !== undefined && keyHash !== null}
 								<TruncatedValue value={String((keyHash) ?? '')} />
 							{/if}

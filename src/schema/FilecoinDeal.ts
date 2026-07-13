@@ -9,8 +9,10 @@ export enum FilecoinDealSelector {
 }
 export const FilecoinDeal = entity({
 	entityType: EntityType.FilecoinDeal,
-	label: 'filecoin deal',
-	labelPlural: 'filecoin deals',
+	labels: {
+		singular: 'filecoin deal',
+		plural: 'filecoin deals',
+	},
 })({
 	$network: {
 		label: 'Network',

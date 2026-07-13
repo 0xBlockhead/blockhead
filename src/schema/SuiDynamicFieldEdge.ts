@@ -9,8 +9,10 @@ export enum SuiDynamicFieldEdgeSelector {
 }
 export const SuiDynamicFieldEdge = entity({
 	entityType: EntityType.SuiDynamicFieldEdge,
-	label: 'sui dynamic field edge',
-	labelPlural: 'sui dynamic field edges',
+	labels: {
+		singular: 'sui dynamic field edge',
+		plural: 'sui dynamic field edges',
+	},
 })({
 	$parentObject: {
 		label: 'parent object',

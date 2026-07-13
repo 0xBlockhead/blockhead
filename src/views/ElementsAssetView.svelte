@@ -51,7 +51,7 @@
 			ticker: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? ''), String((prefetched.ticker) ?? ''), String((selection.entitySelector.assetId ?? prefetched.assetId) ?? '')].filter(Boolean).join(' ') || 'Elements asset')
+	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.ticker) ?? ''), String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || 'Elements asset')
 	const viewDomId = $derived('elements-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={elementsAsset}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? ''), String((prefetched.ticker) ?? ''), String((selection.entitySelector.assetId ?? prefetched.assetId) ?? '')].filter(Boolean).join(' ') || title || 'Elements asset'}
+				{[String((pendingEntity.name) ?? ''), String((pendingEntity.ticker) ?? ''), String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || 'Elements asset'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={elementsAsset}>
 			{#snippet Pending()}
-				{[String((prefetched.ticker) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((prefetched.ticker) ?? ''), String((selection.entitySelector.assetId ?? prefetched.assetId) ?? '')].filter(Boolean).join(' ') || title || 'Elements asset'}
+				{[String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.ticker) ?? ''), String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || 'Elements asset'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={elementsAsset}>
 			{#snippet Pending()}
-				{@const assetId0 = selection.entitySelector.assetId ?? prefetched.assetId}
+				{@const assetId0 = pendingEntity.assetId}
 				{#if assetId0 !== undefined && assetId0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((assetId0) ?? '')} />
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const assetId = selection.entitySelector.assetId ?? prefetched.assetId}
+							{@const assetId = pendingEntity.assetId}
 							{#if assetId !== undefined && assetId !== null}
 								<TruncatedValue value={String((assetId) ?? '')} />
 							{/if}
@@ -177,7 +177,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ticker = prefetched.ticker}
+					{@const ticker = pendingEntity.ticker}
 					{#if ticker !== undefined && ticker !== null}
 						<div>
 							<dt>Ticker</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const precision = prefetched.precision}
+					{@const precision = pendingEntity.precision}
 					{#if precision !== undefined && precision !== null}
 						<div>
 							<dt>Precision</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const entityDomain = prefetched.entityDomain}
+					{@const entityDomain = pendingEntity.entityDomain}
 					{#if entityDomain !== undefined && entityDomain !== null}
 						<div>
 							<dt>Entity domain</dt>
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hasBlindedIssuances = prefetched.hasBlindedIssuances}
+					{@const hasBlindedIssuances = pendingEntity.hasBlindedIssuances}
 					{#if hasBlindedIssuances !== undefined && hasBlindedIssuances !== null}
 						<div>
 							<dt>Has blinded issuances</dt>
@@ -354,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractJson = prefetched.contractJson}
+					{@const contractJson = pendingEntity.contractJson}
 					{#if contractJson !== undefined && contractJson !== null}
 						<div>
 							<dt>Contract JSON</dt>

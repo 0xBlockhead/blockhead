@@ -49,7 +49,7 @@
 			license: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((prefetched.datasetUri) ?? ''), String((prefetched.datasetName) ?? ''), String((prefetched.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.datasetUri) ?? ''), String((pendingEntity.datasetName) ?? ''), String((pendingEntity.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset')
 	const viewDomId = $derived('ai-dataset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiDataset}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.datasetUri) ?? ''), String((prefetched.datasetName) ?? ''), String((prefetched.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.datasetUri) ?? ''), String((pendingEntity.datasetName) ?? ''), String((pendingEntity.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiDataset}>
 			{#snippet Pending()}
-				{[String((prefetched.modality) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.datasetUri) ?? ''), String((prefetched.datasetName) ?? ''), String((prefetched.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
+				{[String((pendingEntity.modality) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.datasetUri) ?? ''), String((pendingEntity.datasetName) ?? ''), String((pendingEntity.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -100,7 +100,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiDataset}>
 			{#snippet Pending()}
-				{@const license0 = prefetched.license}
+				{@const license0 = pendingEntity.license}
 				{#if license0 !== undefined && license0 !== null}
 					<span data-text="muted">
 						{String((license0) ?? '')}
@@ -132,7 +132,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datasetUri = prefetched.datasetUri}
+					{@const datasetUri = pendingEntity.datasetUri}
 					{#if datasetUri !== undefined && datasetUri !== null}
 						<div>
 							<dt>dataset URI</dt>
@@ -181,7 +181,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const huggingFaceDatasetId = prefetched.huggingFaceDatasetId}
+					{@const huggingFaceDatasetId = pendingEntity.huggingFaceDatasetId}
 					{#if huggingFaceDatasetId !== undefined && huggingFaceDatasetId !== null}
 						<div>
 							<dt>hugging face dataset ID</dt>
@@ -216,7 +216,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const revision = prefetched.revision}
+					{@const revision = pendingEntity.revision}
 					{#if revision !== undefined && revision !== null}
 						<div>
 							<dt>revision</dt>
@@ -251,7 +251,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const source = prefetched.source}
+					{@const source = pendingEntity.source}
 					{#if source !== undefined && source !== null}
 						<div>
 							<dt>Source</dt>
@@ -286,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datasetName = prefetched.datasetName}
+					{@const datasetName = pendingEntity.datasetName}
 					{#if datasetName !== undefined && datasetName !== null}
 						<div>
 							<dt>dataset name</dt>
@@ -321,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datasetDigest = prefetched.datasetDigest}
+					{@const datasetDigest = pendingEntity.datasetDigest}
 					{#if datasetDigest !== undefined && datasetDigest !== null}
 						<div>
 							<dt>dataset digest</dt>
@@ -349,6 +349,8 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -378,7 +380,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -413,7 +415,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const license = prefetched.license}
+					{@const license = pendingEntity.license}
 					{#if license !== undefined && license !== null}
 						<div>
 							<dt>license</dt>
@@ -448,7 +450,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const modality = prefetched.modality}
+					{@const modality = pendingEntity.modality}
 					{#if modality !== undefined && modality !== null}
 						<div>
 							<dt>modality</dt>
@@ -483,7 +485,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -518,7 +520,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isLiveDataset = prefetched.isLiveDataset}
+					{@const isLiveDataset = pendingEntity.isLiveDataset}
 					{#if isLiveDataset !== undefined && isLiveDataset !== null}
 						<div>
 							<dt>is live dataset</dt>

@@ -9,8 +9,10 @@ export enum BnbBeaconTokenMigration_TimestampSelector {
 }
 export const BnbBeaconTokenMigration_Timestamp = entity({
 	entityType: EntityType.BnbBeaconTokenMigration_Timestamp,
-	label: 'bnb beacon token migration timestamp',
-	labelPlural: 'bnb beacon token migration observations',
+	labels: {
+		singular: 'bnb beacon token migration timestamp',
+		plural: 'bnb beacon token migration observations',
+	},
 })({
 	$migration: {
 		label: 'migration',

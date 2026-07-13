@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType } from '$/constants/Market.ts'
+	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 
 
 	// Context
@@ -72,6 +72,8 @@
 					price: true,
 					timestampMs: true,
 					$market: true,
+					$base: true,
+					$quote: true,
 				},
 			})
 		}
@@ -121,13 +123,13 @@
 						selection={select(EntityType.Market_Timestamp, marketTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={marketTimestampFields}
 						href={
-							(marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$marketVenue !== undefined && marketTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$base !== undefined && marketTimestampHrefFields.$market.$base.kind !== undefined && (marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$base !== undefined && marketTimestampHrefFields.$market.$base.kind !== undefined && (marketTimestampHrefFields.$market.$base.kind === 'Coin' ? marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$base !== undefined && marketTimestampHrefFields.$market.$base.$coin !== undefined && marketTimestampHrefFields.$market.$base.$coin.coinId !== undefined : marketTimestampHrefFields.$market.$base.kind === 'CoinInstance' ? marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$base !== undefined && marketTimestampHrefFields.$market.$base.$coinInstance !== undefined && marketTimestampHrefFields.$market.$base.$coinInstance.type !== undefined : marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$base !== undefined && marketTimestampHrefFields.$market.$base.$currency !== undefined && marketTimestampHrefFields.$market.$base.$currency.iso4217 !== undefined)) && marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$quote !== undefined && marketTimestampHrefFields.$market.$quote.kind !== undefined && (marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$quote !== undefined && marketTimestampHrefFields.$market.$quote.kind !== undefined && (marketTimestampHrefFields.$market.$quote.kind === 'Coin' ? marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$quote !== undefined && marketTimestampHrefFields.$market.$quote.$coin !== undefined && marketTimestampHrefFields.$market.$quote.$coin.coinId !== undefined : marketTimestampHrefFields.$market.$quote.kind === 'CoinInstance' ? marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$quote !== undefined && marketTimestampHrefFields.$market.$quote.$coinInstance !== undefined && marketTimestampHrefFields.$market.$quote.$coinInstance.type !== undefined : marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.$quote !== undefined && marketTimestampHrefFields.$market.$quote.$currency !== undefined && marketTimestampHrefFields.$market.$quote.$currency.iso4217 !== undefined)) && marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.marketKind !== undefined && marketTimestampHrefFields.timestampMs !== undefined && marketTimestampHrefFields.feedKey !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs=nonNegativeInteger]/[feedKey]', {
-								marketVenue: String(marketTimestampHrefFields.$market.$marketVenue.marketVenueId ?? ''),
-								baseKind: String(marketAssetRouteLabelByKind[String(marketTimestampHrefFields.$market.$base.kind)] ?? ''),
-								base: String((marketTimestampHrefFields.$market.$base.kind === 'Coin' ? marketTimestampHrefFields.$market.$base.$coin.coinId : marketTimestampHrefFields.$market.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketTimestampHrefFields.$market.$base.$coinInstance.type)] : marketTimestampHrefFields.$market.$base.$currency.iso4217)),
-								quoteKind: String(marketAssetRouteLabelByKind[String(marketTimestampHrefFields.$market.$quote.kind)] ?? ''),
-								quote: String((marketTimestampHrefFields.$market.$quote.kind === 'Coin' ? marketTimestampHrefFields.$market.$quote.$coin.coinId : marketTimestampHrefFields.$market.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketTimestampHrefFields.$market.$quote.$coinInstance.type)] : marketTimestampHrefFields.$market.$quote.$currency.iso4217)),
+							(marketTimestampHrefFields.$market !== undefined && marketTimestampHrefFields.$market.marketKind !== undefined && marketTimestampHrefFields.$market.$base !== undefined && marketTimestampHrefFields.$market.$base.assetKey !== undefined && marketTimestampHrefFields.$market.$quote !== undefined && marketTimestampHrefFields.$market.$quote.assetKey !== undefined && marketTimestampHrefFields.$market.$marketVenue !== undefined && marketTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketTimestampHrefFields.$base !== undefined && marketTimestampHrefFields.$base.kind !== undefined && marketTimestampHrefFields.$quote !== undefined && marketTimestampHrefFields.$quote.kind !== undefined && marketTimestampHrefFields.timestampMs !== undefined && marketTimestampHrefFields.feedKey !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/price/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
 								marketKind: String(marketTimestampHrefFields.$market.marketKind ?? ''),
+								base: String(marketTimestampHrefFields.$market.$base.assetKey ?? ''),
+								quote: String(marketTimestampHrefFields.$market.$quote.assetKey ?? ''),
+								marketVenue: String(marketTimestampHrefFields.$market.$marketVenue.marketVenueId ?? ''),
+								baseKind: String(marketAssetRouteLabelByKind[String(marketTimestampHrefFields.$base.kind)] ?? ''),
+								quoteKind: String(marketAssetRouteLabelByKind[String(marketTimestampHrefFields.$quote.kind)] ?? ''),
 								timestampMs: String(marketTimestampHrefFields.timestampMs ?? ''),
 								feedKey: String(marketTimestampHrefFields.feedKey ?? ''),
 							}) : undefined)

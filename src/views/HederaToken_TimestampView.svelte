@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const symbol = prefetched.symbol}
+					{@const symbol = pendingEntity.symbol}
 					{#if symbol !== undefined && symbol !== null}
 						<div>
 							<dt>Symbol</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalSupply = prefetched.totalSupply}
+					{@const totalSupply = pendingEntity.totalSupply}
 					{#if totalSupply !== undefined && totalSupply !== null}
 						<div>
 							<dt>total supply</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxSupply = prefetched.maxSupply}
+					{@const maxSupply = pendingEntity.maxSupply}
 					{#if maxSupply !== undefined && maxSupply !== null}
 						<div>
 							<dt>max supply</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const treasuryAccount = prefetched.treasuryAccount}
+					{@const treasuryAccount = pendingEntity.treasuryAccount}
 					{#if treasuryAccount !== undefined && treasuryAccount !== null}
 						<div>
 							<dt>treasury account</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paused = prefetched.paused}
+					{@const paused = pendingEntity.paused}
 					{#if paused !== undefined && paused !== null}
 						<div>
 							<dt>paused</dt>
@@ -404,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiryTimestamp = prefetched.expiryTimestamp}
+					{@const expiryTimestamp = pendingEntity.expiryTimestamp}
 					{#if expiryTimestamp !== undefined && expiryTimestamp !== null}
 						<div>
 							<dt>expiry timestamp</dt>

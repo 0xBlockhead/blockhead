@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const moduleKey = selection.entitySelector.moduleKey ?? prefetched.moduleKey}
+							{@const moduleKey = pendingEntity.moduleKey}
 							{#if moduleKey !== undefined && moduleKey !== null}
 								{String((moduleKey) ?? '')}
 							{/if}
@@ -128,7 +128,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ruleKind = prefetched.ruleKind}
+					{@const ruleKind = pendingEntity.ruleKind}
 					{#if ruleKind !== undefined && ruleKind !== null}
 						<div>
 							<dt>rule kind</dt>

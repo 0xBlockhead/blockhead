@@ -9,8 +9,10 @@ export enum NftTokenSelector {
 }
 export const NftToken = entity({
 	entityType: EntityType.NftToken,
-	label: 'NFT token',
-	labelPlural: 'NFT tokens',
+	labels: {
+		singular: 'NFT token',
+		plural: 'NFT tokens',
+	},
 })({
 	$collection: {
 		label: 'collection',

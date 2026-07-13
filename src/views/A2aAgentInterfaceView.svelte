@@ -51,7 +51,7 @@
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.protocolBinding ?? prefetched.protocolBinding) ?? '')].filter(Boolean).join(' ') || 'A2A agent interface')
+	const titleFallback = $derived([String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || 'A2A agent interface')
 	const viewDomId = $derived('a2a-agent-interface-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aAgentInterface}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.protocolBinding ?? prefetched.protocolBinding) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent interface'}
+				{[String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent interface'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -88,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aAgentInterface}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.url ?? prefetched.url) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.protocolBinding ?? prefetched.protocolBinding) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent interface'}
+				{[String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || title || 'A2A agent interface'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,7 +101,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aAgentInterface}>
 			{#snippet Pending()}
-				{@const transportKind0 = prefetched.transportKind}
+				{@const transportKind0 = pendingEntity.transportKind}
 				{#if transportKind0 !== undefined && transportKind0 !== null}
 					<span data-text="muted">
 						{String((transportKind0) ?? '')}
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolBinding = selection.entitySelector.protocolBinding ?? prefetched.protocolBinding}
+							{@const protocolBinding = pendingEntity.protocolBinding}
 							{#if protocolBinding !== undefined && protocolBinding !== null}
 								{String((protocolBinding) ?? '')}
 							{/if}
@@ -177,7 +177,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const url = selection.entitySelector.url ?? prefetched.url}
+							{@const url = pendingEntity.url}
 							{#if url !== undefined && url !== null}
 								<svelte:element
 									this={'a'}
@@ -218,7 +218,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>
@@ -253,7 +253,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transportKind = prefetched.transportKind}
+					{@const transportKind = pendingEntity.transportKind}
 					{#if transportKind !== undefined && transportKind !== null}
 						<div>
 							<dt>transport kind</dt>
@@ -288,7 +288,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mediaType = prefetched.mediaType}
+					{@const mediaType = pendingEntity.mediaType}
 					{#if mediaType !== undefined && mediaType !== null}
 						<div>
 							<dt>media type</dt>

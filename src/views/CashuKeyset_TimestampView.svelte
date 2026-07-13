@@ -47,7 +47,7 @@
 			inputFeePpk: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Cashu keyset timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Cashu keyset timestamp')
 	const viewDomId = $derived('cashu-keyset-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cashuKeysetTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cashuKeysetTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.active) ?? ''), String((prefetched.inputFeePpk) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Cashu keyset timestamp'}
+				{[String((pendingEntity.active) ?? ''), String((pendingEntity.inputFeePpk) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Cashu keyset timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -127,7 +127,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -184,7 +184,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>active</dt>
@@ -221,7 +221,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputFeePpk = prefetched.inputFeePpk}
+					{@const inputFeePpk = pendingEntity.inputFeePpk}
 					{#if inputFeePpk !== undefined && inputFeePpk !== null}
 						<div>
 							<dt>input fee ppk</dt>
@@ -256,7 +256,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const finalExpiryMs = prefetched.finalExpiryMs}
+					{@const finalExpiryMs = pendingEntity.finalExpiryMs}
 					{#if finalExpiryMs !== undefined && finalExpiryMs !== null}
 						<div>
 							<dt>final expiry ms</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const listedByKeysEndpoint = prefetched.listedByKeysEndpoint}
+					{@const listedByKeysEndpoint = pendingEntity.listedByKeysEndpoint}
 					{#if listedByKeysEndpoint !== undefined && listedByKeysEndpoint !== null}
 						<div>
 							<dt>listed by keys endpoint</dt>
@@ -326,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const listedByKeysetsEndpoint = prefetched.listedByKeysetsEndpoint}
+					{@const listedByKeysetsEndpoint = pendingEntity.listedByKeysetsEndpoint}
 					{#if listedByKeysetsEndpoint !== undefined && listedByKeysetsEndpoint !== null}
 						<div>
 							<dt>listed by keysets endpoint</dt>

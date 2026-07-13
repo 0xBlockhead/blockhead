@@ -10,8 +10,10 @@ export enum BlockheadActionReadinessCheckSelector {
 }
 export const BlockheadActionReadinessCheck = entity({
 	entityType: EntityType.BlockheadActionReadinessCheck,
-	label: 'blockhead action readiness check',
-	labelPlural: 'blockhead action readiness checks',
+	labels: {
+		singular: 'blockhead action readiness check',
+		plural: 'blockhead action readiness checks',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

@@ -9,8 +9,10 @@ export enum HederaNetwork_TimestampSelector {
 }
 export const HederaNetwork_Timestamp = entity({
 	entityType: EntityType.HederaNetwork_Timestamp,
-	label: 'hedera network timestamp',
-	labelPlural: 'hedera network observations',
+	labels: {
+		singular: 'hedera network timestamp',
+		plural: 'hedera network observations',
+	},
 })({
 	$network: {
 		label: 'network',

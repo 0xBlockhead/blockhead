@@ -9,8 +9,10 @@ export enum EthereumBeaconFinality_TimestampSelector {
 }
 export const EthereumBeaconFinality_Timestamp = entity({
 	entityType: EntityType.EthereumBeaconFinality_Timestamp,
-	label: 'ethereum beacon finality timestamp',
-	labelPlural: 'Ethereum beacon finality observations',
+	labels: {
+		singular: 'ethereum beacon finality timestamp',
+		plural: 'Ethereum beacon finality observations',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -22,7 +24,7 @@ export const EthereumBeaconFinality_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	currentJustifiedCheckpointEpoch: {

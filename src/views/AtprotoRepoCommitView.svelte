@@ -39,7 +39,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const atprotoRepoCommit = $derived(selection({}))
-	const titleFallback = $derived([String((prefetched.rev) ?? ''), String((prefetched.commitCid) ?? '')].filter(Boolean).join(' ') || 'AT Protocol repo commit')
+	const titleFallback = $derived([String((pendingEntity.rev) ?? ''), String((pendingEntity.commitCid) ?? '')].filter(Boolean).join(' ') || 'AT Protocol repo commit')
 	const viewDomId = $derived('atproto-repo-commit-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -64,7 +64,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={atprotoRepoCommit}>
 			{#snippet Pending()}
-				{[String((prefetched.rev) ?? ''), String((prefetched.commitCid) ?? '')].filter(Boolean).join(' ') || title || 'AT Protocol repo commit'}
+				{[String((pendingEntity.rev) ?? ''), String((pendingEntity.commitCid) ?? '')].filter(Boolean).join(' ') || title || 'AT Protocol repo commit'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -77,7 +77,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={atprotoRepoCommit}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.repoDid ?? prefetched.repoDid) ?? '')].filter(Boolean).join(' ') || [String((prefetched.rev) ?? ''), String((prefetched.commitCid) ?? '')].filter(Boolean).join(' ') || title || 'AT Protocol repo commit'}
+				{[String((pendingEntity.repoDid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.rev) ?? ''), String((pendingEntity.commitCid) ?? '')].filter(Boolean).join(' ') || title || 'AT Protocol repo commit'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={atprotoRepoCommit}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -125,7 +125,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const repoDid = selection.entitySelector.repoDid ?? prefetched.repoDid}
+							{@const repoDid = pendingEntity.repoDid}
 							{#if repoDid !== undefined && repoDid !== null}
 								{String((repoDid) ?? '')}
 							{/if}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rev = prefetched.rev}
+							{@const rev = pendingEntity.rev}
 							{#if rev !== undefined && rev !== null}
 								{String((rev) ?? '')}
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commitCid = prefetched.commitCid}
+					{@const commitCid = pendingEntity.commitCid}
 					{#if commitCid !== undefined && commitCid !== null}
 						<div>
 							<dt>Commit CID</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousRev = prefetched.previousRev}
+					{@const previousRev = pendingEntity.previousRev}
 					{#if previousRev !== undefined && previousRev !== null}
 						<div>
 							<dt>Previous rev</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousDataCid = prefetched.previousDataCid}
+					{@const previousDataCid = pendingEntity.previousDataCid}
 					{#if previousDataCid !== undefined && previousDataCid !== null}
 						<div>
 							<dt>Previous data CID</dt>
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataCid = prefetched.dataCid}
+					{@const dataCid = pendingEntity.dataCid}
 					{#if dataCid !== undefined && dataCid !== null}
 						<div>
 							<dt>Data CID</dt>
@@ -356,7 +356,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequence = prefetched.sequence}
+					{@const sequence = pendingEntity.sequence}
 					{#if sequence !== undefined && sequence !== null}
 						<div>
 							<dt>Sequence</dt>
@@ -391,7 +391,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pdsHost = prefetched.pdsHost}
+					{@const pdsHost = pendingEntity.pdsHost}
 					{#if pdsHost !== undefined && pdsHost !== null}
 						<div>
 							<dt>PDS host</dt>
@@ -426,7 +426,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const relayHost = prefetched.relayHost}
+					{@const relayHost = pendingEntity.relayHost}
 					{#if relayHost !== undefined && relayHost !== null}
 						<div>
 							<dt>Relay host</dt>
@@ -461,7 +461,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const time = prefetched.time}
+					{@const time = pendingEntity.time}
 					{#if time !== undefined && time !== null}
 						<div>
 							<dt>Time</dt>
@@ -498,7 +498,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tooBig = prefetched.tooBig}
+					{@const tooBig = pendingEntity.tooBig}
 					{#if tooBig !== undefined && tooBig !== null}
 						<div>
 							<dt>Too big</dt>
@@ -533,7 +533,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rebase = prefetched.rebase}
+					{@const rebase = pendingEntity.rebase}
 					{#if rebase !== undefined && rebase !== null}
 						<div>
 							<dt>Rebase</dt>
@@ -568,7 +568,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const operationCount = prefetched.operationCount}
+					{@const operationCount = pendingEntity.operationCount}
 					{#if operationCount !== undefined && operationCount !== null}
 						<div>
 							<dt>Operation count</dt>
@@ -603,7 +603,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blobCount = prefetched.blobCount}
+					{@const blobCount = pendingEntity.blobCount}
 					{#if blobCount !== undefined && blobCount !== null}
 						<div>
 							<dt>Blob count</dt>
@@ -638,7 +638,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const carByteLength = prefetched.carByteLength}
+					{@const carByteLength = pendingEntity.carByteLength}
 					{#if carByteLength !== undefined && carByteLength !== null}
 						<div>
 							<dt>CAR byte length</dt>
@@ -678,7 +678,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operationPaths = prefetched.operationPaths}
+							{@const operationPaths = pendingEntity.operationPaths}
 							{#if operationPaths !== undefined && operationPaths !== null}
 								{operationPaths.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -708,7 +708,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdRecordCids = prefetched.createdRecordCids}
+							{@const createdRecordCids = pendingEntity.createdRecordCids}
 							{#if createdRecordCids !== undefined && createdRecordCids !== null}
 								{createdRecordCids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -738,7 +738,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const updatedRecordCids = prefetched.updatedRecordCids}
+							{@const updatedRecordCids = pendingEntity.updatedRecordCids}
 							{#if updatedRecordCids !== undefined && updatedRecordCids !== null}
 								{updatedRecordCids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -768,7 +768,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const deletedRecordPaths = prefetched.deletedRecordPaths}
+							{@const deletedRecordPaths = pendingEntity.deletedRecordPaths}
 							{#if deletedRecordPaths !== undefined && deletedRecordPaths !== null}
 								{deletedRecordPaths.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -792,7 +792,7 @@
 			<AtprotoPostsView
 				selection={selection.$$posts}
 				title='Posts'
-				href={resolve('/(social)/(atproto)/atproto/posts')}
+				href={resolve('/atproto/posts')}
 				emptyText='No posts in this commit.'
 				id='AtprotoPostsView-posts'
 			/>

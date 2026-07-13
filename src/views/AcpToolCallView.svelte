@@ -52,7 +52,7 @@
 			serverName: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.toolCallId ?? prefetched.toolCallId) ?? '')].filter(Boolean).join(' ') || 'ACP tool call')
+	const titleFallback = $derived([String((pendingEntity.toolCallId) ?? '')].filter(Boolean).join(' ') || 'ACP tool call')
 	const viewDomId = $derived('acp-tool-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpToolCall}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.toolCallId ?? prefetched.toolCallId) ?? '')].filter(Boolean).join(' ') || title || 'ACP tool call'}
+				{[String((pendingEntity.toolCallId) ?? '')].filter(Boolean).join(' ') || title || 'ACP tool call'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpToolCall}>
 			{#snippet Pending()}
-				{[String((prefetched.toolName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.toolCallId ?? prefetched.toolCallId) ?? '')].filter(Boolean).join(' ') || title || 'ACP tool call'}
+				{[String((pendingEntity.toolName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.toolCallId) ?? '')].filter(Boolean).join(' ') || title || 'ACP tool call'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpToolCall}>
 			{#snippet Pending()}
-				{@const serverName0 = prefetched.serverName}
+				{@const serverName0 = pendingEntity.serverName}
 				{#if serverName0 !== undefined && serverName0 !== null}
 					<span data-text="muted">
 						{String((serverName0) ?? '')}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const toolCallId = selection.entitySelector.toolCallId ?? prefetched.toolCallId}
+							{@const toolCallId = pendingEntity.toolCallId}
 							{#if toolCallId !== undefined && toolCallId !== null}
 								{String((toolCallId) ?? '')}
 							{/if}
@@ -177,7 +177,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toolName = prefetched.toolName}
+					{@const toolName = pendingEntity.toolName}
 					{#if toolName !== undefined && toolName !== null}
 						<div>
 							<dt>tool name</dt>
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const serverName = prefetched.serverName}
+					{@const serverName = pendingEntity.serverName}
 					{#if serverName !== undefined && serverName !== null}
 						<div>
 							<dt>server name</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startedAt = prefetched.startedAt}
+					{@const startedAt = pendingEntity.startedAt}
 					{#if startedAt !== undefined && startedAt !== null}
 						<div>
 							<dt>started AT</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const completedAt = prefetched.completedAt}
+					{@const completedAt = pendingEntity.completedAt}
 					{#if completedAt !== undefined && completedAt !== null}
 						<div>
 							<dt>completed AT</dt>
@@ -321,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputHashAlgorithm = prefetched.inputHashAlgorithm}
+					{@const inputHashAlgorithm = pendingEntity.inputHashAlgorithm}
 					{#if inputHashAlgorithm !== undefined && inputHashAlgorithm !== null}
 						<div>
 							<dt>input hash algorithm</dt>
@@ -356,7 +356,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputHash = prefetched.inputHash}
+					{@const inputHash = pendingEntity.inputHash}
 					{#if inputHash !== undefined && inputHash !== null}
 						<div>
 							<dt>input hash</dt>
@@ -391,7 +391,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outputHashAlgorithm = prefetched.outputHashAlgorithm}
+					{@const outputHashAlgorithm = pendingEntity.outputHashAlgorithm}
 					{#if outputHashAlgorithm !== undefined && outputHashAlgorithm !== null}
 						<div>
 							<dt>output hash algorithm</dt>
@@ -426,7 +426,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outputHash = prefetched.outputHash}
+					{@const outputHash = pendingEntity.outputHash}
 					{#if outputHash !== undefined && outputHash !== null}
 						<div>
 							<dt>output hash</dt>

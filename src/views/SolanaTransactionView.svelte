@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -48,7 +48,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.signature ?? prefetched.signature) ?? '')].filter(Boolean).join(' ') || 'solana transaction')
+	const titleFallback = $derived([String((pendingEntity.signature) ?? '')].filter(Boolean).join(' ') || 'solana transaction')
 	const viewDomId = $derived('solana-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,9 +68,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.signature !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/tx/[signature]', {
-			networkSlug: String(networkByCaip2[String(String(pendingEntity.$network.caip2.namespace) + ':' + String(pendingEntity.$network.caip2.reference))].slug ?? ''),
-			signature: String(pendingEntity.signature ?? ''),
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.signature !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+			network: String(pendingEntity.$network.slug ?? ''),
+			transactionId: String(pendingEntity.signature ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={solanaTransaction}>
 			{#snippet Pending()}
-				{@const signature0 = selection.entitySelector.signature ?? prefetched.signature}
+				{@const signature0 = pendingEntity.signature}
 				{#if signature0 !== undefined && signature0 !== null}
 					<TruncatedValue value={String((signature0) ?? '')} />
 				{/if}
@@ -99,7 +99,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaTransaction}>
 			{#snippet Pending()}
-				{@const signature0 = selection.entitySelector.signature ?? prefetched.signature}
+				{@const signature0 = pendingEntity.signature}
 				{#if signature0 !== undefined && signature0 !== null}
 					<TruncatedValue value={String((signature0) ?? '')} />
 				{/if}
@@ -118,7 +118,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaTransaction}>
 			{#snippet Pending()}
-				{@const status0 = prefetched.status}
+				{@const status0 = pendingEntity.status}
 				{#if status0 !== undefined && status0 !== null}
 					<span data-text="muted">
 						{String((status0) ?? '')}
@@ -153,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signature = selection.entitySelector.signature ?? prefetched.signature}
+							{@const signature = pendingEntity.signature}
 							{#if signature !== undefined && signature !== null}
 								<TruncatedValue value={String((signature) ?? '')} />
 							{/if}
@@ -180,7 +180,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>
@@ -215,7 +215,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>Slot</dt>
@@ -250,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeLamports = prefetched.feeLamports}
+					{@const feeLamports = pendingEntity.feeLamports}
 					{#if feeLamports !== undefined && feeLamports !== null}
 						<div>
 							<dt>Fee</dt>
@@ -285,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const computeUnitsConsumed = prefetched.computeUnitsConsumed}
+					{@const computeUnitsConsumed = pendingEntity.computeUnitsConsumed}
 					{#if computeUnitsConsumed !== undefined && computeUnitsConsumed !== null}
 						<div>
 							<dt>Compute units consumed</dt>
@@ -315,6 +315,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(solanaBlock)}
 					{#if solanaBlock != null && solanaBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -324,9 +326,9 @@
 									selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
 									prefetched={solanaBlock}
 									href={
-										(solanaBlock[EntityMetaKey.Selector].$network !== undefined && solanaBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && solanaBlock[EntityMetaKey.Selector].$network !== undefined && solanaBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && solanaBlock[EntityMetaKey.Selector].slot !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/block/[slot]', {
-											networkSlug: String(networkByCaip2[String(String(solanaBlock[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(solanaBlock[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
-											slot: String(solanaBlock[EntityMetaKey.Selector].slot ?? ''),
+										(solanaBlock[EntityMetaKey.Selector].$network !== undefined && solanaBlock[EntityMetaKey.Selector].$network.slug !== undefined && solanaBlock[EntityMetaKey.Selector].slot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+											network: String(solanaBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+											blockNumber: String(solanaBlock[EntityMetaKey.Selector].slot ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -341,6 +343,8 @@
 			<ResourceBoundary
 				resource={selection.$feePayer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -350,9 +354,9 @@
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
 									href={
-										(solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2.reference !== undefined && solanaAccount[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/account/[pubkey]', {
-											networkSlug: String(networkByCaip2[String(String(solanaAccount[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(solanaAccount[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
-											pubkey: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+										(solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined && solanaAccount[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
+											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -370,22 +374,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -50,7 +49,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.slot ?? prefetched.slot) ?? '')].filter(Boolean).join(' ') || 'solana transaction timestamp')
+	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana transaction timestamp')
 	const viewDomId = $derived('solana-transaction-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={solanaTransactionTimestamp}>
 			{#snippet Pending()}
-				{@const slot0 = selection.entitySelector.slot ?? prefetched.slot}
+				{@const slot0 = pendingEntity.slot}
 				{#if slot0 !== undefined && slot0 !== null}
 					<NumberValue value={Number(slot0)} />
 				{/if}
@@ -94,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaTransactionTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.slot ?? prefetched.slot) ?? '')].filter(Boolean).join(' ') || title || 'solana transaction timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || title || 'solana transaction timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +106,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaTransactionTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -135,9 +134,9 @@
 					<SolanaTransactionView
 						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction, {})}
 						href={
-							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.signature !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/tx/[signature]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$transaction.$network.caip2.reference))].slug ?? ''),
-								signature: String(selection.entitySelector.$transaction.signature ?? ''),
+							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined && selection.entitySelector.$transaction.signature !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+								transactionId: String(selection.entitySelector.$transaction.signature ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -159,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -190,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeLamports = prefetched.feeLamports}
+					{@const feeLamports = pendingEntity.feeLamports}
 					{#if feeLamports !== undefined && feeLamports !== null}
 						<div>
 							<dt>Fee</dt>
@@ -229,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const computeUnitsConsumed = prefetched.computeUnitsConsumed}
+					{@const computeUnitsConsumed = pendingEntity.computeUnitsConsumed}
 					{#if computeUnitsConsumed !== undefined && computeUnitsConsumed !== null}
 						<div>
 							<dt>Compute units consumed</dt>
@@ -268,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const confirmationStatus = prefetched.confirmationStatus}
+					{@const confirmationStatus = pendingEntity.confirmationStatus}
 					{#if confirmationStatus !== undefined && confirmationStatus !== null}
 						<div>
 							<dt>Confirmation status</dt>

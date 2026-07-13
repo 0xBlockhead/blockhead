@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const szDecimals = prefetched.szDecimals}
+					{@const szDecimals = pendingEntity.szDecimals}
 					{#if szDecimals !== undefined && szDecimals !== null}
 						<div>
 							<dt>sz decimals</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const weiDecimals = prefetched.weiDecimals}
+					{@const weiDecimals = pendingEntity.weiDecimals}
 					{#if weiDecimals !== undefined && weiDecimals !== null}
 						<div>
 							<dt>wei decimals</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenId = prefetched.tokenId}
+					{@const tokenId = pendingEntity.tokenId}
 					{#if tokenId !== undefined && tokenId !== null}
 						<div>
 							<dt>Token ID</dt>

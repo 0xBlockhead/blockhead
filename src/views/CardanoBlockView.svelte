@@ -99,7 +99,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hash = prefetched.hash}
+					{@const hash = pendingEntity.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>
@@ -134,7 +134,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>slot</dt>
@@ -169,7 +169,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNo = prefetched.blockNo}
+					{@const blockNo = pendingEntity.blockNo}
 					{#if blockNo !== undefined && blockNo !== null}
 						<div>
 							<dt>block no</dt>
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epoch = prefetched.epoch}
+					{@const epoch = pendingEntity.epoch}
 					{#if epoch !== undefined && epoch !== null}
 						<div>
 							<dt>epoch</dt>
@@ -239,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const era = prefetched.era}
+					{@const era = pendingEntity.era}
 					{#if era !== undefined && era !== null}
 						<div>
 							<dt>era</dt>
@@ -274,7 +274,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const issuerVkey = prefetched.issuerVkey}
+					{@const issuerVkey = pendingEntity.issuerVkey}
 					{#if issuerVkey !== undefined && issuerVkey !== null}
 						<div>
 							<dt>issuer vkey</dt>

@@ -48,21 +48,23 @@
 			Source.Constants_Internal,
 		],
 		fields: {
-			$icon: true,
 			title: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.channelId ?? prefetched.channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel')
+	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel')
 	const viewDomId = $derived('youtube-channel-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import YoutubeVideosView from '$/views/YoutubeVideosView.svelte'
 	import YoutubePlaylistsView from '$/views/YoutubePlaylistsView.svelte'
+	import YoutubeChannel_TimestampsView from '$/views/YoutubeChannel_TimestampsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
 
@@ -101,7 +103,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={youtubeChannel}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.channelId ?? prefetched.channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel'}
+				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -124,7 +126,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const description = prefetched.description}
+						{@const description = pendingEntity.description}
 						{#if description !== undefined && description !== null}
 							<div>
 								<dt>Description</dt>
@@ -163,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const channelId = selection.entitySelector.channelId ?? prefetched.channelId}
+							{@const channelId = pendingEntity.channelId}
 							{#if channelId !== undefined && channelId !== null}
 								<TruncatedValue value={String((channelId) ?? '')} />
 							{/if}
@@ -191,7 +193,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const customUrl = prefetched.customUrl}
+						{@const customUrl = pendingEntity.customUrl}
 						{#if customUrl !== undefined && customUrl !== null}
 							<div>
 								<dt>Handle alias</dt>
@@ -228,7 +230,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const publishedAtMs = prefetched.publishedAtMs}
+						{@const publishedAtMs = pendingEntity.publishedAtMs}
 						{#if publishedAtMs !== undefined && publishedAtMs !== null}
 							<div>
 								<dt>Published</dt>
@@ -258,33 +260,115 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<YoutubeVideosView
-				selection={
-						selection.$$videos({
-							sources: [
-								Source.Youtube_Rest,
-								Source.Piped_Rest,
-							],
-						})
-					}
-				title='Videos'
-				href={resolve('/(social)/(youtube)/youtube/videos')}
-				id='YoutubeVideosView-videos'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-youtube-channel-content'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'youtube-channel-videos',
+							label: 'Videos',
+						},
+						{
+							id: 'youtube-channel-playlists',
+							label: 'Playlists',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-content'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Videos and playlists</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<YoutubePlaylistsView
-				selection={
-						selection.$$playlists({
-							sources: [
-								Source.Youtube_Rest,
-								Source.Piped_Rest,
-							],
-						})
-					}
-				title='Playlists'
-				href={resolve('/(social)/(youtube)/youtube/playlists')}
-				id='YoutubePlaylistsView-playlists'
-			/>
+				{#snippet SectionYoutubeChannelVideos({ id, label, open })}
+					<YoutubeVideosView
+						selection={
+							selection.$$videos({
+								sources: [
+									Source.Youtube_Rest,
+									Source.Piped_Rest,
+								],
+							})
+						}
+						href={resolve('/youtube/videos')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No YouTube videos.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionYoutubeChannelPlaylists({ id, label, open })}
+					<YoutubePlaylistsView
+						selection={
+							selection.$$playlists({
+								sources: [
+									Source.Youtube_Rest,
+									Source.Piped_Rest,
+								],
+							})
+						}
+						href={resolve('/youtube/playlists')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No YouTube playlists.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-youtube-channel-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'youtube-channel-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionYoutubeChannelTimestamps({ id, label, open })}
+					<YoutubeChannel_TimestampsView
+						selection={
+							selection.$$timestamps({
+								sources: [
+									Source.Youtube_Rest,
+									Source.Piped_Rest,
+								],
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No YouTube channel observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

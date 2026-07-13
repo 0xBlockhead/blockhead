@@ -10,8 +10,10 @@ export enum ActivityPubNetworkSelector {
 }
 export const ActivityPubNetwork = entity({
 	entityType: EntityType.ActivityPubNetwork,
-	label: 'ActivityPub',
-	labelPlural: 'ActivityPub',
+	labels: {
+		singular: 'ActivityPub',
+		plural: 'ActivityPub',
+	},
 	description: 'ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from declared instance sources.',
 })({
 	scope: {

@@ -39,6 +39,11 @@ export default defineConfig({
 	plugins: [sveltekit(), devtoolsJson()],
 	server: {
 		strictPort: true,
+		watch: {
+			ignored: [
+				'**/.svelte-kit/generated/**',
+			],
+		},
 	},
 	ssr: {
 		noExternal: [

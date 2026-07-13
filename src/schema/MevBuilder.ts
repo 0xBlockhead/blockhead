@@ -10,8 +10,10 @@ export enum MevBuilderSelector {
 }
 export const MevBuilder = entity({
 	entityType: EntityType.MevBuilder,
-	label: 'MEV builder',
-	labelPlural: 'MEV builders',
+	labels: {
+		singular: 'MEV builder',
+		plural: 'MEV builders',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -9,8 +9,10 @@ export enum LitecoinMwebOutputSelector {
 }
 export const LitecoinMwebOutput = entity({
 	entityType: EntityType.LitecoinMwebOutput,
-	label: 'litecoin MWEB output',
-	labelPlural: 'litecoin MWEB outputs',
+	labels: {
+		singular: 'litecoin MWEB output',
+		plural: 'litecoin MWEB outputs',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

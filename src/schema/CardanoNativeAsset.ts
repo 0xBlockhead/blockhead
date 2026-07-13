@@ -9,8 +9,10 @@ export enum CardanoNativeAssetSelector {
 }
 export const CardanoNativeAsset = entity({
 	entityType: EntityType.CardanoNativeAsset,
-	label: 'cardano native asset',
-	labelPlural: 'cardano native assets',
+	labels: {
+		singular: 'cardano native asset',
+		plural: 'cardano native assets',
+	},
 })({
 	$network: {
 		label: 'network',

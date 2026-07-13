@@ -10,8 +10,10 @@ export enum GitForgePullRequestSelector {
 }
 export const GitForgePullRequest = entity({
 	entityType: EntityType.GitForgePullRequest,
-	label: 'Git forge pull request',
-	labelPlural: 'Git forge pull requests',
+	labels: {
+		singular: 'Git forge pull request',
+		plural: 'Git forge pull requests',
+	},
 })({
 	$forgeMirror: {
 		label: 'forge mirror',

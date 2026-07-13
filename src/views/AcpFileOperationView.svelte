@@ -52,7 +52,7 @@
 			path: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.operationId ?? prefetched.operationId) ?? '')].filter(Boolean).join(' ') || 'ACP file operation')
+	const titleFallback = $derived([String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || 'ACP file operation')
 	const viewDomId = $derived('acp-file-operation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpFileOperation}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.operationId ?? prefetched.operationId) ?? '')].filter(Boolean).join(' ') || title || 'ACP file operation'}
+				{[String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || title || 'ACP file operation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpFileOperation}>
 			{#snippet Pending()}
-				{[String((prefetched.operationKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.operationId ?? prefetched.operationId) ?? '')].filter(Boolean).join(' ') || title || 'ACP file operation'}
+				{[String((pendingEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || title || 'ACP file operation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpFileOperation}>
 			{#snippet Pending()}
-				{@const path0 = prefetched.path}
+				{@const path0 = pendingEntity.path}
 				{#if path0 !== undefined && path0 !== null}
 					<span data-text="muted">
 						{String((path0) ?? '')}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operationId = selection.entitySelector.operationId ?? prefetched.operationId}
+							{@const operationId = pendingEntity.operationId}
 							{#if operationId !== undefined && operationId !== null}
 								{String((operationId) ?? '')}
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operationKind = prefetched.operationKind}
+							{@const operationKind = pendingEntity.operationKind}
 							{#if operationKind !== undefined && operationKind !== null}
 								{String((operationKind) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const path = prefetched.path}
+					{@const path = pendingEntity.path}
 					{#if path !== undefined && path !== null}
 						<div>
 							<dt>path</dt>
@@ -244,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startLine = prefetched.startLine}
+					{@const startLine = pendingEntity.startLine}
 					{#if startLine !== undefined && startLine !== null}
 						<div>
 							<dt>start line</dt>
@@ -279,7 +279,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endLine = prefetched.endLine}
+					{@const endLine = pendingEntity.endLine}
 					{#if endLine !== undefined && endLine !== null}
 						<div>
 							<dt>end line</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentHashAlgorithm = prefetched.contentHashAlgorithm}
+					{@const contentHashAlgorithm = pendingEntity.contentHashAlgorithm}
 					{#if contentHashAlgorithm !== undefined && contentHashAlgorithm !== null}
 						<div>
 							<dt>content hash algorithm</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentHash = prefetched.contentHash}
+					{@const contentHash = pendingEntity.contentHash}
 					{#if contentHash !== undefined && contentHash !== null}
 						<div>
 							<dt>content hash</dt>
@@ -386,7 +386,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -421,7 +421,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -456,7 +456,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

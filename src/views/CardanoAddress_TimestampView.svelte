@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockSlot = selection.entitySelector.blockSlot ?? prefetched.blockSlot}
+							{@const blockSlot = pendingEntity.blockSlot}
 							{#if blockSlot !== undefined && blockSlot !== null}
 								{String((blockSlot) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lovelaceBalance = prefetched.lovelaceBalance}
+					{@const lovelaceBalance = pendingEntity.lovelaceBalance}
 					{#if lovelaceBalance !== undefined && lovelaceBalance !== null}
 						<div>
 							<dt>lovelace balance</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nativeAssetCount = prefetched.nativeAssetCount}
+					{@const nativeAssetCount = pendingEntity.nativeAssetCount}
 					{#if nativeAssetCount !== undefined && nativeAssetCount !== null}
 						<div>
 							<dt>native asset count</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const utxoCount = prefetched.utxoCount}
+					{@const utxoCount = pendingEntity.utxoCount}
 					{#if utxoCount !== undefined && utxoCount !== null}
 						<div>
 							<dt>UTXO count</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount}
+					{@const transactionCount = pendingEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>transaction count</dt>

@@ -10,8 +10,10 @@ export enum _GlobalActivityPubNetwork_TimestampSelector {
 }
 export const _GlobalActivityPubNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
-	label: 'global ActivityPub network timestamp',
-	labelPlural: 'global ActivityPub network observations',
+	labels: {
+		singular: 'global ActivityPub network timestamp',
+		plural: 'global ActivityPub network observations',
+	},
 })({
 	$hub: {
 		label: 'Hub',

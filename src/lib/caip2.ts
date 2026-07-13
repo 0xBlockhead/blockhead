@@ -23,6 +23,13 @@ export const caip2SelectorValueFromString = (
 	reference: '',
 }
 
+export const caip2StringFromValue = (
+	caip2: {
+		namespace: string
+		reference: string
+	}
+) => `${caip2.namespace}:${caip2.reference}`
+
 export const networkSelectorFromCaip2 = (
 	caip2: `${string}:${string}`
 ) => {

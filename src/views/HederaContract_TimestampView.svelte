@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountId = prefetched.accountId}
+					{@const accountId = pendingEntity.accountId}
 					{#if accountId !== undefined && accountId !== null}
 						<div>
 							<dt>account ID</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const runtimeBytecodeHash = prefetched.runtimeBytecodeHash}
+					{@const runtimeBytecodeHash = pendingEntity.runtimeBytecodeHash}
 					{#if runtimeBytecodeHash !== undefined && runtimeBytecodeHash !== null}
 						<div>
 							<dt>runtime bytecode hash</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fileId = prefetched.fileId}
+					{@const fileId = pendingEntity.fileId}
 					{#if fileId !== undefined && fileId !== null}
 						<div>
 							<dt>file ID</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo}
+					{@const memo = pendingEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>memo</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const obtainerId = prefetched.obtainerId}
+					{@const obtainerId = pendingEntity.obtainerId}
 					{#if obtainerId !== undefined && obtainerId !== null}
 						<div>
 							<dt>obtainer ID</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expirationTimestamp = prefetched.expirationTimestamp}
+					{@const expirationTimestamp = pendingEntity.expirationTimestamp}
 					{#if expirationTimestamp !== undefined && expirationTimestamp !== null}
 						<div>
 							<dt>expiration timestamp</dt>
@@ -404,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const autoRenewPeriodSeconds = prefetched.autoRenewPeriodSeconds}
+					{@const autoRenewPeriodSeconds = pendingEntity.autoRenewPeriodSeconds}
 					{#if autoRenewPeriodSeconds !== undefined && autoRenewPeriodSeconds !== null}
 						<div>
 							<dt>auto renew period seconds</dt>

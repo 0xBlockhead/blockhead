@@ -10,8 +10,10 @@ export enum BlockheadZcashNoteStateSelector {
 }
 export const BlockheadZcashNoteState = entity({
 	entityType: EntityType.BlockheadZcashNoteState,
-	label: 'blockhead zcash note state',
-	labelPlural: 'blockhead zcash note states',
+	labels: {
+		singular: 'blockhead zcash note state',
+		plural: 'blockhead zcash note states',
+	},
 })({
 	walletId: {
 		label: 'wallet ID',

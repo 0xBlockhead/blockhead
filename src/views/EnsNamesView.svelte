@@ -117,7 +117,7 @@
 						selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ensNameFields}
 						href={
-							(ensNameHrefFields.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+							(ensNameHrefFields.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 								ensName: String(ensNameHrefFields.name ?? ''),
 							}) : undefined)
 						}

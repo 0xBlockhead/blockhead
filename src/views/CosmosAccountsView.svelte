@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -113,16 +112,9 @@
 
 				{#snippet Item({ item: cosmosAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosAccount> })}
 					{@const cosmosAccountFields = { ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }}
-					{@const cosmosAccountHrefFields = { ...cosmosAccount, ...cosmosAccount[EntityMetaKey.Selector] }}
 					<CosmosAccountView
 						selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosAccountFields}
-						href={
-							(cosmosAccountHrefFields.$network !== undefined && cosmosAccountHrefFields.$network.caip2 !== undefined && cosmosAccountHrefFields.$network.caip2.namespace !== undefined && cosmosAccountHrefFields.$network !== undefined && cosmosAccountHrefFields.$network.caip2 !== undefined && cosmosAccountHrefFields.$network.caip2.reference !== undefined && cosmosAccountHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
-								caip2: `${String(cosmosAccountHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosAccountHrefFields.$network.caip2.reference ?? '')}`,
-								address: String(cosmosAccountHrefFields.address ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockIndex = selection.entitySelector.blockIndex ?? prefetched.blockIndex}
+							{@const blockIndex = pendingEntity.blockIndex}
 							{#if blockIndex !== undefined && blockIndex !== null}
 								{String((blockIndex) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const parentHash = prefetched.parentHash}
+					{@const parentHash = pendingEntity.parentHash}
 					{#if parentHash !== undefined && parentHash !== null}
 						<div>
 							<dt>parent hash</dt>
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampNs = prefetched.timestampNs}
+					{@const timestampNs = pendingEntity.timestampNs}
 					{#if timestampNs !== undefined && timestampNs !== null}
 						<div>
 							<dt>timestamp ns</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount}
+					{@const transactionCount = pendingEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>transaction count</dt>
@@ -269,7 +269,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const archiveCanisterId = prefetched.archiveCanisterId}
+					{@const archiveCanisterId = pendingEntity.archiveCanisterId}
 					{#if archiveCanisterId !== undefined && archiveCanisterId !== null}
 						<div>
 							<dt>archive canister ID</dt>

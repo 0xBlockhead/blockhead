@@ -46,7 +46,7 @@
 			balanceMsat: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Fedimint client state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Fedimint client state timestamp')
 	const viewDomId = $derived('blockhead-fedimint-client-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadFedimintClientStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadFedimintClientStateTimestamp}>
 			{#snippet Pending()}
-				{@const balanceMsat0 = prefetched.balanceMsat}
+				{@const balanceMsat0 = pendingEntity.balanceMsat}
 				{#if balanceMsat0 !== undefined && balanceMsat0 !== null}
 					<NumberValue value={Number(balanceMsat0)} />
 				{/if}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadFedimintClientStateTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const recoveryState = prefetched.recoveryState}
+					{@const recoveryState = pendingEntity.recoveryState}
 					{#if recoveryState !== undefined && recoveryState !== null}
 						<div>
 							<dt>recovery state</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceMsat = prefetched.balanceMsat}
+					{@const balanceMsat = pendingEntity.balanceMsat}
 					{#if balanceMsat !== undefined && balanceMsat !== null}
 						<div>
 							<dt>balance msat</dt>
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ecashBalanceMsat = prefetched.ecashBalanceMsat}
+					{@const ecashBalanceMsat = pendingEntity.ecashBalanceMsat}
 					{#if ecashBalanceMsat !== undefined && ecashBalanceMsat !== null}
 						<div>
 							<dt>ecash balance msat</dt>
@@ -354,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lightningBalanceMsat = prefetched.lightningBalanceMsat}
+					{@const lightningBalanceMsat = pendingEntity.lightningBalanceMsat}
 					{#if lightningBalanceMsat !== undefined && lightningBalanceMsat !== null}
 						<div>
 							<dt>Lightning balance msat</dt>
@@ -389,7 +389,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const onchainBalanceSats = prefetched.onchainBalanceSats}
+					{@const onchainBalanceSats = pendingEntity.onchainBalanceSats}
 					{#if onchainBalanceSats !== undefined && onchainBalanceSats !== null}
 						<div>
 							<dt>onchain balance sats</dt>
@@ -426,7 +426,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ecashNoteCountsJson = prefetched.ecashNoteCountsJson}
+					{@const ecashNoteCountsJson = pendingEntity.ecashNoteCountsJson}
 					{#if ecashNoteCountsJson !== undefined && ecashNoteCountsJson !== null}
 						<div>
 							<dt>ecash note counts JSON</dt>
@@ -461,7 +461,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const oobNotesJson = prefetched.oobNotesJson}
+					{@const oobNotesJson = pendingEntity.oobNotesJson}
 					{#if oobNotesJson !== undefined && oobNotesJson !== null}
 						<div>
 							<dt>oob notes JSON</dt>
@@ -496,7 +496,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const operationSummaryJson = prefetched.operationSummaryJson}
+					{@const operationSummaryJson = pendingEntity.operationSummaryJson}
 					{#if operationSummaryJson !== undefined && operationSummaryJson !== null}
 						<div>
 							<dt>operation summary JSON</dt>

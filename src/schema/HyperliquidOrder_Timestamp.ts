@@ -9,8 +9,10 @@ export enum HyperliquidOrder_TimestampSelector {
 }
 export const HyperliquidOrder_Timestamp = entity({
 	entityType: EntityType.HyperliquidOrder_Timestamp,
-	label: 'hyperliquid order timestamp',
-	labelPlural: 'hyperliquid order observations',
+	labels: {
+		singular: 'hyperliquid order timestamp',
+		plural: 'hyperliquid order observations',
+	},
 })({
 	$order: {
 		label: 'order',

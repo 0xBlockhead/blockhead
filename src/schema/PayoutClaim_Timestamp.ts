@@ -10,8 +10,10 @@ export enum PayoutClaim_TimestampSelector {
 }
 export const PayoutClaim_Timestamp = entity({
 	entityType: EntityType.PayoutClaim_Timestamp,
-	label: 'payout claim timestamp',
-	labelPlural: 'payout claim observations',
+	labels: {
+		singular: 'payout claim timestamp',
+		plural: 'payout claim observations',
+	},
 })({
 	$payout: {
 		label: 'payout',

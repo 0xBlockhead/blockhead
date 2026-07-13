@@ -16,13 +16,13 @@ const ethereumEipsGithubEndpoints = [
 		endpointKind: SourceEndpointKind.HttpUrl,
 		locator: 'https://api.github.com',
 		origin: 'https://api.github.com',
-		corsEnabled: true,
+		corsEnabled: false,
 	},
 	{
 		endpointKind: SourceEndpointKind.HttpUrl,
 		locator: 'https://raw.githubusercontent.com',
 		origin: 'https://raw.githubusercontent.com',
-		corsEnabled: true,
+		corsEnabled: false,
 	},
 ] as const
 
@@ -50,7 +50,7 @@ export const ethereumEipsBindings = [
 		operationGroups: [
 			SourceOperationGroup.GithubRepositoryContents,
 		],
-		delivery: SourceDelivery.BrowserDirect,
+		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
 				scope: SourceCredentialScope.None,

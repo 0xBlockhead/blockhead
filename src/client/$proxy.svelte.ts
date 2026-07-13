@@ -13,23 +13,25 @@ import {
 } from '$/client/$subscribe.svelte.ts'
 import {
 	EntityMetaKey,
+	EntityFieldCardinality,
 	EntityFieldType,
 	ProjectionResolution,
 	type EntityFacetCondition,
-	type EntityFacetFieldName,
-	type EntityFacetId,
+	type EntityFacetFieldDefinitionAtPath,
+	type EntityFacetFieldNameAtPath,
+	type EntityFacetName,
+	type EntityFacetPath,
+	type EntityFieldAddress,
 	type EntityFieldDefinition,
 	type EntityFieldDefinitionByName,
 	type EntityFieldName,
+	type EntityFieldSingleResolvedValueFromDefinition,
 	type EntityDefinitionForEntityType,
 	type EntitySelector,
 	type EntityType,
 	type ProjectionValue,
 	type Schema,
-	entityFacetFieldName,
 	entityFieldAddressKey,
-	entityFieldDefinitions,
-	entityFieldFacetPath,
 } from '$/schema/$schema.ts'
 
 
@@ -41,6 +43,7 @@ type EntityProxyResourceFieldName =
 	| 'entitySelector'
 	| 'entityType'
 	| 'facetPath'
+	| 'name'
 	| 'sources'
 	| 'value'
 
@@ -99,44 +102,134 @@ export type EntityProxyEntitiesResource<
 	}
 )
 
+type EntityProxyProjectionFieldSingleResult<
+	_Schema extends Schema,
+	_FieldDefinition extends EntityFieldDefinition,
+> = (
+	_FieldDefinition extends {
+		readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+	} ?
+		SubscribeEntityReferenceResult<_Schema, _ReferencedEntityType>
+	:
+		EntityFieldSingleResolvedValueFromDefinition<_Schema, _FieldDefinition>
+)
+
+type EntityProxyProjectionFieldData<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FieldDefinition extends EntityFieldDefinition,
+> = (
+	_FieldDefinition extends {
+		readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+	} ?
+		{
+			entityType: _EntityType
+			entitySelector: EntitySelector<_Schema, _EntityType>
+			fieldName: _FieldDefinition['name']
+			values: readonly EntityProxyProjectionFieldSingleResult<_Schema, _FieldDefinition>[]
+			entities: readonly EntityProxyProjectionFieldSingleResult<_Schema, _FieldDefinition>[]
+			totalCount?: number
+		}
+	: _FieldDefinition extends {
+		readonly cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.ZeroOrOne
+	} ?
+		EntityProxyProjectionFieldSingleResult<_Schema, _FieldDefinition> | undefined
+	:
+		EntityProxyProjectionFieldSingleResult<_Schema, _FieldDefinition>
+)
+
+type EntityProxyProjectionFieldResource<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FieldDefinition extends EntityFieldDefinition,
+> = (
+	& SvelteKitResource<EntityProxyProjectionFieldData<_Schema, _EntityType, _FieldDefinition>>
+	& (<const _FieldRow extends object = object>(
+		selection?: SubscribeSelection<_Schema, _EntityType, _FieldRow>
+	) => EntityProxyProjectionFieldResource<_Schema, _EntityType, _FieldDefinition>)
+	& {
+		entityType: _EntityType
+		entitySelector: EntitySelector<_Schema, _EntityType>
+		fieldName: _FieldDefinition['name']
+		sources?: readonly string[]
+	}
+	& (
+		_FieldDefinition extends {
+			readonly type: EntityFieldType.EntitiesReference
+			readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+		} ?
+			{
+				first: (
+					selection?: SubscribeSelection<_Schema, _EntityType>
+				) => SvelteKitResource<SubscribeEntityReferenceResult<_Schema, _ReferencedEntityType> | undefined>
+			}
+		:
+			{}
+	)
+)
+
 export type EntityProxyProjectionResource<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-	_FacetId extends EntityFacetId<_Schema, _EntityType>,
+	_FacetPath extends readonly string[],
 > = (
 	& SvelteKitResource<ProjectionValue<{
 		readonly [
-			_FieldName in EntityFacetFieldName<_Schema, _EntityType, _FacetId> as (
+			_FieldName in EntityFacetFieldNameAtPath<_Schema, _EntityType, _FacetPath> as (
 				_FieldName extends EntityProxyResourceFieldName ?
 					never
 				:
 					_FieldName
 			)
-		]: EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
-	}>>
+		]: EntityProxyProjectionFieldResource<
+			_Schema,
+			_EntityType,
+			EntityFacetFieldDefinitionAtPath<_Schema, _EntityType, _FacetPath, _FieldName>
+		>
+		}
+		& {
+			readonly [
+				_FacetName in EntityFacetName<_Schema, _EntityType, _FacetPath>
+			]: EntityProxyProjectionResource<_Schema, _EntityType, [..._FacetPath, _FacetName]>
+		}
+	>>
 	& {
 		[EntityProxyField]: <
 			const _FieldName extends Extract<
-				EntityFieldName<_Schema, _EntityType>,
+				EntityFacetFieldNameAtPath<_Schema, _EntityType, _FacetPath>,
 				EntityProxyResourceFieldName
 			> = Extract<
-				EntityFieldName<_Schema, _EntityType>,
+				EntityFacetFieldNameAtPath<_Schema, _EntityType, _FacetPath>,
 				EntityProxyResourceFieldName
 			>,
 		>(
 			fieldName: _FieldName,
 			selection?: SubscribeSelection<_Schema, _EntityType>
-		) => EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
+		) => EntityProxyProjectionFieldResource<
+			_Schema,
+			_EntityType,
+			EntityFacetFieldDefinitionAtPath<_Schema, _EntityType, _FacetPath, _FieldName>
+		>
 	}
 	& {
 		readonly [
-			_FieldName in EntityFacetFieldName<_Schema, _EntityType, _FacetId> as (
+			_FieldName in EntityFacetFieldNameAtPath<_Schema, _EntityType, _FacetPath> as (
 				_FieldName extends EntityProxyResourceFieldName ?
 					never
 				:
 					_FieldName
 			)
-		]: EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
+		]: EntityProxyProjectionFieldResource<
+			_Schema,
+			_EntityType,
+			EntityFacetFieldDefinitionAtPath<_Schema, _EntityType, _FacetPath, _FieldName>
+		>
+	}
+	& {
+		readonly [
+			_FacetName in EntityFacetName<_Schema, _EntityType, _FacetPath>
+		]: EntityProxyProjectionResource<_Schema, _EntityType, [..._FacetPath, _FacetName]>
 	}
 )
 
@@ -187,6 +280,11 @@ export type EntityProxyResource<
 					_FieldName
 			)
 		]: EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
+	}
+	& {
+		readonly [
+			_FacetName in EntityFacetName<_Schema, _EntityType>
+		]: EntityProxyProjectionResource<_Schema, _EntityType, [_FacetName]>
 	}
 )
 
@@ -290,10 +388,50 @@ const projectResource = <_Input, _Output>(
 	},
 })
 
+const projectionDependencyFields = (
+	dependencies: readonly EntityFieldAddress[]
+) => {
+	type DependencyFields = Partial<Record<string, true | { fields: DependencyFields }>>
+
+	const fields: DependencyFields = {}
+	for (const dependency of dependencies) {
+		let fieldsAtPath = fields
+		for (const facetName of dependency.facetPath) {
+			const facetFields = fieldsAtPath[facetName]
+			if (facetFields === true)
+				break
+
+			const nestedFacetFields = facetFields ?? {
+				fields: {},
+			}
+			fieldsAtPath[facetName] = nestedFacetFields
+			fieldsAtPath = nestedFacetFields.fields
+		}
+		fieldsAtPath[dependency.fieldName] = true
+	}
+	return fields
+}
+
 const entityDataFieldValue = (
 	data: EntityResourceData<Schema, EntityType<Schema>>,
-	fieldName: string
+	fieldName: string,
+	facetPath: EntityFacetPath
 ) => {
+	const addressedValue = data.fieldValuesByAddress[entityFieldAddressKey(
+		data.entityType,
+		facetPath,
+		fieldName
+	)]
+	if (
+		addressedValue !== null
+		&& typeof addressedValue === 'object'
+		&& 'values' in addressedValue
+		&& Array.isArray(addressedValue.values)
+	)
+		return addressedValue.values
+	if (addressedValue !== undefined)
+		return addressedValue
+
 	const selectorValue = Object.getOwnPropertyDescriptor(data.entitySelector, fieldName)?.value
 	if (selectorValue !== undefined)
 		return selectorValue
@@ -312,11 +450,30 @@ const entityDataFieldValue = (
 }
 
 const projectionConditionResolution = (
+	context: ClientContext,
 	entityType: EntityType<Schema>,
 	data: EntityResourceData<Schema, EntityType<Schema>>,
 	condition: EntityFacetCondition | undefined,
-	value: Record<PropertyKey, never>
+	value: Record<PropertyKey, never>,
+	facetPath: EntityFacetPath = []
 ): ProjectionValue<Record<PropertyKey, never>> | undefined => {
+	if (facetPath.length > 0) {
+		const parentFacetPath = facetPath.slice(0, -1)
+		const parentCondition = context.projectionDefinitionByEntityTypeAndPath[
+			entityFieldAddressKey(entityType, parentFacetPath, '')
+		]?.condition
+		const parentResolution = projectionConditionResolution(
+			context,
+			entityType,
+			data,
+			parentCondition,
+			value,
+			parentFacetPath
+		)
+		if (parentResolution != null && parentResolution.resolution !== ProjectionResolution.Applicable)
+			return parentResolution
+	}
+
 	if (condition == null)
 		return {
 			resolution: ProjectionResolution.Applicable,
@@ -325,10 +482,12 @@ const projectionConditionResolution = (
 
 	if ('all' in condition) {
 		const childResolutions = condition.all.map((child) => projectionConditionResolution(
+			context,
 			entityType,
 			data,
 			child,
-			value
+			value,
+			facetPath
 		))
 		const blockedDependencies = childResolutions.flatMap((resolution) => (
 			resolution?.resolution === ProjectionResolution.Blocked ?
@@ -356,19 +515,23 @@ const projectionConditionResolution = (
 
 	const indexedItem = condition.path.at(-1)
 	const fieldName = condition.path.at(typeof indexedItem === 'number' ? -2 : -1)
+	const conditionFacetPath = condition.path.slice(
+		0,
+		typeof indexedItem === 'number' ? -2 : -1
+	).filter((segment): segment is string => typeof segment === 'string')
 	if (typeof fieldName !== 'string')
 		return {
 			resolution: ProjectionResolution.Unsupported,
 		}
 
-	const fieldValue = entityDataFieldValue(data, fieldName)
+	const fieldValue = entityDataFieldValue(data, fieldName, conditionFacetPath)
 	if (fieldValue === undefined)
 		return {
 			resolution: ProjectionResolution.Blocked,
-			dependencies: [
+		dependencies: [
 				{
 					entityType,
-					facetPath: [],
+					facetPath: conditionFacetPath,
 					fieldName,
 				},
 			],
@@ -449,11 +612,8 @@ export function createEntityFieldProxy(
 
 		return resource
 	}
-	const resolvedFieldDefinition = fieldDefinition ?? entityFieldDefinitions(context.entityDefinitionByType[entityType])
-		.find((definition) => (
-			entityFieldFacetPath(definition).length === 0
-			&& definition.name === fieldName
-		))
+	const resolvedFieldDefinition = fieldDefinition ?? context.entityDefinitionByType[entityType].fields
+		.find((definition) => definition.name === fieldName)
 	if (resolvedFieldDefinition == null)
 		throw new Error(`${entityType}.${fieldName} does not exist`)
 	const project = (
@@ -569,8 +729,11 @@ const createEntityProjectionProxy = (
 	facetPath: readonly string[],
 	selection: SubscribeSelection<Schema, EntityType<Schema>, object>
 ) => {
-	const fieldProxyByName = new Map<string, EntityProxyFieldResource<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>>()
-	const projectionProxyByFacetId = new Map<string, object>()
+	const fieldProxyByName = new Map<string, object>()
+	const projectionProxyByFacetName = new Map<string, object>()
+	const projectionDefinition = context.projectionDefinitionByEntityTypeAndPath[
+		entityFieldAddressKey(entityType, facetPath, '')
+	]
 	let resource: SvelteKitResource<ProjectionValue<Record<PropertyKey, never>>> | undefined
 	const getResource = (): SvelteKitResource<ProjectionValue<Record<PropertyKey, never>>> => {
 		if (resource === undefined)
@@ -579,15 +742,21 @@ const createEntityProjectionProxy = (
 					context,
 					entityType,
 					entitySelector,
-					selection
+					{
+						...selection,
+						selectorSources: [],
+						fields: projectionDependencyFields(
+							projectionDefinition?.transitiveDependencies ?? []
+						),
+					}
 				),
 				(data) => projectionConditionResolution(
+					context,
 					entityType,
 					data,
-					context.projectionDefinitionByEntityTypeAndPath[
-						entityFieldAddressKey(entityType, facetPath, '')
-					]?.condition,
-					projectionProxy
+					projectionDefinition?.condition,
+					projectionProxy,
+					facetPath
 				) ?? {
 					resolution: ProjectionResolution.Unsupported,
 				}
@@ -644,8 +813,8 @@ const createEntityProjectionProxy = (
 					], '')
 				] != null
 			) {
-				if (!projectionProxyByFacetId.has(property))
-					projectionProxyByFacetId.set(
+				if (!projectionProxyByFacetName.has(property))
+					projectionProxyByFacetName.set(
 						property,
 						createEntityProjectionProxy(
 							context,
@@ -659,7 +828,7 @@ const createEntityProjectionProxy = (
 						)
 					)
 
-				return projectionProxyByFacetId.get(property)
+				return projectionProxyByFacetName.get(property)
 			}
 
 			const fieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[entityType][
@@ -727,7 +896,7 @@ export function createEntityProxy(
 		return resource
 	}
 	const fieldProxyByName = new Map<string, EntityProxyFieldResource<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>>()
-	const projectionProxyByFacetId = new Map<string, object>()
+	const projectionProxyByFacetName = new Map<string, object>()
 
 	return new Proxy((
 		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
@@ -816,8 +985,8 @@ export function createEntityProxy(
 					entityFieldAddressKey(entityType, [property], '')
 				] != null
 			) {
-				if (!projectionProxyByFacetId.has(property))
-					projectionProxyByFacetId.set(
+				if (!projectionProxyByFacetName.has(property))
+					projectionProxyByFacetName.set(
 						property,
 						createEntityProjectionProxy(
 							context,
@@ -830,7 +999,7 @@ export function createEntityProxy(
 						)
 					)
 
-				return projectionProxyByFacetId.get(property)
+				return projectionProxyByFacetName.get(property)
 			}
 
 			return undefined

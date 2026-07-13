@@ -54,7 +54,7 @@
 			publishedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? ''), String((selection.entitySelector.identifier ?? prefetched.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article')
+	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article')
 	const viewDomId = $derived('nostr-article-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrArticle}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? ''), String((selection.entitySelector.identifier ?? prefetched.identifier) ?? '')].filter(Boolean).join(' ') || title || 'Nostr article'}
+				{[String((pendingEntity.title) ?? ''), String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ') || title || 'Nostr article'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nostrArticle}>
 			{#snippet Pending()}
-				{@const identifier0 = selection.entitySelector.identifier ?? prefetched.identifier}
+				{@const identifier0 = pendingEntity.identifier}
 				{#if identifier0 !== undefined && identifier0 !== null}
 					<TruncatedValue value={String((identifier0) ?? '')} />
 				{/if}
@@ -112,13 +112,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nostrArticle}>
 			{#snippet Pending()}
-				{@const publishedAt0 = prefetched.publishedAt}
+				{@const publishedAt0 = pendingEntity.publishedAt}
 				{#if publishedAt0 !== undefined && publishedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(publishedAt0)} />
 					</span>
 				{/if}
-				{@const kind1 = selection.entitySelector.kind ?? prefetched.kind}
+				{@const kind1 = pendingEntity.kind}
 				{#if kind1 !== undefined && kind1 !== null}
 					<span data-text="muted">
 						<span>kind </span>
@@ -167,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const identifier = selection.entitySelector.identifier ?? prefetched.identifier}
+							{@const identifier = pendingEntity.identifier}
 							{#if identifier !== undefined && identifier !== null}
 								{String((identifier) ?? '')}
 							{/if}
@@ -197,7 +197,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const pubkey = selection.entitySelector.pubkey ?? prefetched.pubkey}
+							{@const pubkey = pendingEntity.pubkey}
 							{#if pubkey !== undefined && pubkey !== null}
 								<TruncatedValue value={String((pubkey) ?? '')} />
 							{/if}
@@ -227,7 +227,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const kind = selection.entitySelector.kind ?? prefetched.kind}
+							{@const kind = pendingEntity.kind}
 							{#if kind !== undefined && kind !== null}
 								<span>kind </span>
 								{String((kind) ?? '')}
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publishedAt = prefetched.publishedAt}
+					{@const publishedAt = pendingEntity.publishedAt}
 					{#if publishedAt !== undefined && publishedAt !== null}
 						<div>
 							<dt>Published</dt>
@@ -296,7 +296,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const summary = prefetched.summary}
+					{@const summary = pendingEntity.summary}
 					{#if summary !== undefined && summary !== null}
 						<div>
 							<dt>Summary</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const imageUrl = prefetched.imageUrl}
+					{@const imageUrl = pendingEntity.imageUrl}
 					{#if imageUrl !== undefined && imageUrl !== null}
 						<div>
 							<dt>Image URL</dt>
@@ -368,6 +368,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(nostrProfile)}
 					{#if nostrProfile != null && nostrProfile[EntityMetaKey.Selector] != null}
 						<div>

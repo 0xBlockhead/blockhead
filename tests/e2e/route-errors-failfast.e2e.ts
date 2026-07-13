@@ -8,7 +8,7 @@
  * E2E_PATH_PATTERN='^/network/eip155:1(/|$)' pnpm run test:e2e:failfast
  * E2E_PATH_SHARD_TOTAL=4 E2E_PATH_SHARD_INDEX=0 pnpm run test:e2e:failfast
  * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/route-errors-failfast.e2e.ts -g probe
- * E2E_PROBE_PATH=/network/cosmos:cosmoshub-4/cosmos E2E_MAIN_MS=240000 E2E_TEST_MS=300000 pnpm exec playwright test tests/e2e/route-errors-failfast.e2e.ts -g probe
+ * E2E_PROBE_PATH=/network/cosmos:cosmoshub-4 E2E_MAIN_MS=240000 E2E_TEST_MS=300000 pnpm exec playwright test tests/e2e/route-errors-failfast.e2e.ts -g probe
  * E2E_START_PATH=/coins pnpm run test:e2e:failfast
  * ```
  */
@@ -16,10 +16,13 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertMainSettled,
+	assertCanonicalRouteUrl,
 	assertNoGeneratedRouteArtifacts,
 	e2eBrowserNewContextOptions,
 	expectMainVisible,
+	installBoundaryProbe,
 	installChainlistRpcsJsonStub,
+	pageFailureSnapshot,
 } from '../_e2eBrowserHelpers.ts'
 
 import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
@@ -70,6 +73,7 @@ const visitRouteFailFast = async (
 			timeout: routeViewSmokeTimeoutsMs.goto,
 		}))
 		await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
+		await step(assertCanonicalRouteUrl(page, pathname))
 		const main = page.locator('#main')
 		await step(expect(main.locator('[data-error]')).toHaveCount(0, {
 			timeout: routeViewSmokeTimeoutsMs.mainSelector,
@@ -81,7 +85,10 @@ const visitRouteFailFast = async (
 		await flushArtifacts(testInfo)
 		const message = e instanceof Error ? e.message : String(e)
 		throw new Error(
-			`route-errors-failfast stopped at ${pathname} (url=${page.url()}): ${message}`,
+			[
+				`route-errors-failfast stopped at ${pathname} (url=${page.url()}): ${message}`,
+				`section/resource/source ownership:\n${await pageFailureSnapshot(page)}`,
+			].join('\n\n'),
 			{ cause: e }
 		)
 	}
@@ -92,6 +99,7 @@ const installRouteProbeDatabase = async (
 	databaseName: string
 ) => {
 	await page.addInitScript(({ name, schemaVersion }) => {
+		window.__blockheadClientProbeEnabled = true
 		window.__blockheadWaSqliteDatabaseNameOverride = name
 		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
 		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
@@ -111,6 +119,7 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 		const page = await context.newPage()
 		page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
 		try {
+			await installBoundaryProbe(page)
 			await installRouteProbeDatabase(
 				page,
 				`blockhead-route-errors-probe-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${Date.now()}.sqlite`
@@ -142,6 +151,7 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 				const page = await context.newPage()
 				try {
 					page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
+					await installBoundaryProbe(page)
 					await installRouteProbeDatabase(
 						page,
 						`blockhead-route-errors-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${index}-${Date.now()}.sqlite`

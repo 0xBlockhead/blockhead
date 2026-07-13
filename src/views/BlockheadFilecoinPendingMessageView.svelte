@@ -50,7 +50,7 @@
 			local: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.messageCid ?? prefetched.messageCid) ?? '')].filter(Boolean).join(' ') || 'blockhead filecoin pending message')
+	const titleFallback = $derived([String((pendingEntity.messageCid) ?? '')].filter(Boolean).join(' ') || 'blockhead filecoin pending message')
 	const viewDomId = $derived('blockhead-filecoin-pending-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadFilecoinPendingMessage}>
 			{#snippet Pending()}
-				{@const messageCid0 = selection.entitySelector.messageCid ?? prefetched.messageCid}
+				{@const messageCid0 = pendingEntity.messageCid}
 				{#if messageCid0 !== undefined && messageCid0 !== null}
 					<TruncatedValue value={String((messageCid0) ?? '')} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadFilecoinPendingMessage}>
 			{#snippet Pending()}
-				{@const observedAtMs0 = selection.entitySelector.observedAtMs ?? prefetched.observedAtMs}
+				{@const observedAtMs0 = pendingEntity.observedAtMs}
 				{#if observedAtMs0 !== undefined && observedAtMs0 !== null}
 					<Timestamp timestamp={Number(observedAtMs0)} />
 				{/if}
@@ -115,7 +115,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadFilecoinPendingMessage}>
 			{#snippet Pending()}
-				{@const local0 = prefetched.local}
+				{@const local0 = pendingEntity.local}
 				{#if local0 !== undefined && local0 !== null}
 					<span data-text="muted">
 						{local0 ? 'Yes' : 'No'}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nodeId = selection.entitySelector.nodeId ?? prefetched.nodeId}
+							{@const nodeId = pendingEntity.nodeId}
 							{#if nodeId !== undefined && nodeId !== null}
 								{String((nodeId) ?? '')}
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const messageCid = selection.entitySelector.messageCid ?? prefetched.messageCid}
+							{@const messageCid = pendingEntity.messageCid}
 							{#if messageCid !== undefined && messageCid !== null}
 								<TruncatedValue value={String((messageCid) ?? '')} />
 							{/if}
@@ -210,7 +210,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const observedAtMs = selection.entitySelector.observedAtMs ?? prefetched.observedAtMs}
+							{@const observedAtMs = pendingEntity.observedAtMs}
 							{#if observedAtMs !== undefined && observedAtMs !== null}
 								<Timestamp timestamp={Number(observedAtMs)} />
 							{/if}
@@ -230,6 +230,8 @@
 			<ResourceBoundary
 				resource={selection.$network}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinNetwork)}
 					{#if filecoinNetwork != null && filecoinNetwork[EntityMetaKey.Selector] != null}
 						<div>
@@ -250,6 +252,8 @@
 			<ResourceBoundary
 				resource={selection.$message}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinMessage)}
 					{#if filecoinMessage != null && filecoinMessage[EntityMetaKey.Selector] != null}
 						<div>
@@ -270,6 +274,8 @@
 			<ResourceBoundary
 				resource={selection.$from}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
 						<div>
@@ -290,6 +296,8 @@
 			<ResourceBoundary
 				resource={selection.$to}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
 						<div>
@@ -319,7 +327,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nonce = prefetched.nonce}
+					{@const nonce = pendingEntity.nonce}
 					{#if nonce !== undefined && nonce !== null}
 						<div>
 							<dt>nonce</dt>
@@ -354,7 +362,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const method = prefetched.method}
+					{@const method = pendingEntity.method}
 					{#if method !== undefined && method !== null}
 						<div>
 							<dt>method</dt>
@@ -389,7 +397,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueAttoFil = prefetched.valueAttoFil}
+					{@const valueAttoFil = pendingEntity.valueAttoFil}
 					{#if valueAttoFil !== undefined && valueAttoFil !== null}
 						<div>
 							<dt>value atto fil</dt>
@@ -424,7 +432,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasLimit = prefetched.gasLimit}
+					{@const gasLimit = pendingEntity.gasLimit}
 					{#if gasLimit !== undefined && gasLimit !== null}
 						<div>
 							<dt>gas limit</dt>
@@ -459,7 +467,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasFeeCapAttoFil = prefetched.gasFeeCapAttoFil}
+					{@const gasFeeCapAttoFil = pendingEntity.gasFeeCapAttoFil}
 					{#if gasFeeCapAttoFil !== undefined && gasFeeCapAttoFil !== null}
 						<div>
 							<dt>gas fee cap atto fil</dt>
@@ -494,7 +502,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasPremiumAttoFil = prefetched.gasPremiumAttoFil}
+					{@const gasPremiumAttoFil = pendingEntity.gasPremiumAttoFil}
 					{#if gasPremiumAttoFil !== undefined && gasPremiumAttoFil !== null}
 						<div>
 							<dt>gas premium atto fil</dt>
@@ -529,7 +537,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signatureType = prefetched.signatureType}
+					{@const signatureType = pendingEntity.signatureType}
 					{#if signatureType !== undefined && signatureType !== null}
 						<div>
 							<dt>signature type</dt>
@@ -564,7 +572,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const local = prefetched.local}
+					{@const local = pendingEntity.local}
 					{#if local !== undefined && local !== null}
 						<div>
 							<dt>local</dt>

@@ -60,7 +60,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(explore)/(ipfs)/ipfs/access')}
+	href={href ?? resolve('/ipfs/access')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -106,7 +106,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const scope = selection.entitySelector.scope ?? prefetched.scope}
+							{@const scope = pendingEntity.scope}
 							{#if scope !== undefined && scope !== null}
 								{String((scope) ?? '')}
 							{/if}

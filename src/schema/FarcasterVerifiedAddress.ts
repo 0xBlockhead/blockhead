@@ -9,13 +9,15 @@ export enum FarcasterVerifiedAddressSelector {
 }
 export const FarcasterVerifiedAddress = entity({
 	entityType: EntityType.FarcasterVerifiedAddress,
-	label: 'Farcaster verified address',
-	labelPlural: 'Farcaster verified addresses',
+	labels: {
+		singular: 'Farcaster verified address',
+		plural: 'Farcaster verified addresses',
+	},
 })({
 	fid: {
 		label: 'FID',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocol: {

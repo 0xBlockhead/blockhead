@@ -39,7 +39,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const atprotoPostTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post observation')
 	const viewDomId = $derived('atproto-post-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -56,9 +56,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$post !== undefined && pendingEntity.$post.uri !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]/(post)/observations/[timestampMs=nonNegativeInteger]', {
-			uri: String(pendingEntity.$post.uri ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$post !== undefined && pendingEntity.$post.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			uri: String(pendingEntity.$post.uri ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -68,7 +68,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={atprotoPostTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -99,7 +99,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -126,7 +126,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const likeCount = prefetched.likeCount}
+					{@const likeCount = pendingEntity.likeCount}
 					{#if likeCount !== undefined && likeCount !== null}
 						<div>
 							<dt>Likes</dt>
@@ -161,7 +161,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const repostCount = prefetched.repostCount}
+					{@const repostCount = pendingEntity.repostCount}
 					{#if repostCount !== undefined && repostCount !== null}
 						<div>
 							<dt>Reposts</dt>
@@ -196,7 +196,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const replyCount = prefetched.replyCount}
+					{@const replyCount = pendingEntity.replyCount}
 					{#if replyCount !== undefined && replyCount !== null}
 						<div>
 							<dt>Replies</dt>
@@ -231,7 +231,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quoteCount = prefetched.quoteCount}
+					{@const quoteCount = pendingEntity.quoteCount}
 					{#if quoteCount !== undefined && quoteCount !== null}
 						<div>
 							<dt>Quotes</dt>

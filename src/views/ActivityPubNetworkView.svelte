@@ -48,7 +48,7 @@
 			docsUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'ActivityPub')
+	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'ActivityPub')
 	const viewDomId = $derived('activity-pub-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -84,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -115,7 +115,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolName = prefetched.protocolName}
+							{@const protocolName = pendingEntity.protocolName}
 							{#if protocolName !== undefined && protocolName !== null}
 								{String((protocolName) ?? '')}
 							{/if}
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const homeUrl = prefetched.homeUrl}
+							{@const homeUrl = pendingEntity.homeUrl}
 							{#if homeUrl !== undefined && homeUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -190,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const docsUrl = prefetched.docsUrl}
+					{@const docsUrl = pendingEntity.docsUrl}
 					{#if docsUrl !== undefined && docsUrl !== null}
 						<div>
 							<dt>Docs URL</dt>

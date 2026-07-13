@@ -54,15 +54,20 @@
 			statusUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.content) ?? ''), String((prefetched.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note')
+	const titleFallback = $derived([String((pendingEntity.content) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note')
 	const viewDomId = $derived('activity-pub-note-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
+	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
+	import MediaListView from '$/views/MediaListView.svelte'
+	import ActivityPubNote_TimestampsView from '$/views/ActivityPubNote_TimestampsView.svelte'
 </script>
 
 
@@ -72,7 +77,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.instanceOrigin !== undefined && pendingEntity.localStatusId !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
+		href ?? (pendingEntity.instanceOrigin !== undefined && pendingEntity.localStatusId !== undefined ? resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
 			instanceOrigin: String(pendingEntity.instanceOrigin ?? ''),
 			localStatusId: String(pendingEntity.localStatusId ?? ''),
 		}) : undefined)
@@ -84,7 +89,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubNote}>
 			{#snippet Pending()}
-				{[String((prefetched.content) ?? ''), String((prefetched.localStatusId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub note'}
+				{[String((pendingEntity.content) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub note'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -97,7 +102,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubNote}>
 			{#snippet Pending()}
-				{[String((prefetched.createdAt) ?? ''), String((prefetched.localStatusId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.content) ?? ''), String((prefetched.localStatusId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub note'}
+				{[String((pendingEntity.createdAt) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.content) ?? ''), String((pendingEntity.localStatusId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub note'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -112,6 +117,8 @@
 			<ResourceBoundary
 				resource={selection.$author}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(activityPubActor)}
 					{#if activityPubActor != null && activityPubActor[EntityMetaKey.Selector] != null}
 						<div>
@@ -121,7 +128,7 @@
 									selection={select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector])}
 									prefetched={activityPubActor}
 									href={
-										(activityPubActor[EntityMetaKey.Selector].instanceOrigin !== undefined && activityPubActor[EntityMetaKey.Selector].localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+										(activityPubActor[EntityMetaKey.Selector].instanceOrigin !== undefined && activityPubActor[EntityMetaKey.Selector].localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
 											instanceOrigin: String(activityPubActor[EntityMetaKey.Selector].instanceOrigin ?? ''),
 											localAccountId: String(activityPubActor[EntityMetaKey.Selector].localAccountId ?? ''),
 										}) : undefined)
@@ -147,7 +154,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -184,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const statusUrl = prefetched.statusUrl}
+					{@const statusUrl = pendingEntity.statusUrl}
 					{#if statusUrl !== undefined && statusUrl !== null}
 						<div>
 							<dt>Status URL</dt>
@@ -238,7 +245,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const activityStreamsUri = prefetched.activityStreamsUri}
+							{@const activityStreamsUri = pendingEntity.activityStreamsUri}
 							{#if activityStreamsUri !== undefined && activityStreamsUri !== null}
 								<svelte:element
 									this={'a'}
@@ -287,5 +294,97 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-activitypub-note-thread'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'activitypub-note-thread-notes',
+							label: 'Thread',
+						},
+						{
+							id: 'activitypub-note-media',
+							label: 'Media',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-thread'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Thread and media</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionActivitypubNoteThreadNotes({ id, label, open })}
+					<ActivityPubNotesView
+						selection={selection.$$thread}
+						href={resolve('/activitypub/notes')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ActivityPub thread notes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionActivitypubNoteMedia({ id, label, open })}
+					<MediaListView
+						selection={selection.$$media}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ActivityPub note media.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-activitypub-note-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'activitypub-note-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionActivitypubNoteTimestamps({ id, label, open })}
+					<ActivityPubNote_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ActivityPub note observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

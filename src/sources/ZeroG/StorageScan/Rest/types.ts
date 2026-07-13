@@ -1,6 +1,3 @@
-import type { EvmAddress } from '$/schema/ZeroExHex.ts'
-
-
 export type ZeroGStorageScanResponse<_Data> = {
 	code: number
 	message: string
@@ -60,7 +57,7 @@ export type ZeroGStorageScanTransaction = {
 }
 
 export type ZeroGStorageScanMiner = {
-	miner: typeof EvmAddress.infer
+	miner: `0x${string}`
 	totalReward: string
 	winCount: number
 	miningAttempts: number

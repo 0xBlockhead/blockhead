@@ -9,8 +9,10 @@ export enum EvmActorCoinAllowanceSelector {
 }
 export const EvmActorCoinAllowance = entity({
 	entityType: EntityType.EvmActorCoinAllowance,
-	label: 'allowance',
-	labelPlural: 'allowances',
+	labels: {
+		singular: 'allowance',
+		plural: 'allowances',
+	},
 })({
 	$actor: {
 		label: 'Owner',

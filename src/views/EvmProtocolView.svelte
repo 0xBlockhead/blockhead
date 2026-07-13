@@ -49,11 +49,13 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'EVM protocol')
+	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'EVM protocol')
 	const viewDomId = $derived('evm-protocol-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmSelectorsView from '$/views/EvmSelectorsView.svelte'
@@ -67,7 +69,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(explore)/(evm)/evm')}
+	href={href ?? resolve('/evm')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -75,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmProtocol}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'EVM protocol'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'EVM protocol'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -88,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmProtocol}>
 			{#snippet Pending()}
-				{[String((prefetched.registryName) ?? '')].filter(Boolean).join(' ') || [String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'EVM protocol'}
+				{[String((pendingEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'EVM protocol'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -119,7 +121,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolName = prefetched.protocolName}
+							{@const protocolName = pendingEntity.protocolName}
 							{#if protocolName !== undefined && protocolName !== null}
 								{String((protocolName) ?? '')}
 							{/if}
@@ -149,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const registryName = prefetched.registryName}
+							{@const registryName = pendingEntity.registryName}
 							{#if registryName !== undefined && registryName !== null}
 								{String((registryName) ?? '')}
 							{/if}
@@ -179,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const relationshipModel = prefetched.relationshipModel}
+							{@const relationshipModel = pendingEntity.relationshipModel}
 							{#if relationshipModel !== undefined && relationshipModel !== null}
 								{String((relationshipModel) ?? '')}
 							{/if}
@@ -209,7 +211,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const homeUrl = prefetched.homeUrl}
+							{@const homeUrl = pendingEntity.homeUrl}
 							{#if homeUrl !== undefined && homeUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -250,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const docsUrl = prefetched.docsUrl}
+					{@const docsUrl = pendingEntity.docsUrl}
 					{#if docsUrl !== undefined && docsUrl !== null}
 						<div>
 							<dt>Docs URL</dt>
@@ -293,29 +295,95 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<EvmSelectorsView
-				selection={selection.$$evmSelectors}
-				title='EVM selectors'
-				href={resolve('/(explore)/(evm)/evm/(selectors)/selectors')}
-				emptyText='No EVM selectors in this observed.'
-				id='EvmSelectorsView-evm-selectors'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-evm-protocol-signatures'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'evm-protocol-selectors',
+							label: 'Selectors',
+						},
+						{
+							id: 'evm-protocol-topics',
+							label: 'Topics',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-signatures'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Signatures</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<EvmTopicsView
-				selection={selection.$$evmTopics}
-				title='EVM topics'
-				href={resolve('/(explore)/(evm)/evm/(topics)/topics')}
-				emptyText='No EVM topics in this observed.'
-				id='EvmTopicsView-evm-topics'
-			/>
+				{#snippet SectionEvmProtocolSelectors({ id, label, open })}
+					<EvmSelectorsView
+						selection={selection.$$evmSelectors}
+						href={resolve('/evm/selectors')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No EVM selectors in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<EvmErrorsView
-				selection={selection.$$evmErrors}
-				title='EVM errors'
-				href={resolve('/(explore)/(evm)/evm/(errors)/errors')}
-				emptyText='No EVM errors in this observed.'
-				id='EvmErrorsView-evm-errors'
-			/>
+				{#snippet SectionEvmProtocolTopics({ id, label, open })}
+					<EvmTopicsView
+						selection={selection.$$evmTopics}
+						href={resolve('/evm/topics')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No EVM topics in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-evm-protocol-errors'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'evm-protocol-error-list',
+							label: 'Errors',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-errors'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Errors</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionEvmProtocolErrorList({ id, label, open })}
+					<EvmErrorsView
+						selection={selection.$$evmErrors}
+						href={resolve('/evm/errors')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No EVM errors in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

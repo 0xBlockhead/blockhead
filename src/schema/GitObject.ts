@@ -10,8 +10,10 @@ export enum GitObjectSelector {
 }
 export const GitObject = entity({
 	entityType: EntityType.GitObject,
-	label: 'Git object',
-	labelPlural: 'Git objects',
+	labels: {
+		singular: 'Git object',
+		plural: 'Git objects',
+	},
 })({
 	objectId: {
 		label: 'object ID',

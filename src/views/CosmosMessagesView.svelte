@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -69,7 +68,6 @@
 				fields: {
 					indexInTransaction: true,
 					typeUrl: true,
-					$transaction: true,
 				},
 			})
 		}
@@ -114,17 +112,9 @@
 
 				{#snippet Item({ item: cosmosMessage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosMessage> })}
 					{@const cosmosMessageFields = { ...cosmosMessage[EntityMetaKey.Selector], ...cosmosMessage }}
-					{@const cosmosMessageHrefFields = { ...cosmosMessage, ...cosmosMessage[EntityMetaKey.Selector] }}
 					<CosmosMessageView
 						selection={select(EntityType.CosmosMessage, cosmosMessage[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosMessageFields}
-						href={
-							(cosmosMessageHrefFields.$transaction !== undefined && cosmosMessageHrefFields.$transaction.$network !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2 !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2.namespace !== undefined && cosmosMessageHrefFields.$transaction !== undefined && cosmosMessageHrefFields.$transaction.$network !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2 !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2.reference !== undefined && cosmosMessageHrefFields.$transaction !== undefined && cosmosMessageHrefFields.$transaction.txHash !== undefined && cosmosMessageHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]/messages/[messageIndex=nonNegativeInteger]', {
-								caip2: `${String(cosmosMessageHrefFields.$transaction.$network.caip2.namespace ?? '')}:${String(cosmosMessageHrefFields.$transaction.$network.caip2.reference ?? '')}`,
-								txHash: String(cosmosMessageHrefFields.$transaction.txHash ?? ''),
-								messageIndex: String(cosmosMessageHrefFields.indexInTransaction ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

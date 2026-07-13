@@ -10,8 +10,10 @@ export enum BlockheadTransferIntentSelector {
 }
 export const BlockheadTransferIntent = entity({
 	entityType: EntityType.BlockheadTransferIntent,
-	label: 'blockhead transfer intent',
-	labelPlural: 'blockhead transfer intents',
+	labels: {
+		singular: 'blockhead transfer intent',
+		plural: 'blockhead transfer intents',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

@@ -10,8 +10,10 @@ export enum BittensorNetworkSelector {
 }
 export const BittensorNetwork = entity({
 	entityType: EntityType.BittensorNetwork,
-	label: 'Bittensor network',
-	labelPlural: 'Bittensor networks',
+	labels: {
+		singular: 'Bittensor network',
+		plural: 'Bittensor networks',
+	},
 	description: 'Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from declared Bittensor JSON-RPC sources.',
 })({
 	$network: {

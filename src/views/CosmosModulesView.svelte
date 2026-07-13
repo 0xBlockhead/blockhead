@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -113,16 +112,9 @@
 
 				{#snippet Item({ item: cosmosModule }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosModule> })}
 					{@const cosmosModuleFields = { ...cosmosModule[EntityMetaKey.Selector], ...cosmosModule }}
-					{@const cosmosModuleHrefFields = { ...cosmosModule, ...cosmosModule[EntityMetaKey.Selector] }}
 					<CosmosModuleView
 						selection={select(EntityType.CosmosModule, cosmosModule[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosModuleFields}
-						href={
-							(cosmosModuleHrefFields.$network !== undefined && cosmosModuleHrefFields.$network.caip2 !== undefined && cosmosModuleHrefFields.$network.caip2.namespace !== undefined && cosmosModuleHrefFields.$network !== undefined && cosmosModuleHrefFields.$network.caip2 !== undefined && cosmosModuleHrefFields.$network.caip2.reference !== undefined && cosmosModuleHrefFields.moduleName !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/module/[moduleName]', {
-								caip2: `${String(cosmosModuleHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosModuleHrefFields.$network.caip2.reference ?? '')}`,
-								moduleName: String(cosmosModuleHrefFields.moduleName ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

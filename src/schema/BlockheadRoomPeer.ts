@@ -9,8 +9,10 @@ export enum BlockheadRoomPeerSelector {
 }
 export const BlockheadRoomPeer = entity({
 	entityType: EntityType.BlockheadRoomPeer,
-	label: 'contact',
-	labelPlural: 'contacts',
+	labels: {
+		singular: 'contact',
+		plural: 'contacts',
+	},
 })({
 	id: {
 		label: 'ID',

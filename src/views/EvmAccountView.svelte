@@ -13,6 +13,7 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -46,23 +47,21 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmAccount = $derived(selection({
-		fields: {
-			$avatar: true,
-		},
+		sources: [
+			Source.Constants_Internal,
+		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || 'EVM account')
+	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'EVM account')
 	const viewDomId = $derived('evm-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import EnsNameView from '$/views/EnsNameView.svelte'
 	import EnsNamesView from '$/views/EnsNamesView.svelte'
-	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -72,7 +71,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+		href ?? (pendingEntity.address !== undefined ? resolve('/account/[address=evmAddress]', {
 			address: String(pendingEntity.address ?? ''),
 		}) : undefined)
 	}
@@ -80,31 +79,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-
-	{#snippet Icon()}
-		<ResourceBoundary resource={evmAccount}>
-			{#snippet Pending()}
-				<IconComponent />
-			{/snippet}
-
-			{#snippet children(entity)}
-				{@const reference = entity.$avatar}
-				{#if reference?.[EntityMetaKey.Selector] !== undefined}
-					<MediaView
-						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
-						prefetched={reference}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Title()}
 		<ResourceBoundary resource={evmAccount}>
 			{#snippet Pending()}
-				{@const address0 = selection.entitySelector.address ?? prefetched.address}
+				{@const address0 = pendingEntity.address}
 				{#if address0 !== undefined && address0 !== null}
 					<TruncatedValue value={String((address0) ?? '')} />
 				{/if}
@@ -171,7 +149,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -198,7 +176,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const interopAddress = prefetched.interopAddress}
+					{@const interopAddress = pendingEntity.interopAddress}
 					{#if interopAddress !== undefined && interopAddress !== null}
 						<div>
 							<dt>Interop address</dt>
@@ -233,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const avatarUrl = prefetched.avatarUrl}
+					{@const avatarUrl = pendingEntity.avatarUrl}
 					{#if avatarUrl !== undefined && avatarUrl !== null}
 						<div>
 							<dt>Avatar URL</dt>
@@ -277,6 +255,8 @@
 			<ResourceBoundary
 				resource={selection.$primaryName}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(ensName)}
 					{#if ensName != null && ensName[EntityMetaKey.Selector] != null}
 						<div>
@@ -286,7 +266,7 @@
 									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
 									prefetched={ensName}
 									href={
-										(ensName[EntityMetaKey.Selector].name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+										(ensName[EntityMetaKey.Selector].name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 											ensName: String(ensName[EntityMetaKey.Selector].name ?? ''),
 										}) : undefined)
 									}

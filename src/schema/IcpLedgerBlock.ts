@@ -9,8 +9,10 @@ export enum IcpLedgerBlockSelector {
 }
 export const IcpLedgerBlock = entity({
 	entityType: EntityType.IcpLedgerBlock,
-	label: 'icp ledger block',
-	labelPlural: 'icp ledger blocks',
+	labels: {
+		singular: 'icp ledger block',
+		plural: 'icp ledger blocks',
+	},
 })({
 	$ledger: {
 		label: 'ledger',

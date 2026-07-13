@@ -48,7 +48,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Polkadot asset timestamp')
+	const titleFallback = $derived([String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Polkadot asset timestamp')
 	const viewDomId = $derived('polkadot-asset-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={polkadotAssetTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot asset timestamp'}
+				{[String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot asset timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotAssetTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot asset timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot asset timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -100,7 +100,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={polkadotAssetTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -146,7 +146,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -176,7 +176,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -203,7 +203,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -238,7 +238,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -275,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const symbol = prefetched.symbol}
+					{@const symbol = pendingEntity.symbol}
 					{#if symbol !== undefined && symbol !== null}
 						<div>
 							<dt>Symbol</dt>
@@ -310,7 +310,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -345,7 +345,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>
@@ -380,7 +380,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -417,7 +417,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supply = prefetched.supply}
+					{@const supply = pendingEntity.supply}
 					{#if supply !== undefined && supply !== null}
 						<div>
 							<dt>Supply</dt>
@@ -452,7 +452,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const holderCount = prefetched.holderCount}
+					{@const holderCount = pendingEntity.holderCount}
 					{#if holderCount !== undefined && holderCount !== null}
 						<div>
 							<dt>Holders</dt>
@@ -487,7 +487,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const existentialDepositPlancks = prefetched.existentialDepositPlancks}
+					{@const existentialDepositPlancks = pendingEntity.existentialDepositPlancks}
 					{#if existentialDepositPlancks !== undefined && existentialDepositPlancks !== null}
 						<div>
 							<dt>Existential deposit plancks</dt>
@@ -524,7 +524,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const owner = prefetched.owner}
+					{@const owner = pendingEntity.owner}
 					{#if owner !== undefined && owner !== null}
 						<div>
 							<dt>Owner</dt>
@@ -559,7 +559,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const issuer = prefetched.issuer}
+					{@const issuer = pendingEntity.issuer}
 					{#if issuer !== undefined && issuer !== null}
 						<div>
 							<dt>Issuer</dt>
@@ -594,7 +594,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const admin = prefetched.admin}
+					{@const admin = pendingEntity.admin}
 					{#if admin !== undefined && admin !== null}
 						<div>
 							<dt>Admin</dt>
@@ -629,7 +629,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freezer = prefetched.freezer}
+					{@const freezer = pendingEntity.freezer}
 					{#if freezer !== undefined && freezer !== null}
 						<div>
 							<dt>Freezer</dt>

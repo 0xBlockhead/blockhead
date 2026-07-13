@@ -52,7 +52,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.transportSessionId ?? prefetched.transportSessionId) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet transport session')
+	const titleFallback = $derived([String((pendingEntity.transportSessionId) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet transport session')
 	const viewDomId = $derived('blockhead-wallet-transport-session-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadWalletTransportSession}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.transportSessionId ?? prefetched.transportSessionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet transport session'}
+				{[String((pendingEntity.transportSessionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet transport session'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletTransportSession}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? ''), String((prefetched.transportKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.transportSessionId ?? prefetched.transportSessionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet transport session'}
+				{[String((pendingEntity.status) ?? ''), String((pendingEntity.transportKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.transportSessionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet transport session'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -115,7 +115,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const connectionKey = selection.entitySelector.connectionKey ?? prefetched.connectionKey}
+							{@const connectionKey = pendingEntity.connectionKey}
 							{#if connectionKey !== undefined && connectionKey !== null}
 								{String((connectionKey) ?? '')}
 							{/if}
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transportSessionId = selection.entitySelector.transportSessionId ?? prefetched.transportSessionId}
+							{@const transportSessionId = pendingEntity.transportSessionId}
 							{#if transportSessionId !== undefined && transportSessionId !== null}
 								{String((transportSessionId) ?? '')}
 							{/if}
@@ -165,6 +165,8 @@
 			<ResourceBoundary
 				resource={selection.$connection}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWalletConnection)}
 					{#if blockheadWalletConnection != null && blockheadWalletConnection[EntityMetaKey.Selector] != null}
 						<div>
@@ -195,7 +197,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transportKind = prefetched.transportKind}
+							{@const transportKind = pendingEntity.transportKind}
 							{#if transportKind !== undefined && transportKind !== null}
 								{String((transportKind) ?? '')}
 							{/if}
@@ -225,7 +227,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sessionKind = prefetched.sessionKind}
+							{@const sessionKind = pendingEntity.sessionKind}
 							{#if sessionKind !== undefined && sessionKind !== null}
 								{String((sessionKind) ?? '')}
 							{/if}
@@ -255,7 +257,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -284,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const topic = prefetched.topic}
+					{@const topic = pendingEntity.topic}
 					{#if topic !== undefined && topic !== null}
 						<div>
 							<dt>topic</dt>
@@ -319,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerId = prefetched.peerId}
+					{@const peerId = pendingEntity.peerId}
 					{#if peerId !== undefined && peerId !== null}
 						<div>
 							<dt>peer ID</dt>
@@ -354,7 +356,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const relayProtocol = prefetched.relayProtocol}
+					{@const relayProtocol = pendingEntity.relayProtocol}
 					{#if relayProtocol !== undefined && relayProtocol !== null}
 						<div>
 							<dt>relay protocol</dt>
@@ -389,7 +391,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bridgeUrl = prefetched.bridgeUrl}
+					{@const bridgeUrl = pendingEntity.bridgeUrl}
 					{#if bridgeUrl !== undefined && bridgeUrl !== null}
 						<div>
 							<dt>bridge URL</dt>
@@ -438,7 +440,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const manifestUrl = prefetched.manifestUrl}
+					{@const manifestUrl = pendingEntity.manifestUrl}
 					{#if manifestUrl !== undefined && manifestUrl !== null}
 						<div>
 							<dt>manifest URL</dt>
@@ -487,7 +489,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const origin = prefetched.origin}
+					{@const origin = pendingEntity.origin}
 					{#if origin !== undefined && origin !== null}
 						<div>
 							<dt>origin</dt>
@@ -522,7 +524,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deviceId = prefetched.deviceId}
+					{@const deviceId = pendingEntity.deviceId}
 					{#if deviceId !== undefined && deviceId !== null}
 						<div>
 							<dt>device ID</dt>
@@ -562,7 +564,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}
@@ -589,7 +591,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>
@@ -624,7 +626,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiresAt = prefetched.expiresAt}
+					{@const expiresAt = pendingEntity.expiresAt}
 					{#if expiresAt !== undefined && expiresAt !== null}
 						<div>
 							<dt>expires AT</dt>

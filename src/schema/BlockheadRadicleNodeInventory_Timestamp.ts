@@ -9,8 +9,10 @@ export enum BlockheadRadicleNodeInventory_TimestampSelector {
 }
 export const BlockheadRadicleNodeInventory_Timestamp = entity({
 	entityType: EntityType.BlockheadRadicleNodeInventory_Timestamp,
-	label: 'blockhead radicle node inventory timestamp',
-	labelPlural: 'blockhead radicle node inventory observations',
+	labels: {
+		singular: 'blockhead radicle node inventory timestamp',
+		plural: 'blockhead radicle node inventory observations',
+	},
 })({
 	$node: {
 		label: 'node',

@@ -9,8 +9,10 @@ export enum CardanoNetwork_TimestampSelector {
 }
 export const CardanoNetwork_Timestamp = entity({
 	entityType: EntityType.CardanoNetwork_Timestamp,
-	label: 'cardano network timestamp',
-	labelPlural: 'cardano network observations',
+	labels: {
+		singular: 'cardano network timestamp',
+		plural: 'cardano network observations',
+	},
 })({
 	$network: {
 		label: 'network',

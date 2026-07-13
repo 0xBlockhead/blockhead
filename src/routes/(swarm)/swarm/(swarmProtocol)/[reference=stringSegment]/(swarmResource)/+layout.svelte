@@ -1,0 +1,53 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { LayoutProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		children,
+		data,
+		params,
+	}: LayoutProps = $props()
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import SwarmResourceView from '$/views/SwarmResourceView.svelte'
+</script>
+
+
+{#key params.reference}
+	<ParentPageCollapsible
+		href={
+			resolve('/swarm/[reference=stringSegment]', {
+				reference: params.reference,
+			})
+		}
+	>
+		{#snippet Summary()}
+			{@const DetailView = SwarmResourceView}
+
+			<DetailView
+				selection={select(EntityType.SwarmResource, data.selector)}
+				href={
+					resolve('/swarm/[reference=stringSegment]', {
+						reference: params.reference,
+					})
+				}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/snippet}
+
+		{@render children()}
+	</ParentPageCollapsible>
+{/key}

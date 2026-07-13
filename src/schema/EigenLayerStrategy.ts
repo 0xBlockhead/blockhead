@@ -10,8 +10,10 @@ export enum EigenLayerStrategySelector {
 }
 export const EigenLayerStrategy = entity({
 	entityType: EntityType.EigenLayerStrategy,
-	label: 'eigen layer strategy',
-	labelPlural: 'eigen layer strategies',
+	labels: {
+		singular: 'eigen layer strategy',
+		plural: 'eigen layer strategies',
+	},
 })({
 	$network: {
 		label: 'network',

@@ -11,8 +11,10 @@ export enum MevRelaySelector {
 }
 export const MevRelay = entity({
 	entityType: EntityType.MevRelay,
-	label: 'MEV relay',
-	labelPlural: 'MEV relays',
+	labels: {
+		singular: 'MEV relay',
+		plural: 'MEV relays',
+	},
 })({
 	$network: {
 		label: 'Network',

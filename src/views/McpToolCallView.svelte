@@ -48,11 +48,10 @@
 			Source.McpDeclared_Protocol,
 		],
 		fields: {
-			$tool: true,
 			startedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.callId ?? prefetched.callId) ?? '')].filter(Boolean).join(' ') || 'mcp tool call')
+	const titleFallback = $derived([String((pendingEntity.callId) ?? '')].filter(Boolean).join(' ') || 'mcp tool call')
 	const viewDomId = $derived('mcp-tool-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpToolCall}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.callId ?? prefetched.callId) ?? '')].filter(Boolean).join(' ') || title || 'mcp tool call'}
+				{[String((pendingEntity.callId) ?? '')].filter(Boolean).join(' ') || title || 'mcp tool call'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -131,7 +130,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpToolCall}>
 			{#snippet Pending()}
-				{@const startedAt0 = prefetched.startedAt}
+				{@const startedAt0 = pendingEntity.startedAt}
 				{#if startedAt0 !== undefined && startedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(startedAt0)} />
@@ -177,7 +176,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const callId = selection.entitySelector.callId ?? prefetched.callId}
+							{@const callId = pendingEntity.callId}
 							{#if callId !== undefined && callId !== null}
 								{String((callId) ?? '')}
 							{/if}
@@ -197,6 +196,8 @@
 			<ResourceBoundary
 				resource={selection.$tool}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(mcpTool)}
 					{#if mcpTool != null && mcpTool[EntityMetaKey.Selector] != null}
 						<div>
@@ -226,7 +227,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startedAt = prefetched.startedAt}
+					{@const startedAt = pendingEntity.startedAt}
 					{#if startedAt !== undefined && startedAt !== null}
 						<div>
 							<dt>started AT</dt>
@@ -261,7 +262,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const completedAt = prefetched.completedAt}
+					{@const completedAt = pendingEntity.completedAt}
 					{#if completedAt !== undefined && completedAt !== null}
 						<div>
 							<dt>completed AT</dt>
@@ -296,7 +297,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputHashAlgorithm = prefetched.inputHashAlgorithm}
+					{@const inputHashAlgorithm = pendingEntity.inputHashAlgorithm}
 					{#if inputHashAlgorithm !== undefined && inputHashAlgorithm !== null}
 						<div>
 							<dt>input hash algorithm</dt>
@@ -331,7 +332,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputHash = prefetched.inputHash}
+					{@const inputHash = pendingEntity.inputHash}
 					{#if inputHash !== undefined && inputHash !== null}
 						<div>
 							<dt>input hash</dt>
@@ -366,7 +367,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outputHashAlgorithm = prefetched.outputHashAlgorithm}
+					{@const outputHashAlgorithm = pendingEntity.outputHashAlgorithm}
 					{#if outputHashAlgorithm !== undefined && outputHashAlgorithm !== null}
 						<div>
 							<dt>output hash algorithm</dt>
@@ -401,7 +402,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outputHash = prefetched.outputHash}
+					{@const outputHash = pendingEntity.outputHash}
 					{#if outputHash !== undefined && outputHash !== null}
 						<div>
 							<dt>output hash</dt>

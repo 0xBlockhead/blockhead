@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const checkpointSequence = selection.entitySelector.checkpointSequence ?? prefetched.checkpointSequence}
+							{@const checkpointSequence = pendingEntity.checkpointSequence}
 							{#if checkpointSequence !== undefined && checkpointSequence !== null}
 								{String((checkpointSequence) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fieldType = prefetched.fieldType}
+					{@const fieldType = pendingEntity.fieldType}
 					{#if fieldType !== undefined && fieldType !== null}
 						<div>
 							<dt>field type</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const childObjectType = prefetched.childObjectType}
+					{@const childObjectType = pendingEntity.childObjectType}
 					{#if childObjectType !== undefined && childObjectType !== null}
 						<div>
 							<dt>child object type</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const denyCapObjectId = prefetched.denyCapObjectId}
+					{@const denyCapObjectId = pendingEntity.denyCapObjectId}
 					{#if denyCapObjectId !== undefined && denyCapObjectId !== null}
 						<div>
 							<dt>deny cap object ID</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const denyListObjectId = prefetched.denyListObjectId}
+					{@const denyListObjectId = pendingEntity.denyListObjectId}
 					{#if denyListObjectId !== undefined && denyListObjectId !== null}
 						<div>
 							<dt>deny list object ID</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const globalPause = prefetched.globalPause}
+					{@const globalPause = pendingEntity.globalPause}
 					{#if globalPause !== undefined && globalPause !== null}
 						<div>
 							<dt>global pause</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const denyListEpoch = prefetched.denyListEpoch}
+					{@const denyListEpoch = pendingEntity.denyListEpoch}
 					{#if denyListEpoch !== undefined && denyListEpoch !== null}
 						<div>
 							<dt>deny list epoch</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deniedAddressCount = prefetched.deniedAddressCount}
+					{@const deniedAddressCount = pendingEntity.deniedAddressCount}
 					{#if deniedAddressCount !== undefined && deniedAddressCount !== null}
 						<div>
 							<dt>denied address count</dt>

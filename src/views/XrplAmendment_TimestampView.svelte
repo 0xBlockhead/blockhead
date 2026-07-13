@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerIndex = selection.entitySelector.ledgerIndex ?? prefetched.ledgerIndex}
+							{@const ledgerIndex = pendingEntity.ledgerIndex}
 							{#if ledgerIndex !== undefined && ledgerIndex !== null}
 								{String((ledgerIndex) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const enabled = prefetched.enabled}
+					{@const enabled = pendingEntity.enabled}
 					{#if enabled !== undefined && enabled !== null}
 						<div>
 							<dt>enabled</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supported = prefetched.supported}
+					{@const supported = pendingEntity.supported}
 					{#if supported !== undefined && supported !== null}
 						<div>
 							<dt>supported</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const enabledAtLedger = prefetched.enabledAtLedger}
+					{@const enabledAtLedger = pendingEntity.enabledAtLedger}
 					{#if enabledAtLedger !== undefined && enabledAtLedger !== null}
 						<div>
 							<dt>enabled AT ledger</dt>

@@ -52,7 +52,7 @@
 			orderType: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.orderId ?? prefetched.orderId) ?? '')].filter(Boolean).join(' ') || 'dydx chain order')
+	const titleFallback = $derived([String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || 'dydx chain order')
 	const viewDomId = $derived('dydx-chain-order-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={dydxChainOrder}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.orderId ?? prefetched.orderId) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain order'}
+				{[String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain order'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainOrder}>
 			{#snippet Pending()}
-				{[String((prefetched.side) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.orderId ?? prefetched.orderId) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain order'}
+				{[String((pendingEntity.side) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain order'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={dydxChainOrder}>
 			{#snippet Pending()}
-				{@const orderType0 = prefetched.orderType}
+				{@const orderType0 = pendingEntity.orderType}
 				{#if orderType0 !== undefined && orderType0 !== null}
 					<span data-text="muted">
 						{String((orderType0) ?? '')}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const orderId = selection.entitySelector.orderId ?? prefetched.orderId}
+							{@const orderId = pendingEntity.orderId}
 							{#if orderId !== undefined && orderId !== null}
 								{String((orderId) ?? '')}
 							{/if}
@@ -171,6 +171,8 @@
 			<ResourceBoundary
 				resource={selection.$market}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(dydxChainMarket)}
 					{#if dydxChainMarket != null && dydxChainMarket[EntityMetaKey.Selector] != null}
 						<div>
@@ -198,7 +200,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const side = prefetched.side}
+					{@const side = pendingEntity.side}
 					{#if side !== undefined && side !== null}
 						<div>
 							<dt>side</dt>
@@ -233,7 +235,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const orderType = prefetched.orderType}
+					{@const orderType = pendingEntity.orderType}
 					{#if orderType !== undefined && orderType !== null}
 						<div>
 							<dt>order type</dt>
@@ -270,7 +272,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timeInForce = prefetched.timeInForce}
+					{@const timeInForce = pendingEntity.timeInForce}
 					{#if timeInForce !== undefined && timeInForce !== null}
 						<div>
 							<dt>time in force</dt>
@@ -305,7 +307,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clientId = prefetched.clientId}
+					{@const clientId = pendingEntity.clientId}
 					{#if clientId !== undefined && clientId !== null}
 						<div>
 							<dt>client ID</dt>
@@ -340,7 +342,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const goodTilBlock = prefetched.goodTilBlock}
+					{@const goodTilBlock = pendingEntity.goodTilBlock}
 					{#if goodTilBlock !== undefined && goodTilBlock !== null}
 						<div>
 							<dt>good til block</dt>
@@ -375,7 +377,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const goodTilBlockTimeMs = prefetched.goodTilBlockTimeMs}
+					{@const goodTilBlockTimeMs = pendingEntity.goodTilBlockTimeMs}
 					{#if goodTilBlockTimeMs !== undefined && goodTilBlockTimeMs !== null}
 						<div>
 							<dt>good til block time ms</dt>

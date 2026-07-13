@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -49,15 +49,17 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AlgorandRoundsView from '$/views/AlgorandRoundsView.svelte'
-	import AlgorandAccountsView from '$/views/AlgorandAccountsView.svelte'
-	import AlgorandApplicationsView from '$/views/AlgorandApplicationsView.svelte'
-	import AlgorandAssetsView from '$/views/AlgorandAssetsView.svelte'
-	import AlgorandTealProgramsView from '$/views/AlgorandTealProgramsView.svelte'
-	import AlgorandTransactionsView from '$/views/AlgorandTransactionsView.svelte'
-	import AlgorandNetwork_TimestampsView from '$/views/AlgorandNetwork_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import AlgorandNetwork_TimestampsView from '$/views/AlgorandNetwork_TimestampsView.svelte'
+	import AlgorandRoundsView from '$/views/AlgorandRoundsView.svelte'
+	import AlgorandTransactionsView from '$/views/AlgorandTransactionsView.svelte'
+	import AlgorandAccountsView from '$/views/AlgorandAccountsView.svelte'
+	import AlgorandAssetsView from '$/views/AlgorandAssetsView.svelte'
+	import AlgorandApplicationsView from '$/views/AlgorandApplicationsView.svelte'
+	import AlgorandTealProgramsView from '$/views/AlgorandTealProgramsView.svelte'
 </script>
 
 
@@ -92,22 +94,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -120,54 +110,173 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AlgorandRoundsView
-				selection={selection.$$rounds}
-				title='rounds'
-				emptyText='No Algorand rounds.'
-				id='AlgorandRoundsView-rounds'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-algorand-chain-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'algorand-chain-observations',
+							label: 'Observations',
+						},
+						{
+							id: 'algorand-chain-rounds',
+							label: 'Rounds',
+						},
+						{
+							id: 'algorand-chain-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-chain-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Chain activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AlgorandAccountsView
-				selection={selection.$$accounts}
-				title='accounts'
-				emptyText='No Algorand accounts.'
-				id='AlgorandAccountsView-accounts'
-			/>
+				{#snippet SectionAlgorandChainObservations({ id, label, open })}
+					<AlgorandNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand network observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AlgorandApplicationsView
-				selection={selection.$$applications}
-				title='applications'
-				emptyText='No Algorand applications.'
-				id='AlgorandApplicationsView-applications'
-			/>
+				{#snippet SectionAlgorandChainRounds({ id, label, open })}
+					<AlgorandRoundsView
+						selection={selection.$$rounds}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand rounds.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AlgorandAssetsView
-				selection={selection.$$assets}
-				title='assets'
-				emptyText='No Algorand assets.'
-				id='AlgorandAssetsView-assets'
-			/>
+				{#snippet SectionAlgorandChainTransactions({ id, label, open })}
+					<AlgorandTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AlgorandTealProgramsView
-				selection={selection.$$tealPrograms}
-				title='TEAL programs'
-				emptyText='No Algorand TEAL programs.'
-				id='AlgorandTealProgramsView-teal-programs'
-			/>
+			</CollapsibleTabs>
 
-			<AlgorandTransactionsView
-				selection={selection.$$transactions}
-				title='transactions'
-				emptyText='No Algorand transactions.'
-				id='AlgorandTransactionsView-transactions'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-algorand-accounts-assets'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'algorand-accounts',
+							label: 'Accounts',
+						},
+						{
+							id: 'algorand-assets',
+							label: 'Assets',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-accounts-assets'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Accounts and assets</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AlgorandNetwork_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Algorand network observations.'
-				id='AlgorandNetwork_TimestampsView-timestamps'
-			/>
+				{#snippet SectionAlgorandAccounts({ id, label, open })}
+					<AlgorandAccountsView
+						selection={selection.$$accounts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand accounts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAlgorandAssets({ id, label, open })}
+					<AlgorandAssetsView
+						selection={selection.$$assets}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand assets.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-algorand-applications'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'algorand-application-list',
+							label: 'Applications',
+						},
+						{
+							id: 'algorand-teal-programs',
+							label: 'TEAL programs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-applications'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Applications</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAlgorandApplicationList({ id, label, open })}
+					<AlgorandApplicationsView
+						selection={selection.$$applications}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand applications.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAlgorandTealPrograms({ id, label, open })}
+					<AlgorandTealProgramsView
+						selection={selection.$$tealPrograms}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand TEAL programs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

@@ -9,8 +9,10 @@ export enum PayjoinEndpoint_TimestampSelector {
 }
 export const PayjoinEndpoint_Timestamp = entity({
 	entityType: EntityType.PayjoinEndpoint_Timestamp,
-	label: 'payjoin endpoint timestamp',
-	labelPlural: 'payjoin endpoint observations',
+	labels: {
+		singular: 'payjoin endpoint timestamp',
+		plural: 'payjoin endpoint observations',
+	},
 })({
 	$endpoint: {
 		label: 'endpoint',

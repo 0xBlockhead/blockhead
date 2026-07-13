@@ -9,8 +9,10 @@ export enum RadicleCollaborationEventSelector {
 }
 export const RadicleCollaborationEvent = entity({
 	entityType: EntityType.RadicleCollaborationEvent,
-	label: 'radicle collaboration event',
-	labelPlural: 'radicle collaboration events',
+	labels: {
+		singular: 'radicle collaboration event',
+		plural: 'radicle collaboration events',
+	},
 })({
 	$repository: {
 		label: 'repository',

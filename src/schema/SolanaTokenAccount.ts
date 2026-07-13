@@ -9,8 +9,10 @@ export enum SolanaTokenAccountSelector {
 }
 export const SolanaTokenAccount = entity({
 	entityType: EntityType.SolanaTokenAccount,
-	label: 'solana token account',
-	labelPlural: 'Solana token accounts',
+	labels: {
+		singular: 'solana token account',
+		plural: 'Solana token accounts',
+	},
 })({
 	$network: {
 		label: 'Network',

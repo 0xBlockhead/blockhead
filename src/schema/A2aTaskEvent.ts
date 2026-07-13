@@ -9,8 +9,10 @@ export enum A2aTaskEventSelector {
 }
 export const A2aTaskEvent = entity({
 	entityType: EntityType.A2aTaskEvent,
-	label: 'a2a task event',
-	labelPlural: 'a2a task events',
+	labels: {
+		singular: 'a2a task event',
+		plural: 'a2a task events',
+	},
 })({
 	$task: {
 		label: 'task',

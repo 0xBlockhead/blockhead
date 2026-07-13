@@ -9,8 +9,10 @@ export enum IssuerPowerSelector {
 }
 export const IssuerPower = entity({
 	entityType: EntityType.IssuerPower,
-	label: 'issuer power',
-	labelPlural: 'issuer powers',
+	labels: {
+		singular: 'issuer power',
+		plural: 'issuer powers',
+	},
 })({
 	$profile: {
 		label: 'profile',

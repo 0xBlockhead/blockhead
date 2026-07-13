@@ -9,8 +9,10 @@ export enum SuiProgrammableTransactionCommandSelector {
 }
 export const SuiProgrammableTransactionCommand = entity({
 	entityType: EntityType.SuiProgrammableTransactionCommand,
-	label: 'sui programmable transaction command',
-	labelPlural: 'sui programmable transaction commands',
+	labels: {
+		singular: 'sui programmable transaction command',
+		plural: 'sui programmable transaction commands',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

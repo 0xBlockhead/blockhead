@@ -19,6 +19,8 @@ import { BlockheadSourceSelector } from '$/schema/BlockheadSource.ts'
 import { BlockheadWalletSelector } from '$/schema/BlockheadWallet.ts'
 import { BlockheadWalletAccountSelector } from '$/schema/BlockheadWalletAccount.ts'
 import { BlockheadWalletConnectionSelector } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadWorkspaceSelector } from '$/schema/BlockheadWorkspace.ts'
+import { BlockheadPanelSelector } from '$/schema/BlockheadPanel.ts'
 import { BlockheadPanelTreeSelector } from '$/schema/BlockheadPanelTree.ts'
 import { BlockheadRoomSelector } from '$/schema/BlockheadRoom.ts'
 import { BlockheadSessionSelector } from '$/schema/BlockheadSession.ts'
@@ -27,6 +29,8 @@ import { BlockheadRoomPeerSelector } from '$/schema/BlockheadRoomPeer.ts'
 import { BlockheadSharedAddressSelector } from '$/schema/BlockheadSharedAddress.ts'
 import { BlockheadSiweChallengeSelector } from '$/schema/BlockheadSiweChallenge.ts'
 import { BlockheadSocialPostSessionSelector } from '$/schema/BlockheadSocialPostSession.ts'
+import { BlockheadLocalMediaIngestSelector } from '$/schema/BlockheadLocalMediaIngest.ts'
+import { BlockheadLocalMediaIngest_TimestampSelector } from '$/schema/BlockheadLocalMediaIngest_Timestamp.ts'
 import { BlockheadStateChannelSelector } from '$/schema/BlockheadStateChannel.ts'
 import { BlockheadStateChannel_TimestampSelector } from '$/schema/BlockheadStateChannel_Timestamp.ts'
 import { BlockheadStateChannelDepositSelector } from '$/schema/BlockheadStateChannelDeposit.ts'
@@ -54,7 +58,7 @@ const sliceNormalizedRowsForSubset = <_Row>(
 )
 
 const readNormalizedLocalInternal = async () => (
-	(await import('$/sources/Local/Internal/catalog.ts')).readNormalizedLocalInternal()
+	(await import('$/resolvers/Local/Internal/catalog.ts')).readNormalizedLocalInternal()
 )
 
 const globalEvmAbiCatalogTimestampFields = async ({
@@ -160,9 +164,9 @@ const stateChannelDepositTimestampFields = (stateChannelDeposit: {
 })
 
 const coinInstanceIdForNormalizedStateChannelRow = async (
-	...args: Parameters<typeof import('$/sources/Local/Internal/catalog.ts').coinInstanceIdForNormalizedStateChannelRow>
+	...args: Parameters<typeof import('$/resolvers/Local/Internal/catalog.ts').coinInstanceIdForNormalizedStateChannelRow>
 			) => (
-	(await import('$/sources/Local/Internal/catalog.ts')).coinInstanceIdForNormalizedStateChannelRow(...args)
+	(await import('$/resolvers/Local/Internal/catalog.ts')).coinInstanceIdForNormalizedStateChannelRow(...args)
 )
 
 const normalizedBlockheadEnsNameSearchQuery = (query: string): string => {
@@ -176,9 +180,9 @@ const normalizedBlockheadEnsNameSearchQuery = (query: string): string => {
 }
 
 const findNormalizedBridgeTransactionRow = async (
-	...args: Parameters<typeof import('$/sources/Local/Internal/catalog.ts').findNormalizedBridgeTransactionRow>
+	...args: Parameters<typeof import('$/resolvers/Local/Internal/catalog.ts').findNormalizedBridgeTransactionRow>
 			) => (
-	(await import('$/sources/Local/Internal/catalog.ts')).findNormalizedBridgeTransactionRow(...args)
+	(await import('$/resolvers/Local/Internal/catalog.ts')).findNormalizedBridgeTransactionRow(...args)
 )
 
 export default {
@@ -310,11 +314,17 @@ export default {
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadWalletConnection,
 			resolve: {
-				[BlockheadWalletConnectionSelector.BlockheadWallet]: async ({ $wallet }) => {
+				[BlockheadWalletConnectionSelector.ConnectionKey]: async ({ connectionKey }) => {
 				const catalog = await readNormalizedLocalInternal()
-				const blockheadWalletConnection = catalog.blockheadWalletConnections.find((candidate) => candidate.walletId === $wallet.id)
+				const blockheadWalletConnection = catalog.blockheadWalletConnections.find((candidate) => candidate.connectionKey === connectionKey)
 				if (blockheadWalletConnection == null) throw new Error('Local_Internal: BlockheadWalletConnection not present in local catalog')
 				return {
+					connectionKey: blockheadWalletConnection.connectionKey,
+					$wallet: {
+						[EntityMetaKey.Selector]: {
+							id: blockheadWalletConnection.walletId,
+						},
+					},
 					status: blockheadConnectionStatusByLocalStatus[blockheadWalletConnection.status],
 					protocol: blockheadWalletConnection.protocol,
 					transportKind: blockheadWalletConnection.transportKind,
@@ -346,6 +356,8 @@ export default {
 			}
 			},
 		})({
+				connectionKey: (connection) => connection.connectionKey,
+				$wallet: (connection) => connection.$wallet,
 				status: (connection) => connection.status,
 				protocol: (connection) => connection.protocol,
 				transportKind: (connection) => connection.transportKind,
@@ -423,8 +435,8 @@ export default {
 						},
 					},
 					indexInSequence: blockheadSessionAction.indexInSequence,
-					actionType: blockheadSessionAction.action.type,
-					actionParams: blockheadSessionAction.action.params,
+					actionType: blockheadSessionAction.actionType,
+					actionParams: blockheadSessionAction.actionParams,
 					createdAt: blockheadSessionAction.createdAt,
 					updatedAt: blockheadSessionAction.updatedAt,
 				}
@@ -452,7 +464,33 @@ export default {
 					...(blockheadSocialPostSession.name != null && { name: blockheadSocialPostSession.name }),
 					status: blockheadSocialPostSession.status,
 					protocol: blockheadSocialPostSession.protocol,
-					authorId: blockheadSocialPostSession.authorId,
+					...(blockheadSocialPostSession.authorKey != null && { authorKey: blockheadSocialPostSession.authorKey }),
+					...(blockheadSocialPostSession.walletConnectionKey != null && {
+						$walletConnection: {
+							[EntityMetaKey.Selector]: {
+								connectionKey: blockheadSocialPostSession.walletConnectionKey,
+							},
+						},
+					}),
+					...(blockheadSocialPostSession.agentConversationId != null && {
+						$agentConversation: {
+							[EntityMetaKey.Selector]: {
+								id: blockheadSocialPostSession.agentConversationId,
+							},
+						},
+					}),
+					...(blockheadSocialPostSession.text != null && { text: blockheadSocialPostSession.text }),
+					$$media: (
+						blockheadSocialPostSession.mediaUrls
+							?.map((url) => ({
+								[EntityMetaKey.Selector]: {
+									url,
+								},
+							}))
+						?? []
+					),
+					...(blockheadSocialPostSession.publishedEntityType != null && { publishedEntityType: blockheadSocialPostSession.publishedEntityType }),
+					...(blockheadSocialPostSession.publishedSelector != null && { publishedSelector: blockheadSocialPostSession.publishedSelector }),
 					createdAt: blockheadSocialPostSession.createdAt,
 					updatedAt: blockheadSocialPostSession.updatedAt,
 					...(blockheadSocialPostSession.lockedAt != null && { lockedAt: blockheadSocialPostSession.lockedAt }),
@@ -463,10 +501,102 @@ export default {
 				name: (session) => session.name,
 				status: (session) => session.status,
 				protocol: (session) => session.protocol,
-				authorId: (session) => session.authorId,
+				authorKey: (session) => session.authorKey,
+				$walletConnection: (session) => session.$walletConnection,
+				$agentConversation: (session) => session.$agentConversation,
+				text: (session) => session.text,
+				$$media: (session) => session.$$media,
+				publishedEntityType: (session) => session.publishedEntityType,
+				publishedSelector: (session) => session.publishedSelector,
 				createdAt: (session) => session.createdAt,
 				updatedAt: (session) => session.updatedAt,
 				lockedAt: (session) => session.lockedAt,
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadLocalMediaIngest,
+			resolve: {
+				[BlockheadLocalMediaIngestSelector.IngestId]: async ({ ingestId }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadLocalMediaIngest = catalog.blockheadLocalMediaIngests.find((candidate) => candidate.ingestId === ingestId)
+				if (blockheadLocalMediaIngest == null) {
+					throw new Error('Local_Internal: BlockheadLocalMediaIngest not present in local catalog')
+				}
+				return {
+					ingestId: blockheadLocalMediaIngest.ingestId,
+					...(blockheadLocalMediaIngest.fileName != null && { fileName: blockheadLocalMediaIngest.fileName }),
+					...(blockheadLocalMediaIngest.mimeType != null && { mimeType: blockheadLocalMediaIngest.mimeType }),
+					...(blockheadLocalMediaIngest.size != null && { size: blockheadLocalMediaIngest.size }),
+					...(blockheadLocalMediaIngest.sha256 != null && { sha256: blockheadLocalMediaIngest.sha256 }),
+					createdAt: blockheadLocalMediaIngest.createdAt,
+					...(blockheadLocalMediaIngest.mediaUrl != null && {
+						$media: {
+							[EntityMetaKey.Selector]: {
+								url: blockheadLocalMediaIngest.mediaUrl,
+							},
+						},
+					}),
+					$$timestamps: catalog.blockheadLocalMediaIngestTimestamps
+						.filter((candidate) => candidate.ingestId === ingestId)
+						.map((candidate) => ({
+							[EntityMetaKey.Selector]: {
+								$ingest: {
+									[EntityMetaKey.Selector]: {
+										ingestId: candidate.ingestId,
+									},
+								},
+								timestampMs: candidate.timestampMs,
+								source: candidate.source,
+							},
+						})),
+				}
+			}
+			},
+		})({
+				ingestId: (ingest) => ingest.ingestId,
+				fileName: (ingest) => ingest.fileName,
+				mimeType: (ingest) => ingest.mimeType,
+				size: (ingest) => ingest.size,
+				sha256: (ingest) => ingest.sha256,
+				createdAt: (ingest) => ingest.createdAt,
+				$media: (ingest) => ingest.$media,
+				$$timestamps: (ingest) => ingest.$$timestamps,
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadLocalMediaIngest_Timestamp,
+			resolve: {
+				[BlockheadLocalMediaIngest_TimestampSelector.IngestTimestampMsSource]: async ({ $ingest, timestampMs, source }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadLocalMediaIngestTimestamp = catalog.blockheadLocalMediaIngestTimestamps.find((candidate) => (
+					candidate.ingestId === $ingest.ingestId
+					&& candidate.timestampMs === timestampMs
+					&& candidate.source === source
+				))
+				if (blockheadLocalMediaIngestTimestamp == null) {
+					throw new Error('Local_Internal: BlockheadLocalMediaIngest_Timestamp not present in local catalog')
+				}
+				return {
+					$ingest: {
+						[EntityMetaKey.Selector]: {
+							ingestId: blockheadLocalMediaIngestTimestamp.ingestId,
+						},
+					},
+					timestampMs: blockheadLocalMediaIngestTimestamp.timestampMs,
+					source: blockheadLocalMediaIngestTimestamp.source,
+					status: blockheadLocalMediaIngestTimestamp.status,
+					...(blockheadLocalMediaIngestTimestamp.uri != null && { uri: blockheadLocalMediaIngestTimestamp.uri }),
+					...(blockheadLocalMediaIngestTimestamp.error != null && { error: blockheadLocalMediaIngestTimestamp.error }),
+				}
+			}
+			},
+		})({
+				$ingest: (observation) => observation.$ingest,
+				timestampMs: (observation) => observation.timestampMs,
+				source: (observation) => observation.source,
+				status: (observation) => observation.status,
+				uri: (observation) => observation.uri,
+				error: (observation) => observation.error,
 			}),
 
 		defineResolver(Source.Local_Internal, {
@@ -1048,6 +1178,38 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadWorkspace,
+			resolve: {
+				[BlockheadWorkspaceSelector.Id]: async ({ id }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadWorkspace = catalog.blockheadWorkspaces.find((candidate) => candidate.id === id)
+				if (blockheadWorkspace == null) throw new Error('Local_Internal: BlockheadWorkspace not present in local catalog')
+				return {
+					[EntityMetaKey.Selector]: {
+						id: blockheadWorkspace.id,
+					},
+					...blockheadWorkspace,
+				}
+			}
+			},
+		})({
+				id: (blockheadWorkspace) => blockheadWorkspace[EntityMetaKey.Selector].id,
+				name: (blockheadWorkspace) => blockheadWorkspace.name,
+				$activePanelTree: (blockheadWorkspace) => (
+					blockheadWorkspace.activePanelTreeId == null ?
+						undefined
+					:
+						{
+							[EntityMetaKey.Selector]: {
+								id: blockheadWorkspace.activePanelTreeId,
+							},
+						}
+				),
+				createdAt: (blockheadWorkspace) => blockheadWorkspace.createdAt,
+				updatedAt: (blockheadWorkspace) => blockheadWorkspace.updatedAt,
+			}),
+
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadPanelTree,
 			resolve: {
 				[BlockheadPanelTreeSelector.Id]: async ({ id }) => {
@@ -1058,11 +1220,53 @@ export default {
 					[EntityMetaKey.Selector]: {
 						id: blockheadPanelTree.id,
 					},
+					...blockheadPanelTree,
 				}
 			}
 			},
 		})({
 				id: (blockheadPanelTree) => blockheadPanelTree[EntityMetaKey.Selector].id,
+				$workspace: (blockheadPanelTree) => (
+					blockheadPanelTree.workspaceId == null ?
+						undefined
+					:
+						{
+							[EntityMetaKey.Selector]: {
+								id: blockheadPanelTree.workspaceId,
+							},
+						}
+				),
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadPanel,
+			resolve: {
+				[BlockheadPanelSelector.TreeIdPanelId]: async ({ treeId, panelId }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadPanel = catalog.blockheadPanels.find((candidate) => candidate.treeId === treeId && candidate.panelId === panelId)
+				if (blockheadPanel == null) throw new Error('Local_Internal: BlockheadPanel not present in local catalog')
+				return {
+					[EntityMetaKey.Selector]: {
+						treeId: blockheadPanel.treeId,
+						panelId: blockheadPanel.panelId,
+					},
+					...blockheadPanel,
+				}
+			}
+			},
+		})({
+				treeId: (blockheadPanel) => blockheadPanel[EntityMetaKey.Selector].treeId,
+				panelId: (blockheadPanel) => blockheadPanel[EntityMetaKey.Selector].panelId,
+				$panelTree: (blockheadPanel) => ({
+					[EntityMetaKey.Selector]: {
+						id: blockheadPanel.treeId,
+					},
+				}),
+				parentPanelId: (blockheadPanel) => blockheadPanel.parentPanelId,
+				indexInParent: (blockheadPanel) => blockheadPanel.indexInParent,
+				kind: (blockheadPanel) => blockheadPanel.kind,
+				entityType: (blockheadPanel) => blockheadPanel.entityType,
+				selector: (blockheadPanel) => blockheadPanel.selector,
 			}),
 
 		defineResolver(Source.Local_Internal, {
@@ -1220,6 +1424,40 @@ export default {
 			resolve: {
 				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 				sliceNormalizedRowsForSubset(
+					(await readNormalizedLocalInternal()).blockheadWorkspaces,
+					context
+				)
+					.map((blockheadWorkspace) => ({
+						[EntityMetaKey.Selector]: { id: blockheadWorkspace.id },
+					}))
+			)
+			},
+		})({
+				$$blockheadWorkspaces: (entity) => entity,
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType._Global,
+			resolve: {
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
+				sliceNormalizedRowsForSubset(
+					(await readNormalizedLocalInternal()).blockheadLocalMediaIngests,
+					context
+				)
+					.map((blockheadLocalMediaIngest) => ({
+						[EntityMetaKey.Selector]: { ingestId: blockheadLocalMediaIngest.ingestId },
+					}))
+			)
+			},
+		})({
+				$$blockheadLocalMediaIngests: (entity) => entity,
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType._Global,
+			resolve: {
+				[_GlobalSelector.Scope]: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
+				sliceNormalizedRowsForSubset(
 					(await readNormalizedLocalInternal()).blockheadPanelTrees,
 					context
 				)
@@ -1230,6 +1468,31 @@ export default {
 			},
 		})({
 				$$blockheadPanelTrees: (entity) => entity,
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadPanelTree,
+			resolve: {
+				[BlockheadPanelTreeSelector.Id]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadPanelTree>,
+				context
+			) => (
+				sliceNormalizedRowsForSubset(
+					(await readNormalizedLocalInternal()).blockheadPanels
+						.filter((blockheadPanel) => blockheadPanel.treeId === scopedEntitySelector.id)
+						.toSorted((left, right) => left.indexInParent - right.indexInParent),
+					context
+				)
+					.map((blockheadPanel) => ({
+						[EntityMetaKey.Selector]: {
+							treeId: blockheadPanel.treeId,
+							panelId: blockheadPanel.panelId,
+						},
+					}))
+			)
+			},
+		})({
+				$$panels: (entity) => entity,
 			}),
 
 		defineResolver(Source.Local_Internal, {

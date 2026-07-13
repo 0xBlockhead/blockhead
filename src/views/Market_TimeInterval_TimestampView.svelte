@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType } from '$/constants/Market.ts'
+	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -49,7 +49,7 @@
 			close: true,
 		},
 	}))
-	const titleFallback = $derived([selection.entitySelector.timeInterval ?? prefetched.timeInterval == null ? '' : String((`${(selection.entitySelector.timeInterval ?? prefetched.timeInterval).value}${(selection.entitySelector.timeInterval ?? prefetched.timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || 'OHLC candle')
+	const titleFallback = $derived([pendingEntity.timeInterval == null ? '' : String((`${(pendingEntity.timeInterval).value}${(pendingEntity.timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || 'OHLC candle')
 	const viewDomId = $derived('market-time-interval-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,16 +67,16 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$market !== undefined && pendingEntity.$market.$marketVenue !== undefined && pendingEntity.$market.$marketVenue.marketVenueId !== undefined && pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.kind !== undefined && (pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.kind !== undefined && (pendingEntity.$market.$base.kind === 'Coin' ? pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.$coin !== undefined && pendingEntity.$market.$base.$coin.coinId !== undefined : pendingEntity.$market.$base.kind === 'CoinInstance' ? pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.$coinInstance !== undefined && pendingEntity.$market.$base.$coinInstance.type !== undefined : pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.$currency !== undefined && pendingEntity.$market.$base.$currency.iso4217 !== undefined)) && pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.kind !== undefined && (pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.kind !== undefined && (pendingEntity.$market.$quote.kind === 'Coin' ? pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.$coin !== undefined && pendingEntity.$market.$quote.$coin.coinId !== undefined : pendingEntity.$market.$quote.kind === 'CoinInstance' ? pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.$coinInstance !== undefined && pendingEntity.$market.$quote.$coinInstance.type !== undefined : pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.$currency !== undefined && pendingEntity.$market.$quote.$currency.iso4217 !== undefined)) && pendingEntity.$market !== undefined && pendingEntity.$market.marketKind !== undefined && pendingEntity.timeInterval !== undefined && pendingEntity.timeInterval.unit !== undefined && pendingEntity.timeInterval !== undefined && pendingEntity.timeInterval.value !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]', {
-			marketVenue: String(pendingEntity.$market.$marketVenue.marketVenueId ?? ''),
-			baseKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$market.$base.kind)] ?? ''),
-			base: String((pendingEntity.$market.$base.kind === 'Coin' ? pendingEntity.$market.$base.$coin.coinId : pendingEntity.$market.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(pendingEntity.$market.$base.$coinInstance.type)] : pendingEntity.$market.$base.$currency.iso4217)),
-			quoteKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$market.$quote.kind)] ?? ''),
-			quote: String((pendingEntity.$market.$quote.kind === 'Coin' ? pendingEntity.$market.$quote.$coin.coinId : pendingEntity.$market.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(pendingEntity.$market.$quote.$coinInstance.type)] : pendingEntity.$market.$quote.$currency.iso4217)),
+		href ?? (pendingEntity.$market !== undefined && pendingEntity.$market.marketKind !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.assetKey !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.assetKey !== undefined && pendingEntity.$market.$marketVenue !== undefined && pendingEntity.$market.$marketVenue.marketVenueId !== undefined && pendingEntity.$base !== undefined && pendingEntity.$base.kind !== undefined && pendingEntity.$quote !== undefined && pendingEntity.$quote.kind !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.timeInterval !== undefined && pendingEntity.timeInterval.unit !== undefined && pendingEntity.timeInterval.value !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', {
 			marketKind: String(pendingEntity.$market.marketKind ?? ''),
+			base: String(pendingEntity.$market.$base.assetKey ?? ''),
+			quote: String(pendingEntity.$market.$quote.assetKey ?? ''),
+			marketVenue: String(pendingEntity.$market.$marketVenue.marketVenueId ?? ''),
+			baseKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$base.kind)] ?? ''),
+			quoteKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$quote.kind)] ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			timeIntervalUnit: String(pendingEntity.timeInterval.unit ?? ''),
 			timeIntervalValue: String(pendingEntity.timeInterval.value ?? ''),
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -86,7 +86,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={marketTimeIntervalTimestamp}>
 			{#snippet Pending()}
-				{[selection.entitySelector.timeInterval ?? prefetched.timeInterval == null ? '' : String((`${(selection.entitySelector.timeInterval ?? prefetched.timeInterval).value}${(selection.entitySelector.timeInterval ?? prefetched.timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || title || 'OHLC candle'}
+				{[pendingEntity.timeInterval == null ? '' : String((`${(pendingEntity.timeInterval).value}${(pendingEntity.timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || title || 'OHLC candle'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,7 +99,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={marketTimeIntervalTimestamp}>
 			{#snippet Pending()}
-				{@const close0 = prefetched.close}
+				{@const close0 = pendingEntity.close}
 				{#if close0 !== undefined && close0 !== null}
 					<NumberValue
 						value={Number(close0) / 1e8}
@@ -124,7 +124,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={marketTimeIntervalTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -152,13 +152,13 @@
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market, {})}
 						href={
-							(selection.entitySelector.$market.$marketVenue !== undefined && selection.entitySelector.$market.$marketVenue.marketVenueId !== undefined && selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.kind !== undefined && (selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.kind !== undefined && (selection.entitySelector.$market.$base.kind === 'Coin' ? selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.$coin !== undefined && selection.entitySelector.$market.$base.$coin.coinId !== undefined : selection.entitySelector.$market.$base.kind === 'CoinInstance' ? selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.$coinInstance !== undefined && selection.entitySelector.$market.$base.$coinInstance.type !== undefined : selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.$currency !== undefined && selection.entitySelector.$market.$base.$currency.iso4217 !== undefined)) && selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.kind !== undefined && (selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.kind !== undefined && (selection.entitySelector.$market.$quote.kind === 'Coin' ? selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.$coin !== undefined && selection.entitySelector.$market.$quote.$coin.coinId !== undefined : selection.entitySelector.$market.$quote.kind === 'CoinInstance' ? selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.$coinInstance !== undefined && selection.entitySelector.$market.$quote.$coinInstance.type !== undefined : selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.$currency !== undefined && selection.entitySelector.$market.$quote.$currency.iso4217 !== undefined)) && selection.entitySelector.$market.marketKind !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
+							(selection.entitySelector.$market.marketKind !== undefined && selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.assetKey !== undefined && selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.assetKey !== undefined && selection.entitySelector.$market.$marketVenue !== undefined && selection.entitySelector.$market.$marketVenue.marketVenueId !== undefined && selection.entitySelector.$market.$base.kind !== undefined && selection.entitySelector.$market.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
+								marketKind: String(selection.entitySelector.$market.marketKind ?? ''),
+								base: String(selection.entitySelector.$market.$base.assetKey ?? ''),
+								quote: String(selection.entitySelector.$market.$quote.assetKey ?? ''),
 								marketVenue: String(selection.entitySelector.$market.$marketVenue.marketVenueId ?? ''),
 								baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$base.kind)] ?? ''),
-								base: String((selection.entitySelector.$market.$base.kind === 'Coin' ? selection.entitySelector.$market.$base.$coin.coinId : selection.entitySelector.$market.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(selection.entitySelector.$market.$base.$coinInstance.type)] : selection.entitySelector.$market.$base.$currency.iso4217)),
 								quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)] ?? ''),
-								quote: String((selection.entitySelector.$market.$quote.kind === 'Coin' ? selection.entitySelector.$market.$quote.$coin.coinId : selection.entitySelector.$market.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(selection.entitySelector.$market.$quote.$coinInstance.type)] : selection.entitySelector.$market.$quote.$currency.iso4217)),
-								marketKind: String(selection.entitySelector.$market.marketKind ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timeInterval = selection.entitySelector.timeInterval ?? prefetched.timeInterval}
+							{@const timeInterval = pendingEntity.timeInterval}
 							{#if timeInterval !== undefined && timeInterval !== null}
 								{timeInterval == null ? '' : String((`${(timeInterval).value}${(timeInterval).unit}`) ?? '')}
 							{/if}
@@ -210,7 +210,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const open = prefetched.open}
+					{@const open = pendingEntity.open}
 					{#if open !== undefined && open !== null}
 						<div>
 							<dt>Open</dt>
@@ -290,7 +290,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const high = prefetched.high}
+					{@const high = pendingEntity.high}
 					{#if high !== undefined && high !== null}
 						<div>
 							<dt>High</dt>
@@ -337,7 +337,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const low = prefetched.low}
+					{@const low = pendingEntity.low}
 					{#if low !== undefined && low !== null}
 						<div>
 							<dt>Low</dt>
@@ -384,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const close = prefetched.close}
+					{@const close = pendingEntity.close}
 					{#if close !== undefined && close !== null}
 						<div>
 							<dt>Close</dt>
@@ -431,7 +431,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quoteVolume = prefetched.quoteVolume}
+					{@const quoteVolume = pendingEntity.quoteVolume}
 					{#if quoteVolume !== undefined && quoteVolume !== null}
 						<div>
 							<dt>Quote volume</dt>
@@ -479,18 +479,18 @@
 						}
 					>
 						{#snippet children(market)}
-							{#if market[EntityMetaKey.Selector] != null}
+							{#if market != null && market[EntityMetaKey.Selector] != null}
 								<MarketView
 									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 									prefetched={market}
 									href={
-										(market[EntityMetaKey.Selector].$marketVenue !== undefined && market[EntityMetaKey.Selector].$marketVenue.marketVenueId !== undefined && market[EntityMetaKey.Selector].$base !== undefined && market[EntityMetaKey.Selector].$base.kind !== undefined && (market[EntityMetaKey.Selector].$base !== undefined && market[EntityMetaKey.Selector].$base.kind !== undefined && (market[EntityMetaKey.Selector].$base.kind === 'Coin' ? market[EntityMetaKey.Selector].$base !== undefined && market[EntityMetaKey.Selector].$base.$coin !== undefined && market[EntityMetaKey.Selector].$base.$coin.coinId !== undefined : market[EntityMetaKey.Selector].$base.kind === 'CoinInstance' ? market[EntityMetaKey.Selector].$base !== undefined && market[EntityMetaKey.Selector].$base.$coinInstance !== undefined && market[EntityMetaKey.Selector].$base.$coinInstance.type !== undefined : market[EntityMetaKey.Selector].$base !== undefined && market[EntityMetaKey.Selector].$base.$currency !== undefined && market[EntityMetaKey.Selector].$base.$currency.iso4217 !== undefined)) && market[EntityMetaKey.Selector].$quote !== undefined && market[EntityMetaKey.Selector].$quote.kind !== undefined && (market[EntityMetaKey.Selector].$quote !== undefined && market[EntityMetaKey.Selector].$quote.kind !== undefined && (market[EntityMetaKey.Selector].$quote.kind === 'Coin' ? market[EntityMetaKey.Selector].$quote !== undefined && market[EntityMetaKey.Selector].$quote.$coin !== undefined && market[EntityMetaKey.Selector].$quote.$coin.coinId !== undefined : market[EntityMetaKey.Selector].$quote.kind === 'CoinInstance' ? market[EntityMetaKey.Selector].$quote !== undefined && market[EntityMetaKey.Selector].$quote.$coinInstance !== undefined && market[EntityMetaKey.Selector].$quote.$coinInstance.type !== undefined : market[EntityMetaKey.Selector].$quote !== undefined && market[EntityMetaKey.Selector].$quote.$currency !== undefined && market[EntityMetaKey.Selector].$quote.$currency.iso4217 !== undefined)) && market[EntityMetaKey.Selector].marketKind !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
+										(market[EntityMetaKey.Selector].marketKind !== undefined && market[EntityMetaKey.Selector].$base !== undefined && market[EntityMetaKey.Selector].$base.assetKey !== undefined && market[EntityMetaKey.Selector].$quote !== undefined && market[EntityMetaKey.Selector].$quote.assetKey !== undefined && market[EntityMetaKey.Selector].$marketVenue !== undefined && market[EntityMetaKey.Selector].$marketVenue.marketVenueId !== undefined && market[EntityMetaKey.Selector].$base.kind !== undefined && market[EntityMetaKey.Selector].$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
+											marketKind: String(market[EntityMetaKey.Selector].marketKind ?? ''),
+											base: String(market[EntityMetaKey.Selector].$base.assetKey ?? ''),
+											quote: String(market[EntityMetaKey.Selector].$quote.assetKey ?? ''),
 											marketVenue: String(market[EntityMetaKey.Selector].$marketVenue.marketVenueId ?? ''),
 											baseKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$base.kind)] ?? ''),
-											base: String((market[EntityMetaKey.Selector].$base.kind === 'Coin' ? market[EntityMetaKey.Selector].$base.$coin.coinId : market[EntityMetaKey.Selector].$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(market[EntityMetaKey.Selector].$base.$coinInstance.type)] : market[EntityMetaKey.Selector].$base.$currency.iso4217)),
 											quoteKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$quote.kind)] ?? ''),
-											quote: String((market[EntityMetaKey.Selector].$quote.kind === 'Coin' ? market[EntityMetaKey.Selector].$quote.$coin.coinId : market[EntityMetaKey.Selector].$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(market[EntityMetaKey.Selector].$quote.$coinInstance.type)] : market[EntityMetaKey.Selector].$quote.$currency.iso4217)),
-											marketKind: String(market[EntityMetaKey.Selector].marketKind ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

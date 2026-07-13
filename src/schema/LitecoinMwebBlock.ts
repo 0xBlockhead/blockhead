@@ -9,8 +9,10 @@ export enum LitecoinMwebBlockSelector {
 }
 export const LitecoinMwebBlock = entity({
 	entityType: EntityType.LitecoinMwebBlock,
-	label: 'litecoin MWEB block',
-	labelPlural: 'litecoin MWEB blocks',
+	labels: {
+		singular: 'litecoin MWEB block',
+		plural: 'litecoin MWEB blocks',
+	},
 })({
 	$block: {
 		label: 'block',

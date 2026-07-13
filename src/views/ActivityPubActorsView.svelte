@@ -122,7 +122,7 @@
 						selection={select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={activityPubActorFields}
 						href={
-							(activityPubActorHrefFields.instanceOrigin !== undefined && activityPubActorHrefFields.localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+							(activityPubActorHrefFields.instanceOrigin !== undefined && activityPubActorHrefFields.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
 								instanceOrigin: String(activityPubActorHrefFields.instanceOrigin ?? ''),
 								localAccountId: String(activityPubActorHrefFields.localAccountId ?? ''),
 							}) : undefined)

@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -56,19 +56,21 @@
 			unifiedAddress: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash wallet state')
+	const titleFallback = $derived([String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash wallet state')
 	const viewDomId = $derived('blockhead-zcash-wallet-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import BlockheadZcashWalletState_TimestampsView from '$/views/BlockheadZcashWalletState_TimestampsView.svelte'
-	import BlockheadZcashViewingKeysView from '$/views/BlockheadZcashViewingKeysView.svelte'
-	import BlockheadZcashNoteStatesView from '$/views/BlockheadZcashNoteStatesView.svelte'
 	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import BlockheadZcashViewingKeysView from '$/views/BlockheadZcashViewingKeysView.svelte'
+	import BlockheadZcashNoteStatesView from '$/views/BlockheadZcashNoteStatesView.svelte'
+	import BlockheadZcashWalletState_TimestampsView from '$/views/BlockheadZcashWalletState_TimestampsView.svelte'
 </script>
 
 
@@ -85,7 +87,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadZcashWalletState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zcash wallet state'}
+				{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zcash wallet state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,22 +108,10 @@
 							selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 							prefetched={network}
 							href={
-								(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-									caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-								}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-									caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-								}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-									networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
-								}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-									networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-								}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-									networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-								}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-									networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-								}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-								}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+								(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+								}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(network[EntityMetaKey.Selector].slug ?? ''),
 								}) : undefined)
 							}
 							layout={EntityLayout.Value}
@@ -141,22 +131,10 @@
 							selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 							prefetched={network}
 							href={
-								(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-									caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-								}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-									caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-								}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-									networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
-								}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-									networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-								}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-									networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-								}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-									networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-								}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-								}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+								(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+								}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+									network: String(network[EntityMetaKey.Selector].slug ?? ''),
 								}) : undefined)
 							}
 							layout={EntityLayout.Value}
@@ -171,7 +149,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZcashWalletState}>
 			{#snippet Pending()}
-				{@const unifiedAddress0 = prefetched.unifiedAddress}
+				{@const unifiedAddress0 = pendingEntity.unifiedAddress}
 				{#if unifiedAddress0 !== undefined && unifiedAddress0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((unifiedAddress0) ?? '')} />
@@ -206,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const walletId = selection.entitySelector.walletId ?? prefetched.walletId}
+							{@const walletId = pendingEntity.walletId}
 							{#if walletId !== undefined && walletId !== null}
 								{String((walletId) ?? '')}
 							{/if}
@@ -226,6 +204,8 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -250,27 +230,15 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network[EntityMetaKey.Selector] != null}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-											networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(network[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -292,7 +260,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountIndex = prefetched.accountIndex}
+					{@const accountIndex = pendingEntity.accountIndex}
 					{#if accountIndex !== undefined && accountIndex !== null}
 						<div>
 							<dt>account index</dt>
@@ -329,7 +297,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unifiedAddress = prefetched.unifiedAddress}
+					{@const unifiedAddress = pendingEntity.unifiedAddress}
 					{#if unifiedAddress !== undefined && unifiedAddress !== null}
 						<div>
 							<dt>unified address</dt>
@@ -364,7 +332,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transparentAddress = prefetched.transparentAddress}
+					{@const transparentAddress = pendingEntity.transparentAddress}
 					{#if transparentAddress !== undefined && transparentAddress !== null}
 						<div>
 							<dt>transparent address</dt>
@@ -399,7 +367,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const saplingAddress = prefetched.saplingAddress}
+					{@const saplingAddress = pendingEntity.saplingAddress}
 					{#if saplingAddress !== undefined && saplingAddress !== null}
 						<div>
 							<dt>sapling address</dt>
@@ -434,7 +402,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const orchardAddress = prefetched.orchardAddress}
+					{@const orchardAddress = pendingEntity.orchardAddress}
 					{#if orchardAddress !== undefined && orchardAddress !== null}
 						<div>
 							<dt>orchard address</dt>
@@ -471,7 +439,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const birthdayHeight = prefetched.birthdayHeight}
+					{@const birthdayHeight = pendingEntity.birthdayHeight}
 					{#if birthdayHeight !== undefined && birthdayHeight !== null}
 						<div>
 							<dt>birthday height</dt>
@@ -500,26 +468,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BlockheadZcashWalletState_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Zcash wallet observations.'
-				id='BlockheadZcashWalletState_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-zcash-wallet-keys-notes'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'zcash-viewing-keys',
+							label: 'Viewing keys',
+						},
+						{
+							id: 'zcash-notes',
+							label: 'Notes',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-keys-notes'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Keys and notes</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BlockheadZcashViewingKeysView
-				selection={selection.$$viewingKeys}
-				title='viewing keys'
-				emptyText='No Zcash viewing keys.'
-				id='BlockheadZcashViewingKeysView-viewing-keys'
-			/>
+				{#snippet SectionZcashViewingKeys({ id, label, open })}
+					<BlockheadZcashViewingKeysView
+						selection={selection.$$viewingKeys}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Zcash viewing keys.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadZcashNoteStatesView
-				selection={selection.$$notes}
-				title='notes'
-				emptyText='No Zcash notes.'
-				id='BlockheadZcashNoteStatesView-notes'
-			/>
+				{#snippet SectionZcashNotes({ id, label, open })}
+					<BlockheadZcashNoteStatesView
+						selection={selection.$$notes}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Zcash notes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-zcash-wallet-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'zcash-wallet-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionZcashWalletTimestamps({ id, label, open })}
+					<BlockheadZcashWalletState_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Zcash wallet observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

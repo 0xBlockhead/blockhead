@@ -9,8 +9,10 @@ export enum CosmosMessageSelector {
 }
 export const CosmosMessage = entity({
 	entityType: EntityType.CosmosMessage,
-	label: 'Cosmos message',
-	labelPlural: 'Cosmos messages',
+	labels: {
+		singular: 'Cosmos message',
+		plural: 'Cosmos messages',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',
@@ -21,7 +23,7 @@ export const CosmosMessage = entity({
 	indexInTransaction: {
 		label: 'Index in transaction',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	typeUrl: {

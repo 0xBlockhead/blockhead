@@ -10,8 +10,10 @@ export enum GitRefObservation_TimestampSelector {
 }
 export const GitRefObservation_Timestamp = entity({
 	entityType: EntityType.GitRefObservation_Timestamp,
-	label: 'Git ref observation timestamp',
-	labelPlural: 'Git ref observations',
+	labels: {
+		singular: 'Git ref observation timestamp',
+		plural: 'Git ref observations',
+	},
 })({
 	$ref: {
 		label: 'ref',

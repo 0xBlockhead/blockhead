@@ -55,12 +55,14 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import LitecoinMwebBlockView from '$/views/LitecoinMwebBlockView.svelte'
 	import LitecoinMwebOutputsView from '$/views/LitecoinMwebOutputsView.svelte'
 	import LitecoinMwebPegInsView from '$/views/LitecoinMwebPegInsView.svelte'
 	import LitecoinMwebPegOutsView from '$/views/LitecoinMwebPegOutsView.svelte'
-	import LitecoinMwebBlockView from '$/views/LitecoinMwebBlockView.svelte'
 </script>
 
 
@@ -98,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={litecoinMwebTransaction}>
 			{#snippet Pending()}
-				{@const transactionIndex0 = selection.entitySelector.transactionIndex ?? prefetched.transactionIndex}
+				{@const transactionIndex0 = pendingEntity.transactionIndex}
 				{#if transactionIndex0 !== undefined && transactionIndex0 !== null}
 					<NumberValue value={Number(transactionIndex0)} />
 				{/if}
@@ -117,7 +119,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={litecoinMwebTransaction}>
 			{#snippet Pending()}
-				{@const kernelOffset0 = prefetched.kernelOffset}
+				{@const kernelOffset0 = pendingEntity.kernelOffset}
 				{#if kernelOffset0 !== undefined && kernelOffset0 !== null}
 					<span data-text="muted">
 						{String((kernelOffset0) ?? '')}
@@ -163,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionIndex = selection.entitySelector.transactionIndex ?? prefetched.transactionIndex}
+							{@const transactionIndex = pendingEntity.transactionIndex}
 							{#if transactionIndex !== undefined && transactionIndex !== null}
 								<NumberValue value={Number(transactionIndex)} />
 							{/if}
@@ -190,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const kernelOffset = prefetched.kernelOffset}
+					{@const kernelOffset = pendingEntity.kernelOffset}
 					{#if kernelOffset !== undefined && kernelOffset !== null}
 						<div>
 							<dt>kernel offset</dt>
@@ -219,26 +221,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<LitecoinMwebOutputsView
-				selection={selection.$$outputs}
-				title='outputs'
-				emptyText='No Litecoin MWEB outputs.'
-				id='LitecoinMwebOutputsView-outputs'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-litecoin-mweb-transaction-activity-a'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'litecoin-mweb-transaction-outputs',
+							label: 'Outputs',
+						},
+						{
+							id: 'litecoin-mweb-transaction-peg-ins',
+							label: 'Peg Ins',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-a'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<LitecoinMwebPegInsView
-				selection={selection.$$pegIns}
-				title='peg ins'
-				emptyText='No Litecoin MWEB peg ins.'
-				id='LitecoinMwebPegInsView-peg-ins'
-			/>
+				{#snippet SectionLitecoinMwebTransactionOutputs({ id, label, open })}
+					<LitecoinMwebOutputsView
+						selection={selection.$$outputs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No outputs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<LitecoinMwebPegOutsView
-				selection={selection.$$pegOuts}
-				title='peg outs'
-				emptyText='No Litecoin MWEB peg outs.'
-				id='LitecoinMwebPegOutsView-peg-outs'
-			/>
+				{#snippet SectionLitecoinMwebTransactionPegIns({ id, label, open })}
+					<LitecoinMwebPegInsView
+						selection={selection.$$pegIns}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No peg ins.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-litecoin-mweb-transaction-activity-b'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'litecoin-mweb-transaction-peg-outs',
+							label: 'Peg Outs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-b'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity continued</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionLitecoinMwebTransactionPegOuts({ id, label, open })}
+					<LitecoinMwebPegOutsView
+						selection={selection.$$pegOuts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No peg outs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

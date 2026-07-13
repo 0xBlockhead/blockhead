@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const epoch = selection.entitySelector.epoch ?? prefetched.epoch}
+							{@const epoch = pendingEntity.epoch}
 							{#if epoch !== undefined && epoch !== null}
 								{String((epoch) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>slot</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const anchorUrl = prefetched.anchorUrl}
+					{@const anchorUrl = pendingEntity.anchorUrl}
 					{#if anchorUrl !== undefined && anchorUrl !== null}
 						<div>
 							<dt>anchor URL</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const anchorHash = prefetched.anchorHash}
+					{@const anchorHash = pendingEntity.anchorHash}
 					{#if anchorHash !== undefined && anchorHash !== null}
 						<div>
 							<dt>anchor hash</dt>
@@ -278,7 +278,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const scriptHash = prefetched.scriptHash}
+					{@const scriptHash = pendingEntity.scriptHash}
 					{#if scriptHash !== undefined && scriptHash !== null}
 						<div>
 							<dt>script hash</dt>
@@ -313,7 +313,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousAnchorUrl = prefetched.previousAnchorUrl}
+					{@const previousAnchorUrl = pendingEntity.previousAnchorUrl}
 					{#if previousAnchorUrl !== undefined && previousAnchorUrl !== null}
 						<div>
 							<dt>previous anchor URL</dt>
@@ -362,7 +362,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousAnchorHash = prefetched.previousAnchorHash}
+					{@const previousAnchorHash = pendingEntity.previousAnchorHash}
 					{#if previousAnchorHash !== undefined && previousAnchorHash !== null}
 						<div>
 							<dt>previous anchor hash</dt>

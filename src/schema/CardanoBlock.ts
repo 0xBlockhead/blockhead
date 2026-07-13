@@ -11,8 +11,10 @@ export enum CardanoBlockSelector {
 }
 export const CardanoBlock = entity({
 	entityType: EntityType.CardanoBlock,
-	label: 'cardano block',
-	labelPlural: 'cardano blocks',
+	labels: {
+		singular: 'cardano block',
+		plural: 'cardano blocks',
+	},
 })({
 	$network: {
 		label: 'network',

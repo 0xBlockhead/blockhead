@@ -118,9 +118,9 @@
 						selection={select(EntityType.XUser_Timestamp, xUserTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xUserTimestampFields}
 						href={
-							(xUserTimestampHrefFields.$user !== undefined && xUserTimestampHrefFields.$user.id !== undefined && xUserTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(x)/x/user/[userId]/observations/[timestampMs=nonNegativeInteger]', {
-								userId: String(xUserTimestampHrefFields.$user.id ?? ''),
+							(xUserTimestampHrefFields.timestampMs !== undefined && xUserTimestampHrefFields.$user !== undefined && xUserTimestampHrefFields.$user.id !== undefined ? resolve('/x/user/[userId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 								timestampMs: String(xUserTimestampHrefFields.timestampMs ?? ''),
+								userId: String(xUserTimestampHrefFields.$user.id ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

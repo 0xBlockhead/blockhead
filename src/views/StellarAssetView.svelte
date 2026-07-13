@@ -47,10 +47,17 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
 	import StellarAccountView from '$/views/StellarAccountView.svelte'
+	import StellarClaimableBalancesView from '$/views/StellarClaimableBalancesView.svelte'
+	import StellarLiquidityPoolsView from '$/views/StellarLiquidityPoolsView.svelte'
+	import StellarTrustlinesView from '$/views/StellarTrustlinesView.svelte'
+	import StellarOffersView from '$/views/StellarOffersView.svelte'
+	import StellarTradesView from '$/views/StellarTradesView.svelte'
 </script>
 
 
@@ -103,7 +110,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const assetKey = selection.entitySelector.assetKey ?? prefetched.assetKey}
+							{@const assetKey = pendingEntity.assetKey}
 							{#if assetKey !== undefined && assetKey !== null}
 								{String((assetKey) ?? '')}
 							{/if}
@@ -133,7 +140,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const assetKind = prefetched.assetKind}
+							{@const assetKind = pendingEntity.assetKind}
 							{#if assetKind !== undefined && assetKind !== null}
 								{String((assetKind) ?? '')}
 							{/if}
@@ -160,7 +167,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const assetCode = prefetched.assetCode}
+					{@const assetCode = pendingEntity.assetCode}
 					{#if assetCode !== undefined && assetCode !== null}
 						<div>
 							<dt>asset code</dt>
@@ -195,7 +202,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const issuer = prefetched.issuer}
+					{@const issuer = pendingEntity.issuer}
 					{#if issuer !== undefined && issuer !== null}
 						<div>
 							<dt>issuer</dt>
@@ -223,6 +230,8 @@
 			<ResourceBoundary
 				resource={selection.$issuerAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -240,5 +249,126 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-stellar-asset-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'stellar-asset-claimable-balances',
+							label: 'Claimable Balances',
+						},
+						{
+							id: 'stellar-asset-liquidity-pools',
+							label: 'Liquidity Pools',
+						},
+						{
+							id: 'stellar-asset-trustlines',
+							label: 'Trustlines',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionStellarAssetClaimableBalances({ id, label, open })}
+					<StellarClaimableBalancesView
+						selection={selection.$$claimableBalances}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No claimable balances.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionStellarAssetLiquidityPools({ id, label, open })}
+					<StellarLiquidityPoolsView
+						selection={selection.$$liquidityPools}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No liquidity pools.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionStellarAssetTrustlines({ id, label, open })}
+					<StellarTrustlinesView
+						selection={selection.$$trustlines}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No trustlines.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-stellar-asset-related'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'stellar-asset-offers',
+							label: 'Offers',
+						},
+						{
+							id: 'stellar-asset-trades',
+							label: 'Trades',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-related'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Related</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionStellarAssetOffers({ id, label, open })}
+					<StellarOffersView
+						selection={selection.$$offers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No offers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionStellarAssetTrades({ id, label, open })}
+					<StellarTradesView
+						selection={selection.$$trades}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No trades.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

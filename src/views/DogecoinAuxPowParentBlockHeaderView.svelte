@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
 			{#snippet Pending()}
-				{[String((prefetched.merkleRoot) ?? '')].filter(Boolean).join(' ') || title || 'dogecoin aux pow parent block header'}
+				{[String((pendingEntity.merkleRoot) ?? '')].filter(Boolean).join(' ') || title || 'dogecoin aux pow parent block header'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hash = prefetched.hash}
+					{@const hash = pendingEntity.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const merkleRoot = prefetched.merkleRoot}
+					{@const merkleRoot = pendingEntity.merkleRoot}
 					{#if merkleRoot !== undefined && merkleRoot !== null}
 						<div>
 							<dt>Merkle root</dt>
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nonce = prefetched.nonce}
+					{@const nonce = pendingEntity.nonce}
 					{#if nonce !== undefined && nonce !== null}
 						<div>
 							<dt>Nonce</dt>

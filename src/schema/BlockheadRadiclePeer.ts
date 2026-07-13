@@ -9,8 +9,10 @@ export enum BlockheadRadiclePeerSelector {
 }
 export const BlockheadRadiclePeer = entity({
 	entityType: EntityType.BlockheadRadiclePeer,
-	label: 'blockhead radicle peer',
-	labelPlural: 'blockhead radicle peers',
+	labels: {
+		singular: 'blockhead radicle peer',
+		plural: 'blockhead radicle peers',
+	},
 })({
 	$node: {
 		label: 'node',

@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const cycle = selection.entitySelector.cycle ?? prefetched.cycle}
+							{@const cycle = pendingEntity.cycle}
 							{#if cycle !== undefined && cycle !== null}
 								{String((cycle) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const snapshotLevel = prefetched.snapshotLevel}
+					{@const snapshotLevel = pendingEntity.snapshotLevel}
 					{#if snapshotLevel !== undefined && snapshotLevel !== null}
 						<div>
 							<dt>snapshot level</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakingBalanceMutez = prefetched.stakingBalanceMutez}
+					{@const stakingBalanceMutez = pendingEntity.stakingBalanceMutez}
 					{#if stakingBalanceMutez !== undefined && stakingBalanceMutez !== null}
 						<div>
 							<dt>staking balance mutez</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatedBalanceMutez = prefetched.delegatedBalanceMutez}
+					{@const delegatedBalanceMutez = pendingEntity.delegatedBalanceMutez}
 					{#if delegatedBalanceMutez !== undefined && delegatedBalanceMutez !== null}
 						<div>
 							<dt>delegated balance mutez</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expectedBlocks = prefetched.expectedBlocks}
+					{@const expectedBlocks = pendingEntity.expectedBlocks}
 					{#if expectedBlocks !== undefined && expectedBlocks !== null}
 						<div>
 							<dt>expected blocks</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const producedBlocks = prefetched.producedBlocks}
+					{@const producedBlocks = pendingEntity.producedBlocks}
 					{#if producedBlocks !== undefined && producedBlocks !== null}
 						<div>
 							<dt>produced blocks</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const missedBlocks = prefetched.missedBlocks}
+					{@const missedBlocks = pendingEntity.missedBlocks}
 					{#if missedBlocks !== undefined && missedBlocks !== null}
 						<div>
 							<dt>missed blocks</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expectedEndorsements = prefetched.expectedEndorsements}
+					{@const expectedEndorsements = pendingEntity.expectedEndorsements}
 					{#if expectedEndorsements !== undefined && expectedEndorsements !== null}
 						<div>
 							<dt>expected endorsements</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const missedEndorsements = prefetched.missedEndorsements}
+					{@const missedEndorsements = pendingEntity.missedEndorsements}
 					{#if missedEndorsements !== undefined && missedEndorsements !== null}
 						<div>
 							<dt>missed endorsements</dt>
@@ -438,7 +438,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardsMutez = prefetched.rewardsMutez}
+					{@const rewardsMutez = pendingEntity.rewardsMutez}
 					{#if rewardsMutez !== undefined && rewardsMutez !== null}
 						<div>
 							<dt>rewards mutez</dt>
@@ -473,7 +473,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feesMutez = prefetched.feesMutez}
+					{@const feesMutez = pendingEntity.feesMutez}
 					{#if feesMutez !== undefined && feesMutez !== null}
 						<div>
 							<dt>fees mutez</dt>

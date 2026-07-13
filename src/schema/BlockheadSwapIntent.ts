@@ -10,8 +10,10 @@ export enum BlockheadSwapIntentSelector {
 }
 export const BlockheadSwapIntent = entity({
 	entityType: EntityType.BlockheadSwapIntent,
-	label: 'blockhead swap intent',
-	labelPlural: 'blockhead swap intents',
+	labels: {
+		singular: 'blockhead swap intent',
+		plural: 'blockhead swap intents',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

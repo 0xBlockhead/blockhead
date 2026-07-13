@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerSequence = selection.entitySelector.ledgerSequence ?? prefetched.ledgerSequence}
+							{@const ledgerSequence = pendingEntity.ledgerSequence}
 							{#if ledgerSequence !== undefined && ledgerSequence !== null}
 								{String((ledgerSequence) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedAtMs = prefetched.observedAtMs}
+					{@const observedAtMs = pendingEntity.observedAtMs}
 					{#if observedAtMs !== undefined && observedAtMs !== null}
 						<div>
 							<dt>observed AT ms</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const wasmBytes = prefetched.wasmBytes}
+					{@const wasmBytes = pendingEntity.wasmBytes}
 					{#if wasmBytes !== undefined && wasmBytes !== null}
 						<div>
 							<dt>Wasm bytes</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const byteLength = prefetched.byteLength}
+					{@const byteLength = pendingEntity.byteLength}
 					{#if byteLength !== undefined && byteLength !== null}
 						<div>
 							<dt>byte length</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const interfaceVersion = prefetched.interfaceVersion}
+					{@const interfaceVersion = pendingEntity.interfaceVersion}
 					{#if interfaceVersion !== undefined && interfaceVersion !== null}
 						<div>
 							<dt>interface version</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const found = prefetched.found}
+					{@const found = pendingEntity.found}
 					{#if found !== undefined && found !== null}
 						<div>
 							<dt>found</dt>

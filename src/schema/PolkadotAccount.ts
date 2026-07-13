@@ -10,8 +10,10 @@ export enum PolkadotAccountSelector {
 }
 export const PolkadotAccount = entity({
 	entityType: EntityType.PolkadotAccount,
-	label: 'Polkadot account',
-	labelPlural: 'Polkadot accounts',
+	labels: {
+		singular: 'Polkadot account',
+		plural: 'Polkadot accounts',
+	},
 })({
 	$network: {
 		label: 'Network',

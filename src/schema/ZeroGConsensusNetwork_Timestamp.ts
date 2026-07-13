@@ -10,8 +10,10 @@ export enum ZeroGConsensusNetwork_TimestampSelector {
 }
 export const ZeroGConsensusNetwork_Timestamp = entity({
 	entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
-	label: 'zero g consensus network timestamp',
-	labelPlural: 'zero g consensus network observations',
+	labels: {
+		singular: 'zero g consensus network timestamp',
+		plural: 'zero g consensus network observations',
+	},
 })({
 	$consensusNetwork: {
 		label: 'consensus network',

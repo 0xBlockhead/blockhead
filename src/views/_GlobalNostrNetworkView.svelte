@@ -57,11 +57,13 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NostrProfilesView from '$/views/NostrProfilesView.svelte'
-	import NostrNotesView from '$/views/NostrNotesView.svelte'
 	import NostrRelaysView from '$/views/NostrRelaysView.svelte'
+	import NostrNotesView from '$/views/NostrNotesView.svelte'
 	import NostrArticlesView from '$/views/NostrArticlesView.svelte'
 	import NostrRepostsView from '$/views/NostrRepostsView.svelte'
 	import NostrReactionsView from '$/views/NostrReactionsView.svelte'
@@ -113,7 +115,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registryName = prefetched.registryName}
+					{@const registryName = pendingEntity.registryName}
 					{#if registryName !== undefined && registryName !== null}
 						<div>
 							<dt>Registry name</dt>
@@ -151,7 +153,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolName = prefetched.protocolName}
+					{@const protocolName = pendingEntity.protocolName}
 					{#if protocolName !== undefined && protocolName !== null}
 						<div>
 							<dt>Protocol</dt>
@@ -190,7 +192,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const homeUrl = prefetched.homeUrl}
+						{@const homeUrl = pendingEntity.homeUrl}
 						{#if homeUrl !== undefined && homeUrl !== null}
 							<div>
 								<dt>Home</dt>
@@ -244,7 +246,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const docsUrl = prefetched.docsUrl}
+						{@const docsUrl = pendingEntity.docsUrl}
 						{#if docsUrl !== undefined && docsUrl !== null}
 							<div>
 								<dt>NIPs</dt>
@@ -298,7 +300,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const relationshipModel = prefetched.relationshipModel}
+						{@const relationshipModel = pendingEntity.relationshipModel}
 						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
 								<dt>Connection model</dt>
@@ -328,94 +330,234 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<NostrProfilesView
-				selection={
-						selection.$$observedProfiles({
-							sources: [
-								Source.NostrBand_Rest,
-							],
-						})
-					}
-				title='Profiles'
-				href={resolve('/(social)/(nostr)/nostr/profiles')}
-				emptyText='No Nostr profiles in this observed.'
-				id='NostrProfilesView-observed-profiles'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-nostr-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'nostr-profiles',
+							label: 'Profiles',
+						},
+						{
+							id: 'nostr-relays',
+							label: 'Relays',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Directory</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<NostrNotesView
-				selection={
-						selection.$$observedNotes({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-						})
-					}
-				title='Notes'
-				href={resolve('/(social)/(nostr)/nostr/notes')}
-				emptyText='No Nostr notes in this observed.'
-				id='NostrNotesView-observed-notes'
-			/>
+				{#snippet SectionNostrProfiles({ id, label, open })}
+					<NostrProfilesView
+						selection={
+							selection.$$observedProfiles({
+								sources: [
+									Source.NostrBand_Rest,
+								],
+							})
+						}
+						href={resolve('/nostr/profiles')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Nostr profiles in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<NostrRelaysView
-				selection={
-						selection.$$observedRelays({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-						})
-					}
-				title='Relays'
-				href={resolve('/(social)/(nostr)/nostr/relays')}
-				emptyText='No Nostr relays in this observed.'
-				id='NostrRelaysView-observed-relays'
-			/>
+				{#snippet SectionNostrRelays({ id, label, open })}
+					<NostrRelaysView
+						selection={
+							selection.$$observedRelays({
+								sources: [
+									Source.Constants_Internal,
+									Source.NostrBand_Rest,
+								],
+							})
+						}
+						href={resolve('/nostr/relays')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Nostr relays in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<NostrArticlesView
-				selection={
-						selection.$$observedArticles({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-						})
-					}
-				title='Articles'
-				href={resolve('/(social)/(nostr)/nostr/articles')}
-				emptyText='No Nostr articles in this observed.'
-				id='NostrArticlesView-observed-articles'
-			/>
+			</CollapsibleTabs>
 
-			<NostrRepostsView
-				selection={
-						selection.$$observedReposts({
-							sources: [
-								Source.Constants_Internal,
-								Source.NostrBand_Rest,
-							],
-						})
-					}
-				title='Reposts'
-				href={resolve('/(social)/(nostr)/nostr/reposts')}
-				emptyText='No Nostr reposts in this observed.'
-				id='NostrRepostsView-observed-reposts'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-nostr-content'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'nostr-notes',
+							label: 'Notes',
+						},
+						{
+							id: 'nostr-articles',
+							label: 'Articles',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-content'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Notes and articles</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<NostrReactionsView
-				selection={selection.$$observedReactions}
-				title='Reactions'
-				href={resolve('/(social)/(nostr)/nostr/reactions')}
-				emptyText='No Nostr reactions in this observed.'
-				id='NostrReactionsView-observed-reactions'
-			/>
+				{#snippet SectionNostrNotes({ id, label, open })}
+					<NostrNotesView
+						selection={
+							selection.$$observedNotes({
+								sources: [
+									Source.Constants_Internal,
+									Source.NostrBand_Rest,
+								],
+							})
+						}
+						href={resolve('/nostr/notes')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Nostr notes in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<GlobalNostrNetwork_TimestampsView
-				selection={selection.$$timestamps}
-				title='Observations'
-				emptyText='No Nostr network observations.'
-				id='_GlobalNostrNetwork_TimestampsView-timestamps'
-			/>
+				{#snippet SectionNostrArticles({ id, label, open })}
+					<NostrArticlesView
+						selection={
+							selection.$$observedArticles({
+								sources: [
+									Source.Constants_Internal,
+									Source.NostrBand_Rest,
+								],
+							})
+						}
+						href={resolve('/nostr/articles')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Nostr articles in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-nostr-engagement'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'nostr-reposts',
+							label: 'Reposts',
+						},
+						{
+							id: 'nostr-reactions',
+							label: 'Reactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-engagement'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Engagement</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionNostrReposts({ id, label, open })}
+					<NostrRepostsView
+						selection={
+							selection.$$observedReposts({
+								sources: [
+									Source.Constants_Internal,
+									Source.NostrBand_Rest,
+								],
+							})
+						}
+						href={resolve('/nostr/reposts')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Nostr reposts in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionNostrReactions({ id, label, open })}
+					<NostrReactionsView
+						selection={selection.$$observedReactions}
+						href={resolve('/nostr/reactions')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Nostr reactions in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-nostr-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'nostr-hub-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionNostrHubObservations({ id, label, open })}
+					<GlobalNostrNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Nostr network observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

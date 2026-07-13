@@ -9,8 +9,10 @@ export enum RadicleSignedRef_TimestampSelector {
 }
 export const RadicleSignedRef_Timestamp = entity({
 	entityType: EntityType.RadicleSignedRef_Timestamp,
-	label: 'radicle signed ref timestamp',
-	labelPlural: 'radicle signed ref observations',
+	labels: {
+		singular: 'radicle signed ref timestamp',
+		plural: 'radicle signed ref observations',
+	},
 })({
 	$signedRef: {
 		label: 'signed ref',

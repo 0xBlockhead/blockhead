@@ -47,7 +47,7 @@
 			observedLinkCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global Reddit network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global Reddit network timestamp')
 	const viewDomId = $derived('-global-reddit-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={globalRedditNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalRedditNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? ''), String((prefetched.reachable) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global Reddit network timestamp'}
+				{[String((pendingEntity.source) ?? ''), String((pendingEntity.reachable) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global Reddit network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalRedditNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const observedLinkCount0 = prefetched.observedLinkCount}
+				{@const observedLinkCount0 = pendingEntity.observedLinkCount}
 				{#if observedLinkCount0 !== undefined && observedLinkCount0 !== null}
 					<span data-text="muted">
 						{String((observedLinkCount0) ?? '')}
@@ -138,7 +138,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -168,7 +168,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -195,7 +195,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>
@@ -230,7 +230,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const listingWindowKind = prefetched.listingWindowKind}
+					{@const listingWindowKind = pendingEntity.listingWindowKind}
 					{#if listingWindowKind !== undefined && listingWindowKind !== null}
 						<div>
 							<dt>Listing window kind</dt>
@@ -267,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedSubredditCount = prefetched.observedSubredditCount}
+					{@const observedSubredditCount = pendingEntity.observedSubredditCount}
 					{#if observedSubredditCount !== undefined && observedSubredditCount !== null}
 						<div>
 							<dt>Observed subreddit count</dt>
@@ -302,7 +302,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedLinkCount = prefetched.observedLinkCount}
+					{@const observedLinkCount = pendingEntity.observedLinkCount}
 					{#if observedLinkCount !== undefined && observedLinkCount !== null}
 						<div>
 							<dt>Observed link count</dt>
@@ -337,7 +337,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededSubredditCount = prefetched.seededSubredditCount}
+					{@const seededSubredditCount = pendingEntity.seededSubredditCount}
 					{#if seededSubredditCount !== undefined && seededSubredditCount !== null}
 						<div>
 							<dt>Seeded subreddit count</dt>
@@ -372,7 +372,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededLinkCount = prefetched.seededLinkCount}
+					{@const seededLinkCount = pendingEntity.seededLinkCount}
 					{#if seededLinkCount !== undefined && seededLinkCount !== null}
 						<div>
 							<dt>Seeded link count</dt>
@@ -409,7 +409,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rateLimitRemaining = prefetched.rateLimitRemaining}
+					{@const rateLimitRemaining = pendingEntity.rateLimitRemaining}
 					{#if rateLimitRemaining !== undefined && rateLimitRemaining !== null}
 						<div>
 							<dt>Rate limit remaining</dt>

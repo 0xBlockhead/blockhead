@@ -118,8 +118,8 @@
 						selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmTransactionFields}
 						href={
-							(evmTransactionHrefFields.$network !== undefined && evmTransactionHrefFields.$network.caip2 !== undefined && evmTransactionHrefFields.$network.caip2.namespace !== undefined && evmTransactionHrefFields.$network !== undefined && evmTransactionHrefFields.$network.caip2 !== undefined && evmTransactionHrefFields.$network.caip2.reference !== undefined && evmTransactionHrefFields.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${String(evmTransactionHrefFields.$network.caip2.namespace ?? '')}:${String(evmTransactionHrefFields.$network.caip2.reference ?? '')}`,
+							(evmTransactionHrefFields.$network !== undefined && evmTransactionHrefFields.$network.slug !== undefined && evmTransactionHrefFields.txHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								network: String(evmTransactionHrefFields.$network.slug ?? ''),
 								transactionId: String(evmTransactionHrefFields.txHash ?? ''),
 							}) : undefined)
 						}

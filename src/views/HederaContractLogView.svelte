@@ -82,6 +82,8 @@
 			<ResourceBoundary
 				resource={selection.$result}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaContractResult)}
 					{#if hederaContractResult != null && hederaContractResult[EntityMetaKey.Selector] != null}
 						<div>
@@ -102,6 +104,8 @@
 			<ResourceBoundary
 				resource={selection.$contract}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaContract)}
 					{#if hederaContract != null && hederaContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -129,7 +133,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusTimestamp = prefetched.consensusTimestamp}
+					{@const consensusTimestamp = pendingEntity.consensusTimestamp}
 					{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
 						<div>
 							<dt>consensus timestamp</dt>
@@ -167,7 +171,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const logIndex = selection.entitySelector.logIndex ?? prefetched.logIndex}
+							{@const logIndex = pendingEntity.logIndex}
 							{#if logIndex !== undefined && logIndex !== null}
 								{String((logIndex) ?? '')}
 							{/if}
@@ -194,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const address = prefetched.address}
+					{@const address = pendingEntity.address}
 					{#if address !== undefined && address !== null}
 						<div>
 							<dt>Address</dt>
@@ -229,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bloom = prefetched.bloom}
+					{@const bloom = pendingEntity.bloom}
 					{#if bloom !== undefined && bloom !== null}
 						<div>
 							<dt>bloom</dt>
@@ -264,7 +268,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const data = prefetched.data}
+					{@const data = pendingEntity.data}
 					{#if data !== undefined && data !== null}
 						<div>
 							<dt>data</dt>
@@ -302,7 +306,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const topics = prefetched.topics}
+							{@const topics = pendingEntity.topics}
 							{#if topics !== undefined && topics !== null}
 								{topics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

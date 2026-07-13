@@ -50,11 +50,10 @@
 			Source.Local_Internal,
 		],
 		fields: {
-			$channel: true,
 			direction: true,
 		},
 	}))
-	const titleFallback = $derived([(String((selection.entitySelector.htlcIndex ?? prefetched.htlcIndex) ?? '') ? 'HTLC ' + String((selection.entitySelector.htlcIndex ?? prefetched.htlcIndex) ?? '') : '')].filter(Boolean).join(' ') || 'blockhead Lightning htlc')
+	const titleFallback = $derived([(String((pendingEntity.htlcIndex) ?? '') ? 'HTLC ' + String((pendingEntity.htlcIndex) ?? '') : '')].filter(Boolean).join(' ') || 'blockhead Lightning htlc')
 	const viewDomId = $derived('blockhead-lightning-htlc-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLightningHtlc}>
 			{#snippet Pending()}
-				{[(String((selection.entitySelector.htlcIndex ?? prefetched.htlcIndex) ?? '') ? 'HTLC ' + String((selection.entitySelector.htlcIndex ?? prefetched.htlcIndex) ?? '') : '')].filter(Boolean).join(' ') || title || 'blockhead Lightning htlc'}
+				{[(String((pendingEntity.htlcIndex) ?? '') ? 'HTLC ' + String((pendingEntity.htlcIndex) ?? '') : '')].filter(Boolean).join(' ') || title || 'blockhead Lightning htlc'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,8 +100,8 @@
 							selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 							prefetched={lightningChannel}
 							href={
-								(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-									networkSlug: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+								(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+									network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
 									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
 								}) : undefined)
 							}
@@ -123,8 +122,8 @@
 							selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 							prefetched={lightningChannel}
 							href={
-								(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-									networkSlug: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+								(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+									network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
 									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
 								}) : undefined)
 							}
@@ -140,7 +139,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLightningHtlc}>
 			{#snippet Pending()}
-				{@const direction0 = prefetched.direction}
+				{@const direction0 = pendingEntity.direction}
 				{#if direction0 !== undefined && direction0 !== null}
 					<span data-text="muted">
 						{String((direction0) ?? '')}
@@ -180,13 +179,13 @@
 						resource={selection.$channel}
 					>
 						{#snippet children(lightningChannel)}
-							{#if lightningChannel[EntityMetaKey.Selector] != null}
+							{#if lightningChannel != null && lightningChannel[EntityMetaKey.Selector] != null}
 								<LightningChannelView
 									selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 									prefetched={lightningChannel}
 									href={
-										(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-											networkSlug: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+										(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+											network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
 											channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
 										}) : undefined)
 									}
@@ -212,7 +211,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const htlcIndex = selection.entitySelector.htlcIndex ?? prefetched.htlcIndex}
+							{@const htlcIndex = pendingEntity.htlcIndex}
 							{#if htlcIndex !== undefined && htlcIndex !== null}
 								<NumberValue value={Number(htlcIndex)} />
 							{/if}
@@ -239,7 +238,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const direction = prefetched.direction}
+					{@const direction = pendingEntity.direction}
 					{#if direction !== undefined && direction !== null}
 						<div>
 							<dt>direction</dt>
@@ -274,7 +273,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountMsat = prefetched.amountMsat}
+					{@const amountMsat = pendingEntity.amountMsat}
 					{#if amountMsat !== undefined && amountMsat !== null}
 						<div>
 							<dt>amount msat</dt>
@@ -311,7 +310,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiryHeight = prefetched.expiryHeight}
+					{@const expiryHeight = pendingEntity.expiryHeight}
 					{#if expiryHeight !== undefined && expiryHeight !== null}
 						<div>
 							<dt>expiry height</dt>
@@ -346,7 +345,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hashLock = prefetched.hashLock}
+					{@const hashLock = pendingEntity.hashLock}
 					{#if hashLock !== undefined && hashLock !== null}
 						<div>
 							<dt>hash lock</dt>
@@ -381,7 +380,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const state = prefetched.state}
+					{@const state = pendingEntity.state}
 					{#if state !== undefined && state !== null}
 						<div>
 							<dt>state</dt>

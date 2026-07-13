@@ -9,8 +9,10 @@ export enum MagnetLinkSelector {
 }
 export const MagnetLink = entity({
 	entityType: EntityType.MagnetLink,
-	label: 'magnet link',
-	labelPlural: 'magnet links',
+	labels: {
+		singular: 'magnet link',
+		plural: 'magnet links',
+	},
 })({
 	magnetUri: {
 		label: 'magnet URI',

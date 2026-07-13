@@ -9,8 +9,10 @@ export enum DydxChainOrderSelector {
 }
 export const DydxChainOrder = entity({
 	entityType: EntityType.DydxChainOrder,
-	label: 'dydx chain order',
-	labelPlural: 'dydx chain orders',
+	labels: {
+		singular: 'dydx chain order',
+		plural: 'dydx chain orders',
+	},
 })({
 	$subaccount: {
 		label: 'subaccount',

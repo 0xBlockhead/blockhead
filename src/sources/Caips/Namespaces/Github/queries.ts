@@ -19,7 +19,7 @@ export const getContents = (): Promise<CaipNamespacesGithubContents> => (
 	getGithubContents({
 		endpoints: caipNamespacesBinding.endpoints,
 		target: caipNamespacesGithubRepo,
-	}) as Promise<CaipNamespacesGithubContents>
+	})
 )
 
 export const getProfileUrl = (namespace: string) => (

@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,7 +42,12 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaVirtualChainTimestamp = $derived(selection({}))
+	const kaspaVirtualChainTimestamp = $derived(selection({
+		sources: [
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Wrpc,
+		],
+	}))
 	const titleFallback = $derived('kaspa virtual chain timestamp')
 	const viewDomId = $derived('kaspa-virtual-chain-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -104,7 +110,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const startHash = selection.entitySelector.startHash ?? prefetched.startHash}
+							{@const startHash = pendingEntity.startHash}
 							{#if startHash !== undefined && startHash !== null}
 								<TruncatedValue value={String((startHash) ?? '')} />
 							{/if}
@@ -134,7 +140,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -164,7 +170,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -191,7 +197,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minConfirmationCount = prefetched.minConfirmationCount}
+					{@const minConfirmationCount = pendingEntity.minConfirmationCount}
 					{#if minConfirmationCount !== undefined && minConfirmationCount !== null}
 						<div>
 							<dt>min confirmation count</dt>
@@ -229,7 +235,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const addedChainBlockHashes = prefetched.addedChainBlockHashes}
+							{@const addedChainBlockHashes = pendingEntity.addedChainBlockHashes}
 							{#if addedChainBlockHashes !== undefined && addedChainBlockHashes !== null}
 								<TruncatedValue value={addedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -261,7 +267,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const removedChainBlockHashes = prefetched.removedChainBlockHashes}
+							{@const removedChainBlockHashes = pendingEntity.removedChainBlockHashes}
 							{#if removedChainBlockHashes !== undefined && removedChainBlockHashes !== null}
 								<TruncatedValue value={removedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -288,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const acceptedTransactionCount = prefetched.acceptedTransactionCount}
+					{@const acceptedTransactionCount = pendingEntity.acceptedTransactionCount}
 					{#if acceptedTransactionCount !== undefined && acceptedTransactionCount !== null}
 						<div>
 							<dt>accepted transaction count</dt>
@@ -323,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nextCheckpointHash = prefetched.nextCheckpointHash}
+					{@const nextCheckpointHash = pendingEntity.nextCheckpointHash}
 					{#if nextCheckpointHash !== undefined && nextCheckpointHash !== null}
 						<div>
 							<dt>next checkpoint hash</dt>

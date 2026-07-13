@@ -9,8 +9,10 @@ export enum RadicleIssueSelector {
 }
 export const RadicleIssue = entity({
 	entityType: EntityType.RadicleIssue,
-	label: 'radicle issue',
-	labelPlural: 'radicle issues',
+	labels: {
+		singular: 'radicle issue',
+		plural: 'radicle issues',
+	},
 })({
 	$repository: {
 		label: 'repository',

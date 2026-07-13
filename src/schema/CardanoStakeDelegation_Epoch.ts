@@ -9,8 +9,10 @@ export enum CardanoStakeDelegation_EpochSelector {
 }
 export const CardanoStakeDelegation_Epoch = entity({
 	entityType: EntityType.CardanoStakeDelegation_Epoch,
-	label: 'cardano stake delegation epoch',
-	labelPlural: 'cardano stake delegation epoches',
+	labels: {
+		singular: 'cardano stake delegation epoch',
+		plural: 'cardano stake delegation epoches',
+	},
 })({
 	$stakeCredential: {
 		label: 'stake credential',

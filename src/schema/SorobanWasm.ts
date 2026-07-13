@@ -9,8 +9,10 @@ export enum SorobanWasmSelector {
 }
 export const SorobanWasm = entity({
 	entityType: EntityType.SorobanWasm,
-	label: 'soroban Wasm',
-	labelPlural: 'soroban Wasm modules',
+	labels: {
+		singular: 'soroban Wasm',
+		plural: 'soroban Wasm modules',
+	},
 })({
 	$network: {
 		label: 'network',

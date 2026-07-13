@@ -9,8 +9,10 @@ export enum AptosAccountResourceSelector {
 }
 export const AptosAccountResource = entity({
 	entityType: EntityType.AptosAccountResource,
-	label: 'aptos account resource',
-	labelPlural: 'aptos account resources',
+	labels: {
+		singular: 'aptos account resource',
+		plural: 'aptos account resources',
+	},
 })({
 	$account: {
 		label: 'account',

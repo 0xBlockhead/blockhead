@@ -9,8 +9,10 @@ export enum BlockheadEnsNameSearchSelector {
 }
 export const BlockheadEnsNameSearch = entity({
 	entityType: EntityType.BlockheadEnsNameSearch,
-	label: 'blockhead ENS name search',
-	labelPlural: 'blockhead ENS name searches',
+	labels: {
+		singular: 'blockhead ENS name search',
+		plural: 'blockhead ENS name searches',
+	},
 })({
 	query: {
 		label: 'Query',

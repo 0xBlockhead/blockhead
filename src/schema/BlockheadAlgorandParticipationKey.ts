@@ -9,8 +9,10 @@ export enum BlockheadAlgorandParticipationKeySelector {
 }
 export const BlockheadAlgorandParticipationKey = entity({
 	entityType: EntityType.BlockheadAlgorandParticipationKey,
-	label: 'blockhead algorand participation key',
-	labelPlural: 'blockhead algorand participation keys',
+	labels: {
+		singular: 'blockhead algorand participation key',
+		plural: 'blockhead algorand participation keys',
+	},
 })({
 	nodeId: {
 		label: 'node ID',

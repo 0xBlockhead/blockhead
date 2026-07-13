@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const account = selection.entitySelector.account ?? prefetched.account}
+							{@const account = pendingEntity.account}
 							{#if account !== undefined && account !== null}
 								<TruncatedValue value={String((account) ?? '')} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const currency = selection.entitySelector.currency ?? prefetched.currency}
+							{@const currency = pendingEntity.currency}
 							{#if currency !== undefined && currency !== null}
 								{String((currency) ?? '')}
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const issuer = selection.entitySelector.issuer ?? prefetched.issuer}
+							{@const issuer = pendingEntity.issuer}
 							{#if issuer !== undefined && issuer !== null}
 								<TruncatedValue value={String((issuer) ?? '')} />
 							{/if}
@@ -183,6 +183,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(xrplAccount)}
 					{#if xrplAccount != null && xrplAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -203,6 +205,8 @@
 			<ResourceBoundary
 				resource={selection.$issuerAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(xrplAccount)}
 					{#if xrplAccount != null && xrplAccount[EntityMetaKey.Selector] != null}
 						<div>

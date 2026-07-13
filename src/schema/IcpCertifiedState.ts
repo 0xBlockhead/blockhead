@@ -9,8 +9,10 @@ export enum IcpCertifiedStateSelector {
 }
 export const IcpCertifiedState = entity({
 	entityType: EntityType.IcpCertifiedState,
-	label: 'icp certified state',
-	labelPlural: 'icp certified states',
+	labels: {
+		singular: 'icp certified state',
+		plural: 'icp certified states',
+	},
 })({
 	$canister: {
 		label: 'canister',

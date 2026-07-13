@@ -23,7 +23,7 @@
 
 <Page>
 	<NetworksView
-		href={resolve('/(explore)/networks')}
+		href={resolve('/networks')}
 		title='Networks'
 		selection={
 			select(EntityType._Global, {

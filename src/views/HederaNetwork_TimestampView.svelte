@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestConsensusTimestamp = prefetched.latestConsensusTimestamp}
+					{@const latestConsensusTimestamp = pendingEntity.latestConsensusTimestamp}
 					{#if latestConsensusTimestamp !== undefined && latestConsensusTimestamp !== null}
 						<div>
 							<dt>latest consensus timestamp</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestBlockNumber = prefetched.latestBlockNumber}
+					{@const latestBlockNumber = pendingEntity.latestBlockNumber}
 					{#if latestBlockNumber !== undefined && latestBlockNumber !== null}
 						<div>
 							<dt>latest block number</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestTransactionCount = prefetched.latestTransactionCount}
+					{@const latestTransactionCount = pendingEntity.latestTransactionCount}
 					{#if latestTransactionCount !== undefined && latestTransactionCount !== null}
 						<div>
 							<dt>latest transaction count</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountCount = prefetched.accountCount}
+					{@const accountCount = pendingEntity.accountCount}
 					{#if accountCount !== undefined && accountCount !== null}
 						<div>
 							<dt>account count</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenCount = prefetched.tokenCount}
+					{@const tokenCount = pendingEntity.tokenCount}
 					{#if tokenCount !== undefined && tokenCount !== null}
 						<div>
 							<dt>token count</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const topicCount = prefetched.topicCount}
+					{@const topicCount = pendingEntity.topicCount}
 					{#if topicCount !== undefined && topicCount !== null}
 						<div>
 							<dt>topic count</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractCount = prefetched.contractCount}
+					{@const contractCount = pendingEntity.contractCount}
 					{#if contractCount !== undefined && contractCount !== null}
 						<div>
 							<dt>contract count</dt>
@@ -404,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mirrorNodeLagMs = prefetched.mirrorNodeLagMs}
+					{@const mirrorNodeLagMs = pendingEntity.mirrorNodeLagMs}
 					{#if mirrorNodeLagMs !== undefined && mirrorNodeLagMs !== null}
 						<div>
 							<dt>mirror node lag ms</dt>

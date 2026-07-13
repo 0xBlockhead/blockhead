@@ -9,8 +9,10 @@ export enum RegulatedAssetProfileSelector {
 }
 export const RegulatedAssetProfile = entity({
 	entityType: EntityType.RegulatedAssetProfile,
-	label: 'regulated asset profile',
-	labelPlural: 'regulated asset profiles',
+	labels: {
+		singular: 'regulated asset profile',
+		plural: 'regulated asset profiles',
+	},
 })({
 	$assetInstance: {
 		label: 'asset instance',

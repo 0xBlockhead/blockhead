@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalFarcasterNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -140,7 +140,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -172,7 +172,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -201,7 +201,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feedVariant = prefetched.feedVariant}
+					{@const feedVariant = pendingEntity.feedVariant}
 					{#if feedVariant !== undefined && feedVariant !== null}
 						<div>
 							<dt>feed variant</dt>
@@ -236,7 +236,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fid = prefetched.fid}
+					{@const fid = pendingEntity.fid}
 					{#if fid !== undefined && fid !== null}
 						<div>
 							<dt>FID</dt>
@@ -271,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const channelId = prefetched.channelId}
+					{@const channelId = pendingEntity.channelId}
 					{#if channelId !== undefined && channelId !== null}
 						<div>
 							<dt>channel ID</dt>
@@ -306,7 +306,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const viewerFid = prefetched.viewerFid}
+					{@const viewerFid = pendingEntity.viewerFid}
 					{#if viewerFid !== undefined && viewerFid !== null}
 						<div>
 							<dt>viewer FID</dt>
@@ -343,7 +343,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedCastCount = prefetched.observedCastCount}
+					{@const observedCastCount = pendingEntity.observedCastCount}
 					{#if observedCastCount !== undefined && observedCastCount !== null}
 						<div>
 							<dt>observed cast count</dt>
@@ -378,7 +378,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedUserCount = prefetched.observedUserCount}
+					{@const observedUserCount = pendingEntity.observedUserCount}
 					{#if observedUserCount !== undefined && observedUserCount !== null}
 						<div>
 							<dt>observed user count</dt>
@@ -413,7 +413,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedChannelCount = prefetched.observedChannelCount}
+					{@const observedChannelCount = pendingEntity.observedChannelCount}
 					{#if observedChannelCount !== undefined && observedChannelCount !== null}
 						<div>
 							<dt>observed channel count</dt>
@@ -450,7 +450,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededFeedVariantCount = prefetched.seededFeedVariantCount}
+					{@const seededFeedVariantCount = pendingEntity.seededFeedVariantCount}
 					{#if seededFeedVariantCount !== undefined && seededFeedVariantCount !== null}
 						<div>
 							<dt>seeded feed variant count</dt>
@@ -485,7 +485,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededChannelCount = prefetched.seededChannelCount}
+					{@const seededChannelCount = pendingEntity.seededChannelCount}
 					{#if seededChannelCount !== undefined && seededChannelCount !== null}
 						<div>
 							<dt>seeded channel count</dt>
@@ -522,7 +522,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hubHost = prefetched.hubHost}
+					{@const hubHost = pendingEntity.hubHost}
 					{#if hubHost !== undefined && hubHost !== null}
 						<div>
 							<dt>hub host</dt>
@@ -557,7 +557,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const snapchainHost = prefetched.snapchainHost}
+					{@const snapchainHost = pendingEntity.snapchainHost}
 					{#if snapchainHost !== undefined && snapchainHost !== null}
 						<div>
 							<dt>snapchain host</dt>
@@ -594,7 +594,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>
@@ -629,7 +629,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cursor = prefetched.cursor}
+					{@const cursor = pendingEntity.cursor}
 					{#if cursor !== undefined && cursor !== null}
 						<div>
 							<dt>cursor</dt>

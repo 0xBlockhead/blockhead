@@ -9,8 +9,10 @@ export enum IcpLedgerAccount_TimestampSelector {
 }
 export const IcpLedgerAccount_Timestamp = entity({
 	entityType: EntityType.IcpLedgerAccount_Timestamp,
-	label: 'icp ledger account timestamp',
-	labelPlural: 'icp ledger account observations',
+	labels: {
+		singular: 'icp ledger account timestamp',
+		plural: 'icp ledger account observations',
+	},
 })({
 	$ledger: {
 		label: 'ledger',

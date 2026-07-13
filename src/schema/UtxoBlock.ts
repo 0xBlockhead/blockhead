@@ -10,8 +10,10 @@ export enum UtxoBlockSelector {
 }
 export const UtxoBlock = entity({
 	entityType: EntityType.UtxoBlock,
-	label: 'UTXO block',
-	labelPlural: 'UTXO blocks',
+	labels: {
+		singular: 'UTXO block',
+		plural: 'UTXO blocks',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -23,7 +25,7 @@ export const UtxoBlock = entity({
 		label: 'Height',
 		description: 'The block or ledger height in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {

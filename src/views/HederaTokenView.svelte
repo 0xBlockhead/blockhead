@@ -47,8 +47,13 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HederaNetworkView from '$/views/HederaNetworkView.svelte'
+	import HederaTokenAssociationsView from '$/views/HederaTokenAssociationsView.svelte'
+	import HederaNftsView from '$/views/HederaNftsView.svelte'
+	import HederaToken_TimestampsView from '$/views/HederaToken_TimestampsView.svelte'
 </script>
 
 
@@ -101,7 +106,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tokenId = selection.entitySelector.tokenId ?? prefetched.tokenId}
+							{@const tokenId = pendingEntity.tokenId}
 							{#if tokenId !== undefined && tokenId !== null}
 								{String((tokenId) ?? '')}
 							{/if}
@@ -131,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tokenType = prefetched.tokenType}
+							{@const tokenType = pendingEntity.tokenType}
 							{#if tokenType !== undefined && tokenType !== null}
 								{String((tokenType) ?? '')}
 							{/if}
@@ -158,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supplyType = prefetched.supplyType}
+					{@const supplyType = pendingEntity.supplyType}
 					{#if supplyType !== undefined && supplyType !== null}
 						<div>
 							<dt>supply type</dt>
@@ -193,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -218,5 +223,96 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-token-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-token-associations',
+							label: 'Associations',
+						},
+						{
+							id: 'hedera-token-nfts',
+							label: 'Nfts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaTokenAssociations({ id, label, open })}
+					<HederaTokenAssociationsView
+						selection={selection.$$associations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No associations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHederaTokenNfts({ id, label, open })}
+					<HederaNftsView
+						selection={selection.$$nfts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No nfts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-token-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-token-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaTokenTimestamps({ id, label, open })}
+					<HederaToken_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

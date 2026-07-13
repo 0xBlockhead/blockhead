@@ -16,7 +16,7 @@ export const getContents = (): Promise<CosmosAdrsGithubContents> => (
 	getGithubContents({
 		endpoints: cosmosAdrsBindings[0].endpoints,
 		target: cosmosAdrsGithubRepo,
-	}) as Promise<CosmosAdrsGithubContents>
+	})
 )
 
 export const getMarkdownText = ({ number }: { number: number }) => (

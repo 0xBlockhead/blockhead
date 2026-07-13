@@ -10,8 +10,10 @@ export enum NearAccountSelector {
 }
 export const NearAccount = entity({
 	entityType: EntityType.NearAccount,
-	label: 'near account',
-	labelPlural: 'near accounts',
+	labels: {
+		singular: 'near account',
+		plural: 'near accounts',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subnetKind = prefetched.subnetKind}
+					{@const subnetKind = pendingEntity.subnetKind}
 					{#if subnetKind !== undefined && subnetKind !== null}
 						<div>
 							<dt>subnet kind</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publicKey = prefetched.publicKey}
+					{@const publicKey = pendingEntity.publicKey}
 					{#if publicKey !== undefined && publicKey !== null}
 						<div>
 							<dt>public key</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeCount = prefetched.nodeCount}
+					{@const nodeCount = pendingEntity.nodeCount}
 					{#if nodeCount !== undefined && nodeCount !== null}
 						<div>
 							<dt>node count</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canisterCount = prefetched.canisterCount}
+					{@const canisterCount = pendingEntity.canisterCount}
 					{#if canisterCount !== undefined && canisterCount !== null}
 						<div>
 							<dt>canister count</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const replicaVersion = prefetched.replicaVersion}
+					{@const replicaVersion = pendingEntity.replicaVersion}
 					{#if replicaVersion !== undefined && replicaVersion !== null}
 						<div>
 							<dt>replica version</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stateRootHash = prefetched.stateRootHash}
+					{@const stateRootHash = pendingEntity.stateRootHash}
 					{#if stateRootHash !== undefined && stateRootHash !== null}
 						<div>
 							<dt>state root hash</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const certifiedHeight = prefetched.certifiedHeight}
+					{@const certifiedHeight = pendingEntity.certifiedHeight}
 					{#if certifiedHeight !== undefined && certifiedHeight !== null}
 						<div>
 							<dt>certified height</dt>

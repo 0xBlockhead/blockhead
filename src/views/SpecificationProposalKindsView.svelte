@@ -126,7 +126,7 @@
 						selection={select(EntityType.SpecificationProposalKind, specificationProposalKind[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={specificationProposalKindFields}
 						href={
-							(specificationProposalKindHrefFields.realm !== undefined && specificationProposalKindHrefFields.category !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
+							(specificationProposalKindHrefFields.realm !== undefined && specificationProposalKindHrefFields.category !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
 								specificationRealmSlug: String(specificationRealmById[String(specificationProposalKindHrefFields.realm)].slug ?? ''),
 								proposalKindSlug: String(proposalCategoryById[String(specificationProposalKindHrefFields.category)].slug ?? ''),
 							}) : undefined)
@@ -219,7 +219,7 @@
 											category: kind.entitySelector.category,
 										}
 									)}
-									href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
+													href={resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
 										specificationRealmSlug: String(specificationRealmById[String(kind.entitySelector.realm)].slug),
 										proposalKindSlug: String(proposalCategoryById[String(kind.entitySelector.category)].slug),
 									})}

@@ -9,8 +9,10 @@ export enum CodexDatasetSelector {
 }
 export const CodexDataset = entity({
 	entityType: EntityType.CodexDataset,
-	label: 'codex dataset',
-	labelPlural: 'codex datasets',
+	labels: {
+		singular: 'codex dataset',
+		plural: 'codex datasets',
+	},
 })({
 	cid: {
 		label: 'CID',

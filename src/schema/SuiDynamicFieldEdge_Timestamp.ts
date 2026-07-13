@@ -9,8 +9,10 @@ export enum SuiDynamicFieldEdge_TimestampSelector {
 }
 export const SuiDynamicFieldEdge_Timestamp = entity({
 	entityType: EntityType.SuiDynamicFieldEdge_Timestamp,
-	label: 'sui dynamic field edge timestamp',
-	labelPlural: 'sui dynamic field edge observations',
+	labels: {
+		singular: 'sui dynamic field edge timestamp',
+		plural: 'sui dynamic field edge observations',
+	},
 })({
 	$edge: {
 		label: 'edge',

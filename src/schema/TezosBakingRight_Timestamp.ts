@@ -9,8 +9,10 @@ export enum TezosBakingRight_TimestampSelector {
 }
 export const TezosBakingRight_Timestamp = entity({
 	entityType: EntityType.TezosBakingRight_Timestamp,
-	label: 'tezos baking right timestamp',
-	labelPlural: 'tezos baking right observations',
+	labels: {
+		singular: 'tezos baking right timestamp',
+		plural: 'tezos baking right observations',
+	},
 })({
 	$right: {
 		label: 'right',

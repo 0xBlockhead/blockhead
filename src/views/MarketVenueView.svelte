@@ -48,7 +48,7 @@
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.marketVenueId ?? prefetched.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue')
 	const viewDomId = $derived('market-venue-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={marketVenue}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.marketVenueId ?? prefetched.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const marketVenueId = selection.entitySelector.marketVenueId ?? prefetched.marketVenueId}
+							{@const marketVenueId = pendingEntity.marketVenueId}
 							{#if marketVenueId !== undefined && marketVenueId !== null}
 								{String((marketVenueId) ?? '')}
 							{/if}
@@ -124,9 +124,15 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<MarketsView
-				selection={selection.$$markets}
+				selection={
+						selection.$$markets({
+							sources: [
+								Source.Constants_Internal,
+							],
+						})
+					}
 				title='Markets'
-				href={resolve('/(assets)/markets')}
+				href={resolve('/markets')}
 				id='MarketsView-markets'
 			/>
 		{/if}

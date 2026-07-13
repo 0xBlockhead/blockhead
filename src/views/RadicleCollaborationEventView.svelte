@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventId = selection.entitySelector.eventId ?? prefetched.eventId}
+							{@const eventId = pendingEntity.eventId}
 							{#if eventId !== undefined && eventId !== null}
 								{String((eventId) ?? '')}
 							{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventKind = prefetched.eventKind}
+							{@const eventKind = pendingEntity.eventKind}
 							{#if eventKind !== undefined && eventKind !== null}
 								{String((eventKind) ?? '')}
 							{/if}
@@ -161,7 +161,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorDid = prefetched.authorDid}
+					{@const authorDid = pendingEntity.authorDid}
 					{#if authorDid !== undefined && authorDid !== null}
 						<div>
 							<dt>author DID</dt>
@@ -196,7 +196,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadHash = prefetched.payloadHash}
+					{@const payloadHash = pendingEntity.payloadHash}
 					{#if payloadHash !== undefined && payloadHash !== null}
 						<div>
 							<dt>payload hash</dt>
@@ -231,7 +231,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadObjectId = prefetched.payloadObjectId}
+					{@const payloadObjectId = pendingEntity.payloadObjectId}
 					{#if payloadObjectId !== undefined && payloadObjectId !== null}
 						<div>
 							<dt>payload object ID</dt>
@@ -266,7 +266,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -294,6 +294,8 @@
 			<ResourceBoundary
 				resource={selection.$gitCommit}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitCommit)}
 					{#if gitCommit != null && gitCommit[EntityMetaKey.Selector] != null}
 						<div>
@@ -314,6 +316,8 @@
 			<ResourceBoundary
 				resource={selection.$payloadObject}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>
@@ -344,7 +348,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const verificationStatus = prefetched.verificationStatus}
+							{@const verificationStatus = pendingEntity.verificationStatus}
 							{#if verificationStatus !== undefined && verificationStatus !== null}
 								{String((verificationStatus) ?? '')}
 							{/if}

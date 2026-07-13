@@ -10,8 +10,10 @@ export enum NearNetworkSelector {
 }
 export const NearNetwork = entity({
 	entityType: EntityType.NearNetwork,
-	label: 'near network',
-	labelPlural: 'near networks',
+	labels: {
+		singular: 'near network',
+		plural: 'near networks',
+	},
 	description: 'NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from declared NEAR sources.',
 })({
 	slug: {

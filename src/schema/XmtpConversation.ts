@@ -14,8 +14,10 @@ export enum XmtpConversationSelector {
 }
 export const XmtpConversation = entity({
 	entityType: EntityType.XmtpConversation,
-	label: 'XMTP conversation',
-	labelPlural: 'XMTP conversations',
+	labels: {
+		singular: 'XMTP conversation',
+		plural: 'XMTP conversations',
+	},
 })({
 	id: {
 		label: 'ID',

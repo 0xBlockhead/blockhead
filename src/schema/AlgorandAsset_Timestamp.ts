@@ -11,8 +11,10 @@ export enum AlgorandAsset_TimestampSelector {
 }
 export const AlgorandAsset_Timestamp = entity({
 	entityType: EntityType.AlgorandAsset_Timestamp,
-	label: 'algorand asset timestamp',
-	labelPlural: 'algorand asset observations',
+	labels: {
+		singular: 'algorand asset timestamp',
+		plural: 'algorand asset observations',
+	},
 })({
 	$asset: {
 		label: 'asset',

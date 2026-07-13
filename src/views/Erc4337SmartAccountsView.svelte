@@ -118,8 +118,8 @@
 						selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={erc4337SmartAccountFields}
 						href={
-							(erc4337SmartAccountHrefFields.$network !== undefined && erc4337SmartAccountHrefFields.$network.caip2 !== undefined && erc4337SmartAccountHrefFields.$network.caip2.namespace !== undefined && erc4337SmartAccountHrefFields.$network !== undefined && erc4337SmartAccountHrefFields.$network.caip2 !== undefined && erc4337SmartAccountHrefFields.$network.caip2.reference !== undefined && erc4337SmartAccountHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]', {
-								caip2: `${String(erc4337SmartAccountHrefFields.$network.caip2.namespace ?? '')}:${String(erc4337SmartAccountHrefFields.$network.caip2.reference ?? '')}`,
+							(erc4337SmartAccountHrefFields.$network !== undefined && erc4337SmartAccountHrefFields.$network.slug !== undefined && erc4337SmartAccountHrefFields.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
+								network: String(erc4337SmartAccountHrefFields.$network.slug ?? ''),
 								address: String(erc4337SmartAccountHrefFields.address ?? ''),
 							}) : undefined)
 						}

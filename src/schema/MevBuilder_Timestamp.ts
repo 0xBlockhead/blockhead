@@ -9,8 +9,10 @@ export enum MevBuilder_TimestampSelector {
 }
 export const MevBuilder_Timestamp = entity({
 	entityType: EntityType.MevBuilder_Timestamp,
-	label: 'MEV builder timestamp',
-	labelPlural: 'MEV builder observations',
+	labels: {
+		singular: 'MEV builder timestamp',
+		plural: 'MEV builder observations',
+	},
 })({
 	$builder: {
 		label: 'Builder',
@@ -22,7 +24,7 @@ export const MevBuilder_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

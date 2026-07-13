@@ -58,7 +58,7 @@
 			$profileBanner: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? ''), String((prefetched.username) ?? ''), String((prefetched.id) ?? '')].filter(Boolean).join(' ') || 'X user')
+	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'X user')
 	const viewDomId = $derived('xuser-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -105,7 +105,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={xUser}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? ''), String((prefetched.username) ?? ''), String((prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
+				{[String((pendingEntity.name) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -118,7 +118,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={xUser}>
 			{#snippet Pending()}
-				{[(String((prefetched.username) ?? '') ? '@' + String((prefetched.username) ?? '') : ''), String((prefetched.id) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((prefetched.username) ?? ''), String((prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
+				{[(String((pendingEntity.username) ?? '') ? '@' + String((pendingEntity.username) ?? '') : ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -131,7 +131,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={xUser}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -166,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const username = prefetched.username}
+							{@const username = pendingEntity.username}
 							{#if username !== undefined && username !== null}
 								<span>@</span>
 								{String((username) ?? '')}
@@ -197,7 +197,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verified = prefetched.verified}
+					{@const verified = pendingEntity.verified}
 					{#if verified !== undefined && verified !== null}
 						<div>
 							<dt>Verified</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const location = prefetched.location}
+					{@const location = pendingEntity.location}
 					{#if location !== undefined && location !== null}
 						<div>
 							<dt>Location</dt>
@@ -271,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const websiteUrl = prefetched.websiteUrl}
+					{@const websiteUrl = pendingEntity.websiteUrl}
 					{#if websiteUrl !== undefined && websiteUrl !== null}
 						<div>
 							<dt>Website URL</dt>
@@ -322,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>

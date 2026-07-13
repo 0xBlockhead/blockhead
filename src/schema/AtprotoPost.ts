@@ -10,8 +10,10 @@ export enum AtprotoPostSelector {
 }
 export const AtprotoPost = entity({
 	entityType: EntityType.AtprotoPost,
-	label: 'AT Protocol post',
-	labelPlural: 'AT Protocol posts',
+	labels: {
+		singular: 'AT Protocol post',
+		plural: 'AT Protocol posts',
+	},
 	description: 'A Bluesky feed post record addressed by an at-URI inside an actor repository. Text, author, reply edges, labels, languages, and engagement counts resolve through appview sources.',
 })({
 	uri: {

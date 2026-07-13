@@ -9,8 +9,10 @@ export enum LeverageSelector {
 }
 export const Leverage = entity({
 	entityType: EntityType.Leverage,
-	label: 'leverage',
-	labelPlural: 'leverages',
+	labels: {
+		singular: 'leverage',
+		plural: 'leverages',
+	},
 })({
 	$network: {
 		label: 'Network',

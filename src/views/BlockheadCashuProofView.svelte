@@ -47,7 +47,7 @@
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.secretHash ?? prefetched.secretHash) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu proof')
+	const titleFallback = $derived([String((pendingEntity.secretHash) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu proof')
 	const viewDomId = $derived('blockhead-cashu-proof-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadCashuProof}>
 			{#snippet Pending()}
-				{@const secretHash0 = selection.entitySelector.secretHash ?? prefetched.secretHash}
+				{@const secretHash0 = pendingEntity.secretHash}
 				{#if secretHash0 !== undefined && secretHash0 !== null}
 					<TruncatedValue value={String((secretHash0) ?? '')} />
 				{/if}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuProof}>
 			{#snippet Pending()}
-				{[String((prefetched.amount) ?? ''), String((prefetched.unit) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.secretHash ?? prefetched.secretHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu proof'}
+				{[String((pendingEntity.amount) ?? ''), String((pendingEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.secretHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu proof'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -119,7 +119,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const walletId = selection.entitySelector.walletId ?? prefetched.walletId}
+							{@const walletId = pendingEntity.walletId}
 							{#if walletId !== undefined && walletId !== null}
 								{String((walletId) ?? '')}
 							{/if}
@@ -143,7 +143,7 @@
 						resource={selection.$mint}
 					>
 						{#snippet children(cashuMint)}
-							{#if cashuMint[EntityMetaKey.Selector] != null}
+							{#if cashuMint != null && cashuMint[EntityMetaKey.Selector] != null}
 								<CashuMintView
 									selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 									prefetched={cashuMint}
@@ -169,7 +169,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const mintUrl = selection.entitySelector.mintUrl ?? prefetched.mintUrl}
+							{@const mintUrl = pendingEntity.mintUrl}
 							{#if mintUrl !== undefined && mintUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -203,6 +203,8 @@
 			<ResourceBoundary
 				resource={selection.$keyset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cashuKeyset)}
 					{#if cashuKeyset != null && cashuKeyset[EntityMetaKey.Selector] != null}
 						<div>
@@ -233,7 +235,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const keysetId = selection.entitySelector.keysetId ?? prefetched.keysetId}
+							{@const keysetId = pendingEntity.keysetId}
 							{#if keysetId !== undefined && keysetId !== null}
 								{String((keysetId) ?? '')}
 							{/if}
@@ -263,7 +265,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const secretHash = selection.entitySelector.secretHash ?? prefetched.secretHash}
+							{@const secretHash = pendingEntity.secretHash}
 							{#if secretHash !== undefined && secretHash !== null}
 								<TruncatedValue value={String((secretHash) ?? '')} />
 							{/if}
@@ -295,7 +297,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const amount = prefetched.amount}
+							{@const amount = pendingEntity.amount}
 							{#if amount !== undefined && amount !== null}
 								<NumberValue value={Number(amount)} />
 							{/if}
@@ -325,7 +327,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const unit = prefetched.unit}
+							{@const unit = pendingEntity.unit}
 							{#if unit !== undefined && unit !== null}
 								{String((unit) ?? '')}
 							{/if}
@@ -352,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signature = prefetched.signature}
+					{@const signature = pendingEntity.signature}
 					{#if signature !== undefined && signature !== null}
 						<div>
 							<dt>signature</dt>
@@ -387,7 +389,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dleqJson = prefetched.dleqJson}
+					{@const dleqJson = pendingEntity.dleqJson}
 					{#if dleqJson !== undefined && dleqJson !== null}
 						<div>
 							<dt>dleq JSON</dt>
@@ -424,7 +426,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const receivedAt = prefetched.receivedAt}
+					{@const receivedAt = pendingEntity.receivedAt}
 					{#if receivedAt !== undefined && receivedAt !== null}
 						<div>
 							<dt>received AT</dt>
@@ -459,7 +461,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceTokenId = prefetched.sourceTokenId}
+					{@const sourceTokenId = pendingEntity.sourceTokenId}
 					{#if sourceTokenId !== undefined && sourceTokenId !== null}
 						<div>
 							<dt>source token ID</dt>

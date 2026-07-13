@@ -10,8 +10,10 @@ export enum BlockheadLightningPayment_TimestampSelector {
 }
 export const BlockheadLightningPayment_Timestamp = entity({
 	entityType: EntityType.BlockheadLightningPayment_Timestamp,
-	label: 'Lightning payment timestamp',
-	labelPlural: 'Lightning payment observations',
+	labels: {
+		singular: 'Lightning payment timestamp',
+		plural: 'Lightning payment observations',
+	},
 })({
 	$payment: {
 		label: 'Payment',

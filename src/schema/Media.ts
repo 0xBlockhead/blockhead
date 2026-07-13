@@ -22,8 +22,10 @@ export enum MediaSelector {
 }
 export const Media = entity({
 	entityType: EntityType.Media,
-	label: 'Media',
-	labelPlural: 'media',
+	labels: {
+		singular: 'Media',
+		plural: 'media',
+	},
 })({
 	url: {
 		label: 'URL',

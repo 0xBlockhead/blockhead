@@ -9,8 +9,10 @@ export enum CelestiaNamespaceSelector {
 }
 export const CelestiaNamespace = entity({
 	entityType: EntityType.CelestiaNamespace,
-	label: 'celestia namespace',
-	labelPlural: 'celestia namespaces',
+	labels: {
+		singular: 'celestia namespace',
+		plural: 'celestia namespaces',
+	},
 })({
 	$network: {
 		label: 'network',

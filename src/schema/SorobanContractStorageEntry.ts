@@ -9,8 +9,10 @@ export enum SorobanContractStorageEntrySelector {
 }
 export const SorobanContractStorageEntry = entity({
 	entityType: EntityType.SorobanContractStorageEntry,
-	label: 'soroban contract storage entry',
-	labelPlural: 'soroban contract storage entries',
+	labels: {
+		singular: 'soroban contract storage entry',
+		plural: 'soroban contract storage entries',
+	},
 })({
 	$contract: {
 		label: 'contract',

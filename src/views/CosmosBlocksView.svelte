@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -70,7 +69,6 @@
 					height: true,
 					hash: true,
 					transactionCount: true,
-					$network: true,
 				},
 			})
 		}
@@ -115,16 +113,9 @@
 
 				{#snippet Item({ item: cosmosBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosBlock> })}
 					{@const cosmosBlockFields = { ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }}
-					{@const cosmosBlockHrefFields = { ...cosmosBlock, ...cosmosBlock[EntityMetaKey.Selector] }}
 					<CosmosBlockView
 						selection={select(EntityType.CosmosBlock, cosmosBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosBlockFields}
-						href={
-							(cosmosBlockHrefFields.$network !== undefined && cosmosBlockHrefFields.$network.caip2 !== undefined && cosmosBlockHrefFields.$network.caip2.namespace !== undefined && cosmosBlockHrefFields.$network !== undefined && cosmosBlockHrefFields.$network.caip2 !== undefined && cosmosBlockHrefFields.$network.caip2.reference !== undefined && cosmosBlockHrefFields.height !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/block/[height=nonNegativeInteger]', {
-								caip2: `${String(cosmosBlockHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosBlockHrefFields.$network.caip2.reference ?? '')}`,
-								height: String(cosmosBlockHrefFields.height ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

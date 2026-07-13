@@ -9,8 +9,10 @@ export enum BlockheadBitTorrentClientState_TimestampSelector {
 }
 export const BlockheadBitTorrentClientState_Timestamp = entity({
 	entityType: EntityType.BlockheadBitTorrentClientState_Timestamp,
-	label: 'blockhead bit torrent client state timestamp',
-	labelPlural: 'blockhead bit torrent client state observations',
+	labels: {
+		singular: 'blockhead bit torrent client state timestamp',
+		plural: 'blockhead bit torrent client state observations',
+	},
 })({
 	$clientState: {
 		label: 'client state',

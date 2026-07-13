@@ -10,8 +10,10 @@ export enum MevRelay_ProposerPayloadDeliveredSelector {
 }
 export const MevRelay_ProposerPayloadDelivered = entity({
 	entityType: EntityType.MevRelay_ProposerPayloadDelivered,
-	label: 'MEV relay proposer payload delivered',
-	labelPlural: 'MEV relay proposer payloads delivered',
+	labels: {
+		singular: 'MEV relay proposer payload delivered',
+		plural: 'MEV relay proposer payloads delivered',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -28,7 +30,7 @@ export const MevRelay_ProposerPayloadDelivered = entity({
 	slot: {
 		label: 'Slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHash: {

@@ -52,7 +52,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((selection.entitySelector.uriTemplate ?? prefetched.uriTemplate) ?? '')].filter(Boolean).join(' ') || 'mcp resource template')
+	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.uriTemplate) ?? '')].filter(Boolean).join(' ') || 'mcp resource template')
 	const viewDomId = $derived('mcp-resource-template-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpResourceTemplate}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? ''), String((selection.entitySelector.uriTemplate ?? prefetched.uriTemplate) ?? '')].filter(Boolean).join(' ') || 'mcp resource template'}
+				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? ''), String((pendingEntity.uriTemplate) ?? '')].filter(Boolean).join(' ') || 'mcp resource template'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mcpResourceTemplate}>
 			{#snippet Pending()}
-				{[String((prefetched.mimeType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? ''), String((selection.entitySelector.uriTemplate ?? prefetched.uriTemplate) ?? '')].filter(Boolean).join(' ') || 'mcp resource template'}
+				{[String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? ''), String((pendingEntity.uriTemplate) ?? '')].filter(Boolean).join(' ') || 'mcp resource template'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -125,7 +125,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const uriTemplate = selection.entitySelector.uriTemplate ?? prefetched.uriTemplate}
+							{@const uriTemplate = pendingEntity.uriTemplate}
 							{#if uriTemplate !== undefined && uriTemplate !== null}
 								<svelte:element
 									this={'a'}
@@ -166,7 +166,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -201,7 +201,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const title = prefetched.title}
+					{@const title = pendingEntity.title}
 					{#if title !== undefined && title !== null}
 						<div>
 							<dt>title</dt>
@@ -236,7 +236,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -271,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mimeType = prefetched.mimeType}
+					{@const mimeType = pendingEntity.mimeType}
 					{#if mimeType !== undefined && mimeType !== null}
 						<div>
 							<dt>mime type</dt>

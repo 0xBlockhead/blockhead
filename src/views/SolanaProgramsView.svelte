@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -120,8 +119,8 @@
 						selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaProgramFields}
 						href={
-							(solanaProgramHrefFields.$network !== undefined && solanaProgramHrefFields.$network.caip2 !== undefined && solanaProgramHrefFields.$network.caip2.namespace !== undefined && solanaProgramHrefFields.$network !== undefined && solanaProgramHrefFields.$network.caip2 !== undefined && solanaProgramHrefFields.$network.caip2.reference !== undefined && solanaProgramHrefFields.programId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/program/[programId]', {
-								networkSlug: String(networkByCaip2[String(String(solanaProgramHrefFields.$network.caip2.namespace) + ':' + String(solanaProgramHrefFields.$network.caip2.reference))].slug ?? ''),
+							(solanaProgramHrefFields.$network !== undefined && solanaProgramHrefFields.$network.slug !== undefined && solanaProgramHrefFields.programId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
+								network: String(solanaProgramHrefFields.$network.slug ?? ''),
 								programId: String(solanaProgramHrefFields.programId ?? ''),
 							}) : undefined)
 						}

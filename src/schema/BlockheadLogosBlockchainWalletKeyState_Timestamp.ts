@@ -10,8 +10,10 @@ export enum BlockheadLogosBlockchainWalletKeyState_TimestampSelector {
 }
 export const BlockheadLogosBlockchainWalletKeyState_Timestamp = entity({
 	entityType: EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp,
-	label: 'blockhead Logos blockchain wallet key state timestamp',
-	labelPlural: 'blockhead Logos blockchain wallet key state observations',
+	labels: {
+		singular: 'blockhead Logos blockchain wallet key state timestamp',
+		plural: 'blockhead Logos blockchain wallet key state observations',
+	},
 })({
 	$walletKeyState: {
 		label: 'wallet key state',

@@ -53,7 +53,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.text) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.uri ?? prefetched.uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post')
+	const titleFallback = $derived([String((pendingEntity.text) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post')
 	const viewDomId = $derived('atproto-post-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,8 +74,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-			uri: encodeURIComponent(String(pendingEntity.uri ?? '')),
+		href ?? (pendingEntity.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
+			uri: String(pendingEntity.uri ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -85,7 +85,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={atprotoPost}>
 			{#snippet Pending()}
-				{@const text0 = prefetched.text}
+				{@const text0 = pendingEntity.text}
 				{#if text0 !== undefined && text0 !== null}
 					<span data-text="long-text">{String((text0) ?? '')}</span>
 				{/if}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={atprotoPost}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const uri = selection.entitySelector.uri ?? prefetched.uri}
+							{@const uri = pendingEntity.uri}
 							{#if uri !== undefined && uri !== null}
 								<TruncatedValue value={String((uri) ?? '')} />
 							{/if}
@@ -166,6 +166,8 @@
 				<ResourceBoundary
 					resource={selection.$author}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(atprotoActor)}
 						{#if atprotoActor != null && atprotoActor[EntityMetaKey.Selector] != null}
 							<div>
@@ -175,8 +177,8 @@
 										selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector])}
 										prefetched={atprotoActor}
 										href={
-											(atprotoActor[EntityMetaKey.Selector].did !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]', {
-												did: encodeURIComponent(String(atprotoActor[EntityMetaKey.Selector].did ?? '')),
+											(atprotoActor[EntityMetaKey.Selector].did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
+												did: String(atprotoActor[EntityMetaKey.Selector].did ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}
@@ -193,6 +195,8 @@
 				<ResourceBoundary
 					resource={selection.$parent}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(atprotoPost)}
 						{#if atprotoPost != null && atprotoPost[EntityMetaKey.Selector] != null}
 							<div>
@@ -202,8 +206,8 @@
 										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
 										prefetched={atprotoPost}
 										href={
-											(atprotoPost[EntityMetaKey.Selector].uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-												uri: encodeURIComponent(String(atprotoPost[EntityMetaKey.Selector].uri ?? '')),
+											(atprotoPost[EntityMetaKey.Selector].uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
+												uri: String(atprotoPost[EntityMetaKey.Selector].uri ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}
@@ -220,6 +224,8 @@
 				<ResourceBoundary
 					resource={selection.$root}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(atprotoPost)}
 						{#if atprotoPost != null && atprotoPost[EntityMetaKey.Selector] != null}
 							<div>
@@ -229,8 +235,8 @@
 										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
 										prefetched={atprotoPost}
 										href={
-											(atprotoPost[EntityMetaKey.Selector].uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-												uri: encodeURIComponent(String(atprotoPost[EntityMetaKey.Selector].uri ?? '')),
+											(atprotoPost[EntityMetaKey.Selector].uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
+												uri: String(atprotoPost[EntityMetaKey.Selector].uri ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}
@@ -254,7 +260,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const createdAt = prefetched.createdAt}
+						{@const createdAt = pendingEntity.createdAt}
 						{#if createdAt !== undefined && createdAt !== null}
 							<div>
 								<dt>Created</dt>
@@ -291,7 +297,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const indexedAt = prefetched.indexedAt}
+						{@const indexedAt = pendingEntity.indexedAt}
 						{#if indexedAt !== undefined && indexedAt !== null}
 							<div>
 								<dt>Indexed</dt>
@@ -328,7 +334,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const langs = prefetched.langs}
+						{@const langs = pendingEntity.langs}
 						{#if langs !== undefined && langs !== null}
 							<div>
 								<dt>Languages</dt>
@@ -365,7 +371,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const selfLabelValues = prefetched.selfLabelValues}
+						{@const selfLabelValues = pendingEntity.selfLabelValues}
 						{#if selfLabelValues !== undefined && selfLabelValues !== null}
 							<div>
 								<dt>Self labels</dt>
@@ -422,7 +428,7 @@
 						})
 					}
 				title='Thread posts'
-				href={resolve('/(social)/(atproto)/atproto/posts')}
+				href={resolve('/atproto/posts')}
 				id='AtprotoPostsView-thread'
 			/>
 

@@ -9,8 +9,10 @@ export enum XUser_TimestampSelector {
 }
 export const XUser_Timestamp = entity({
 	entityType: EntityType.XUser_Timestamp,
-	label: 'X user observation',
-	labelPlural: 'X user observations',
+	labels: {
+		singular: 'X user observation',
+		plural: 'X user observations',
+	},
 })({
 	$user: {
 		label: 'User',
@@ -21,7 +23,7 @@ export const XUser_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	followerCount: {

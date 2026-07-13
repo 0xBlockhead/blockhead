@@ -48,7 +48,7 @@
 			targetObjectId: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.refName ?? prefetched.refName) ?? '')].filter(Boolean).join(' ') || 'Git ref')
+	const titleFallback = $derived([String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || 'Git ref')
 	const viewDomId = $derived('git-ref-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitRef}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.refName ?? prefetched.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref'}
+				{[String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRef}>
 			{#snippet Pending()}
-				{[String((prefetched.refKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.refName ?? prefetched.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref'}
+				{[String((pendingEntity.refKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,7 +99,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitRef}>
 			{#snippet Pending()}
-				{@const targetObjectId0 = prefetched.targetObjectId}
+				{@const targetObjectId0 = pendingEntity.targetObjectId}
 				{#if targetObjectId0 !== undefined && targetObjectId0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((targetObjectId0) ?? '')} />
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const refName = selection.entitySelector.refName ?? prefetched.refName}
+							{@const refName = pendingEntity.refName}
 							{#if refName !== undefined && refName !== null}
 								{String((refName) ?? '')}
 							{/if}
@@ -175,7 +175,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const refKind = prefetched.refKind}
+							{@const refKind = pendingEntity.refKind}
 							{#if refKind !== undefined && refKind !== null}
 								{String((refKind) ?? '')}
 							{/if}
@@ -202,7 +202,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetObjectId = prefetched.targetObjectId}
+					{@const targetObjectId = pendingEntity.targetObjectId}
 					{#if targetObjectId !== undefined && targetObjectId !== null}
 						<div>
 							<dt>target object ID</dt>
@@ -237,7 +237,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const symbolicTarget = prefetched.symbolicTarget}
+					{@const symbolicTarget = pendingEntity.symbolicTarget}
 					{#if symbolicTarget !== undefined && symbolicTarget !== null}
 						<div>
 							<dt>symbolic target</dt>

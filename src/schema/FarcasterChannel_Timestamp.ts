@@ -9,8 +9,10 @@ export enum FarcasterChannel_TimestampSelector {
 }
 export const FarcasterChannel_Timestamp = entity({
 	entityType: EntityType.FarcasterChannel_Timestamp,
-	label: 'Farcaster channel observation',
-	labelPlural: 'Farcaster channel observations',
+	labels: {
+		singular: 'Farcaster channel observation',
+		plural: 'Farcaster channel observations',
+	},
 })({
 	$channel: {
 		label: 'Channel',
@@ -21,7 +23,7 @@ export const FarcasterChannel_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	followerCount: {

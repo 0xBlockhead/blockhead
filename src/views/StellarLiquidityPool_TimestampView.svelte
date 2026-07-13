@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerSequence = prefetched.ledgerSequence}
+					{@const ledgerSequence = pendingEntity.ledgerSequence}
 					{#if ledgerSequence !== undefined && ledgerSequence !== null}
 						<div>
 							<dt>ledger sequence</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reserveA = prefetched.reserveA}
+					{@const reserveA = pendingEntity.reserveA}
 					{#if reserveA !== undefined && reserveA !== null}
 						<div>
 							<dt>reserve a</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reserveB = prefetched.reserveB}
+					{@const reserveB = pendingEntity.reserveB}
 					{#if reserveB !== undefined && reserveB !== null}
 						<div>
 							<dt>reserve b</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalShares = prefetched.totalShares}
+					{@const totalShares = pendingEntity.totalShares}
 					{#if totalShares !== undefined && totalShares !== null}
 						<div>
 							<dt>total shares</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accounts = prefetched.accounts}
+					{@const accounts = pendingEntity.accounts}
 					{#if accounts !== undefined && accounts !== null}
 						<div>
 							<dt>accounts</dt>

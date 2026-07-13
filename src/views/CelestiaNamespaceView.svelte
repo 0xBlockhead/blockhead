@@ -47,7 +47,7 @@
 			namespaceVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.namespaceId ?? prefetched.namespaceId) ?? '')].filter(Boolean).join(' ') || 'celestia namespace')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.namespaceId) ?? '')].filter(Boolean).join(' ') || 'celestia namespace')
 	const viewDomId = $derived('celestia-namespace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={celestiaNamespace}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.namespaceId ?? prefetched.namespaceId) ?? '')].filter(Boolean).join(' ') || 'celestia namespace'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.namespaceId) ?? '')].filter(Boolean).join(' ') || 'celestia namespace'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={celestiaNamespace}>
 			{#snippet Pending()}
-				{@const namespaceVersion0 = prefetched.namespaceVersion}
+				{@const namespaceVersion0 = pendingEntity.namespaceVersion}
 				{#if namespaceVersion0 !== undefined && namespaceVersion0 !== null}
 					<NumberValue value={Number(namespaceVersion0)} />
 				{/if}
@@ -129,7 +129,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const namespaceId = selection.entitySelector.namespaceId ?? prefetched.namespaceId}
+							{@const namespaceId = pendingEntity.namespaceId}
 							{#if namespaceId !== undefined && namespaceId !== null}
 								<TruncatedValue value={String((namespaceId) ?? '')} />
 							{/if}
@@ -156,7 +156,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const namespaceVersion = prefetched.namespaceVersion}
+					{@const namespaceVersion = pendingEntity.namespaceVersion}
 					{#if namespaceVersion !== undefined && namespaceVersion !== null}
 						<div>
 							<dt>namespace version</dt>
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>

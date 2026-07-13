@@ -9,8 +9,10 @@ export enum AptosNetwork_TimestampSelector {
 }
 export const AptosNetwork_Timestamp = entity({
 	entityType: EntityType.AptosNetwork_Timestamp,
-	label: 'aptos network timestamp',
-	labelPlural: 'aptos network observations',
+	labels: {
+		singular: 'aptos network timestamp',
+		plural: 'aptos network observations',
+	},
 })({
 	$network: {
 		label: 'network',

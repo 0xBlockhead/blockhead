@@ -10,8 +10,10 @@ export enum FarcasterNetworkSelector {
 }
 export const FarcasterNetwork = entity({
 	entityType: EntityType.FarcasterNetwork,
-	label: 'Farcaster',
-	labelPlural: 'Farcaster',
+	labels: {
+		singular: 'Farcaster',
+		plural: 'Farcaster',
+	},
 	description: 'Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from declared Farcaster sources.',
 })({
 	scope: {

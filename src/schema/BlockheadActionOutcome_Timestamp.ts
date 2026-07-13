@@ -10,8 +10,10 @@ export enum BlockheadActionOutcome_TimestampSelector {
 }
 export const BlockheadActionOutcome_Timestamp = entity({
 	entityType: EntityType.BlockheadActionOutcome_Timestamp,
-	label: 'blockhead action outcome timestamp',
-	labelPlural: 'blockhead action outcome observations',
+	labels: {
+		singular: 'blockhead action outcome timestamp',
+		plural: 'blockhead action outcome observations',
+	},
 })({
 	$outcome: {
 		label: 'outcome',

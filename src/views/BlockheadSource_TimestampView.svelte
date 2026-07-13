@@ -48,7 +48,7 @@
 			latencyMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead source timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead source timestamp')
 	const viewDomId = $derived('blockhead-source-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadSourceTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSourceTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.health) ?? ''), String((prefetched.enabled) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead source timestamp'}
+				{[String((pendingEntity.health) ?? ''), String((pendingEntity.enabled) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead source timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadSourceTimestamp}>
 			{#snippet Pending()}
-				{@const latencyMs0 = prefetched.latencyMs}
+				{@const latencyMs0 = pendingEntity.latencyMs}
 				{#if latencyMs0 !== undefined && latencyMs0 !== null}
 					<span data-text="muted">
 						{String((latencyMs0) ?? '')}
@@ -139,7 +139,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -166,7 +166,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const enabled = prefetched.enabled}
+					{@const enabled = pendingEntity.enabled}
 					{#if enabled !== undefined && enabled !== null}
 						<div>
 							<dt>Enabled</dt>
@@ -201,7 +201,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const health = prefetched.health}
+					{@const health = pendingEntity.health}
 					{#if health !== undefined && health !== null}
 						<div>
 							<dt>Health</dt>
@@ -236,7 +236,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latencyMs = prefetched.latencyMs}
+					{@const latencyMs = pendingEntity.latencyMs}
 					{#if latencyMs !== undefined && latencyMs !== null}
 						<div>
 							<dt>Latency ms</dt>
@@ -271,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const statusCode = prefetched.statusCode}
+					{@const statusCode = pendingEntity.statusCode}
 					{#if statusCode !== undefined && statusCode !== null}
 						<div>
 							<dt>Status code</dt>
@@ -308,7 +308,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>Error</dt>
@@ -343,7 +343,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rateLimitRemaining = prefetched.rateLimitRemaining}
+					{@const rateLimitRemaining = pendingEntity.rateLimitRemaining}
 					{#if rateLimitRemaining !== undefined && rateLimitRemaining !== null}
 						<div>
 							<dt>Rate limit remaining</dt>
@@ -378,7 +378,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rateLimitResetMs = prefetched.rateLimitResetMs}
+					{@const rateLimitResetMs = pendingEntity.rateLimitResetMs}
 					{#if rateLimitResetMs !== undefined && rateLimitResetMs !== null}
 						<div>
 							<dt>Rate limit reset ms</dt>
@@ -413,7 +413,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resolverCount = prefetched.resolverCount}
+					{@const resolverCount = pendingEntity.resolverCount}
 					{#if resolverCount !== undefined && resolverCount !== null}
 						<div>
 							<dt>Resolver count</dt>

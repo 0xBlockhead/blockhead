@@ -9,8 +9,10 @@ export enum AiModelSelector {
 }
 export const AiModel = entity({
 	entityType: EntityType.AiModel,
-	label: 'AI model',
-	labelPlural: 'AI models',
+	labels: {
+		singular: 'AI model',
+		plural: 'AI models',
+	},
 })({
 	$provider: {
 		label: 'provider',

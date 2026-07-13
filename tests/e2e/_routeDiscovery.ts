@@ -3,7 +3,7 @@ import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import {
-	e2eRouteFixtureMetadataByRouteId,
+	e2eRouteFixtureMetadataByNodeId,
 	type E2eRouteFixtureMetadata,
 } from './_generatedRouteFixtureMetadata.ts'
 import * as routeParamFixtures from './_routeParamFixtures.ts'
@@ -35,8 +35,11 @@ const encodeDynamicUrlSegment = (
 	matcherKey?: string
 ) => (
 	matcherKey === 'networkCaip2'
-	|| matcherKey === 'eip155NetworkCaip2' ?
+	|| matcherKey === 'eip155NetworkCaip2'
+	|| matcherKey === 'networkCaip2OrNetworkSlug' ?
 		segment
+	: matcherKey === 'absoluteUrl' ?
+		encodeUrlSegment(segment)
 	:
 	(
 		segment.includes('/')
@@ -49,7 +52,7 @@ const encodeDynamicUrlSegment = (
 
 const bracketSegmentToParamKey = (segment: string) => (
 	segment.startsWith('[...') ?
-		`...${segment.slice(4, -1)}`
+		`...${segment.slice(4, -1).split('=', 1)[0]}`
 	:
 	segment.startsWith('[') && segment.endsWith(']') ?
 		((inner) => (
@@ -96,18 +99,17 @@ const publicRouteIdFromSegments = (segments: readonly string[]) => `/${segments
 	.filter((segment) => !isRouteGroup(segment))
 	.join('/')}`.replaceAll('//', '/')
 
-const generatedRouteFixtureMetadata = (routeId: string): E2eRouteFixtureMetadata => {
-	const metadata = Object.entries(e2eRouteFixtureMetadataByRouteId)
-		.find(([fixtureRouteId]) => fixtureRouteId === routeId)?.[1]
-	if (metadata == null)
-		throw new Error(`Missing generated E2E route fixture metadata for ${routeId}`)
-
-	return metadata
-}
+const generatedRouteFixtureMetadata = (routeId: string) => (
+	Object.values(e2eRouteFixtureMetadataByNodeId)
+		.find((fixture) => fixture.publicPath === routeId.replaceAll(
+			/\[((?:\.\.\.)?[^=\]]+)=[^\]]+\]/g,
+			'[$1]'
+		))
+)
 
 const dynamicFixture = (
 	routeId: string,
-	routeFixtureMetadata: E2eRouteFixtureMetadata,
+	routeFixtureMetadata: E2eRouteFixtureMetadata | undefined,
 	paramKey: string,
 	_matcherKey: string | undefined
 ) => {
@@ -130,7 +132,7 @@ const dynamicFixture = (
 
 const expandMixedSegment = (
 	routeId: string,
-	routeFixtureMetadata: E2eRouteFixtureMetadata,
+	routeFixtureMetadata: E2eRouteFixtureMetadata | undefined,
 	segment: string,
 	contexts: {
 		urlSegments: string[]
@@ -204,9 +206,6 @@ const pageFileToPathname = (absPath: string) => {
 		if (isRouteGroup(segment)) continue
 
 		if (segment.startsWith('[...')) {
-			if (routeFixtureMetadata == null)
-				throw new Error(`Missing generated E2E route fixture metadata for ${routeId}`)
-
 			contexts = contexts.map((context) => ({
 				...context,
 				urlSegments: [
@@ -226,9 +225,6 @@ const pageFileToPathname = (absPath: string) => {
 		}
 
 		if (/^\[[^\]]+\]$/.test(segment)) {
-			if (routeFixtureMetadata == null)
-				throw new Error(`Missing generated E2E route fixture metadata for ${routeId}`)
-
 			const paramKey = bracketSegmentToParamKey(segment)
 			const matcherKey = bracketSegmentToMatcherKey(segment)
 			contexts = contexts.flatMap((context) => (
@@ -253,9 +249,6 @@ const pageFileToPathname = (absPath: string) => {
 		}
 
 		if (segment.includes('[') && segment.includes(']')) {
-			if (routeFixtureMetadata == null)
-				throw new Error(`Missing generated E2E route fixture metadata for ${routeId}`)
-
 			contexts = expandMixedSegment(
 				routeId,
 				routeFixtureMetadata,

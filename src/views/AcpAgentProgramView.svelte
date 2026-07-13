@@ -43,7 +43,7 @@
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((prefetched.registryAgentId) ?? ''), String((prefetched.packageName) ?? ''), String((prefetched.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.registryAgentId) ?? ''), String((pendingEntity.packageName) ?? ''), String((pendingEntity.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program')
 	const viewDomId = $derived('acp-agent-program-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,7 +66,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpAgentProgram}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.registryAgentId) ?? ''), String((prefetched.packageName) ?? ''), String((prefetched.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.registryAgentId) ?? ''), String((pendingEntity.packageName) ?? ''), String((pendingEntity.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -79,7 +79,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpAgentProgram}>
 			{#snippet Pending()}
-				{[String((prefetched.packageName) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.registryAgentId) ?? ''), String((prefetched.packageName) ?? ''), String((prefetched.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
+				{[String((pendingEntity.packageName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.registryAgentId) ?? ''), String((pendingEntity.packageName) ?? ''), String((pendingEntity.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,7 +101,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registryAgentId = prefetched.registryAgentId}
+					{@const registryAgentId = pendingEntity.registryAgentId}
 					{#if registryAgentId !== undefined && registryAgentId !== null}
 						<div>
 							<dt>registry agent ID</dt>
@@ -136,7 +136,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packageName = prefetched.packageName}
+					{@const packageName = pendingEntity.packageName}
 					{#if packageName !== undefined && packageName !== null}
 						<div>
 							<dt>package name</dt>
@@ -171,7 +171,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const repositoryUrl = prefetched.repositoryUrl}
+					{@const repositoryUrl = pendingEntity.repositoryUrl}
 					{#if repositoryUrl !== undefined && repositoryUrl !== null}
 						<div>
 							<dt>repository URL</dt>
@@ -220,7 +220,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -255,7 +255,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authors = prefetched.authors}
+					{@const authors = pendingEntity.authors}
 					{#if authors !== undefined && authors !== null}
 						<div>
 							<dt>authors</dt>

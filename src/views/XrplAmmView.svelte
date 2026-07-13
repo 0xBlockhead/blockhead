@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ammAccount = selection.entitySelector.ammAccount ?? prefetched.ammAccount}
+							{@const ammAccount = pendingEntity.ammAccount}
 							{#if ammAccount !== undefined && ammAccount !== null}
 								<TruncatedValue value={String((ammAccount) ?? '')} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const assetCurrency = prefetched.assetCurrency}
+							{@const assetCurrency = pendingEntity.assetCurrency}
 							{#if assetCurrency !== undefined && assetCurrency !== null}
 								{String((assetCurrency) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const assetIssuer = prefetched.assetIssuer}
+					{@const assetIssuer = pendingEntity.assetIssuer}
 					{#if assetIssuer !== undefined && assetIssuer !== null}
 						<div>
 							<dt>asset issuer</dt>
@@ -197,7 +197,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const asset2Currency = prefetched.asset2Currency}
+							{@const asset2Currency = pendingEntity.asset2Currency}
 							{#if asset2Currency !== undefined && asset2Currency !== null}
 								{String((asset2Currency) ?? '')}
 							{/if}
@@ -224,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const asset2Issuer = prefetched.asset2Issuer}
+					{@const asset2Issuer = pendingEntity.asset2Issuer}
 					{#if asset2Issuer !== undefined && asset2Issuer !== null}
 						<div>
 							<dt>asset2 issuer</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lpTokenCurrency = prefetched.lpTokenCurrency}
+					{@const lpTokenCurrency = pendingEntity.lpTokenCurrency}
 					{#if lpTokenCurrency !== undefined && lpTokenCurrency !== null}
 						<div>
 							<dt>LP token currency</dt>

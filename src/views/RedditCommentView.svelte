@@ -51,7 +51,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.body) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.fullname ?? prefetched.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment')
+	const titleFallback = $derived([String((pendingEntity.body) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment')
 	const viewDomId = $derived('reddit-comment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={redditComment}>
 			{#snippet Pending()}
-				{@const body0 = prefetched.body}
+				{@const body0 = pendingEntity.body}
 				{#if body0 !== undefined && body0 !== null}
 					<span data-text="long-text">{String((body0) ?? '')}</span>
 				{/if}
@@ -97,7 +97,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={redditComment}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fullname = selection.entitySelector.fullname ?? prefetched.fullname}
+							{@const fullname = pendingEntity.fullname}
 							{#if fullname !== undefined && fullname !== null}
 								<TruncatedValue value={String((fullname) ?? '')} />
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const author = prefetched.author}
+					{@const author = pendingEntity.author}
 					{#if author !== undefined && author !== null}
 						<div>
 							<dt>Author</dt>
@@ -195,7 +195,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const createdAt = prefetched.createdAt}
+						{@const createdAt = pendingEntity.createdAt}
 						{#if createdAt !== undefined && createdAt !== null}
 							<div>
 								<dt>Created</dt>
@@ -232,7 +232,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const depth = prefetched.depth}
+						{@const depth = pendingEntity.depth}
 						{#if depth !== undefined && depth !== null}
 							<div>
 								<dt>Depth</dt>
@@ -262,6 +262,8 @@
 				<ResourceBoundary
 					resource={selection.$link}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(redditLink)}
 						{#if redditLink != null && redditLink[EntityMetaKey.Selector] != null}
 							<div>
@@ -284,6 +286,8 @@
 				<ResourceBoundary
 					resource={selection.$parentComment}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(redditComment)}
 						{#if redditComment != null && redditComment[EntityMetaKey.Selector] != null}
 							<div>

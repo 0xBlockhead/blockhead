@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signerKey = selection.entitySelector.signerKey ?? prefetched.signerKey}
+							{@const signerKey = pendingEntity.signerKey}
 							{#if signerKey !== undefined && signerKey !== null}
 								{String((signerKey) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signerType = selection.entitySelector.signerType ?? prefetched.signerType}
+							{@const signerType = pendingEntity.signerType}
 							{#if signerType !== undefined && signerType !== null}
 								{String((signerType) ?? '')}
 							{/if}

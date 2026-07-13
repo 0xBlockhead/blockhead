@@ -9,8 +9,10 @@ export enum BitcoinCashCashTokenCategorySelector {
 }
 export const BitcoinCashCashTokenCategory = entity({
 	entityType: EntityType.BitcoinCashCashTokenCategory,
-	label: 'Bitcoin Cash CashToken category',
-	labelPlural: 'Bitcoin Cash CashToken categories',
+	labels: {
+		singular: 'Bitcoin Cash CashToken category',
+		plural: 'Bitcoin Cash CashToken categories',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -108,7 +108,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tradeId = selection.entitySelector.tradeId ?? prefetched.tradeId}
+							{@const tradeId = pendingEntity.tradeId}
 							{#if tradeId !== undefined && tradeId !== null}
 								{String((tradeId) ?? '')}
 							{/if}
@@ -138,7 +138,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -165,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCloseTimeMs = prefetched.ledgerCloseTimeMs}
+					{@const ledgerCloseTimeMs = pendingEntity.ledgerCloseTimeMs}
 					{#if ledgerCloseTimeMs !== undefined && ledgerCloseTimeMs !== null}
 						<div>
 							<dt>ledger close time ms</dt>
@@ -193,6 +193,8 @@
 			<ResourceBoundary
 				resource={selection.$baseAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -213,6 +215,8 @@
 			<ResourceBoundary
 				resource={selection.$counterAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -233,6 +237,8 @@
 			<ResourceBoundary
 				resource={selection.$baseOffer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarOffer)}
 					{#if stellarOffer != null && stellarOffer[EntityMetaKey.Selector] != null}
 						<div>
@@ -253,6 +259,8 @@
 			<ResourceBoundary
 				resource={selection.$counterOffer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarOffer)}
 					{#if stellarOffer != null && stellarOffer[EntityMetaKey.Selector] != null}
 						<div>
@@ -273,6 +281,8 @@
 			<ResourceBoundary
 				resource={selection.$baseLiquidityPool}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarLiquidityPool)}
 					{#if stellarLiquidityPool != null && stellarLiquidityPool[EntityMetaKey.Selector] != null}
 						<div>
@@ -293,6 +303,8 @@
 			<ResourceBoundary
 				resource={selection.$counterLiquidityPool}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarLiquidityPool)}
 					{#if stellarLiquidityPool != null && stellarLiquidityPool[EntityMetaKey.Selector] != null}
 						<div>
@@ -313,6 +325,8 @@
 			<ResourceBoundary
 				resource={selection.$baseAsset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -333,6 +347,8 @@
 			<ResourceBoundary
 				resource={selection.$counterAsset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -360,7 +376,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseAmount = prefetched.baseAmount}
+					{@const baseAmount = pendingEntity.baseAmount}
 					{#if baseAmount !== undefined && baseAmount !== null}
 						<div>
 							<dt>base amount</dt>
@@ -395,7 +411,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const counterAmount = prefetched.counterAmount}
+					{@const counterAmount = pendingEntity.counterAmount}
 					{#if counterAmount !== undefined && counterAmount !== null}
 						<div>
 							<dt>counter amount</dt>
@@ -430,7 +446,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const priceNumerator = prefetched.priceNumerator}
+					{@const priceNumerator = pendingEntity.priceNumerator}
 					{#if priceNumerator !== undefined && priceNumerator !== null}
 						<div>
 							<dt>price numerator</dt>
@@ -465,7 +481,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const priceDenominator = prefetched.priceDenominator}
+					{@const priceDenominator = pendingEntity.priceDenominator}
 					{#if priceDenominator !== undefined && priceDenominator !== null}
 						<div>
 							<dt>price denominator</dt>
@@ -493,6 +509,8 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarTransaction)}
 					{#if stellarTransaction != null && stellarTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -513,6 +531,8 @@
 			<ResourceBoundary
 				resource={selection.$operation}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarOperation)}
 					{#if stellarOperation != null && stellarOperation[EntityMetaKey.Selector] != null}
 						<div>

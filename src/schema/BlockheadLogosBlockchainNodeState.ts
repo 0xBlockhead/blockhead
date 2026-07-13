@@ -10,8 +10,10 @@ export enum BlockheadLogosBlockchainNodeStateSelector {
 }
 export const BlockheadLogosBlockchainNodeState = entity({
 	entityType: EntityType.BlockheadLogosBlockchainNodeState,
-	label: 'blockhead Logos blockchain node state',
-	labelPlural: 'blockhead Logos blockchain node states',
+	labels: {
+		singular: 'blockhead Logos blockchain node state',
+		plural: 'blockhead Logos blockchain node states',
+	},
 })({
 	connectionId: {
 		label: 'connection ID',

@@ -9,8 +9,10 @@ export enum IcpCanister_TimestampSelector {
 }
 export const IcpCanister_Timestamp = entity({
 	entityType: EntityType.IcpCanister_Timestamp,
-	label: 'icp canister timestamp',
-	labelPlural: 'icp canister observations',
+	labels: {
+		singular: 'icp canister timestamp',
+		plural: 'icp canister observations',
+	},
 })({
 	$canister: {
 		label: 'canister',

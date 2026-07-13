@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -163,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bytecode = prefetched.bytecode}
+					{@const bytecode = pendingEntity.bytecode}
 					{#if bytecode !== undefined && bytecode !== null}
 						<div>
 							<dt>bytecode</dt>
@@ -198,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const disassembly = prefetched.disassembly}
+					{@const disassembly = pendingEntity.disassembly}
 					{#if disassembly !== undefined && disassembly !== null}
 						<div>
 							<dt>disassembly</dt>
@@ -233,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const compileResultHash = prefetched.compileResultHash}
+					{@const compileResultHash = pendingEntity.compileResultHash}
 					{#if compileResultHash !== undefined && compileResultHash !== null}
 						<div>
 							<dt>compile result hash</dt>

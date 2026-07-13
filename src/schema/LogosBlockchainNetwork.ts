@@ -9,8 +9,10 @@ export enum LogosBlockchainNetworkSelector {
 }
 export const LogosBlockchainNetwork = entity({
 	entityType: EntityType.LogosBlockchainNetwork,
-	label: 'Logos blockchain network',
-	labelPlural: 'Logos blockchain networks',
+	labels: {
+		singular: 'Logos blockchain network',
+		plural: 'Logos blockchain networks',
+	},
 })({
 	$network: {
 		label: 'Network',

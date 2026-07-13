@@ -105,7 +105,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const voterKind = selection.entitySelector.voterKind ?? prefetched.voterKind}
+							{@const voterKind = pendingEntity.voterKind}
 							{#if voterKind !== undefined && voterKind !== null}
 								{String((voterKind) ?? '')}
 							{/if}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const voterCredential = selection.entitySelector.voterCredential ?? prefetched.voterCredential}
+							{@const voterCredential = pendingEntity.voterCredential}
 							{#if voterCredential !== undefined && voterCredential !== null}
 								<TruncatedValue value={String((voterCredential) ?? '')} />
 							{/if}
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -195,7 +195,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const vote = prefetched.vote}
+							{@const vote = pendingEntity.vote}
 							{#if vote !== undefined && vote !== null}
 								{String((vote) ?? '')}
 							{/if}
@@ -215,6 +215,8 @@
 			<ResourceBoundary
 				resource={selection.$drep}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoDRep)}
 					{#if cardanoDRep != null && cardanoDRep[EntityMetaKey.Selector] != null}
 						<div>
@@ -235,6 +237,8 @@
 			<ResourceBoundary
 				resource={selection.$stakePool}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoStakePool)}
 					{#if cardanoStakePool != null && cardanoStakePool[EntityMetaKey.Selector] != null}
 						<div>
@@ -255,6 +259,8 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoTransaction)}
 					{#if cardanoTransaction != null && cardanoTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -282,7 +288,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const voteTxHash = prefetched.voteTxHash}
+					{@const voteTxHash = pendingEntity.voteTxHash}
 					{#if voteTxHash !== undefined && voteTxHash !== null}
 						<div>
 							<dt>vote transaction hash</dt>
@@ -317,7 +323,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const voteIndex = prefetched.voteIndex}
+					{@const voteIndex = pendingEntity.voteIndex}
 					{#if voteIndex !== undefined && voteIndex !== null}
 						<div>
 							<dt>vote index</dt>
@@ -352,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const anchorUrl = prefetched.anchorUrl}
+					{@const anchorUrl = pendingEntity.anchorUrl}
 					{#if anchorUrl !== undefined && anchorUrl !== null}
 						<div>
 							<dt>anchor URL</dt>
@@ -401,7 +407,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const anchorHash = prefetched.anchorHash}
+					{@const anchorHash = pendingEntity.anchorHash}
 					{#if anchorHash !== undefined && anchorHash !== null}
 						<div>
 							<dt>anchor hash</dt>
@@ -436,7 +442,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epoch = prefetched.epoch}
+					{@const epoch = pendingEntity.epoch}
 					{#if epoch !== undefined && epoch !== null}
 						<div>
 							<dt>epoch</dt>
@@ -471,7 +477,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>slot</dt>

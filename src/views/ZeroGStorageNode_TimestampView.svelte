@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={zeroGStorageNodeTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>balance</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalReward = prefetched.totalReward}
+					{@const totalReward = pendingEntity.totalReward}
 					{#if totalReward !== undefined && totalReward !== null}
 						<div>
 							<dt>total reward</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const winCount = prefetched.winCount}
+					{@const winCount = pendingEntity.winCount}
 					{#if winCount !== undefined && winCount !== null}
 						<div>
 							<dt>win count</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const miningAttempts = prefetched.miningAttempts}
+					{@const miningAttempts = pendingEntity.miningAttempts}
 					{#if miningAttempts !== undefined && miningAttempts !== null}
 						<div>
 							<dt>mining attempts</dt>

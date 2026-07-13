@@ -12,6 +12,10 @@
 	import { Source } from '$/sources/Source.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
@@ -43,13 +47,15 @@
 			Source.Local_Internal,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'dashboard')
+	const titleFallback = $derived([String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'dashboard')
 	const viewDomId = $derived('blockhead-panel-tree-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BlockheadPanelsView from '$/views/BlockheadPanelsView.svelte'
+	import BlockheadWorkspaceView from '$/views/BlockheadWorkspaceView.svelte'
 </script>
 
 
@@ -66,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadPanelTree}>
 			{#snippet Pending()}
-				{@const id0 = selection.entitySelector.id ?? prefetched.id}
+				{@const id0 = pendingEntity.id}
 				{#if id0 !== undefined && id0 !== null}
 					<TruncatedValue value={String((id0) ?? '')} />
 				{/if}
@@ -85,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadPanelTree}>
 			{#snippet Pending()}
-				{['Dashboard'].filter(Boolean).join(' ') || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'dashboard'}
+				{['Dashboard'].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'dashboard'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +116,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
 							{/if}
@@ -126,6 +132,39 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={selection.$workspace}
+			>
+				{#snippet Pending()}{/snippet}
+
+				{#snippet children(blockheadWorkspace)}
+					{#if blockheadWorkspace != null && blockheadWorkspace[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>workspace</dt>
+							<dd>
+								<BlockheadWorkspaceView
+									selection={select(EntityType.BlockheadWorkspace, blockheadWorkspace[EntityMetaKey.Selector])}
+									prefetched={blockheadWorkspace}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<BlockheadPanelsView
+				selection={selection.$$panels}
+				title='panels'
+				emptyText='No panels.'
+				id='BlockheadPanelsView-panels'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

@@ -50,6 +50,8 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
@@ -86,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalActivityPubNetwork}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.scope ?? prefetched.scope) ?? '')].filter(Boolean).join(' ') || title || 'global ActivityPub network'}
+				{[String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || title || 'global ActivityPub network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +113,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const scope = selection.entitySelector.scope ?? prefetched.scope}
+							{@const scope = pendingEntity.scope}
 							{#if scope !== undefined && scope !== null}
 								{String((scope) ?? '')}
 							{/if}
@@ -132,49 +134,160 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<ActivityPubActorsView
-				selection={selection.$$observedActors}
-				title='Observed actors'
-				href={resolve('/(social)/(activitypub)/activitypub/actors')}
-				emptyText='No ActivityPub actors in this observed.'
-				id='ActivityPubActorsView-observed-actors'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-activitypub-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'activitypub-actors',
+							label: 'Actors',
+						},
+						{
+							id: 'activitypub-notes',
+							label: 'Notes',
+						},
+						{
+							id: 'activitypub-instances',
+							label: 'Instances',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Directory</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<ActivityPubNotesView
-				selection={selection.$$observedNotes}
-				title='Observed notes'
-				href={resolve('/(social)/(activitypub)/activitypub/notes')}
-				emptyText='No ActivityPub notes in this observed.'
-				id='ActivityPubNotesView-observed-notes'
-			/>
+				{#snippet SectionActivitypubActors({ id, label, open })}
+					<ActivityPubActorsView
+						selection={selection.$$observedActors}
+						href={resolve('/activitypub/actors')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ActivityPub actors in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<ActivityPubInstancesView
-				selection={selection.$$instances}
-				title='Instances'
-				emptyText='No ActivityPub instances declared.'
-				id='ActivityPubInstancesView-instances'
-			/>
+				{#snippet SectionActivitypubNotes({ id, label, open })}
+					<ActivityPubNotesView
+						selection={selection.$$observedNotes}
+						href={resolve('/activitypub/notes')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ActivityPub notes in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<ActivityPubInstancePeersView
-				selection={selection.$$instancePeers}
-				title='Instance peers'
-				emptyText='No ActivityPub instance peers in this observed.'
-				id='ActivityPubInstancePeersView-instance-peers'
-			/>
+				{#snippet SectionActivitypubInstances({ id, label, open })}
+					<ActivityPubInstancesView
+						selection={selection.$$instances}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ActivityPub instances declared.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<ActivityPubInstanceModeratedDomainsView
-				selection={selection.$$instanceModeratedDomains}
-				title='Instance moderated domains'
-				emptyText='No ActivityPub moderated domains in this observed.'
-				id='ActivityPubInstanceModeratedDomainsView-instance-moderated-domains'
-			/>
+			</CollapsibleTabs>
 
-			<GlobalActivityPubNetwork_TimestampsView
-				selection={selection.$$timestamps}
-				title='Timestamps'
-				emptyText='No ActivityPub hub observations yet.'
-				id='_GlobalActivityPubNetwork_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-activitypub-federation'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'activitypub-peers',
+							label: 'Instance peers',
+						},
+						{
+							id: 'activitypub-moderated-domains',
+							label: 'Moderated domains',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-federation'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Federation</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionActivitypubPeers({ id, label, open })}
+					<ActivityPubInstancePeersView
+						selection={selection.$$instancePeers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ActivityPub instance peers in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionActivitypubModeratedDomains({ id, label, open })}
+					<ActivityPubInstanceModeratedDomainsView
+						selection={selection.$$instanceModeratedDomains}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ActivityPub moderated domains in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-activitypub-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'activitypub-hub-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionActivitypubHubObservations({ id, label, open })}
+					<GlobalActivityPubNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ActivityPub hub observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

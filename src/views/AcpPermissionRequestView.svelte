@@ -51,7 +51,7 @@
 			decision: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.requestId ?? prefetched.requestId) ?? '')].filter(Boolean).join(' ') || 'ACP permission request')
+	const titleFallback = $derived([String((pendingEntity.requestId) ?? '')].filter(Boolean).join(' ') || 'ACP permission request')
 	const viewDomId = $derived('acp-permission-request-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpPermissionRequest}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.requestId ?? prefetched.requestId) ?? '')].filter(Boolean).join(' ') || title || 'ACP permission request'}
+				{[String((pendingEntity.requestId) ?? '')].filter(Boolean).join(' ') || title || 'ACP permission request'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -88,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpPermissionRequest}>
 			{#snippet Pending()}
-				{[String((prefetched.requestKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.requestId ?? prefetched.requestId) ?? '')].filter(Boolean).join(' ') || title || 'ACP permission request'}
+				{[String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.requestId) ?? '')].filter(Boolean).join(' ') || title || 'ACP permission request'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,7 +101,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpPermissionRequest}>
 			{#snippet Pending()}
-				{@const decision0 = prefetched.decision}
+				{@const decision0 = pendingEntity.decision}
 				{#if decision0 !== undefined && decision0 !== null}
 					<span data-text="muted">
 						{String((decision0) ?? '')}
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestId = selection.entitySelector.requestId ?? prefetched.requestId}
+							{@const requestId = pendingEntity.requestId}
 							{#if requestId !== undefined && requestId !== null}
 								{String((requestId) ?? '')}
 							{/if}
@@ -177,7 +177,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestKind = prefetched.requestKind}
+							{@const requestKind = pendingEntity.requestKind}
 							{#if requestKind !== undefined && requestKind !== null}
 								{String((requestKind) ?? '')}
 							{/if}
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decision = prefetched.decision}
+					{@const decision = pendingEntity.decision}
 					{#if decision !== undefined && decision !== null}
 						<div>
 							<dt>decision</dt>
@@ -241,7 +241,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -276,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resolvedAt = prefetched.resolvedAt}
+					{@const resolvedAt = pendingEntity.resolvedAt}
 					{#if resolvedAt !== undefined && resolvedAt !== null}
 						<div>
 							<dt>resolved AT</dt>

@@ -63,15 +63,7 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={
-			selection({
-				fields: {
-					nodeId: true,
-					$network: true,
-					endpoint: true,
-				},
-			})
-		}
+		resource={selection}
 		{placeholderText}
 	>
 		{#snippet Pending()}

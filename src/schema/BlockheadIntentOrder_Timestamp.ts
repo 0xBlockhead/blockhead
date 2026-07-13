@@ -10,8 +10,10 @@ export enum BlockheadIntentOrder_TimestampSelector {
 }
 export const BlockheadIntentOrder_Timestamp = entity({
 	entityType: EntityType.BlockheadIntentOrder_Timestamp,
-	label: 'blockhead intent order timestamp',
-	labelPlural: 'blockhead intent order observations',
+	labels: {
+		singular: 'blockhead intent order timestamp',
+		plural: 'blockhead intent order observations',
+	},
 })({
 	$order: {
 		label: 'order',

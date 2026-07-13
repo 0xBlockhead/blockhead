@@ -1,4 +1,5 @@
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
+import { coins } from '$/constants/Coin.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -29,8 +30,11 @@ export default {
 					const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Defillama_Rest: Market_Timestamp base asset is not a coin')
+					const coin = coins.find((row) => row.id === $market.$base.assetKey)
+					if (coin == null)
+						throw new Error('Defillama_Rest: Market_Timestamp base coin is not in the catalog')
 
-					const llamaId = defillamaCurrentPriceIdByCoinId[$market.$base.$coin.coinId]
+					const llamaId = defillamaCurrentPriceIdByCoinId[coin.id]
 					if (llamaId == null || llamaId !== feedKey)
 						throw new Error('Defillama_Rest: Market_Timestamp feedKey does not match catalog coin')
 					const priceRow = (
@@ -67,8 +71,11 @@ export default {
 					const { getProCurrentPrices } = await import('$/sources/Defillama/Rest/queries.ts')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Defillama_Rest: MarketPrice base asset is not a coin')
+					const coin = coins.find((row) => row.id === $market.$base.assetKey)
+					if (coin == null)
+						return []
 
-					const llamaId = defillamaCurrentPriceIdByCoinId[$market.$base.$coin.coinId]
+					const llamaId = defillamaCurrentPriceIdByCoinId[coin.id]
 					if (llamaId == null)
 						return []
 

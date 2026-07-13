@@ -9,8 +9,10 @@ export enum IcpCanisterSelector {
 }
 export const IcpCanister = entity({
 	entityType: EntityType.IcpCanister,
-	label: 'icp canister',
-	labelPlural: 'icp canisters',
+	labels: {
+		singular: 'icp canister',
+		plural: 'icp canisters',
+	},
 })({
 	$network: {
 		label: 'network',

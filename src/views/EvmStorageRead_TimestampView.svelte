@@ -48,7 +48,7 @@
 			value: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.slot ?? prefetched.slot) ?? '')].filter(Boolean).join(' ') || 'EVM storage read timestamp')
+	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'EVM storage read timestamp')
 	const viewDomId = $derived('evm-storage-read-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmStorageReadTimestamp}>
 			{#snippet Pending()}
-				{@const slot0 = selection.entitySelector.slot ?? prefetched.slot}
+				{@const slot0 = pendingEntity.slot}
 				{#if slot0 !== undefined && slot0 !== null}
 					<TruncatedValue value={String((slot0) ?? '')} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmStorageReadTimestamp}>
 			{#snippet Pending()}
-				{@const value0 = prefetched.value}
+				{@const value0 = pendingEntity.value}
 				{#if value0 !== undefined && value0 !== null}
 					<TruncatedValue value={String((value0) ?? '')} />
 				{/if}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={evmStorageReadTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -146,7 +146,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const slot = selection.entitySelector.slot ?? prefetched.slot}
+							{@const slot = pendingEntity.slot}
 							{#if slot !== undefined && slot !== null}
 								<TruncatedValue value={String((slot) ?? '')} />
 							{/if}
@@ -173,7 +173,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const value = prefetched.value}
+					{@const value = pendingEntity.value}
 					{#if value !== undefined && value !== null}
 						<div>
 							<dt>Value</dt>
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -248,7 +248,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -278,7 +278,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -301,8 +301,8 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract, {})}
 						href={
-							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.namespace !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$contract.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$contract.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 								address: String(selection.entitySelector.$contract.address ?? ''),
 							}) : undefined)
 						}

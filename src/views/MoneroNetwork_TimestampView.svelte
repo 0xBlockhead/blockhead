@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -54,7 +54,7 @@
 			synchronized: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'monero network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'monero network timestamp')
 	const viewDomId = $derived('monero-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={moneroNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -99,7 +99,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={moneroNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const height0 = prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<NumberValue value={Number(height0)} />
 				{/if}
@@ -118,13 +118,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={moneroNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const status0 = prefetched.status}
+				{@const status0 = pendingEntity.status}
 				{#if status0 !== undefined && status0 !== null}
 					<span data-text="muted">
 						{String((status0) ?? '')}
 					</span>
 				{/if}
-				{@const synchronized1 = prefetched.synchronized}
+				{@const synchronized1 = pendingEntity.synchronized}
 				{#if synchronized1 !== undefined && synchronized1 !== null}
 					<span data-text="muted">
 						{synchronized1 ? 'Yes' : 'No'}
@@ -158,22 +158,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -195,7 +183,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -225,7 +213,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -255,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const height = prefetched.height}
+					{@const height = pendingEntity.height}
 					{#if height !== undefined && height !== null}
 						<div>
 							<dt>Height</dt>
@@ -293,7 +281,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetHeight = prefetched.targetHeight}
+					{@const targetHeight = pendingEntity.targetHeight}
 					{#if targetHeight !== undefined && targetHeight !== null}
 						<div>
 							<dt>Target height</dt>
@@ -331,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const topBlockHash = prefetched.topBlockHash}
+					{@const topBlockHash = pendingEntity.topBlockHash}
 					{#if topBlockHash !== undefined && topBlockHash !== null}
 						<div>
 							<dt>Top block hash</dt>
@@ -369,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const difficulty = prefetched.difficulty}
+					{@const difficulty = pendingEntity.difficulty}
 					{#if difficulty !== undefined && difficulty !== null}
 						<div>
 							<dt>Difficulty</dt>
@@ -407,7 +395,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const wideDifficulty = prefetched.wideDifficulty}
+					{@const wideDifficulty = pendingEntity.wideDifficulty}
 					{#if wideDifficulty !== undefined && wideDifficulty !== null}
 						<div>
 							<dt>Wide difficulty</dt>
@@ -445,7 +433,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cumulativeDifficulty = prefetched.cumulativeDifficulty}
+					{@const cumulativeDifficulty = pendingEntity.cumulativeDifficulty}
 					{#if cumulativeDifficulty !== undefined && cumulativeDifficulty !== null}
 						<div>
 							<dt>Cumulative difficulty</dt>
@@ -483,7 +471,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const wideCumulativeDifficulty = prefetched.wideCumulativeDifficulty}
+					{@const wideCumulativeDifficulty = pendingEntity.wideCumulativeDifficulty}
 					{#if wideCumulativeDifficulty !== undefined && wideCumulativeDifficulty !== null}
 						<div>
 							<dt>Wide cumulative difficulty</dt>
@@ -523,7 +511,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockSizeLimit = prefetched.blockSizeLimit}
+					{@const blockSizeLimit = pendingEntity.blockSizeLimit}
 					{#if blockSizeLimit !== undefined && blockSizeLimit !== null}
 						<div>
 							<dt>Block size limit</dt>
@@ -561,7 +549,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockSizeMedian = prefetched.blockSizeMedian}
+					{@const blockSizeMedian = pendingEntity.blockSizeMedian}
 					{#if blockSizeMedian !== undefined && blockSizeMedian !== null}
 						<div>
 							<dt>Block size median</dt>
@@ -599,7 +587,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockWeightLimit = prefetched.blockWeightLimit}
+					{@const blockWeightLimit = pendingEntity.blockWeightLimit}
 					{#if blockWeightLimit !== undefined && blockWeightLimit !== null}
 						<div>
 							<dt>Block weight limit</dt>
@@ -637,7 +625,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockWeightMedian = prefetched.blockWeightMedian}
+					{@const blockWeightMedian = pendingEntity.blockWeightMedian}
 					{#if blockWeightMedian !== undefined && blockWeightMedian !== null}
 						<div>
 							<dt>Block weight median</dt>
@@ -675,7 +663,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const databaseSize = prefetched.databaseSize}
+					{@const databaseSize = pendingEntity.databaseSize}
 					{#if databaseSize !== undefined && databaseSize !== null}
 						<div>
 							<dt>Database size</dt>
@@ -713,7 +701,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freeSpace = prefetched.freeSpace}
+					{@const freeSpace = pendingEntity.freeSpace}
 					{#if freeSpace !== undefined && freeSpace !== null}
 						<div>
 							<dt>Free space</dt>
@@ -751,7 +739,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const greyPeerlistSize = prefetched.greyPeerlistSize}
+					{@const greyPeerlistSize = pendingEntity.greyPeerlistSize}
 					{#if greyPeerlistSize !== undefined && greyPeerlistSize !== null}
 						<div>
 							<dt>Grey peerlist size</dt>
@@ -789,7 +777,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const whitePeerlistSize = prefetched.whitePeerlistSize}
+					{@const whitePeerlistSize = pendingEntity.whitePeerlistSize}
 					{#if whitePeerlistSize !== undefined && whitePeerlistSize !== null}
 						<div>
 							<dt>White peerlist size</dt>
@@ -829,7 +817,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const incomingConnections = prefetched.incomingConnections}
+					{@const incomingConnections = pendingEntity.incomingConnections}
 					{#if incomingConnections !== undefined && incomingConnections !== null}
 						<div>
 							<dt>Incoming connections</dt>
@@ -867,7 +855,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outgoingConnections = prefetched.outgoingConnections}
+					{@const outgoingConnections = pendingEntity.outgoingConnections}
 					{#if outgoingConnections !== undefined && outgoingConnections !== null}
 						<div>
 							<dt>Outgoing connections</dt>
@@ -905,7 +893,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const txCount = prefetched.txCount}
+					{@const txCount = pendingEntity.txCount}
 					{#if txCount !== undefined && txCount !== null}
 						<div>
 							<dt>Transaction count</dt>
@@ -943,7 +931,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const txPoolSize = prefetched.txPoolSize}
+					{@const txPoolSize = pendingEntity.txPoolSize}
 					{#if txPoolSize !== undefined && txPoolSize !== null}
 						<div>
 							<dt>Transaction pool size</dt>
@@ -981,7 +969,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const altBlocksCount = prefetched.altBlocksCount}
+					{@const altBlocksCount = pendingEntity.altBlocksCount}
 					{#if altBlocksCount !== undefined && altBlocksCount !== null}
 						<div>
 							<dt>Alt blocks</dt>
@@ -1019,7 +1007,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetSeconds = prefetched.targetSeconds}
+					{@const targetSeconds = pendingEntity.targetSeconds}
 					{#if targetSeconds !== undefined && targetSeconds !== null}
 						<div>
 							<dt>Target seconds</dt>
@@ -1057,7 +1045,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rpcConnections = prefetched.rpcConnections}
+					{@const rpcConnections = pendingEntity.rpcConnections}
 					{#if rpcConnections !== undefined && rpcConnections !== null}
 						<div>
 							<dt>RPC connections</dt>
@@ -1097,7 +1085,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mainnet = prefetched.mainnet}
+					{@const mainnet = pendingEntity.mainnet}
 					{#if mainnet !== undefined && mainnet !== null}
 						<div>
 							<dt>Mainnet</dt>
@@ -1135,7 +1123,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nettype = prefetched.nettype}
+					{@const nettype = pendingEntity.nettype}
 					{#if nettype !== undefined && nettype !== null}
 						<div>
 							<dt>Network type</dt>
@@ -1173,7 +1161,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const offline = prefetched.offline}
+					{@const offline = pendingEntity.offline}
 					{#if offline !== undefined && offline !== null}
 						<div>
 							<dt>Offline</dt>
@@ -1211,7 +1199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const synchronized = prefetched.synchronized}
+					{@const synchronized = pendingEntity.synchronized}
 					{#if synchronized !== undefined && synchronized !== null}
 						<div>
 							<dt>Synchronized</dt>
@@ -1249,7 +1237,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const wasBootstrapEverUsed = prefetched.wasBootstrapEverUsed}
+					{@const wasBootstrapEverUsed = pendingEntity.wasBootstrapEverUsed}
 					{#if wasBootstrapEverUsed !== undefined && wasBootstrapEverUsed !== null}
 						<div>
 							<dt>Bootstrap ever used</dt>
@@ -1287,7 +1275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>Version</dt>
@@ -1325,7 +1313,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>

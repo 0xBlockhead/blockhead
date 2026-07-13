@@ -42,9 +42,7 @@ import {
 	EntityMetaKey,
 	type EntityFacetPath,
 	type EntityDefinition,
-	type EntityFieldCondition,
 	type EntityFieldDefinition,
-	type EntityFieldDefinitionByEntityTypeAndName,
 	type EntityFieldDefinitionByEntityTypePathAndName,
 	type EntityFieldDefinitionByName,
 	type EntityFieldName,
@@ -76,7 +74,8 @@ export enum ClientEventType {
 }
 
 export enum CollectionLoadDecision {
-	Persisted = 'persisted',
+	HydratedRows = 'hydrated-rows',
+	LoadedMarker = 'loaded-marker',
 	Remote = 'remote',
 }
 
@@ -90,13 +89,6 @@ export enum PersistedCollectionLoadStatus {
 export enum PersistedCollectionSourceStatus {
 	Completed = 'completed',
 	Failed = 'failed',
-}
-
-enum FieldConditionState {
-	Active = 'active',
-	Inactive = 'inactive',
-	Unconditional = 'unconditional',
-	Unknown = 'unknown',
 }
 
 export type ClientEvent = {
@@ -150,6 +142,7 @@ type PersistedCollectionRow = {
 type PersistedCollectionSyncOptions<_Row extends PersistedCollectionRow> = {
 	collectionId: string
 	schemaVersion: number
+	persistence: PersistedCollectionPersistence
 	getKey(row: _Row): string | number
 	loadedKey(loadSubsetOptions: LoadSubsetOptions): string
 	sources(loadSubsetOptions: LoadSubsetOptions): readonly string[]
@@ -250,7 +243,6 @@ export type ClientContext<
 	schema: _Schema
 	entityDefinitionByType: Record<string, EntityDefinition>
 	projectionDefinitionByEntityTypeAndPath: Record<string, EntityProjectionDefinition | undefined>
-	entityFieldDefinitionByEntityTypeAndName: EntityFieldDefinitionByEntityTypeAndName<_Schema>
 	entityFieldDefinitionByEntityTypePathAndName: EntityFieldDefinitionByEntityTypePathAndName<_Schema>
 	entitySelectorDefinitionByEntityTypeAndName: EntitySelectorDefinitionByEntityTypeAndName<_Schema>
 	entityCollections: EntityCollections<_Schema>
@@ -383,56 +375,14 @@ type SubscribeResultFields<
 	_Selection extends {
 		readonly fields: infer _Fields extends SubscribeSelectedFields<_Schema, _EntityType>
 	} ?
-		& {
+		{
 			readonly [
-				_FieldName in keyof _Fields & EntityFieldName<_Schema, _EntityType> as (
-					EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends { readonly when: EntityFieldCondition } ?
-						never
-					:
-						_FieldName
-				)
+				_FieldName in keyof _Fields & EntityFieldName<_Schema, _EntityType>
 			]: SubscribeFieldResult<_Schema, _EntityType, _FieldName>
 		}
-		& (
-			{
-				readonly [
-					_FieldName in keyof _Fields & EntityFieldName<_Schema, _EntityType>
-				]: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends { readonly when: EntityFieldCondition } ?
-					(
-						| {
-							readonly [
-								_ConditionalFieldName in _FieldName
-							]: SubscribeFieldResult<_Schema, _EntityType, _FieldName>
-						}
-						| {
-							readonly [
-								_ConditionalFieldName in _FieldName
-							]: SubscribeFieldResult<_Schema, _EntityType, _FieldName> | undefined
-						}
-					)
-				:
-					never
-			}[keyof _Fields & EntityFieldName<_Schema, _EntityType>] extends infer _ConditionalBranches ?
-				[_ConditionalBranches] extends [never] ?
-					object
-				:
-					UnionToIntersection<_ConditionalBranches>
-				:
-					object
-			)
 		:
 			SubscribeAllResultFields<_Schema, _EntityType>
 	)
-
-type UnionToIntersection<_Union> = (
-	_Union extends _Union ?
-		(_value: _Union) => void
-	:
-		never
-) extends (_value: infer _Intersection) => void ?
-	_Intersection
-:
-	never
 
 export type SubscribeResult<
 	_Schema extends Schema,
@@ -449,7 +399,8 @@ export type SubscribeResult<
 				keyof _Fields & EntityFieldName<_Schema, _EntityType>
 			:
 				never
-		>>
+			>>
+		readonly fieldValuesByAddress: Readonly<Record<string, unknown>>
 		readonly errors: readonly SubscribeError<_Schema>[]
 	}
 )
@@ -471,6 +422,8 @@ const persistedCollectionLoadedSubset = (
 		typeof value.collectionId !== 'string'
 		|| typeof value.loadedKey !== 'string'
 		|| typeof value.rowCount !== 'number'
+		|| !Number.isSafeInteger(value.rowCount)
+		|| value.rowCount < 0
 		|| value.sourceRowCounts == null
 		|| typeof value.sourceRowCounts !== 'object'
 	)
@@ -479,12 +432,16 @@ const persistedCollectionLoadedSubset = (
 	const sourceRowCountEntries: [string, number][] = []
 	for (const source of Object.keys(value.sourceRowCounts)) {
 		const count = Object.getOwnPropertyDescriptor(value.sourceRowCounts, source)?.value
-		if (typeof count === 'number')
-			sourceRowCountEntries.push([
-				source,
-				count,
-			])
+		if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0)
+			return undefined
+
+		sourceRowCountEntries.push([
+			source,
+			count,
+		])
 	}
+	if (sourceRowCountEntries.reduce((total, [, count]) => total + count, 0) !== value.rowCount)
+		return undefined
 
 	return {
 		collectionId: value.collectionId,
@@ -496,14 +453,20 @@ const persistedCollectionLoadedSubset = (
 
 const productSourceRowCounts = (
 	rows: readonly PersistedCollectionRow[],
-	sources: readonly string[] = []
+	sources?: readonly string[]
 ): Partial<Record<string, number>> => {
-	const counts = new Map(sources.map((source) => [
+	const counts = new Map((sources ?? []).map((source) => [
 		source,
 		0,
 	]))
-	for (const row of rows)
+	const sourceSet = sources === undefined ? undefined : new Set(sources)
+	for (const row of rows) {
+		if (sourceSet !== undefined && !sourceSet.has(row[EntityMetaKey.Source]))
+			continue
+
 		counts.set(row[EntityMetaKey.Source], (counts.get(row[EntityMetaKey.Source]) ?? 0) + 1)
+	}
+
 	return Object.fromEntries([...counts.entries()].toSorted(([left], [right]) => left.localeCompare(right)))
 }
 
@@ -523,20 +486,150 @@ const productSubsetLoadedMissReason = (
 	if (marker.loadedKey !== loadedKey)
 		return 'loaded-key-mismatch'
 
-	if (rows.length < marker.rowCount)
-		return `row-count-undercount:${marker.rowCount}:${rows.length}`
-
-	const sourceRowCounts = productSourceRowCounts(rows, Object.keys(marker.sourceRowCounts))
 	for (const source of sources) {
-		const markerSourceRowCount = marker.sourceRowCounts[source]
-		if (markerSourceRowCount === undefined)
+		if (marker.sourceRowCounts[source] === undefined)
 			return `missing-source:${source}`
+	}
 
+	const expectedRowCount = sources.reduce((total, source) => total + (marker.sourceRowCounts[source] ?? 0), 0)
+	if (rows.length < expectedRowCount)
+		return `row-count-undercount:${expectedRowCount}:${rows.length}`
+
+	const sourceRowCounts = productSourceRowCounts(rows, sources)
+	for (const source of sources) {
+		const markerSourceRowCount = marker.sourceRowCounts[source] ?? 0
 		if ((sourceRowCounts[source] ?? 0) < markerSourceRowCount)
 			return `source-count-undercount:${source}:${markerSourceRowCount}:${sourceRowCounts[source] ?? 0}`
 	}
 
 	return undefined
+}
+
+export const persistedCollectionHydrationPlan = (
+	collectionId: string,
+	loadedKey: string,
+	markerValue: unknown,
+	rows: readonly PersistedCollectionRow[],
+	requestedSources: readonly string[]
+) => {
+	const marker = persistedCollectionLoadedSubset(markerValue)
+	const missReason = productSubsetLoadedMissReason(
+		collectionId,
+		loadedKey,
+		marker,
+		rows,
+		requestedSources
+	)
+	if (marker !== undefined && missReason === undefined)
+		return {
+			decision: rows.length === 0 ?
+				CollectionLoadDecision.LoadedMarker
+			:
+				CollectionLoadDecision.HydratedRows,
+			marker,
+			remoteSources: [],
+		}
+
+	const sourceRowCounts = productSourceRowCounts(rows)
+	const missingSources = marker === undefined ?
+		requestedSources
+	:
+		requestedSources.filter((source) => (
+			marker.sourceRowCounts[source] === undefined
+			|| (sourceRowCounts[source] ?? 0) < marker.sourceRowCounts[source]
+		))
+	return {
+		decision: CollectionLoadDecision.Remote,
+		marker,
+		missReason,
+		remoteSources: (
+			missingSources.length > 0
+			|| requestedSources.length === 0 ?
+				missingSources
+			:
+				requestedSources
+		),
+	}
+}
+
+export const persistedCollectionRemoteResult = <
+	const _Row extends PersistedCollectionRow,
+>({
+	collectionId,
+	loadedKey,
+	marker,
+	persistedRows,
+	loaded,
+	remoteSources,
+	requestedSources,
+	getKey,
+}: {
+	collectionId: string
+	loadedKey: string
+	marker?: PersistedCollectionLoadedSubset
+	persistedRows: readonly _Row[]
+	loaded: PersistedCollectionRowsLoadResult<_Row>
+	remoteSources: readonly string[]
+	requestedSources: readonly string[]
+	getKey(row: _Row): string | number
+}) => {
+	const outcomes = [
+		...loaded.outcomes,
+		...remoteSources
+			.filter((source) => !loaded.outcomes.some((outcome) => outcome.source === source))
+			.map((source) => ({
+				source,
+				status: PersistedCollectionSourceStatus.Failed,
+				error: `${collectionId} did not account for source ${source}`,
+			})),
+	]
+	const rows = [
+		...new Map(
+			[
+				...persistedRows,
+				...loaded.rows,
+			].map((row) => [
+				getKey(row),
+				row,
+			])
+		).values(),
+	]
+	const failedSources = new Set(outcomes.flatMap((outcome) => (
+		outcome.status === PersistedCollectionSourceStatus.Failed ?
+			[outcome.source]
+		:
+			[]
+	)))
+	const completedSources = [
+		...new Set([
+			...Object.keys(marker?.sourceRowCounts ?? {}).filter((source) => !remoteSources.includes(source)),
+			...outcomes.flatMap((outcome) => (
+				outcome.status === PersistedCollectionSourceStatus.Completed
+				&& !failedSources.has(outcome.source) ?
+					[outcome.source]
+				:
+					[]
+			)),
+		]),
+	]
+	const sourceRowCounts = productSourceRowCounts(rows, completedSources)
+	const failedOutcomes = outcomes.filter((outcome) => (
+		outcome.status === PersistedCollectionSourceStatus.Failed
+	))
+	return {
+		rows,
+		failedOutcomes,
+		nextMarker: {
+			collectionId,
+			loadedKey,
+			rowCount: completedSources.reduce((total, source) => total + (sourceRowCounts[source] ?? 0), 0),
+			sourceRowCounts,
+		},
+		status: requestedSources.every((source) => sourceRowCounts[source] !== undefined) ?
+			PersistedCollectionLoadStatus.Completed
+		:
+			PersistedCollectionLoadStatus.Partial,
+	}
 }
 
 const persistedCollectionUtils = <
@@ -565,6 +658,7 @@ const persistedCollectionSync = <
 >({
 	collectionId,
 	schemaVersion,
+	persistence,
 	getKey,
 	loadedKey,
 	sources,
@@ -605,71 +699,64 @@ const persistedCollectionSync = <
 				commit()
 			})
 			return {
-			loadSubset: async (loadSubsetOptions) => {
-				const key = loadedKey(loadSubsetOptions)
-				const inFlightLoad = inFlightLoads.get(key)
-				if (inFlightLoad !== undefined) {
-					await inFlightLoad
-					return
-				}
-
-					const load = (async () => {
-						const requestedSources = sources(loadSubsetOptions)
-						const rows = persistedRows(loadSubsetOptions, collection.toArray)
-						const metadataKey = `loadedSubset:${schemaVersion}:${key}`
-						const marker = persistedCollectionLoadedSubset(metadata?.collection.get(metadataKey))
-					const missReason = productSubsetLoadedMissReason(
-						collectionId,
-						key,
-						marker,
-						rows,
-						requestedSources
-					)
-					const sourceRowCounts = productSourceRowCounts(rows)
-					const remoteSources = (
-						marker === undefined ?
-							requestedSources
-						:
-							requestedSources.filter((source) => (
-								marker.sourceRowCounts[source] === undefined
-								|| (sourceRowCounts[source] ?? 0) < marker.sourceRowCounts[source]
-							))
-					)
-					if (marker !== undefined && missReason === undefined) {
-						events.push({
-							type: ClientEventType.CollectionLoad,
-							collectionId,
-							key,
-							decision: CollectionLoadDecision.Persisted,
-							status: PersistedCollectionLoadStatus.Completed,
-							rowCount: marker.rowCount,
-							sourceRowCounts: marker.sourceRowCounts,
-						})
-						markReady()
+				loadSubset: async (loadSubsetOptions) => {
+					const key = loadedKey(loadSubsetOptions)
+					const inFlightLoad = inFlightLoads.get(key)
+					if (inFlightLoad !== undefined) {
+						await inFlightLoad
 						return
 					}
 
-					try {
-							if (remoteSources.length === 0) {
+					const load = (async () => {
+						const requestedSources = sources(loadSubsetOptions)
+						const persistedSubsetRows = persistedRows(loadSubsetOptions, collection.toArray)
+						const metadataKey = `loadedSubset:${schemaVersion}:${key}`
+						const hydrationPlan = persistedCollectionHydrationPlan(
+							collectionId,
+							key,
+							metadata?.collection.get(metadataKey),
+							persistedSubsetRows,
+							requestedSources
+						)
+						if (
+							hydrationPlan.decision !== CollectionLoadDecision.Remote
+							&& hydrationPlan.marker !== undefined
+						) {
+							events.push({
+								type: ClientEventType.CollectionLoad,
+								collectionId,
+								key,
+								decision: hydrationPlan.decision,
+								status: PersistedCollectionLoadStatus.Completed,
+								rowCount: persistedSubsetRows.length,
+								sourceRowCounts: hydrationPlan.marker.sourceRowCounts,
+							})
+							markReady()
+							return
+						}
+
+						try {
+							if (hydrationPlan.remoteSources.length === 0) {
 								const subset = parseResolverSubset(loadSubsetOptions)
+								const error = hydrationPlan.missReason ?? `${collectionId} has no remote sources for ${key}`
 								collectionLoadFailures.add({
 									collectionId,
 									selectorKeys: subset.selectorKeys,
 									parentSelectorKeys: subset.parentSelectorKeys,
 									sources: requestedSources,
-									error: missReason ?? `${collectionId} has no remote sources for ${key}`,
+									error,
 								})
 								events.push({
 									type: ClientEventType.CollectionLoad,
-								collectionId,
-								key,
-								decision: CollectionLoadDecision.Remote,
-								status: PersistedCollectionLoadStatus.Failed,
-								error: missReason,
-							})
-							markReady()
-							return
-						}
+									collectionId,
+									key,
+									decision: CollectionLoadDecision.Remote,
+									status: PersistedCollectionLoadStatus.Failed,
+									error,
+								})
+								markReady()
+								return
+							}
 
 							events.push({
 								type: ClientEventType.CollectionLoad,
@@ -677,128 +764,109 @@ const persistedCollectionSync = <
 								key,
 								decision: CollectionLoadDecision.Remote,
 								status: PersistedCollectionLoadStatus.Loading,
-								reason: missReason,
+								reason: hydrationPlan.missReason,
 							})
-							const loaded = await loadRows(loadSubsetOptions, remoteSources)
-						const rows = [
-							...new Map(
-								[
-									...persistedRows(loadSubsetOptions, collection.toArray),
-									...loaded.rows,
-								]
-									.map((row) => [
-										getKey(row),
-										row,
-									])
-							).values(),
-						]
-						const sourceRowCounts = productSourceRowCounts(rows, [
-							...new Set([
-								...Object.keys(marker?.sourceRowCounts ?? {}),
-								...loaded.outcomes.flatMap((outcome) => (
-									outcome.status === PersistedCollectionSourceStatus.Completed ?
-										[outcome.source]
-									:
-										[]
-								)),
-							]),
-						])
-						const nextMarker = {
-							collectionId,
-							loadedKey: key,
-							rowCount: rows.length,
-							sourceRowCounts,
-						}
+							const remoteResult = persistedCollectionRemoteResult({
+								collectionId,
+								loadedKey: key,
+								marker: hydrationPlan.marker,
+								persistedRows: persistedSubsetRows,
+								loaded: await loadRows(loadSubsetOptions, hydrationPlan.remoteSources),
+								remoteSources: hydrationPlan.remoteSources,
+								requestedSources,
+								getKey,
+							})
 							begin()
-							for (const row of rows)
+							for (const row of remoteResult.rows)
 								write({
 									type: 'update',
 									value: row,
 								})
 
-						metadata?.collection.set(metadataKey, nextMarker)
-						commit()
+							metadata?.collection.set(metadataKey, remoteResult.nextMarker)
+							commit()
+							await waitForPersistence?.(collectionId)
+							if (persistence.adapter.loadCollectionMetadata !== undefined)
+								for (let attempt = 0; ; attempt++) {
+									const persistedMarker = persistedCollectionLoadedSubset(
+										(await persistence.adapter.loadCollectionMetadata(collectionId))
+											.find(({ key: persistedKey }) => persistedKey === metadataKey)
+											?.value
+									)
+									if (
+										persistedMarker?.collectionId === remoteResult.nextMarker.collectionId
+										&& persistedMarker.loadedKey === remoteResult.nextMarker.loadedKey
+										&& persistedMarker.rowCount === remoteResult.nextMarker.rowCount
+										&& Object.keys(persistedMarker.sourceRowCounts).length
+											=== Object.keys(remoteResult.nextMarker.sourceRowCounts).length
+										&& Object.entries(remoteResult.nextMarker.sourceRowCounts).every(([source, count]) => (
+											persistedMarker.sourceRowCounts[source] === count
+										))
+									)
+										break
 
-						events.push({
-							type: ClientEventType.CollectionLoad,
-							collectionId,
-							key,
-							decision: CollectionLoadDecision.Remote,
-							status: requestedSources.every((source) => sourceRowCounts[source] !== undefined) ?
-								PersistedCollectionLoadStatus.Completed
-							:
-								PersistedCollectionLoadStatus.Partial,
-							rowCount: rows.length,
-							sourceRowCounts,
-							reason: missReason,
-						})
-						const failedOutcomes = loaded.outcomes.filter((outcome) => (
-							outcome.status === PersistedCollectionSourceStatus.Failed
-						))
-						if (
-							failedOutcomes.length > 0
-							&& loaded.outcomes.some((outcome) => (
-								outcome.status === PersistedCollectionSourceStatus.Completed
-							))
-						)
-							console.warn(`${collectionId} partially failed ${key}`, failedOutcomes)
+									if (attempt === 11_999)
+										throw new Error(`${collectionId} did not persist loaded marker ${metadataKey}`)
 
-						for (const outcome of failedOutcomes)
+									await new Promise((resolve) => setTimeout(resolve, 10))
+								}
+
+							events.push({
+								type: ClientEventType.CollectionLoad,
+								collectionId,
+								key,
+								decision: CollectionLoadDecision.Remote,
+								status: remoteResult.status,
+								rowCount: remoteResult.rows.length,
+								sourceRowCounts: remoteResult.nextMarker.sourceRowCounts,
+								reason: hydrationPlan.missReason,
+							})
+							if (remoteResult.failedOutcomes.length > 0) {
+								const subset = parseResolverSubset(loadSubsetOptions)
+								for (const outcome of remoteResult.failedOutcomes) {
+									const error = `${outcome.source}: ${outcome.error ?? 'failed'}`
+									events.push({
+										type: ClientEventType.CollectionLoad,
+										collectionId,
+										key,
+										decision: CollectionLoadDecision.Remote,
+										status: PersistedCollectionLoadStatus.Failed,
+										error,
+									})
+									if (outcome.error !== 'The user aborted a request.')
+										collectionLoadFailures.add({
+											collectionId,
+											selectorKeys: subset.selectorKeys,
+											parentSelectorKeys: subset.parentSelectorKeys,
+											sources: [outcome.source],
+											error,
+										})
+								}
+
+								if (remoteResult.status === PersistedCollectionLoadStatus.Partial)
+									console.warn(`${collectionId} partially failed ${key}`, remoteResult.failedOutcomes)
+							}
+
+							markReady()
+						} catch (error) {
 							events.push({
 								type: ClientEventType.CollectionLoad,
 								collectionId,
 								key,
 								decision: CollectionLoadDecision.Remote,
 								status: PersistedCollectionLoadStatus.Failed,
-								error: `${outcome.source}: ${outcome.error ?? 'failed'}`,
+								error: error instanceof Error ? error.message : String(error),
 							})
-
-						if (
-							rows.length === 0
-							&& requestedSources.length > 0
-							&& failedOutcomes.length > 0
-							&& !loaded.outcomes.some((outcome) => (
-								outcome.status === PersistedCollectionSourceStatus.Completed
-							))
-							) {
-								const subset = parseResolverSubset(loadSubsetOptions)
-								const error = `${collectionId} failed every requested source for ${key}`
-								if (failedOutcomes.every((outcome) => outcome.error === 'The user aborted a request.'))
-									console.warn(error, failedOutcomes)
-								else {
-									console.error(error, failedOutcomes)
-									collectionLoadFailures.add({
-										collectionId,
-										selectorKeys: subset.selectorKeys,
-										parentSelectorKeys: subset.parentSelectorKeys,
-										sources: requestedSources,
-										error,
-									})
-								}
-								markReady()
-								return
-							}
-
-							markReady()
-						} catch (error) {
-						events.push({
-							type: ClientEventType.CollectionLoad,
-							collectionId,
-							key,
-							decision: CollectionLoadDecision.Remote,
-							status: PersistedCollectionLoadStatus.Failed,
-							error: error instanceof Error ? error.message : String(error),
-						})
-						throw error
-					}
+							throw error
+						}
 					})()
 					inFlightLoads.set(key, load)
-				try {
-					await load
-				} finally {
-					inFlightLoads.delete(key)
-				}
-			},
+					try {
+						await load
+					} finally {
+						inFlightLoads.delete(key)
+					}
+				},
 			}
 		},
 	}
@@ -919,98 +987,14 @@ const countFilterKeysFromSubset = (
 	})
 )
 
-const fieldConditionValue = <
-	const _Schema extends Schema
->(
-	context: ClientContext<_Schema>,
-	entityType: string,
-	parentSelector: Record<string, { readonly [index: number]: unknown } | undefined>,
-	parentSelectorKey: string,
-	condition: EntityFieldCondition
-) => {
-	const selectorValue = parentSelector[condition.fieldName]
-	if (selectorValue !== undefined)
-		return (
-			condition.itemIndex === undefined ?
-				selectorValue
-			:
-				selectorValue[condition.itemIndex]
-		)
-
-	for (const row of context.entityFieldCollections[entityType][
-		entityFieldAddressKey(entityType, [], condition.fieldName)
-	].toArray.toReversed()) {
-		if (row[EntityMetaKey.ParentSelectorKey] !== parentSelectorKey)
-			continue
-
-		if (condition.itemIndex === undefined)
-			return row[EntityMetaKey.Value]
-
-		if (row.valueIndex === condition.itemIndex)
-			return row[EntityMetaKey.Value]
-	}
-
-	return undefined
-}
-
-const fieldConditionState = <
-	const _Schema extends Schema
->(
-	context: ClientContext<_Schema>,
-	entityType: string,
-	parentSelector: Record<string, { readonly [index: number]: unknown } | undefined>,
-	parentSelectorKey: string,
+const fieldCanCompleteEmpty = (
 	definition: EntityFieldDefinition
-) => {
-	if (definition.when === undefined)
-		return FieldConditionState.Unconditional
-
-	const value = fieldConditionValue(
-		context,
-		entityType,
-		parentSelector,
-		parentSelectorKey,
-		definition.when
-	)
-	return (
-		value === undefined ?
-			FieldConditionState.Unknown
-		: definition.when.values.some((conditionValue) => conditionValue === value) ?
-			FieldConditionState.Active
-		:
-			FieldConditionState.Inactive
-	)
-}
-
-const fieldCanCompleteEmpty = <
-	const _Schema extends Schema
->(
-	context: ClientContext<_Schema>,
-	entityType: string,
-	parentSelector: Record<string, { readonly [index: number]: unknown } | undefined>,
-	parentSelectorKey: string,
-	definition: EntityFieldDefinition
-) => {
-	const conditionState = fieldConditionState(
-		context,
-		entityType,
-		parentSelector,
-		parentSelectorKey,
-		definition
-	)
-	return (
+) => (
 		definition.cardinality === EntityFieldCardinality.Zero
 		|| definition.cardinality === EntityFieldCardinality.ZeroOrOne
-		|| conditionState === FieldConditionState.Inactive
-		|| (
-			conditionState !== FieldConditionState.Unknown
-			&& (
-				definition.cardinality === EntityFieldCardinality.Many
-				|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
-			)
-		)
+		|| definition.cardinality === EntityFieldCardinality.Many
+		|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
 	)
-}
 
 const resolverFieldValueItems = (
 	entityType: string,
@@ -1190,18 +1174,6 @@ const loadEntityRows = async <
 	}
 }
 
-const fieldDefinition = (
-	entityDefinition: EntityDefinition,
-	fieldName: string
-) => {
-	const definition = entityFieldDefinitions(entityDefinition)
-		.find((candidate) => candidate.name === fieldName)
-	if (definition == null)
-		throw new Error(`${entityDefinition.entityType}.${fieldName} does not exist`)
-
-	return definition
-}
-
 const loadFieldRows = async <
 	const _Schema extends Schema
 >(
@@ -1224,78 +1196,83 @@ const loadFieldRows = async <
 		definition.defaultSources,
 		resolverParts.map((resolverPart) => String(resolverPart.source))
 	))
-	if (entityDefinition.selectors.some((selectorDefinition) => selectorDefinition.fields.includes(fieldName))) {
-		const results = parentSelectorsFromSubset(subset).flatMap(({
-			selector: parentSelector,
-			selectorKey: parentSelectorKey,
-		}) => {
+	const parentSelectors = parentSelectorsFromSubset(subset)
+	const results = await Promise.all(parentSelectors.flatMap(({
+		selector: parentSelector,
+		selectorKey: parentSelectorKey,
+	}) => {
+		const selectorName = validateEntitySelector(
+			context.schema,
+			entityDefinition,
+			parentSelector
+		).name
+		const selectorOwnsField = (
+			entityDefinition.selectors
+				.find((selectorDefinition) => selectorDefinition.name === selectorName)
+				?.fields
+				.includes(fieldName)
+			?? false
+		)
+		if (selectorOwnsField) {
 			const selectorValue = parentSelector[fieldName]
 			if (selectorValue === undefined)
-				return []
+				return [...sources].map((source) => Promise.resolve({
+					rows: [],
+					outcomes: [{
+						source,
+						status: PersistedCollectionSourceStatus.Failed,
+						error: `${entityType}.${fieldName}.${source} selector ${selectorName} is missing ${fieldName}`,
+					}],
+				}))
 
-			return [...sources].map((source) => {
-				const value = (
-					definition.type === EntityFieldType.EntityReference ?
-						{ [EntityMetaKey.Selector]: selectorValue }
-					:
-						selectorValue
-				)
-				return {
-					rows: resolverFieldValueItems(
+			const value = (
+				definition.type === EntityFieldType.EntityReference ?
+					{ [EntityMetaKey.Selector]: selectorValue }
+				:
+					selectorValue
+			)
+			return [...sources].map((source) => Promise.resolve({
+				rows: resolverFieldValueItems(
+					entityType,
+					fieldName,
+					source,
+					definition,
+					value
+				).map((item, valueIndex) => ({
+					facetPath,
+					facetPathKey,
+					fieldName,
+					...(entityFieldCardinalityIsMultiple(definition.cardinality) && {
+						valueIndex,
+					}),
+					[EntityMetaKey.ParentSelector]: parentSelector,
+					[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+					[EntityMetaKey.Source]: source,
+					[EntityMetaKey.Value]: item,
+					valueKey: resolverFieldValueKey(
+						context,
 						entityType,
 						fieldName,
 						source,
 						definition,
-						value
-					).map((item, valueIndex) => ({
-						facetPath,
-						facetPathKey,
-						fieldName,
-						...(entityFieldCardinalityIsMultiple(definition.cardinality) && {
-							valueIndex,
-						}),
-						[EntityMetaKey.ParentSelector]: parentSelector,
-						[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
-						[EntityMetaKey.Source]: source,
-						[EntityMetaKey.Value]: item,
-						valueKey: resolverFieldValueKey(
-							context,
-							entityType,
-							fieldName,
-							source,
-							definition,
-							item
-						),
-					})),
-					outcomes: [{
-						source,
-						status: PersistedCollectionSourceStatus.Completed,
-					}],
-				}
-			})
-		})
-
-		return {
-			rows: results.flatMap((result) => result.rows),
-			outcomes: results.flatMap((result) => result.outcomes),
+						item
+					),
+				})),
+				outcomes: [{
+					source,
+					status: PersistedCollectionSourceStatus.Completed,
+				}],
+			}))
 		}
-	}
-	const results = await Promise.all(parentSelectorsFromSubset(subset).flatMap(({
-		selector: parentSelector,
-		selectorKey: parentSelectorKey,
-	}) => (
-		resolverParts.flatMap(async (resolverPart) => {
+
+		return resolverParts.flatMap(async (resolverPart) => {
 			if (!sources.has(String(resolverPart.source)))
 				return {
 					rows: [],
 					outcomes: [],
 				}
 
-			if (resolverPart.resolver.resolve[validateEntitySelector(
-				context.schema,
-				entityDefinition,
-				parentSelector
-			).name] == null)
+			if (resolverPart.resolver.resolve[selectorName] == null)
 				return {
 					rows: [],
 					outcomes: [],
@@ -1310,13 +1287,7 @@ const loadFieldRows = async <
 					subset
 				)
 				if (snapshot === undefined)
-					return fieldCanCompleteEmpty(
-						context,
-						entityType,
-						parentSelector,
-						parentSelectorKey,
-						definition
-					) ?
+					return fieldCanCompleteEmpty(definition) ?
 						{
 							rows: [],
 							outcomes: [{
@@ -1324,15 +1295,15 @@ const loadFieldRows = async <
 								status: PersistedCollectionSourceStatus.Completed,
 							}],
 						}
-						:
-							{
-								rows: [],
-								outcomes: [{
-									source: String(resolverPart.source),
-									status: PersistedCollectionSourceStatus.Failed,
-									error: `${entityType}.${fieldName}.${String(resolverPart.source)} returned undefined snapshot for required field`,
-								}],
-							}
+					:
+						{
+							rows: [],
+							outcomes: [{
+								source: String(resolverPart.source),
+								status: PersistedCollectionSourceStatus.Failed,
+								error: `${entityType}.${fieldName}.${String(resolverPart.source)} returned undefined snapshot for required field`,
+							}],
+						}
 
 				if (resolverPart.select == null)
 					return {
@@ -1355,13 +1326,7 @@ const loadFieldRows = async <
 				)
 				if (
 					value === undefined
-					&& !fieldCanCompleteEmpty(
-						context,
-						entityType,
-						parentSelector,
-						parentSelectorKey,
-						definition
-					)
+					&& !fieldCanCompleteEmpty(definition)
 				)
 					return {
 						rows: [],
@@ -1372,65 +1337,50 @@ const loadFieldRows = async <
 						}],
 					}
 
-					return {
-						rows: resolverFieldValueItems(
+				return {
+					rows: resolverFieldValueItems(
+						entityType,
+						fieldName,
+						String(resolverPart.source),
+						definition,
+						value
+					).map((item, valueIndex) => ({
+						facetPath,
+						facetPathKey,
+						fieldName,
+						...(entityFieldCardinalityIsMultiple(definition.cardinality) && {
+							valueIndex,
+						}),
+						[EntityMetaKey.ParentSelector]: parentSelector,
+						[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+						[EntityMetaKey.Source]: String(resolverPart.source),
+						[EntityMetaKey.Value]: item,
+						valueKey: resolverFieldValueKey(
+							context,
 							entityType,
 							fieldName,
 							String(resolverPart.source),
 							definition,
-							value
-						).map((item, valueIndex) => ({
-							facetPath,
-							facetPathKey,
-							fieldName,
-							...(entityFieldCardinalityIsMultiple(definition.cardinality) && {
-								valueIndex,
-							}),
-							[EntityMetaKey.ParentSelector]: parentSelector,
-							[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
-							[EntityMetaKey.Source]: String(resolverPart.source),
-							[EntityMetaKey.Value]: item,
-							valueKey: resolverFieldValueKey(
-								context,
-								entityType,
-								fieldName,
-								String(resolverPart.source),
-								definition,
-								item
-							),
-						})),
-						outcomes: [{
-							source: String(resolverPart.source),
-							status: PersistedCollectionSourceStatus.Completed,
-						}],
-					}
-				} catch (error) {
-					if (fieldCanCompleteEmpty(
-						context,
-						entityType,
-						parentSelector,
-						parentSelectorKey,
-						definition
-					))
-						return {
-							rows: [],
-							outcomes: [{
-								source: String(resolverPart.source),
-								status: PersistedCollectionSourceStatus.Completed,
-							}],
-						}
-
-					return {
-						rows: [],
-						outcomes: [{
-							source: String(resolverPart.source),
-							status: PersistedCollectionSourceStatus.Failed,
-							error: error instanceof Error ? error.message : String(error),
-						}],
-					}
+							item
+						),
+					})),
+					outcomes: [{
+						source: String(resolverPart.source),
+						status: PersistedCollectionSourceStatus.Completed,
+					}],
 				}
+			} catch (error) {
+				return {
+					rows: [],
+					outcomes: [{
+						source: String(resolverPart.source),
+						status: PersistedCollectionSourceStatus.Failed,
+						error: error instanceof Error ? error.message : String(error),
+					}],
+				}
+			}
 		})
-	)))
+	}))
 
 	return {
 		rows: results.flatMap((result) => result.rows),
@@ -1461,7 +1411,8 @@ const loadCountRows = async <
 		definition.defaultSources,
 		resolverParts.map((resolverPart) => String(resolverPart.source))
 	))
-	const results = await Promise.all(parentSelectorsFromSubset(subset).flatMap(({
+	const parentSelectors = parentSelectorsFromSubset(subset)
+	const results = await Promise.all(parentSelectors.flatMap(({
 		selector: parentSelector,
 		selectorKey: parentSelectorKey,
 	}) => (
@@ -1491,13 +1442,7 @@ const loadCountRows = async <
 					subset
 				)
 				if (snapshot === undefined)
-					return fieldCanCompleteEmpty(
-						context,
-						entityType,
-						parentSelector,
-						parentSelectorKey,
-						definition
-					) ?
+					return fieldCanCompleteEmpty(definition) ?
 						{
 							rows: [],
 							outcomes: [{
@@ -1619,7 +1564,6 @@ export const client = <
 	const {
 		entityDefinitionByType,
 		projectionDefinitionByEntityTypeAndPath,
-		entityFieldDefinitionByEntityTypeAndName,
 		entityFieldDefinitionByEntityTypePathAndName,
 		entitySelectorDefinitionByEntityTypeAndName,
 	} = indexSchema(schema)
@@ -1661,6 +1605,7 @@ export const client = <
 				sync: persistedCollectionSync({
 					collectionId: `client.entities.${entityDefinition.entityType}`,
 					schemaVersion,
+					persistence,
 					getKey: (row) => stringify([
 						row[EntityMetaKey.Source],
 						row[EntityMetaKey.SelectorKey],
@@ -1772,6 +1717,7 @@ export const client = <
 						sync: persistedCollectionSync({
 							collectionId: fieldCollectionId,
 							schemaVersion,
+							persistence,
 							getKey: (row) => stringify([
 								row[EntityMetaKey.Source],
 								row[EntityMetaKey.ParentSelectorKey],
@@ -1827,6 +1773,8 @@ export const client = <
 						]),
 						persistence,
 						schemaVersion,
+						autoIndex: 'eager',
+						defaultIndexType: BasicIndex,
 						utils: entityFieldCollectionUtils.utils,
 						onDelete: async () => {},
 					})
@@ -1837,70 +1785,6 @@ export const client = <
 						indexType: BasicIndex,
 					}
 				)
-				if (definition.type === EntityFieldType.EntitiesReference && definition.entityType in entityDefinitionByType) {
-					entityFieldCollections[entityDefinition.entityType][fieldAddressKey].createIndex(
-						(row) => row[EntityMetaKey.Value].timestampMs,
-						{
-							indexType: BasicIndex,
-						}
-					)
-					entityFieldCollections[entityDefinition.entityType][fieldAddressKey].createIndex(
-						(row) => row[EntityMetaKey.Value].blockNumber,
-						{
-							indexType: BasicIndex,
-						}
-					)
-					entityFieldCollections[entityDefinition.entityType][fieldAddressKey].createIndex(
-						(row) => row[EntityMetaKey.Value].slot,
-						{
-							indexType: BasicIndex,
-						}
-					)
-					entityFieldCollections[entityDefinition.entityType][fieldAddressKey].createIndex(
-						(row) => row[EntityMetaKey.Value].height,
-						{
-							indexType: BasicIndex,
-						}
-					)
-					entityFieldCollections[entityDefinition.entityType][fieldAddressKey].createIndex(
-						(row) => row[EntityMetaKey.Value].activationBlock,
-						{
-							indexType: BasicIndex,
-						}
-					)
-					entityFieldCollections[entityDefinition.entityType][fieldAddressKey].createIndex(
-						(row) => row[EntityMetaKey.Value].activationTimestampMs,
-						{
-							indexType: BasicIndex,
-						}
-					)
-					entityFieldCollections[entityDefinition.entityType][fieldAddressKey].createIndex(
-						(row) => row[EntityMetaKey.Value].sourceOrder,
-						{
-							indexType: BasicIndex,
-						}
-					)
-					for (const selectorDefinition of entityDefinitionByType[definition.entityType].selectors) {
-						for (const selectorFieldName of selectorDefinition.fields) {
-							if (
-								entityFieldDefinitions(entityDefinitionByType[definition.entityType]).some((fieldDefinition) => (
-									fieldDefinition.name === selectorFieldName
-									&& fieldDefinition.type === EntityFieldType.Primitive
-								))
-							)
-								entityFieldCollections[entityDefinition.entityType][fieldAddressKey].createIndex(
-									(row) => (
-										((row[EntityMetaKey.Value] as object) as {
-											[EntityMetaKey.Selector]: Ref<Record<string, string | number>>
-										})[EntityMetaKey.Selector][selectorFieldName]
-									),
-									{
-										indexType: BasicIndex,
-									}
-								)
-						}
-					}
-				}
 			if (
 				definition.type === EntityFieldType.EntitiesReference
 				|| definition.cardinality === EntityFieldCardinality.Many
@@ -1923,6 +1807,7 @@ export const client = <
 						sync: persistedCollectionSync({
 							collectionId: countCollectionId,
 							schemaVersion,
+							persistence,
 							getKey: (row) => stringify([
 								row[EntityMetaKey.Source],
 								row[EntityMetaKey.ParentSelectorKey],
@@ -1992,7 +1877,6 @@ export const client = <
 		schema,
 		entityDefinitionByType,
 		projectionDefinitionByEntityTypeAndPath,
-		entityFieldDefinitionByEntityTypeAndName,
 		entityFieldDefinitionByEntityTypePathAndName,
 		entitySelectorDefinitionByEntityTypeAndName,
 		resolverIndexes,

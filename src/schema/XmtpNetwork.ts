@@ -10,8 +10,10 @@ export enum XmtpNetworkSelector {
 }
 export const XmtpNetwork = entity({
 	entityType: EntityType.XmtpNetwork,
-	label: 'XMTP',
-	labelPlural: 'XMTP',
+	labels: {
+		singular: 'XMTP',
+		plural: 'XMTP',
+	},
 	description: 'XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the seeded.',
 })({
 	scope: {

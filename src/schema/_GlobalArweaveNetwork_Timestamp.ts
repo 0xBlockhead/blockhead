@@ -9,8 +9,10 @@ export enum _GlobalArweaveNetwork_TimestampSelector {
 }
 export const _GlobalArweaveNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalArweaveNetwork_Timestamp,
-	label: 'global Arweave network timestamp',
-	labelPlural: 'global Arweave network observations',
+	labels: {
+		singular: 'global Arweave network timestamp',
+		plural: 'global Arweave network observations',
+	},
 })({
 	$hub: {
 		label: 'Hub',

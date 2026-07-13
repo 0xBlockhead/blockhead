@@ -9,8 +9,10 @@ export enum IcpNetworkSelector {
 }
 export const IcpNetwork = entity({
 	entityType: EntityType.IcpNetwork,
-	label: 'icp network',
-	labelPlural: 'icp networks',
+	labels: {
+		singular: 'icp network',
+		plural: 'icp networks',
+	},
 })({
 	$network: {
 		label: 'network',

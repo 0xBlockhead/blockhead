@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const drepCredential = selection.entitySelector.drepCredential ?? prefetched.drepCredential}
+							{@const drepCredential = pendingEntity.drepCredential}
 							{#if drepCredential !== undefined && drepCredential !== null}
 								<TruncatedValue value={String((drepCredential) ?? '')} />
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const credentialKind = prefetched.credentialKind}
+					{@const credentialKind = pendingEntity.credentialKind}
 					{#if credentialKind !== undefined && credentialKind !== null}
 						<div>
 							<dt>credential kind</dt>

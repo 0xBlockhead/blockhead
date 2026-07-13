@@ -9,8 +9,10 @@ export enum SuiCoinBalance_TimestampSelector {
 }
 export const SuiCoinBalance_Timestamp = entity({
 	entityType: EntityType.SuiCoinBalance_Timestamp,
-	label: 'sui coin balance timestamp',
-	labelPlural: 'sui coin balance observations',
+	labels: {
+		singular: 'sui coin balance timestamp',
+		plural: 'sui coin balance observations',
+	},
 })({
 	$account: {
 		label: 'account',

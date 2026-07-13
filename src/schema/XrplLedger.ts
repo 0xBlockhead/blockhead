@@ -10,8 +10,10 @@ export enum XrplLedgerSelector {
 }
 export const XrplLedger = entity({
 	entityType: EntityType.XrplLedger,
-	label: 'xrpl ledger',
-	labelPlural: 'xrpl ledgers',
+	labels: {
+		singular: 'xrpl ledger',
+		plural: 'xrpl ledgers',
+	},
 })({
 	$network: {
 		label: 'network',

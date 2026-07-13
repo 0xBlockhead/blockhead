@@ -10,8 +10,10 @@ export enum BlockheadIntentQuote_TimestampSelector {
 }
 export const BlockheadIntentQuote_Timestamp = entity({
 	entityType: EntityType.BlockheadIntentQuote_Timestamp,
-	label: 'blockhead intent quote timestamp',
-	labelPlural: 'blockhead intent quote observations',
+	labels: {
+		singular: 'blockhead intent quote timestamp',
+		plural: 'blockhead intent quote observations',
+	},
 })({
 	$quote: {
 		label: 'quote',

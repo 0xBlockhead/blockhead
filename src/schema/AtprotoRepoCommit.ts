@@ -10,8 +10,10 @@ export enum AtprotoRepoCommitSelector {
 }
 export const AtprotoRepoCommit = entity({
 	entityType: EntityType.AtprotoRepoCommit,
-	label: 'AT Protocol repo commit',
-	labelPlural: 'AT Protocol repo commits',
+	labels: {
+		singular: 'AT Protocol repo commit',
+		plural: 'AT Protocol repo commits',
+	},
 })({
 	repoDid: {
 		label: 'Repo DID',

@@ -17,8 +17,10 @@ export enum LightningChannelSelector {
 }
 export const LightningChannel = entity({
 	entityType: EntityType.LightningChannel,
-	label: 'Lightning channel',
-	labelPlural: 'Lightning channels',
+	labels: {
+		singular: 'Lightning channel',
+		plural: 'Lightning channels',
+	},
 })({
 	$network: {
 		label: 'Network',

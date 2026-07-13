@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operationIndex = selection.entitySelector.operationIndex ?? prefetched.operationIndex}
+							{@const operationIndex = pendingEntity.operationIndex}
 							{#if operationIndex !== undefined && operationIndex !== null}
 								{String((operationIndex) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const operationType = prefetched.operationType}
+							{@const operationType = pendingEntity.operationType}
 							{#if operationType !== undefined && operationType !== null}
 								{String((operationType) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceAccount = prefetched.sourceAccount}
+					{@const sourceAccount = pendingEntity.sourceAccount}
 					{#if sourceAccount !== undefined && sourceAccount !== null}
 						<div>
 							<dt>source account</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resultCode = prefetched.resultCode}
+					{@const resultCode = pendingEntity.resultCode}
 					{#if resultCode !== undefined && resultCode !== null}
 						<div>
 							<dt>result code</dt>

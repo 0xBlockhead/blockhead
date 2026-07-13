@@ -9,8 +9,10 @@ export enum IbcClientSelector {
 }
 export const IbcClient = entity({
 	entityType: EntityType.IbcClient,
-	label: 'IBC client',
-	labelPlural: 'IBC clients',
+	labels: {
+		singular: 'IBC client',
+		plural: 'IBC clients',
+	},
 })({
 	$network: {
 		label: 'Network',

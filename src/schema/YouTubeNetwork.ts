@@ -10,8 +10,10 @@ export enum YoutubeNetworkSelector {
 }
 export const YoutubeNetwork = entity({
 	entityType: EntityType.YoutubeNetwork,
-	label: 'YouTube Data API',
-	labelPlural: 'YouTube Data API',
+	labels: {
+		singular: 'YouTube Data API',
+		plural: 'YouTube Data API',
+	},
 })({
 	scope: {
 		label: 'Scope',

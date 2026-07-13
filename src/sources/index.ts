@@ -28,11 +28,15 @@ export const sourceBindings = validateSourceBindings(
 	sourceProviderDefinitions.flatMap((provider) => provider.bindings)
 		.filter((binding) => (
 			browserDeliveries.has(binding.delivery)
-			&& binding.credentials.every((credential) => (
-				credential.scope === SourceCredentialScope.None
-				|| credential.scope === SourceCredentialScope.PublicConfig
-				|| credential.scope === SourceCredentialScope.UserDelegated
-			))
+			&& (
+				binding.delivery === SourceDelivery.RemoteQuery
+				|| binding.delivery === SourceDelivery.RemoteLive
+				|| binding.credentials.every((credential) => (
+					credential.scope === SourceCredentialScope.None
+					|| credential.scope === SourceCredentialScope.PublicConfig
+					|| credential.scope === SourceCredentialScope.UserDelegated
+				))
+			)
 		))
 ) satisfies readonly SourceBinding[]
 

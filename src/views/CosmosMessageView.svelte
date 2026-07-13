@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -47,7 +46,7 @@
 			typeUrl: true,
 		},
 	}))
-	const titleFallback = $derived((String((selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction) ?? '') ? 'Message #' + String((selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction) ?? '') : '') || 'Cosmos message')
+	const titleFallback = $derived((String((pendingEntity.indexInTransaction) ?? '') ? 'Message #' + String((pendingEntity.indexInTransaction) ?? '') : '') || 'Cosmos message')
 	const viewDomId = $derived('cosmos-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -65,20 +64,14 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction ?? '')}
-	href={
-		href ?? (pendingEntity.$transaction !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined && pendingEntity.$transaction.$network.caip2.namespace !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined && pendingEntity.$transaction.$network.caip2.reference !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.txHash !== undefined && pendingEntity.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]/messages/[messageIndex=nonNegativeInteger]', {
-			caip2: `${String(pendingEntity.$transaction.$network.caip2.namespace ?? '')}:${String(pendingEntity.$transaction.$network.caip2.reference ?? '')}`,
-			txHash: String(pendingEntity.$transaction.txHash ?? ''),
-			messageIndex: String(pendingEntity.indexInTransaction ?? ''),
-		}) : undefined)
-	}
+	idDragPlainText={String(pendingEntity.indexInTransaction ?? '')}
+	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction}
+		{@const serialValue = pendingEntity.indexInTransaction}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Message </span>
@@ -90,7 +83,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction}
+		{@const serialValue = pendingEntity.indexInTransaction}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -101,7 +94,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cosmosMessage}>
 			{#snippet Pending()}
-				{@const typeUrl0 = prefetched.typeUrl}
+				{@const typeUrl0 = pendingEntity.typeUrl}
 				{#if typeUrl0 !== undefined && typeUrl0 !== null}
 					<span data-text="muted">
 						<svelte:element
@@ -150,7 +143,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const indexInTransaction = selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction}
+							{@const indexInTransaction = pendingEntity.indexInTransaction}
 							{#if indexInTransaction !== undefined && indexInTransaction !== null}
 								{String((indexInTransaction) ?? '')}
 							{/if}
@@ -180,7 +173,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const typeUrl = prefetched.typeUrl}
+							{@const typeUrl = pendingEntity.typeUrl}
 							{#if typeUrl !== undefined && typeUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -221,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleName = prefetched.moduleName}
+					{@const moduleName = pendingEntity.moduleName}
 					{#if moduleName !== undefined && moduleName !== null}
 						<div>
 							<dt>Module name</dt>
@@ -256,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const messageName = prefetched.messageName}
+					{@const messageName = pendingEntity.messageName}
 					{#if messageName !== undefined && messageName !== null}
 						<div>
 							<dt>Message name</dt>
@@ -293,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signerAddress = prefetched.signerAddress}
+					{@const signerAddress = pendingEntity.signerAddress}
 					{#if signerAddress !== undefined && signerAddress !== null}
 						<div>
 							<dt>Signer address</dt>
@@ -328,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const senderAddress = prefetched.senderAddress}
+					{@const senderAddress = pendingEntity.senderAddress}
 					{#if senderAddress !== undefined && senderAddress !== null}
 						<div>
 							<dt>Sender address</dt>
@@ -363,7 +356,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const granterAddress = prefetched.granterAddress}
+					{@const granterAddress = pendingEntity.granterAddress}
 					{#if granterAddress !== undefined && granterAddress !== null}
 						<div>
 							<dt>Granter address</dt>
@@ -398,7 +391,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const granteeAddress = prefetched.granteeAddress}
+					{@const granteeAddress = pendingEntity.granteeAddress}
 					{#if granteeAddress !== undefined && granteeAddress !== null}
 						<div>
 							<dt>Grantee address</dt>
@@ -435,7 +428,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractAddress = prefetched.contractAddress}
+					{@const contractAddress = pendingEntity.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>Contract address</dt>
@@ -473,7 +466,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const funds = prefetched.funds}
+							{@const funds = pendingEntity.funds}
 							{#if funds !== undefined && funds !== null}
 								{funds.values.map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -503,7 +496,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventTypes = prefetched.eventTypes}
+							{@const eventTypes = pendingEntity.eventTypes}
 							{#if eventTypes !== undefined && eventTypes !== null}
 								{eventTypes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -523,6 +516,8 @@
 			<ResourceBoundary
 				resource={selection.$signer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cosmosAccount)}
 					{#if cosmosAccount != null && cosmosAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -531,12 +526,6 @@
 								<CosmosAccountView
 									selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
 									prefetched={cosmosAccount}
-									href={
-										(cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2.reference !== undefined && cosmosAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
-											caip2: `${String(cosmosAccount[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(cosmosAccount[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
-											address: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -551,12 +540,6 @@
 				<dd>
 					<CosmosTransactionView
 						selection={select(EntityType.CosmosTransaction, selection.entitySelector.$transaction, {})}
-						href={
-							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]', {
-								caip2: `${String(selection.entitySelector.$transaction.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$transaction.$network.caip2.reference ?? '')}`,
-								txHash: String(selection.entitySelector.$transaction.txHash ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

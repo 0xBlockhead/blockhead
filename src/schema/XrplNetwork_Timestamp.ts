@@ -9,8 +9,10 @@ export enum XrplNetwork_TimestampSelector {
 }
 export const XrplNetwork_Timestamp = entity({
 	entityType: EntityType.XrplNetwork_Timestamp,
-	label: 'xrpl network timestamp',
-	labelPlural: 'xrpl network observations',
+	labels: {
+		singular: 'xrpl network timestamp',
+		plural: 'xrpl network observations',
+	},
 })({
 	$network: {
 		label: 'network',

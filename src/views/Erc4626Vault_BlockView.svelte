@@ -47,7 +47,7 @@
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '')].filter(Boolean).join(' ') || 'erc4626 vault block')
+	const titleFallback = $derived([String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || 'erc4626 vault block')
 	const viewDomId = $derived('erc4626vault-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={erc4626VaultBlock}>
 			{#snippet Pending()}
-				{@const blockNumber0 = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
+				{@const blockNumber0 = pendingEntity.blockNumber}
 				{#if blockNumber0 !== undefined && blockNumber0 !== null}
 					<NumberValue value={Number(blockNumber0)} />
 				{/if}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={erc4626VaultBlock}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '')].filter(Boolean).join(' ') || title || 'erc4626 vault block'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || title || 'erc4626 vault block'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -126,7 +126,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockNumber = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
+							{@const blockNumber = pendingEntity.blockNumber}
 							{#if blockNumber !== undefined && blockNumber !== null}
 								<NumberValue value={Number(blockNumber)} />
 							{/if}
@@ -156,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -185,7 +185,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalAssets = prefetched.totalAssets}
+					{@const totalAssets = pendingEntity.totalAssets}
 					{#if totalAssets !== undefined && totalAssets !== null}
 						<div>
 							<dt>Total assets</dt>
@@ -220,7 +220,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalSupply = prefetched.totalSupply}
+					{@const totalSupply = pendingEntity.totalSupply}
 					{#if totalSupply !== undefined && totalSupply !== null}
 						<div>
 							<dt>Total supply</dt>
@@ -255,7 +255,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const assetsPerShare = prefetched.assetsPerShare}
+					{@const assetsPerShare = pendingEntity.assetsPerShare}
 					{#if assetsPerShare !== undefined && assetsPerShare !== null}
 						<div>
 							<dt>Assets per share</dt>
@@ -290,7 +290,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sharesPerAsset = prefetched.sharesPerAsset}
+					{@const sharesPerAsset = pendingEntity.sharesPerAsset}
 					{#if sharesPerAsset !== undefined && sharesPerAsset !== null}
 						<div>
 							<dt>Shares per asset</dt>
@@ -327,7 +327,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxDepositAssets = prefetched.maxDepositAssets}
+					{@const maxDepositAssets = pendingEntity.maxDepositAssets}
 					{#if maxDepositAssets !== undefined && maxDepositAssets !== null}
 						<div>
 							<dt>Max deposit assets</dt>
@@ -362,7 +362,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxMintShares = prefetched.maxMintShares}
+					{@const maxMintShares = pendingEntity.maxMintShares}
 					{#if maxMintShares !== undefined && maxMintShares !== null}
 						<div>
 							<dt>Max mint shares</dt>
@@ -397,7 +397,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxWithdrawAssets = prefetched.maxWithdrawAssets}
+					{@const maxWithdrawAssets = pendingEntity.maxWithdrawAssets}
 					{#if maxWithdrawAssets !== undefined && maxWithdrawAssets !== null}
 						<div>
 							<dt>Max withdraw assets</dt>
@@ -432,7 +432,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxRedeemShares = prefetched.maxRedeemShares}
+					{@const maxRedeemShares = pendingEntity.maxRedeemShares}
 					{#if maxRedeemShares !== undefined && maxRedeemShares !== null}
 						<div>
 							<dt>Max redeem shares</dt>
@@ -469,7 +469,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previewDepositShares = prefetched.previewDepositShares}
+					{@const previewDepositShares = pendingEntity.previewDepositShares}
 					{#if previewDepositShares !== undefined && previewDepositShares !== null}
 						<div>
 							<dt>Preview deposit shares</dt>
@@ -504,7 +504,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previewMintAssets = prefetched.previewMintAssets}
+					{@const previewMintAssets = pendingEntity.previewMintAssets}
 					{#if previewMintAssets !== undefined && previewMintAssets !== null}
 						<div>
 							<dt>Preview mint assets</dt>
@@ -539,7 +539,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previewWithdrawShares = prefetched.previewWithdrawShares}
+					{@const previewWithdrawShares = pendingEntity.previewWithdrawShares}
 					{#if previewWithdrawShares !== undefined && previewWithdrawShares !== null}
 						<div>
 							<dt>Preview withdraw shares</dt>
@@ -574,7 +574,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previewRedeemAssets = prefetched.previewRedeemAssets}
+					{@const previewRedeemAssets = pendingEntity.previewRedeemAssets}
 					{#if previewRedeemAssets !== undefined && previewRedeemAssets !== null}
 						<div>
 							<dt>Preview redeem assets</dt>

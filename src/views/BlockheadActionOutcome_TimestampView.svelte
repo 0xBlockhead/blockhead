@@ -51,7 +51,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'blockhead action outcome timestamp')
+	const titleFallback = $derived([String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || 'blockhead action outcome timestamp')
 	const viewDomId = $derived('blockhead-action-outcome-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadActionOutcomeTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action outcome timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action outcome timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadActionOutcomeTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -108,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadActionOutcomeTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -241,7 +241,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const finality = prefetched.finality}
+					{@const finality = pendingEntity.finality}
 					{#if finality !== undefined && finality !== null}
 						<div>
 							<dt>finality</dt>
@@ -278,7 +278,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>transaction hash</dt>
@@ -313,7 +313,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionId = prefetched.transactionId}
+					{@const transactionId = pendingEntity.transactionId}
 					{#if transactionId !== undefined && transactionId !== null}
 						<div>
 							<dt>transaction ID</dt>
@@ -348,7 +348,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bridgeTransferId = prefetched.bridgeTransferId}
+					{@const bridgeTransferId = pendingEntity.bridgeTransferId}
 					{#if bridgeTransferId !== undefined && bridgeTransferId !== null}
 						<div>
 							<dt>bridge transfer ID</dt>
@@ -383,7 +383,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourcePayloadHash = prefetched.sourcePayloadHash}
+					{@const sourcePayloadHash = pendingEntity.sourcePayloadHash}
 					{#if sourcePayloadHash !== undefined && sourcePayloadHash !== null}
 						<div>
 							<dt>source payload hash</dt>
@@ -418,7 +418,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

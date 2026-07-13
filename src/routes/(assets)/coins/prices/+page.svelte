@@ -24,7 +24,7 @@
 
 <Page>
 	<MarketPricesView
-		href={resolve('/(assets)/coins/prices')}
+		href={resolve('/coins/prices')}
 		title='Spot quote index'
 		selection={
 			select(EntityType._Global, {

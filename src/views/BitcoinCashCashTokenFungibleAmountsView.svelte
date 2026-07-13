@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -120,9 +119,9 @@
 						selection={select(EntityType.BitcoinCashCashTokenFungibleAmount, bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitcoinCashCashTokenFungibleAmountFields}
 						href={
-							(bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2.namespace !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2.reference !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-								networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId ?? ''),
+							(bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.slug !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
+								network: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.slug ?? ''),
+								transactionId: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId ?? ''),
 								outputIndex: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction ?? ''),
 							}) : undefined)
 						}

@@ -10,8 +10,10 @@ export enum FilecoinMiner_TimestampSelector {
 }
 export const FilecoinMiner_Timestamp = entity({
 	entityType: EntityType.FilecoinMiner_Timestamp,
-	label: 'filecoin miner timestamp',
-	labelPlural: 'filecoin miner observations',
+	labels: {
+		singular: 'filecoin miner timestamp',
+		plural: 'filecoin miner observations',
+	},
 })({
 	$miner: {
 		label: 'Miner',

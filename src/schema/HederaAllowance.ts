@@ -9,8 +9,10 @@ export enum HederaAllowanceSelector {
 }
 export const HederaAllowance = entity({
 	entityType: EntityType.HederaAllowance,
-	label: 'hedera allowance',
-	labelPlural: 'hedera allowances',
+	labels: {
+		singular: 'hedera allowance',
+		plural: 'hedera allowances',
+	},
 })({
 	$owner: {
 		label: 'owner',

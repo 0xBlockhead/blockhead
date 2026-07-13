@@ -55,7 +55,7 @@
 			timestamp: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.text) ?? ''), String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast')
+	const titleFallback = $derived([String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast')
 	const viewDomId = $derived('farcaster-cast-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.fid !== undefined && pendingEntity.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+		href ?? (pendingEntity.fid !== undefined && pendingEntity.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 			fid: String(pendingEntity.fid ?? ''),
 			hash: String(pendingEntity.hash ?? ''),
 		}) : undefined)
@@ -87,7 +87,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterCast}>
 			{#snippet Pending()}
-				{[String((prefetched.text) ?? ''), String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster cast'}
+				{[String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster cast'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterCast}>
 			{#snippet Pending()}
-				{[String((prefetched.fid) ?? ''), String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || [String((prefetched.text) ?? ''), String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster cast'}
+				{[String((pendingEntity.fid) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.text) ?? ''), String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster cast'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -113,7 +113,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={farcasterCast}>
 			{#snippet Pending()}
-				{@const timestamp0 = prefetched.timestamp}
+				{@const timestamp0 = pendingEntity.timestamp}
 				{#if timestamp0 !== undefined && timestamp0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestamp0)} />
@@ -138,6 +138,8 @@
 			<ResourceBoundary
 				resource={selection.$author}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(farcasterUser)}
 					{#if farcasterUser != null && farcasterUser[EntityMetaKey.Selector] != null}
 						<div>
@@ -167,7 +169,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestamp = prefetched.timestamp}
+					{@const timestamp = pendingEntity.timestamp}
 					{#if timestamp !== undefined && timestamp !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -197,6 +199,8 @@
 			<ResourceBoundary
 				resource={selection.$channel}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(farcasterChannel)}
 					{#if farcasterChannel != null && farcasterChannel[EntityMetaKey.Selector] != null}
 						<div>
@@ -219,6 +223,8 @@
 			<ResourceBoundary
 				resource={selection.$parentCast}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(farcasterCast)}
 					{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
 						<div>
@@ -228,7 +234,7 @@
 									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 									prefetched={farcasterCast}
 									href={
-										(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+										(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 											fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
 											hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
 										}) : undefined)
@@ -254,7 +260,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const parentUrl = prefetched.parentUrl}
+					{@const parentUrl = pendingEntity.parentUrl}
 					{#if parentUrl !== undefined && parentUrl !== null}
 						<div>
 							<dt>Parent URL</dt>
@@ -305,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const threadHash = prefetched.threadHash}
+					{@const threadHash = pendingEntity.threadHash}
 					{#if threadHash !== undefined && threadHash !== null}
 						<div>
 							<dt>Thread hash</dt>
@@ -342,7 +348,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clientUrl = prefetched.clientUrl}
+					{@const clientUrl = pendingEntity.clientUrl}
 					{#if clientUrl !== undefined && clientUrl !== null}
 						<div>
 							<dt>Client URL</dt>

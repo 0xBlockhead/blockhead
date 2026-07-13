@@ -9,8 +9,10 @@ export enum XPost_TimestampSelector {
 }
 export const XPost_Timestamp = entity({
 	entityType: EntityType.XPost_Timestamp,
-	label: 'X post observation',
-	labelPlural: 'X post observations',
+	labels: {
+		singular: 'X post observation',
+		plural: 'X post observations',
+	},
 })({
 	$post: {
 		label: 'Post',
@@ -21,7 +23,7 @@ export const XPost_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	likeCount: {

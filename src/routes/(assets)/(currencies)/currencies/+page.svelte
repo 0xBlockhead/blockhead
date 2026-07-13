@@ -23,7 +23,7 @@
 
 <Page>
 	<CurrenciesView
-		href={resolve('/(assets)/(currencies)/currencies')}
+		href={resolve('/currencies')}
 		title='Currencies'
 		selection={
 			select(EntityType._Global, {

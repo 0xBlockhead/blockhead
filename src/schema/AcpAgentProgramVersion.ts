@@ -10,8 +10,10 @@ export enum AcpAgentProgramVersionSelector {
 }
 export const AcpAgentProgramVersion = entity({
 	entityType: EntityType.AcpAgentProgramVersion,
-	label: 'acp agent program version',
-	labelPlural: 'acp agent program versions',
+	labels: {
+		singular: 'acp agent program version',
+		plural: 'acp agent program versions',
+	},
 })({
 	$program: {
 		label: 'program',

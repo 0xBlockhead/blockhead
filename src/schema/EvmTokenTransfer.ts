@@ -11,8 +11,10 @@ export enum EvmTokenTransferSelector {
 }
 export const EvmTokenTransfer = entity({
 	entityType: EntityType.EvmTokenTransfer,
-	label: 'Token transfer',
-	labelPlural: 'token transfers',
+	labels: {
+		singular: 'Token transfer',
+		plural: 'token transfers',
+	},
 })({
 	$log: {
 		label: 'Log',
@@ -28,7 +30,7 @@ export const EvmTokenTransfer = entity({
 	indexInLog: {
 		label: 'Index in log',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$from: {
@@ -60,20 +62,6 @@ export const EvmTokenTransfer = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
-	},
-	tokenId: {
-		label: 'Token ID',
-		description: 'The token identifier within its collection or contract.',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		when: {
-			fieldName: 'standard',
-			values: [
-				'ERC-721',
-				'ERC-1155',
-			],
-		},
 	},
 	tokenSymbol: {
 		label: 'Token symbol',
@@ -111,5 +99,25 @@ export const EvmTokenTransfer = entity({
 			'$log',
 			'indexInLog',
 		],
+	},
+
+	facets: {
+		Nft: facet({
+			path: [
+				'standard',
+			],
+			isOneOf: [
+				'ERC-721',
+				'ERC-1155',
+			],
+		})({
+			tokenId: {
+				label: 'Token ID',
+				description: 'The token identifier within its collection or contract.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
+			},
+		}),
 	},
 })

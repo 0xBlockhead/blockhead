@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const wasmHash = selection.entitySelector.wasmHash ?? prefetched.wasmHash}
+							{@const wasmHash = pendingEntity.wasmHash}
 							{#if wasmHash !== undefined && wasmHash !== null}
 								<TruncatedValue value={String((wasmHash) ?? '')} />
 							{/if}

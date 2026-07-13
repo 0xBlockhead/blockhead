@@ -9,8 +9,10 @@ export enum ContractInterfaceMemberSelector {
 }
 export const ContractInterfaceMember = entity({
 	entityType: EntityType.ContractInterfaceMember,
-	label: 'contract interface member',
-	labelPlural: 'contract interface members',
+	labels: {
+		singular: 'contract interface member',
+		plural: 'contract interface members',
+	},
 })({
 	interfaceId: {
 		label: 'Interface ID',

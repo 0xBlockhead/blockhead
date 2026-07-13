@@ -15,7 +15,7 @@ import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
-const persistedCollectionPersistencePath = '/network/ethereum'
+const persistedCollectionPersistencePath = '/network/eip155:1'
 const matrixOnly = process.env.E2E_PERSISTENCE_MATRIX_ONLY === '1'
 const pathPattern = process.env.E2E_PATH_PATTERN?.trim()
 
@@ -48,12 +48,26 @@ const persistedCollectionLoads = (
 	events: readonly PersistedCollectionLoadEvent[],
 	completedColdKeys: ReadonlySet<string>
 ) => events.flatMap((event) => (
-	event.decision === 'persisted'
+	(
+		event.decision === 'hydrated-rows'
+		|| event.decision === 'loaded-marker'
+	)
 	&& completedColdKeys.has(collectionLoadSemanticKey(event)) ?
 		[event]
 	:
 		[]
 ))
+
+const persistedCollectionLoadKeys = (
+	events: readonly PersistedCollectionLoadEvent[],
+	decision: 'hydrated-rows' | 'loaded-marker'
+) => new Set(events.flatMap((event) => (
+	event.decision === decision
+	&& event.status === 'completed' ?
+		[collectionLoadSemanticKey(event)]
+	:
+		[]
+)))
 
 const collectionLoadSummary = (
 	event: PersistedCollectionLoadEvent
@@ -193,7 +207,7 @@ test.describe('TanStack DB persistence', () => {
 			throw new Error('No filtered routes matched TanStack DB persistence matrix')
 	})
 
-	test('hydrates completed hydrated-rows from a loaded-marker without remote replay on refresh', async ({
+	test('proves remote, hydrated-rows, and loaded-marker outcomes across a fresh query-cache-empty reopen', async ({
 		browser,
 	}) => {
 		test.skip(matrixOnly)
@@ -216,24 +230,62 @@ test.describe('TanStack DB persistence', () => {
 		}))
 		await expectMainVisible(page, 120_000, diagnostics)
 		await waitForCompletedRemoteCollectionLoads(page)
+		await page.waitForFunction(() => (
+			(window.__blockheadClientProbe?.events.collectionLoads ?? []).some((event) => (
+				event.decision === 'remote'
+				&& event.status === 'completed'
+				&& event.rowCount === 0
+			))
+		), undefined, {
+			timeout: 120_000,
+		})
 		const cold = await readCollectionLoads(page)
 		const coldCompletedKeys = completedRemoteCollectionLoadKeys(cold.collectionLoads)
+		const coldHydratedRowKeys = new Set(cold.collectionLoads.flatMap((event) => (
+			event.decision === 'remote'
+			&& event.status === 'completed'
+			&& (event.rowCount ?? 0) > 0 ?
+				[collectionLoadSemanticKey(event)]
+			:
+				[]
+		)))
+		const coldLoadedMarkerKeys = new Set(cold.collectionLoads.flatMap((event) => (
+			event.decision === 'remote'
+			&& event.status === 'completed'
+			&& event.rowCount === 0 ?
+				[collectionLoadSemanticKey(event)]
+			:
+				[]
+		)))
 
 		expect(coldCompletedKeys.size).toBeGreaterThan(0)
+		expect(coldHydratedRowKeys.size).toBeGreaterThan(0)
+		expect(
+			coldLoadedMarkerKeys.size,
+			jsonStringifyForExpectMessage({
+				coldCollectionLoads: cold.collectionLoads.map(collectionLoadSummary),
+				coldPersistenceTrace: cold.persistenceTrace,
+			})
+		).toBeGreaterThan(0)
 		await waitForCommittedCollectionPersistence(page, cold.collectionLoads)
+		await page.close()
 
-		await diagnostics.step(page.reload({
+		const warmPage = await openPreparedPage(context)
+		const warmDiagnostics = setupPageRuntimeDiagnostics(warmPage)
+		await warmDiagnostics.step(warmPage.goto(persistedCollectionPersistencePath, {
 			waitUntil: 'load',
 			timeout: gotoLoadTimeoutMs,
 		}))
-		await expectMainVisible(page, 120_000, diagnostics)
-		await waitForCoveredCollectionLoadKeys(page, [...coldCompletedKeys])
-		const warm = await readCollectionLoads(page)
+		await expectMainVisible(warmPage, 120_000, warmDiagnostics)
+		await waitForCoveredCollectionLoadKeys(warmPage, [...coldCompletedKeys])
+		const warm = await readCollectionLoads(warmPage)
 		const warmRepeatedRemote = repeatedRemoteCollectionLoads(
 			warm.collectionLoads,
 			coldCompletedKeys
 		)
 		const warmRepeatedCollectionIds = new Set(warmRepeatedRemote.map((event) => event.collectionId))
+		const warmHydratedRowKeys = persistedCollectionLoadKeys(warm.collectionLoads, 'hydrated-rows')
+		const warmLoadedMarkerKeys = persistedCollectionLoadKeys(warm.collectionLoads, 'loaded-marker')
 
 		expect(
 			warmRepeatedRemote.map(collectionLoadSemanticKey),
@@ -257,6 +309,8 @@ test.describe('TanStack DB persistence', () => {
 			warm.collectionLoads,
 			coldCompletedKeys
 		).length).toBeGreaterThan(0)
+		expect([...coldHydratedRowKeys].filter((key) => !warmHydratedRowKeys.has(key))).toEqual([])
+		expect([...coldLoadedMarkerKeys].filter((key) => !warmLoadedMarkerKeys.has(key))).toEqual([])
 
 		await context.close()
 	})
@@ -392,10 +446,4 @@ test.describe('TanStack DB persistence', () => {
 		await context.close()
 	})
 
-	test('documents incomplete persisted, implicit-source, and count refresh failure contracts', () => {
-		expect('incomplete persisted subsets must replay remote sources').toContain('incomplete persisted')
-		expect('implicit-source loaded-marker compatibility is source-count gated').toContain('implicit-source')
-		expect('count refresh failure keeps hydrated rows visible').toContain('keeps hydrated')
-		expect('count refresh failure keeps hydrated rows visible').toContain('count refresh failure')
-	})
 })

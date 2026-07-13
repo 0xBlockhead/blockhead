@@ -10,12 +10,10 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { MarketAssetKind, marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType, MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
-	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+	import { marketAssetRouteLabelByKind, MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
-	import CoinView from '$/views/CoinView.svelte'
-	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 	import Market_Derivative_TimestampView from '$/views/Market_Derivative_TimestampView.svelte'
+	import MarketAssetView from '$/views/MarketAssetView.svelte'
 	import MarketVenueView from '$/views/MarketVenueView.svelte'
 
 
@@ -56,6 +54,7 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
 	import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_TimestampsView.svelte'
@@ -69,13 +68,13 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$marketVenue !== undefined && pendingEntity.$marketVenue.marketVenueId !== undefined && pendingEntity.$base !== undefined && pendingEntity.$base.kind !== undefined && (pendingEntity.$base !== undefined && pendingEntity.$base.kind !== undefined && (pendingEntity.$base.kind === 'Coin' ? pendingEntity.$base !== undefined && pendingEntity.$base.$coin !== undefined && pendingEntity.$base.$coin.coinId !== undefined : pendingEntity.$base.kind === 'CoinInstance' ? pendingEntity.$base !== undefined && pendingEntity.$base.$coinInstance !== undefined && pendingEntity.$base.$coinInstance.type !== undefined : pendingEntity.$base !== undefined && pendingEntity.$base.$currency !== undefined && pendingEntity.$base.$currency.iso4217 !== undefined)) && pendingEntity.$quote !== undefined && pendingEntity.$quote.kind !== undefined && (pendingEntity.$quote !== undefined && pendingEntity.$quote.kind !== undefined && (pendingEntity.$quote.kind === 'Coin' ? pendingEntity.$quote !== undefined && pendingEntity.$quote.$coin !== undefined && pendingEntity.$quote.$coin.coinId !== undefined : pendingEntity.$quote.kind === 'CoinInstance' ? pendingEntity.$quote !== undefined && pendingEntity.$quote.$coinInstance !== undefined && pendingEntity.$quote.$coinInstance.type !== undefined : pendingEntity.$quote !== undefined && pendingEntity.$quote.$currency !== undefined && pendingEntity.$quote.$currency.iso4217 !== undefined)) && pendingEntity.marketKind !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
+		href ?? (pendingEntity.marketKind !== undefined && pendingEntity.$base !== undefined && pendingEntity.$base.assetKey !== undefined && pendingEntity.$quote !== undefined && pendingEntity.$quote.assetKey !== undefined && pendingEntity.$marketVenue !== undefined && pendingEntity.$marketVenue.marketVenueId !== undefined && pendingEntity.$base.kind !== undefined && pendingEntity.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
+			marketKind: String(pendingEntity.marketKind ?? ''),
+			base: String(pendingEntity.$base.assetKey ?? ''),
+			quote: String(pendingEntity.$quote.assetKey ?? ''),
 			marketVenue: String(pendingEntity.$marketVenue.marketVenueId ?? ''),
 			baseKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$base.kind)] ?? ''),
-			base: String((pendingEntity.$base.kind === 'Coin' ? pendingEntity.$base.$coin.coinId : pendingEntity.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(pendingEntity.$base.$coinInstance.type)] : pendingEntity.$base.$currency.iso4217)),
 			quoteKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$quote.kind)] ?? ''),
-			quote: String((pendingEntity.$quote.kind === 'Coin' ? pendingEntity.$quote.$coin.coinId : pendingEntity.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(pendingEntity.$quote.$coinInstance.type)] : pendingEntity.$quote.$currency.iso4217)),
-			marketKind: String(pendingEntity.marketKind ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -83,27 +82,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(selection.entitySelector.$marketVenue).marketVenueId}:{
-			(selection.entitySelector.$base).kind === MarketAssetKind.Coin ?
-				((selection.entitySelector.$base).$coin).coinId
-			: (selection.entitySelector.$base).kind === MarketAssetKind.CoinInstance ?
-				((selection.entitySelector.$base).$coinInstance).type === CoinInstanceType.NativeCurrency ?
-					'native'
-				:
-					'erc20'
-			:
-				((selection.entitySelector.$base).$currency).iso4217
-		}-{
-			(selection.entitySelector.$quote).kind === MarketAssetKind.Coin ?
-				((selection.entitySelector.$quote).$coin).coinId
-			: (selection.entitySelector.$quote).kind === MarketAssetKind.CoinInstance ?
-				((selection.entitySelector.$quote).$coinInstance).type === CoinInstanceType.NativeCurrency ?
-					'native'
-				:
-					'erc20'
-			:
-				((selection.entitySelector.$quote).$currency).iso4217
-		}
+		{selection.entitySelector.$marketVenue.marketVenueId}:{selection.entitySelector.$base.assetKey}-{selection.entitySelector.$quote.assetKey}
 		{#if selection.entitySelector.marketKind !== MarketKind.Spot}
 			{String(marketKindByMarketKind[String(selection.entitySelector.marketKind)].label)}
 		{/if}
@@ -123,8 +102,8 @@
 					<dt>Venue</dt>
 					<dd>
 						<MarketVenueView
-							href={resolve('/(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]', {
-								marketVenueId: String((selection.entitySelector.$marketVenue).marketVenueId),
+							href={resolve('/market-venue/[marketVenueId=marketVenueId]', {
+								marketVenueId: String(selection.entitySelector.$marketVenue.marketVenueId),
 							})}
 							selection={select(EntityType.MarketVenue, selection.entitySelector.$marketVenue)}
 							layout={EntityLayout.Value}
@@ -167,68 +146,24 @@
 				<div>
 					<dt>Base</dt>
 					<dd>
-						{#if (selection.entitySelector.$base).kind === MarketAssetKind.Coin}
-							<CoinView
-								href={resolve('/(assets)/coin/[coinId]', {
-									coinId: String(((selection.entitySelector.$base).$coin).coinId),
-								})}
-								selection={select(EntityType.Coin, (selection.entitySelector.$base).$coin)}
-								layout={EntityLayout.Value}
-								showTypeAnnotation={false}
-								open={false}
-							/>
-						{:else if (selection.entitySelector.$base).kind === MarketAssetKind.CoinInstance}
-							{#if ((selection.entitySelector.$base).$coinInstance).type === CoinInstanceType.NativeCurrency}
-								<span>Native currency</span>
-							{:else if ((((selection.entitySelector.$base).$coinInstance).$network).caip2).namespace === 'eip155'}
-								<EvmCoinInstanceView
-									href={resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
-										chainId: String(((((selection.entitySelector.$base).$coinInstance).$network).caip2).reference),
-										coinInstanceSlug: String((((selection.entitySelector.$base).$coinInstance).$contract).address),
-									})}
-									selection={select(EntityType.EvmCoinInstance, (selection.entitySelector.$base).$coinInstance)}
-									layout={EntityLayout.Value}
-									showTypeAnnotation={false}
-									open={false}
-								/>
-							{/if}
-						{:else}
-							<span>{String(((selection.entitySelector.$base).$currency).iso4217)}</span>
-						{/if}
+						<MarketAssetView
+							selection={select(EntityType.MarketAsset, selection.entitySelector.$base)}
+							layout={EntityLayout.Value}
+							showTypeAnnotation={false}
+							open={false}
+						/>
 					</dd>
 				</div>
 
 				<div>
 					<dt>Quote</dt>
 					<dd>
-						{#if (selection.entitySelector.$quote).kind === MarketAssetKind.Coin}
-							<CoinView
-								href={resolve('/(assets)/coin/[coinId]', {
-									coinId: String(((selection.entitySelector.$quote).$coin).coinId),
-								})}
-								selection={select(EntityType.Coin, (selection.entitySelector.$quote).$coin)}
-								layout={EntityLayout.Value}
-								showTypeAnnotation={false}
-								open={false}
-							/>
-						{:else if (selection.entitySelector.$quote).kind === MarketAssetKind.CoinInstance}
-							{#if ((selection.entitySelector.$quote).$coinInstance).type === CoinInstanceType.NativeCurrency}
-								<span>Native currency</span>
-							{:else if ((((selection.entitySelector.$quote).$coinInstance).$network).caip2).namespace === 'eip155'}
-								<EvmCoinInstanceView
-									href={resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
-										chainId: String(((((selection.entitySelector.$quote).$coinInstance).$network).caip2).reference),
-										coinInstanceSlug: String((((selection.entitySelector.$quote).$coinInstance).$contract).address),
-									})}
-									selection={select(EntityType.EvmCoinInstance, (selection.entitySelector.$quote).$coinInstance)}
-									layout={EntityLayout.Value}
-									showTypeAnnotation={false}
-									open={false}
-								/>
-							{/if}
-						{:else}
-							<span>{String(((selection.entitySelector.$quote).$currency).iso4217)}</span>
-						{/if}
+						<MarketAssetView
+							selection={select(EntityType.MarketAsset, selection.entitySelector.$quote)}
+							layout={EntityLayout.Value}
+							showTypeAnnotation={false}
+							open={false}
+						/>
 					</dd>
 				</div>
 			</dl>
@@ -238,91 +173,228 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CollapsibleTabs
-				id={viewDomId + '-details-tabs'}
+				id={viewDomId + '-carousel-market-spot'}
 				sectionIdPrefix={viewDomId}
 				sections={
 					[
-						...(selection.entitySelector.marketKind === 'Spot' ? [
-							{
-								id: 'spot',
-								label: 'Spot',
-							},
-						] : []),
-						...(selection.entitySelector.marketKind === 'Spot' ? [
-							{
-								id: 'ohlc',
-								label: 'OHLC',
-							},
-						] : []),
-						...(selection.entitySelector.marketKind !== 'Spot' ? [
-							{
-								id: 'derivatives',
-								label: 'Derivative observations',
-							},
-						] : []),
+						{
+							id: 'market-prices',
+							label: 'Spot',
+						},
+						{
+							id: 'market-ohlc',
+							label: 'Candles',
+						},
 					]
 				}
 				data-card
+				class='network-view-collapsible-spot'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet SectionSpot({ id, label })}
-					{#if selection.entitySelector.marketKind === 'Spot'}
-						<MarketPricesView
-							selection={
-								selection.$$marketPrices({
-									sources: [
-										Source.Constants_Internal,
-										Source.Coingecko_Rest,
-										Source.Coingecko_OpenApi,
-										Source.CoinMarketCap_Rest,
-										Source.Coinpaprika_OpenApi,
-										Source.Defillama_OpenApi,
-										Source.Blockscout_Rest,
-										Source.Defillama_Rest,
-									],
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Spot</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionMarketPrices({ id, label, open })}
+					{#if pendingEntity.marketKind !== undefined && pendingEntity.marketKind === 'Spot'}
+					<MarketPricesView
+						selection={
+							selection.$$marketPrices({
+								sources: [
+									Source.Constants_Internal,
+									Source.Coingecko_Rest,
+									Source.Coingecko_OpenApi,
+									Source.CoinMarketCap_Rest,
+									Source.Coinpaprika_OpenApi,
+									Source.Defillama_OpenApi,
+									Source.Blockscout_Rest,
+									Source.Defillama_Rest,
+								],
+							})
+						}
+						href={resolve('/coins/prices')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No spot market prices.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+					{:else if pendingEntity.marketKind === undefined}
+						<ResourceBoundary
+							resource={
+								selection({
+									fields: {
+										marketKind: true,
+									},
 								})
 							}
-							title='Spot'
-							href={resolve('/(assets)/markets')}
-							id={`${id}-spot-list`}
-						/>
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{#if resolvedEntity.marketKind === 'Spot'}
+									<MarketPricesView
+										selection={
+											selection.$$marketPrices({
+												sources: [
+													Source.Constants_Internal,
+													Source.Coingecko_Rest,
+													Source.Coingecko_OpenApi,
+													Source.CoinMarketCap_Rest,
+													Source.Coinpaprika_OpenApi,
+													Source.Defillama_OpenApi,
+													Source.Blockscout_Rest,
+													Source.Defillama_Rest,
+												],
+											})
+										}
+										href={resolve('/coins/prices')}
+										CollapsibleProps={{ canToggle: false }}
+										emptyText='No spot market prices.'
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
 					{/if}
 				{/snippet}
 
-				{#snippet SectionOhlc({ id, label })}
-					{#if selection.entitySelector.marketKind === 'Spot'}
-						<Market_TimeInterval_TimestampsView
-							selection={
-								selection.$$marketTimeIntervalTimestamps({
-									sources: [
-										Source.Coingecko_Rest,
-										Source.Coingecko_OpenApi,
-										Source.Coinpaprika_OpenApi,
-										Source.CoinMarketCap_Rest,
-									],
+				{#snippet SectionMarketOhlc({ id, label, open })}
+					{#if pendingEntity.marketKind !== undefined && pendingEntity.marketKind === 'Spot'}
+					<Market_TimeInterval_TimestampsView
+						selection={
+							selection.$$marketTimeIntervalTimestamps({
+								sources: [
+									Source.Coingecko_Rest,
+									Source.Coingecko_OpenApi,
+									Source.Coinpaprika_OpenApi,
+									Source.CoinMarketCap_Rest,
+								],
+							})
+						}
+						href={resolve('/coins/candles')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No OHLC candles.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+					{:else if pendingEntity.marketKind === undefined}
+						<ResourceBoundary
+							resource={
+								selection({
+									fields: {
+										marketKind: true,
+									},
 								})
 							}
-							title='Candles'
-							href={resolve('/(assets)/coins/candles')}
-							id={`${id}-ohlc-list`}
-						/>
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{#if resolvedEntity.marketKind === 'Spot'}
+									<Market_TimeInterval_TimestampsView
+										selection={
+											selection.$$marketTimeIntervalTimestamps({
+												sources: [
+													Source.Coingecko_Rest,
+													Source.Coingecko_OpenApi,
+													Source.Coinpaprika_OpenApi,
+													Source.CoinMarketCap_Rest,
+												],
+											})
+										}
+										href={resolve('/coins/candles')}
+										CollapsibleProps={{ canToggle: false }}
+										emptyText='No OHLC candles.'
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
 					{/if}
 				{/snippet}
 
-				{#snippet SectionDerivatives({ id, label })}
-					{#if selection.entitySelector.marketKind !== 'Spot'}
-						<Market_Derivative_TimestampsView
-							selection={
-								selection.$$derivativeTimestamps({
-									sources: [
-										Source.Coingecko_OpenApi,
-									],
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-market-derivatives'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'market-derivative-timestamps',
+							label: 'Derivative observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-derivatives'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Derivative observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionMarketDerivativeTimestamps({ id, label, open })}
+					{#if pendingEntity.marketKind !== undefined && pendingEntity.marketKind !== 'Spot'}
+					<Market_Derivative_TimestampsView
+						selection={
+							selection.$$derivativeTimestamps({
+								sources: [
+									Source.Coingecko_OpenApi,
+								],
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No derivative observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+					{:else if pendingEntity.marketKind === undefined}
+						<ResourceBoundary
+							resource={
+								selection({
+									fields: {
+										marketKind: true,
+									},
 								})
 							}
-							title='Derivative observations'
-							id={`${id}-derivatives-list`}
-						/>
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{#if resolvedEntity.marketKind !== 'Spot'}
+									<Market_Derivative_TimestampsView
+										selection={
+											selection.$$derivativeTimestamps({
+												sources: [
+													Source.Coingecko_OpenApi,
+												],
+											})
+										}
+										CollapsibleProps={{ canToggle: false }}
+										emptyText='No derivative observations.'
+										open={open}
+										title={label}
+										id={`${id}-list`}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
 					{/if}
 				{/snippet}
+
 			</CollapsibleTabs>
 		{/if}
 	{/snippet}

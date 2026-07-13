@@ -9,8 +9,10 @@ export enum LensAccount_TimestampSelector {
 }
 export const LensAccount_Timestamp = entity({
 	entityType: EntityType.LensAccount_Timestamp,
-	label: 'Lens account observation',
-	labelPlural: 'Lens account observations',
+	labels: {
+		singular: 'Lens account observation',
+		plural: 'Lens account observations',
+	},
 })({
 	$account: {
 		label: 'Account',
@@ -21,7 +23,7 @@ export const LensAccount_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	followerCount: {

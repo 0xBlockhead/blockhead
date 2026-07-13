@@ -47,7 +47,7 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation timestamp')
 	const viewDomId = $derived('fedimint-federation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={fedimintFederationTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={fedimintFederationTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.health) ?? ''), String((prefetched.reachable) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint federation timestamp'}
+				{[String((pendingEntity.health) ?? ''), String((pendingEntity.reachable) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Fedimint federation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={fedimintFederationTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const health = prefetched.health}
+					{@const health = pendingEntity.health}
 					{#if health !== undefined && health !== null}
 						<div>
 							<dt>health</dt>
@@ -280,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gatewayCount = prefetched.gatewayCount}
+					{@const gatewayCount = pendingEntity.gatewayCount}
 					{#if gatewayCount !== undefined && gatewayCount !== null}
 						<div>
 							<dt>gateway count</dt>
@@ -315,7 +315,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clientConfigHash = prefetched.clientConfigHash}
+					{@const clientConfigHash = pendingEntity.clientConfigHash}
 					{#if clientConfigHash !== undefined && clientConfigHash !== null}
 						<div>
 							<dt>client config hash</dt>
@@ -350,7 +350,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleConfigHash = prefetched.moduleConfigHash}
+					{@const moduleConfigHash = pendingEntity.moduleConfigHash}
 					{#if moduleConfigHash !== undefined && moduleConfigHash !== null}
 						<div>
 							<dt>module config hash</dt>
@@ -385,7 +385,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerStatusJson = prefetched.peerStatusJson}
+					{@const peerStatusJson = pendingEntity.peerStatusJson}
 					{#if peerStatusJson !== undefined && peerStatusJson !== null}
 						<div>
 							<dt>peer status JSON</dt>
@@ -420,7 +420,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metaJson = prefetched.metaJson}
+					{@const metaJson = pendingEntity.metaJson}
 					{#if metaJson !== undefined && metaJson !== null}
 						<div>
 							<dt>meta JSON</dt>
@@ -455,7 +455,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inviteCodeObserved = prefetched.inviteCodeObserved}
+					{@const inviteCodeObserved = pendingEntity.inviteCodeObserved}
 					{#if inviteCodeObserved !== undefined && inviteCodeObserved !== null}
 						<div>
 							<dt>invite code observed</dt>

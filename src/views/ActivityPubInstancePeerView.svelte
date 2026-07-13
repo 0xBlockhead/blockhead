@@ -43,7 +43,7 @@
 			Source.Mastodon_Rest,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.peerDomain ?? prefetched.peerDomain) ?? ''), String((selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance peer')
+	const titleFallback = $derived([String((pendingEntity.peerDomain) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance peer')
 	const viewDomId = $derived('activity-pub-instance-peer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,7 +66,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubInstancePeer}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.peerDomain ?? prefetched.peerDomain) ?? ''), String((selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance peer'}
+				{[String((pendingEntity.peerDomain) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance peer'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -79,7 +79,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubInstancePeer}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.peerDomain ?? prefetched.peerDomain) ?? ''), String((selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance peer'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerDomain) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance peer'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const instanceOrigin = selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin}
+							{@const instanceOrigin = pendingEntity.instanceOrigin}
 							{#if instanceOrigin !== undefined && instanceOrigin !== null}
 								<svelte:element
 									this={'a'}
@@ -156,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const peerDomain = selection.entitySelector.peerDomain ?? prefetched.peerDomain}
+							{@const peerDomain = pendingEntity.peerDomain}
 							{#if peerDomain !== undefined && peerDomain !== null}
 								{String((peerDomain) ?? '')}
 							{/if}
@@ -186,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}

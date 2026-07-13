@@ -9,8 +9,10 @@ export enum _GlobalLensNetwork_TimestampSelector {
 }
 export const _GlobalLensNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalLensNetwork_Timestamp,
-	label: 'global lens network timestamp',
-	labelPlural: 'global lens network observations',
+	labels: {
+		singular: 'global lens network timestamp',
+		plural: 'global lens network observations',
+	},
 })({
 	$hub: {
 		label: 'hub',

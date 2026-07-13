@@ -9,8 +9,10 @@ export enum EnsReverseRecordSelector {
 }
 export const EnsReverseRecord = entity({
 	entityType: EntityType.EnsReverseRecord,
-	label: 'ENS reverse record',
-	labelPlural: 'ENS reverse records',
+	labels: {
+		singular: 'ENS reverse record',
+		plural: 'ENS reverse records',
+	},
 })({
 	$account: {
 		label: 'Account',

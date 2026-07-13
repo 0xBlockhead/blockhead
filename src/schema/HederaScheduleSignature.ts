@@ -9,8 +9,10 @@ export enum HederaScheduleSignatureSelector {
 }
 export const HederaScheduleSignature = entity({
 	entityType: EntityType.HederaScheduleSignature,
-	label: 'hedera schedule signature',
-	labelPlural: 'hedera schedule signatures',
+	labels: {
+		singular: 'hedera schedule signature',
+		plural: 'hedera schedule signatures',
+	},
 })({
 	$schedule: {
 		label: 'schedule',

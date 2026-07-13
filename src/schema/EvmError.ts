@@ -10,8 +10,10 @@ export enum EvmErrorSelector {
 }
 export const EvmError = entity({
 	entityType: EntityType.EvmError,
-	label: 'EVM error',
-	labelPlural: 'EVM errors',
+	labels: {
+		singular: 'EVM error',
+		plural: 'EVM errors',
+	},
 })({
 	hex: {
 		label: 'Hex',

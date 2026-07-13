@@ -9,8 +9,10 @@ export enum CosmosGovernanceProposal_TimestampSelector {
 }
 export const CosmosGovernanceProposal_Timestamp = entity({
 	entityType: EntityType.CosmosGovernanceProposal_Timestamp,
-	label: 'Cosmos governance proposal timestamp',
-	labelPlural: 'Cosmos governance proposal observations',
+	labels: {
+		singular: 'Cosmos governance proposal timestamp',
+		plural: 'Cosmos governance proposal observations',
+	},
 })({
 	$proposal: {
 		label: 'Proposal',
@@ -22,7 +24,7 @@ export const CosmosGovernanceProposal_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

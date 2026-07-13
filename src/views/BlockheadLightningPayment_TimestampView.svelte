@@ -49,7 +49,7 @@
 			feeMsat: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning payment timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning payment timestamp')
 	const viewDomId = $derived('blockhead-lightning-payment-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLightningPaymentTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLightningPaymentTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? ''), String((prefetched.feeMsat) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Lightning payment timestamp'}
+				{[String((pendingEntity.status) ?? ''), String((pendingEntity.feeMsat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Lightning payment timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,8 +111,8 @@
 					<BlockheadLightningPaymentView
 						selection={select(EntityType.BlockheadLightningPayment, selection.entitySelector.$payment, {})}
 						href={
-							(selection.entitySelector.$payment.$network !== undefined && selection.entitySelector.$payment.$network.slug !== undefined && selection.entitySelector.$payment.paymentHash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/payments/[paymentHash]', {
-								networkSlug: String(selection.entitySelector.$payment.$network.slug ?? ''),
+							(selection.entitySelector.$payment.$network !== undefined && selection.entitySelector.$payment.$network.slug !== undefined && selection.entitySelector.$payment.paymentHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
+								network: String(selection.entitySelector.$payment.$network.slug ?? ''),
 								paymentHash: String(selection.entitySelector.$payment.paymentHash ?? ''),
 							}) : undefined)
 						}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -165,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const failureReason = prefetched.failureReason}
+					{@const failureReason = pendingEntity.failureReason}
 					{#if failureReason !== undefined && failureReason !== null}
 						<div>
 							<dt>Failure reason</dt>
@@ -203,7 +203,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const preimage = prefetched.preimage}
+					{@const preimage = pendingEntity.preimage}
 					{#if preimage !== undefined && preimage !== null}
 						<div>
 							<dt>Preimage</dt>

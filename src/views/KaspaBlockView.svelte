@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,7 +42,14 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaBlock = $derived(selection({}))
+	const kaspaBlock = $derived(selection({
+		sources: [
+			Source.KaspaExplorer_Rest,
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Rest,
+			Source.KaspaNode_Wrpc,
+		],
+	}))
 	const titleFallback = $derived('kaspa block')
 	const viewDomId = $derived('kaspa-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -105,7 +113,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockHash = selection.entitySelector.blockHash ?? prefetched.blockHash}
+							{@const blockHash = pendingEntity.blockHash}
 							{#if blockHash !== undefined && blockHash !== null}
 								<TruncatedValue value={String((blockHash) ?? '')} />
 							{/if}
@@ -132,7 +140,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -167,7 +175,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blueScore = prefetched.blueScore}
+					{@const blueScore = pendingEntity.blueScore}
 					{#if blueScore !== undefined && blueScore !== null}
 						<div>
 							<dt>blue score</dt>
@@ -202,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const daaScore = prefetched.daaScore}
+					{@const daaScore = pendingEntity.daaScore}
 					{#if daaScore !== undefined && daaScore !== null}
 						<div>
 							<dt>daa score</dt>
@@ -239,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const selectedParentHash = prefetched.selectedParentHash}
+					{@const selectedParentHash = pendingEntity.selectedParentHash}
 					{#if selectedParentHash !== undefined && selectedParentHash !== null}
 						<div>
 							<dt>selected parent hash</dt>
@@ -277,7 +285,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const parentHashes = prefetched.parentHashes}
+							{@const parentHashes = pendingEntity.parentHashes}
 							{#if parentHashes !== undefined && parentHashes !== null}
 								<TruncatedValue value={parentHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -304,7 +312,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const utxoCommitment = prefetched.utxoCommitment}
+					{@const utxoCommitment = pendingEntity.utxoCommitment}
 					{#if utxoCommitment !== undefined && utxoCommitment !== null}
 						<div>
 							<dt>UTXO commitment</dt>

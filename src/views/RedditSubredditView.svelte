@@ -48,11 +48,10 @@
 			Source.Constants_Internal,
 		],
 		fields: {
-			$icon: true,
 			title: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [(String((selection.entitySelector.name ?? prefetched.name) ?? '') ? 'r/' + String((selection.entitySelector.name ?? prefetched.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit')
+	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [(String((pendingEntity.name) ?? '') ? 'r/' + String((pendingEntity.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit')
 	const viewDomId = $derived('reddit-subreddit-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -99,7 +98,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={redditSubreddit}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [(String((selection.entitySelector.name ?? prefetched.name) ?? '') ? 'r/' + String((selection.entitySelector.name ?? prefetched.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit'}
+				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [(String((pendingEntity.name) ?? '') ? 'r/' + String((pendingEntity.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -124,7 +123,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const name = selection.entitySelector.name ?? prefetched.name}
+							{@const name = pendingEntity.name}
 							{#if name !== undefined && name !== null}
 								<span>r/</span>
 								{String((name) ?? '')}
@@ -153,7 +152,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const title = prefetched.title}
+					{@const title = pendingEntity.title}
 					{#if title !== undefined && title !== null}
 						<div>
 							<dt>Title</dt>
@@ -189,7 +188,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const publicDescription = prefetched.publicDescription}
+						{@const publicDescription = pendingEntity.publicDescription}
 						{#if publicDescription !== undefined && publicDescription !== null}
 							<div>
 								<dt>Public description</dt>
@@ -226,7 +225,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const createdAt = prefetched.createdAt}
+						{@const createdAt = pendingEntity.createdAt}
 						{#if createdAt !== undefined && createdAt !== null}
 							<div>
 								<dt>Created</dt>
@@ -263,7 +262,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const over18 = prefetched.over18}
+						{@const over18 = pendingEntity.over18}
 						{#if over18 !== undefined && over18 !== null}
 							<div>
 								<dt>NSFW</dt>
@@ -303,7 +302,7 @@
 						})
 					}
 				title='Submissions'
-				href={resolve('/(social)/(reddit)/reddit/links')}
+				href={resolve('/reddit/links')}
 				id='RedditLinksView-links'
 			/>
 		{/if}

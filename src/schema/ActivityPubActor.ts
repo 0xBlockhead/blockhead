@@ -2,6 +2,7 @@
 
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
@@ -12,13 +13,15 @@ export enum ActivityPubActorSelector {
 }
 export const ActivityPubActor = entity({
 	entityType: EntityType.ActivityPubActor,
-	label: 'ActivityPub actor',
-	labelPlural: 'ActivityPub actors',
+	labels: {
+		singular: 'ActivityPub actor',
+		plural: 'ActivityPub actors',
+	},
 })({
 	instanceOrigin: {
 		label: 'Instance origin',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: (UrlString),
 		cardinality: EntityFieldCardinality.One,
 	},
 	localAccountId: {

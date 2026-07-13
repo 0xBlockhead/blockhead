@@ -24,7 +24,7 @@
 
 <Page>
 	<NetworkStacksView
-		href={resolve('/(explore)/network-stacks')}
+		href={resolve('/network-stacks')}
 		title='Network stacks'
 		selection={
 			select(EntityType._Global, {

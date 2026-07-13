@@ -10,14 +10,16 @@ export enum EvmBlobSelector {
 }
 export const EvmBlob = entity({
 	entityType: EntityType.EvmBlob,
-	label: 'EVM blob',
-	labelPlural: 'EVM blobs',
+	labels: {
+		singular: 'EVM blob',
+		plural: 'EVM blobs',
+	},
 	description: 'A blob sidecar referenced by an EIP-4844 EVM transaction.',
 })({
 	indexInTransaction: {
 		label: 'Index in transaction',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	versionedHash: {

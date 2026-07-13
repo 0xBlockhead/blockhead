@@ -9,8 +9,10 @@ export enum EvmProtocolSelector {
 }
 export const EvmProtocol = entity({
 	entityType: EntityType.EvmProtocol,
-	label: 'EVM protocol',
-	labelPlural: 'EVM protocols',
+	labels: {
+		singular: 'EVM protocol',
+		plural: 'EVM protocols',
+	},
 	description: 'Catalog surface for EVM signature, topic, and error registries.',
 })({
 	scope: {

@@ -46,16 +46,18 @@
 			creator: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.applicationId ?? prefetched.applicationId) ?? '')].filter(Boolean).join(' ') || 'algorand application')
+	const titleFallback = $derived([String((pendingEntity.applicationId) ?? '')].filter(Boolean).join(' ') || 'algorand application')
 	const viewDomId = $derived('algorand-application-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
 	import AlgorandBoxesView from '$/views/AlgorandBoxesView.svelte'
 	import AlgorandApplicationLocalState_RoundsView from '$/views/AlgorandApplicationLocalState_RoundsView.svelte'
 	import AlgorandApplication_TimestampsView from '$/views/AlgorandApplication_TimestampsView.svelte'
-	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
 </script>
 
 
@@ -72,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={algorandApplication}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.applicationId ?? prefetched.applicationId) ?? '')].filter(Boolean).join(' ') || title || 'algorand application'}
+				{[String((pendingEntity.applicationId) ?? '')].filter(Boolean).join(' ') || title || 'algorand application'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={algorandApplication}>
 			{#snippet Pending()}
-				{@const creator0 = prefetched.creator}
+				{@const creator0 = pendingEntity.creator}
 				{#if creator0 !== undefined && creator0 !== null}
 					<span data-text="muted">
 						{String((creator0) ?? '')}
@@ -152,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const applicationId = selection.entitySelector.applicationId ?? prefetched.applicationId}
+							{@const applicationId = pendingEntity.applicationId}
 							{#if applicationId !== undefined && applicationId !== null}
 								{String((applicationId) ?? '')}
 							{/if}
@@ -179,7 +181,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const creator = prefetched.creator}
+					{@const creator = pendingEntity.creator}
 					{#if creator !== undefined && creator !== null}
 						<div>
 							<dt>creator</dt>
@@ -208,26 +210,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AlgorandBoxesView
-				selection={selection.$$boxes}
-				title='boxes'
-				emptyText='No Algorand boxes.'
-				id='AlgorandBoxesView-boxes'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-algorand-app-state'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'algorand-app-boxes',
+							label: 'Boxes',
+						},
+						{
+							id: 'algorand-app-local-state',
+							label: 'Local state rounds',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-state'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>State</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AlgorandApplicationLocalState_RoundsView
-				selection={selection.$$localStateRounds}
-				title='local state rounds'
-				emptyText='No Algorand application local state rounds.'
-				id='AlgorandApplicationLocalState_RoundsView-local-state-rounds'
-			/>
+				{#snippet SectionAlgorandAppBoxes({ id, label, open })}
+					<AlgorandBoxesView
+						selection={selection.$$boxes}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand boxes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AlgorandApplication_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Algorand application observations.'
-				id='AlgorandApplication_TimestampsView-timestamps'
-			/>
+				{#snippet SectionAlgorandAppLocalState({ id, label, open })}
+					<AlgorandApplicationLocalState_RoundsView
+						selection={selection.$$localStateRounds}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand application local state rounds.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-algorand-app-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'algorand-app-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAlgorandAppTimestamps({ id, label, open })}
+					<AlgorandApplication_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand application observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

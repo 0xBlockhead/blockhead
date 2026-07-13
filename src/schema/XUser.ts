@@ -11,8 +11,10 @@ export enum XUserSelector {
 }
 export const XUser = entity({
 	entityType: EntityType.XUser,
-	label: 'X user',
-	labelPlural: 'X users',
+	labels: {
+		singular: 'X user',
+		plural: 'X users',
+	},
 })({
 	id: {
 		label: 'ID',

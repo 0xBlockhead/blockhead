@@ -43,7 +43,7 @@
 			consensusVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.federationId ?? prefetched.federationId) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.federationId) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation')
 	const viewDomId = $derived('fedimint-federation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,7 +68,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={fedimintFederation}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.federationId ?? prefetched.federationId) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.federationId) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -81,7 +81,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={fedimintFederation}>
 			{#snippet Pending()}
-				{[String((prefetched.consensusVersion) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.federationId ?? prefetched.federationId) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation'}
+				{[String((pendingEntity.consensusVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.federationId) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +106,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const federationId = selection.entitySelector.federationId ?? prefetched.federationId}
+							{@const federationId = pendingEntity.federationId}
 							{#if federationId !== undefined && federationId !== null}
 								{String((federationId) ?? '')}
 							{/if}
@@ -133,7 +133,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -168,7 +168,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusVersion = prefetched.consensusVersion}
+					{@const consensusVersion = pendingEntity.consensusVersion}
 					{#if consensusVersion !== undefined && consensusVersion !== null}
 						<div>
 							<dt>consensus version</dt>
@@ -205,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const guardianCount = prefetched.guardianCount}
+					{@const guardianCount = pendingEntity.guardianCount}
 					{#if guardianCount !== undefined && guardianCount !== null}
 						<div>
 							<dt>guardian count</dt>
@@ -240,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const guardianThreshold = prefetched.guardianThreshold}
+					{@const guardianThreshold = pendingEntity.guardianThreshold}
 					{#if guardianThreshold !== undefined && guardianThreshold !== null}
 						<div>
 							<dt>guardian threshold</dt>
@@ -275,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clientConfigJson = prefetched.clientConfigJson}
+					{@const clientConfigJson = pendingEntity.clientConfigJson}
 					{#if clientConfigJson !== undefined && clientConfigJson !== null}
 						<div>
 							<dt>client config JSON</dt>
@@ -310,7 +310,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleConfigJson = prefetched.moduleConfigJson}
+					{@const moduleConfigJson = pendingEntity.moduleConfigJson}
 					{#if moduleConfigJson !== undefined && moduleConfigJson !== null}
 						<div>
 							<dt>module config JSON</dt>

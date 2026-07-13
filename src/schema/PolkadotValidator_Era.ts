@@ -9,8 +9,10 @@ export enum PolkadotValidator_EraSelector {
 }
 export const PolkadotValidator_Era = entity({
 	entityType: EntityType.PolkadotValidator_Era,
-	label: 'polkadot validator era',
-	labelPlural: 'polkadot validator eras',
+	labels: {
+		singular: 'polkadot validator era',
+		plural: 'polkadot validator eras',
+	},
 })({
 	$validator: {
 		label: 'validator',

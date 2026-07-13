@@ -9,8 +9,10 @@ export enum LitecoinMwebPegOutSelector {
 }
 export const LitecoinMwebPegOut = entity({
 	entityType: EntityType.LitecoinMwebPegOut,
-	label: 'litecoin MWEB peg out',
-	labelPlural: 'litecoin MWEB peg outs',
+	labels: {
+		singular: 'litecoin MWEB peg out',
+		plural: 'litecoin MWEB peg outs',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

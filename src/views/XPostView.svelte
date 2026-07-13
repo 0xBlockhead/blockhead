@@ -57,7 +57,7 @@
 			$$media: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'X post')
+	const titleFallback = $derived([String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'X post')
 	const viewDomId = $derived('xpost-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -83,7 +83,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={xPost}>
 			{#snippet Pending()}
-				{[String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'X post'}
+				{[String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'X post'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={xPost}>
 			{#snippet Pending()}
-				{@const id0 = selection.entitySelector.id ?? prefetched.id}
+				{@const id0 = pendingEntity.id}
 				{#if id0 !== undefined && id0 !== null}
 					<TruncatedValue value={String((id0) ?? '')} />
 				{/if}
@@ -115,7 +115,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={xPost}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -140,6 +140,8 @@
 			<ResourceBoundary
 				resource={selection.$author}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(xUser)}
 					{#if xUser != null && xUser[EntityMetaKey.Selector] != null}
 						<div>
@@ -169,7 +171,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -206,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const postUrl = prefetched.postUrl}
+					{@const postUrl = pendingEntity.postUrl}
 					{#if postUrl !== undefined && postUrl !== null}
 						<div>
 							<dt>Post URL</dt>
@@ -250,6 +252,8 @@
 			<ResourceBoundary
 				resource={selection.$replyToPost}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(xPost)}
 					{#if xPost != null && xPost[EntityMetaKey.Selector] != null}
 						<div>
@@ -272,6 +276,8 @@
 			<ResourceBoundary
 				resource={selection.$quotedPost}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(xPost)}
 					{#if xPost != null && xPost[EntityMetaKey.Selector] != null}
 						<div>

@@ -9,8 +9,10 @@ export enum XrplTransactionSelector {
 }
 export const XrplTransaction = entity({
 	entityType: EntityType.XrplTransaction,
-	label: 'xrpl transaction',
-	labelPlural: 'xrpl transactions',
+	labels: {
+		singular: 'xrpl transaction',
+		plural: 'xrpl transactions',
+	},
 })({
 	$network: {
 		label: 'network',

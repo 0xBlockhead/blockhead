@@ -47,7 +47,7 @@
 			totalSupply: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token timestamp')
 	const viewDomId = $derived('bnb-beacon-token-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bnbBeaconTokenTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconTokenTimestamp}>
 			{#snippet Pending()}
-				{@const totalSupply0 = prefetched.totalSupply}
+				{@const totalSupply0 = pendingEntity.totalSupply}
 				{#if totalSupply0 !== undefined && totalSupply0 !== null}
 					<NumberValue value={Number(totalSupply0)} />
 				{/if}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bnbBeaconTokenTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalSupply = prefetched.totalSupply}
+					{@const totalSupply = pendingEntity.totalSupply}
 					{#if totalSupply !== undefined && totalSupply !== null}
 						<div>
 							<dt>total supply</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mintable = prefetched.mintable}
+					{@const mintable = pendingEntity.mintable}
 					{#if mintable !== undefined && mintable !== null}
 						<div>
 							<dt>mintable</dt>
@@ -286,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractAddress = prefetched.contractAddress}
+					{@const contractAddress = pendingEntity.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>contract address</dt>
@@ -321,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const holderCount = prefetched.holderCount}
+					{@const holderCount = pendingEntity.holderCount}
 					{#if holderCount !== undefined && holderCount !== null}
 						<div>
 							<dt>holder count</dt>
@@ -356,7 +356,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transferCount = prefetched.transferCount}
+					{@const transferCount = pendingEntity.transferCount}
 					{#if transferCount !== undefined && transferCount !== null}
 						<div>
 							<dt>transfer count</dt>

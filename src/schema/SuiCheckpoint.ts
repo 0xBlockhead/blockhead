@@ -10,8 +10,10 @@ export enum SuiCheckpointSelector {
 }
 export const SuiCheckpoint = entity({
 	entityType: EntityType.SuiCheckpoint,
-	label: 'sui checkpoint',
-	labelPlural: 'sui checkpoints',
+	labels: {
+		singular: 'sui checkpoint',
+		plural: 'sui checkpoints',
+	},
 })({
 	$network: {
 		label: 'network',

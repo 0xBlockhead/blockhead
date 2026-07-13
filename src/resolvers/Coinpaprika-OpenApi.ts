@@ -7,17 +7,11 @@ import {
 	MarketAssetKind,
 	MarketKind,
 	marketOhlcDailyTimeInterval,
-	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
-import { Iso4217 } from '$/constants/Currency.ts'
 import {
 	seededCoinSpotUsdMarkets,
 	seededCoinSpotUsdMarketByCoinId,
-	seededSpotMarketsWithCoinAsQuote,
-	seededSpotMarketsWithCurrencyAsBase,
-	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
-	type CatalogCurrencyCurrencyMarket,
 } from '$/constants/MarketCatalog.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
@@ -32,66 +26,44 @@ import { _GlobalSelector } from '$/schema/_Global.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
 import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
 import { Market_TimeInterval_TimestampSelector } from '$/schema/Market_TimeInterval_Timestamp.ts'
-import { CurrencySelector } from '$/schema/Currency.ts'
 import { MarketSelector } from '$/schema/Market.ts'
 import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 
 const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinCurrencyMarket) => ({
 	$base: {
 		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.baseCoinId },
+		assetKey: catalogMarket.baseCoinId,
 	},
 	$quote: {
 		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.quoteIso4217 },
+		assetKey: catalogMarket.quoteIso4217,
 	},
 	$marketVenue: {
 		marketVenueId: catalogMarket.marketVenueId,
 	},
 	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
+}) satisfies EntitySelector<
+	typeof schema,
+	EntityType.Market
+>
 
 const catalogCoinCurrencyMarketMatchesMarket = (
-	catalogMarket: CatalogCoinCurrencyMarket,
 	market: EntitySelector<typeof schema, EntityType.Market>
-) => (
-	market.marketKind === catalogMarket.marketKind
-	&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
-	&& market.$base.kind === MarketAssetKind.Coin
-	&& market.$base.$coin.coinId === catalogMarket.baseCoinId
+): market is EntitySelector<typeof schema, EntityType.Market> & {
+	readonly $base: {
+		readonly kind: MarketAssetKind.Coin
+		readonly assetKey: CoinId
+	}
+} => (
+	market.$base.kind === MarketAssetKind.Coin
 	&& market.$quote.kind === MarketAssetKind.Currency
-	&& market.$quote.$currency.iso4217 === catalogMarket.quoteIso4217
+	&& seededCoinSpotUsdMarkets.some((catalogMarket) => (
+		market.marketKind === catalogMarket.marketKind
+		&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
+		&& market.$base.assetKey === catalogMarket.baseCoinId
+		&& market.$quote.assetKey === catalogMarket.quoteIso4217
+	))
 )
-
-const marketSelectorFromCatalogCoinCoinMarket = (catalogMarket: CatalogCoinCoinMarket) => ({
-	$base: {
-		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.baseCoinId },
-	},
-	$quote: {
-		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.quoteCoinId },
-	},
-	$marketVenue: {
-		marketVenueId: catalogMarket.marketVenueId,
-	},
-	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
-
-const marketSelectorFromCatalogCurrencyCurrencyMarket = (catalogMarket: CatalogCurrencyCurrencyMarket) => ({
-	$base: {
-		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.baseIso4217 },
-	},
-	$quote: {
-		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.quoteIso4217 },
-	},
-	$marketVenue: {
-		marketVenueId: catalogMarket.marketVenueId,
-	},
-	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
 
 export default {
 	source: Source.Coinpaprika_OpenApi,
@@ -106,7 +78,7 @@ export default {
 						idByCoinId,
 						decimalsByCoinId,
 					} = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-					const { getCoinById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+					const { getCoinById } = await import('$/resolvers/Coinpaprika/OpenApi/queries.ts')
 					const coinpaprikaId = idByCoinId[coinId]
 					if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin not mapped')
 
@@ -155,11 +127,11 @@ export default {
 						throw new Error('Coinpaprika_OpenApi: Market_Timestamp is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket($market))
 						throw new Error('Coinpaprika_OpenApi: Market_Timestamp is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-					const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
-					const coinId: CoinId = $market.$base.$coin.coinId
+					const { getTickerById } = await import('$/resolvers/Coinpaprika/OpenApi/queries.ts')
+					const coinId: CoinId = $market.$base.assetKey
 					const coinpaprikaId = idByCoinId[coinId]
 					if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin price not mapped')
 					if (feedKey !== coinpaprikaId)
@@ -204,18 +176,18 @@ export default {
 						throw new Error('Coinpaprika_OpenApi: OHLC is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket($market))
 						throw new Error('Coinpaprika_OpenApi: OHLC is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					const {
 						getOhlcDayWindowValues,
 						getOhlcvHistoricalRows,
 						getOhlcvTodayRows,
-					} = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+					} = await import('$/resolvers/Coinpaprika/OpenApi/queries.ts')
 					if (timeInterval.unit !== marketOhlcDailyTimeInterval.unit || timeInterval.value !== marketOhlcDailyTimeInterval.value)
 						throw new Error('Coinpaprika_OpenApi: OHLC timeInterval must be daily')
 					const ohlcDayWindows = getOhlcDayWindowValues(context.publicEnv)
-					const coinId = $market.$base.$coin.coinId
+					const coinId = $market.$base.assetKey
 					const coinpaprikaId = idByCoinId[coinId]
 					if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: OHLC coin not mapped')
 
@@ -286,31 +258,10 @@ export default {
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { CoinId, coinById } = await import('$/constants/Coin.ts')
-					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-					return (
-						Object.values(CoinId)
-							.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
-							.map((coinId) => (
-							{
-								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
-							}
-							))
-					)
-				}
-			},
-		})({
-				$$markets: (globalScope) => globalScope,
-			}),
-
-		defineResolver(Source.Coinpaprika_OpenApi, {
-			entityType: EntityType._Global,
-			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
 					const { CoinId, coinById } = await import('$/constants/Coin.ts')
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-					const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+					const { getTickerById } = await import('$/resolvers/Coinpaprika/OpenApi/queries.ts')
 					const lim = resolverContextRowLimit(context)
 					return (
 						(await Promise.all(
@@ -358,7 +309,7 @@ export default {
 					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>, context) => {
 						const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					const { collectMarketEntitySelectorsForCoin } = await import(
-						'$/sources/Coinpaprika/OpenApi/queries.ts'
+						'$/resolvers/Coinpaprika/OpenApi/queries.ts'
 					)
 					const coinpaprikaId = idByCoinId[coinId]
 					if (coinpaprikaId == null)
@@ -371,7 +322,6 @@ export default {
 					})
 					return (
 						[
-							marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
 							...venueMarketIds,
 						]
 							.map((marketId) => ({
@@ -386,73 +336,6 @@ export default {
 			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
-			entityType: EntityType.Coin,
-				resolve: {
-					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>, context) => {
-						const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-						const lim = resolverContextRowLimit(context)
-						return (
-						seededSpotMarketsWithCoinAsQuote
-							.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
-							.map(marketSelectorFromCatalogCoinCoinMarket)
-							.filter((marketId) => (
-							idByCoinId[marketId.$base.$coin.coinId] != null
-							))
-							.slice(0, lim)
-							.map((marketId) => (
-							{
-								[EntityMetaKey.Selector]: marketId,
-							}
-							))
-					)
-				}
-			},
-		})({
-				$$marketsWithCoinAsQuote: (coin) => coin,
-			}),
-
-		defineResolver(Source.Coinpaprika_OpenApi, {
-			entityType: EntityType.Currency,
-			resolve: {
-				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
-					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-					return (
-						(
-						iso4217 === Iso4217.USD ?
-							seededCoinSpotUsdMarkets.filter((catalogMarket) => (
-								idByCoinId[catalogMarket.baseCoinId] != null
-							))
-						:
-							[]
-						).map((catalogMarket) => ({
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
-						}))
-					)
-				}
-			},
-		})({
-				$$marketsWithCurrencyAsQuote: (currency) => currency,
-			}),
-
-		defineResolver(Source.Coinpaprika_OpenApi, {
-			entityType: EntityType.Currency,
-			resolve: {
-				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
-					const markets = seededSpotMarketsWithCurrencyAsBase
-						.filter((catalogMarket) => catalogMarket.baseIso4217 === iso4217)
-						.map((catalogMarket) => ({
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
-						}))
-					if (markets.length === 0)
-						throw new Error(`Coinpaprika_OpenApi: no catalog markets with ${iso4217} as base`)
-					return markets
-				}
-			},
-		})({
-				$$marketsWithCurrencyAsBase: (currency) => currency,
-			}),
-
-		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market,
 			resolve: {
 				[MarketSelector.BaseQuoteMarketVenueKind]: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>, context) => {
@@ -460,15 +343,15 @@ export default {
 						return []
 					if (entitySelector.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector))
+					if (!catalogCoinCurrencyMarketMatchesMarket(entitySelector))
 						return []
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					const {
 						getOhlcDayWindowValues,
 						getOhlcvHistoricalRows,
 						getOhlcvTodayRows,
-					} = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
-					const coinId = entitySelector.$base.$coin.coinId
+					} = await import('$/resolvers/Coinpaprika/OpenApi/queries.ts')
+					const coinId = entitySelector.$base.assetKey
 					if (idByCoinId[coinId] == null) throw new Error('Coinpaprika_OpenApi: OHLC coin not mapped')
 					const ohlcDayWindows = getOhlcDayWindowValues(context.publicEnv)
 					const coinpaprikaId = idByCoinId[coinId]
@@ -518,11 +401,11 @@ export default {
 						return []
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket($market))
 						return []
 					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-					const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
-					const coinId = $market.$base.$coin.coinId
+					const { getTickerById } = await import('$/resolvers/Coinpaprika/OpenApi/queries.ts')
+					const coinId = $market.$base.assetKey
 					const coinpaprikaId = idByCoinId[coinId]
 					if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin price not mapped')
 					const ticker = await getTickerById({

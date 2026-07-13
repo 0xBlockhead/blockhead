@@ -9,8 +9,10 @@ export enum BlockheadMoneroTransferStateSelector {
 }
 export const BlockheadMoneroTransferState = entity({
 	entityType: EntityType.BlockheadMoneroTransferState,
-	label: 'blockhead monero transfer state',
-	labelPlural: 'blockhead monero transfer states',
+	labels: {
+		singular: 'blockhead monero transfer state',
+		plural: 'blockhead monero transfer states',
+	},
 })({
 	walletId: {
 		label: 'wallet ID',

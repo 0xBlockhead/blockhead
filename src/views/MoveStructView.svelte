@@ -47,7 +47,7 @@
 			isNative: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.structName ?? prefetched.structName) ?? '')].filter(Boolean).join(' ') || 'move struct')
+	const titleFallback = $derived([String((pendingEntity.structName) ?? '')].filter(Boolean).join(' ') || 'move struct')
 	const viewDomId = $derived('move-struct-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -70,7 +70,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={moveStruct}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.structName ?? prefetched.structName) ?? '')].filter(Boolean).join(' ') || title || 'move struct'}
+				{[String((pendingEntity.structName) ?? '')].filter(Boolean).join(' ') || title || 'move struct'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -83,7 +83,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={moveStruct}>
 			{#snippet Pending()}
-				{[String((prefetched.isEvent) ?? ''), String((prefetched.isNative) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.structName ?? prefetched.structName) ?? '')].filter(Boolean).join(' ') || title || 'move struct'}
+				{[String((pendingEntity.isEvent) ?? ''), String((pendingEntity.isNative) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.structName) ?? '')].filter(Boolean).join(' ') || title || 'move struct'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const structName = selection.entitySelector.structName ?? prefetched.structName}
+							{@const structName = pendingEntity.structName}
 							{#if structName !== undefined && structName !== null}
 								{String((structName) ?? '')}
 							{/if}
@@ -171,7 +171,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isEvent = prefetched.isEvent}
+					{@const isEvent = pendingEntity.isEvent}
 					{#if isEvent !== undefined && isEvent !== null}
 						<div>
 							<dt>is event</dt>
@@ -206,7 +206,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isNative = prefetched.isNative}
+					{@const isNative = pendingEntity.isNative}
 					{#if isNative !== undefined && isNative !== null}
 						<div>
 							<dt>is native</dt>
@@ -244,7 +244,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const abilities = prefetched.abilities}
+							{@const abilities = pendingEntity.abilities}
 							{#if abilities !== undefined && abilities !== null}
 								{abilities.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

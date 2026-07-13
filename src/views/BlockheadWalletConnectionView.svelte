@@ -80,20 +80,34 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadWalletConnection}>
 			{#snippet Pending()}
-				<BlockheadWalletView
-					selection={select(EntityType.BlockheadWallet, selection.entitySelector.$wallet)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
+				<ResourceBoundary
+					resource={selection.$wallet}
+				>
+					{#snippet children(blockheadWallet)}
+						<BlockheadWalletView
+							selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
+							prefetched={blockheadWallet}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					{/snippet}
+				</ResourceBoundary>
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<BlockheadWalletView
-					selection={select(EntityType.BlockheadWallet, selection.entitySelector.$wallet)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
+				<ResourceBoundary
+					resource={selection.$wallet}
+				>
+					{#snippet children(blockheadWallet)}
+						<BlockheadWalletView
+							selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
+							prefetched={blockheadWallet}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					{/snippet}
+				</ResourceBoundary>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,7 +115,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletConnection}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || title || 'wallet connection'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'wallet connection'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -114,13 +128,52 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
+				<dt>connection key</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									connectionKey: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const connectionKey = pendingEntity.connectionKey}
+							{#if connectionKey !== undefined && connectionKey !== null}
+								{String((connectionKey) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const connectionKey = resolvedEntity.connectionKey}
+							{#if connectionKey !== undefined && connectionKey !== null}
+								{String((connectionKey) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Wallet</dt>
 				<dd>
-					<BlockheadWalletView
-						selection={select(EntityType.BlockheadWallet, selection.entitySelector.$wallet, {})}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+					<ResourceBoundary
+						resource={selection.$wallet}
+					>
+						{#snippet children(blockheadWallet)}
+							{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
+								<BlockheadWalletView
+									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
+									prefetched={blockheadWallet}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 
@@ -137,7 +190,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -167,7 +220,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocol = prefetched.protocol}
+							{@const protocol = pendingEntity.protocol}
 							{#if protocol !== undefined && protocol !== null}
 								{String((protocol) ?? '')}
 							{/if}
@@ -197,7 +250,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transportKind = prefetched.transportKind}
+							{@const transportKind = pendingEntity.transportKind}
 							{#if transportKind !== undefined && transportKind !== null}
 								{String((transportKind) ?? '')}
 							{/if}
@@ -227,7 +280,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const selected = prefetched.selected}
+							{@const selected = pendingEntity.selected}
 							{#if selected !== undefined && selected !== null}
 								{selected ? 'Yes' : 'No'}
 							{/if}
@@ -259,7 +312,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const connectedAt = prefetched.connectedAt}
+							{@const connectedAt = pendingEntity.connectedAt}
 							{#if connectedAt !== undefined && connectedAt !== null}
 								<Timestamp timestamp={Number(connectedAt)} />
 							{/if}
@@ -286,7 +339,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const disconnectedAt = prefetched.disconnectedAt}
+					{@const disconnectedAt = pendingEntity.disconnectedAt}
 					{#if disconnectedAt !== undefined && disconnectedAt !== null}
 						<div>
 							<dt>Disconnected</dt>
@@ -321,7 +374,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sessionId = prefetched.sessionId}
+					{@const sessionId = pendingEntity.sessionId}
 					{#if sessionId !== undefined && sessionId !== null}
 						<div>
 							<dt>Session ID</dt>
@@ -356,7 +409,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sessionTopic = prefetched.sessionTopic}
+					{@const sessionTopic = pendingEntity.sessionTopic}
 					{#if sessionTopic !== undefined && sessionTopic !== null}
 						<div>
 							<dt>Session topic</dt>
@@ -391,7 +444,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>Error</dt>
@@ -419,6 +472,8 @@
 			<ResourceBoundary
 				resource={selection.$activeAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWalletAccount)}
 					{#if blockheadWalletAccount != null && blockheadWalletAccount[EntityMetaKey.Selector] != null}
 						<div>

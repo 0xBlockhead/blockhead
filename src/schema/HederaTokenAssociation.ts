@@ -9,8 +9,10 @@ export enum HederaTokenAssociationSelector {
 }
 export const HederaTokenAssociation = entity({
 	entityType: EntityType.HederaTokenAssociation,
-	label: 'hedera token association',
-	labelPlural: 'hedera token associations',
+	labels: {
+		singular: 'hedera token association',
+		plural: 'hedera token associations',
+	},
 })({
 	$account: {
 		label: 'account',

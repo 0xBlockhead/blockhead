@@ -54,7 +54,7 @@
 			protocolVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.contentHash ?? prefetched.contentHash) ?? '')].filter(Boolean).join(' ') || 'A2A agent card snapshot')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.contentHash) ?? '')].filter(Boolean).join(' ') || 'A2A agent card snapshot')
 	const viewDomId = $derived('a2a-agent-card-snapshot-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -82,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aAgentCardSnapshot}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.contentHash ?? prefetched.contentHash) ?? '')].filter(Boolean).join(' ') || 'A2A agent card snapshot'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.contentHash) ?? '')].filter(Boolean).join(' ') || 'A2A agent card snapshot'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aAgentCardSnapshot}>
 			{#snippet Pending()}
-				{[String((prefetched.version) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.contentHash ?? prefetched.contentHash) ?? '')].filter(Boolean).join(' ') || 'A2A agent card snapshot'}
+				{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.contentHash) ?? '')].filter(Boolean).join(' ') || 'A2A agent card snapshot'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aAgentCardSnapshot}>
 			{#snippet Pending()}
-				{@const protocolVersion0 = prefetched.protocolVersion}
+				{@const protocolVersion0 = pendingEntity.protocolVersion}
 				{#if protocolVersion0 !== undefined && protocolVersion0 !== null}
 					<span data-text="muted">
 						{String((protocolVersion0) ?? '')}
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const contentHashAlgorithm = selection.entitySelector.contentHashAlgorithm ?? prefetched.contentHashAlgorithm}
+							{@const contentHashAlgorithm = pendingEntity.contentHashAlgorithm}
 							{#if contentHashAlgorithm !== undefined && contentHashAlgorithm !== null}
 								<TruncatedValue value={String((contentHashAlgorithm) ?? '')} />
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const contentHash = selection.entitySelector.contentHash ?? prefetched.contentHash}
+							{@const contentHash = pendingEntity.contentHash}
 							{#if contentHash !== undefined && contentHash !== null}
 								<TruncatedValue value={String((contentHash) ?? '')} />
 							{/if}
@@ -211,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fetchedAt = prefetched.fetchedAt}
+					{@const fetchedAt = pendingEntity.fetchedAt}
 					{#if fetchedAt !== undefined && fetchedAt !== null}
 						<div>
 							<dt>fetched AT</dt>
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const snapshotKind = prefetched.snapshotKind}
+					{@const snapshotKind = pendingEntity.snapshotKind}
 					{#if snapshotKind !== undefined && snapshotKind !== null}
 						<div>
 							<dt>snapshot kind</dt>
@@ -283,7 +283,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -318,7 +318,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -353,7 +353,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -388,7 +388,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>
@@ -423,7 +423,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerName = prefetched.providerName}
+					{@const providerName = pendingEntity.providerName}
 					{#if providerName !== undefined && providerName !== null}
 						<div>
 							<dt>provider name</dt>
@@ -458,7 +458,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerUrl = prefetched.providerUrl}
+					{@const providerUrl = pendingEntity.providerUrl}
 					{#if providerUrl !== undefined && providerUrl !== null}
 						<div>
 							<dt>provider URL</dt>
@@ -507,7 +507,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const preferredTransport = prefetched.preferredTransport}
+					{@const preferredTransport = pendingEntity.preferredTransport}
 					{#if preferredTransport !== undefined && preferredTransport !== null}
 						<div>
 							<dt>preferred transport</dt>

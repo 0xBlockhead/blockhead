@@ -11,8 +11,10 @@ export enum Eip8004ReputationFeedback_TimestampSelector {
 }
 export const Eip8004ReputationFeedback_Timestamp = entity({
 	entityType: EntityType.Eip8004ReputationFeedback_Timestamp,
-	label: 'EIP-8004 reputation feedback timestamp',
-	labelPlural: 'EIP-8004 reputation feedback observations',
+	labels: {
+		singular: 'EIP-8004 reputation feedback timestamp',
+		plural: 'EIP-8004 reputation feedback observations',
+	},
 })({
 	$registration: {
 		label: 'Registration',

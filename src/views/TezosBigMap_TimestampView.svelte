@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const level = selection.entitySelector.level ?? prefetched.level}
+							{@const level = pendingEntity.level}
 							{#if level !== undefined && level !== null}
 								{String((level) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>active</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const keyCount = prefetched.keyCount}
+					{@const keyCount = pendingEntity.keyCount}
 					{#if keyCount !== undefined && keyCount !== null}
 						<div>
 							<dt>key count</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updateCount = prefetched.updateCount}
+					{@const updateCount = pendingEntity.updateCount}
 					{#if updateCount !== undefined && updateCount !== null}
 						<div>
 							<dt>update count</dt>

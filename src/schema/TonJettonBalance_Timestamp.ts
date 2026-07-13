@@ -9,8 +9,10 @@ export enum TonJettonBalance_TimestampSelector {
 }
 export const TonJettonBalance_Timestamp = entity({
 	entityType: EntityType.TonJettonBalance_Timestamp,
-	label: 'ton jetton balance timestamp',
-	labelPlural: 'ton jetton balance observations',
+	labels: {
+		singular: 'ton jetton balance timestamp',
+		plural: 'ton jetton balance observations',
+	},
 })({
 	$account: {
 		label: 'account',

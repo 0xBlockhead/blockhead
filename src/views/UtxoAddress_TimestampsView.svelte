@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -121,8 +120,8 @@
 						selection={select(EntityType.UtxoAddress_Timestamp, utxoAddressTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={utxoAddressTimestampFields}
 						href={
-							(utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.caip2 !== undefined && utxoAddressTimestampHrefFields.$address.caip2.namespace !== undefined && utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.caip2 !== undefined && utxoAddressTimestampHrefFields.$address.caip2.reference !== undefined && utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.address !== undefined && utxoAddressTimestampHrefFields.timestampMs !== undefined && utxoAddressTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/address/[address]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								networkSlug: String(networkByCaip2[String(String(utxoAddressTimestampHrefFields.$address.caip2.namespace) + ':' + String(utxoAddressTimestampHrefFields.$address.caip2.reference))].slug ?? ''),
+							(utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.$network !== undefined && utxoAddressTimestampHrefFields.$address.$network.slug !== undefined && utxoAddressTimestampHrefFields.$address.address !== undefined && utxoAddressTimestampHrefFields.timestampMs !== undefined && utxoAddressTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								network: String(utxoAddressTimestampHrefFields.$address.$network.slug ?? ''),
 								address: String(utxoAddressTimestampHrefFields.$address.address ?? ''),
 								timestampMs: String(utxoAddressTimestampHrefFields.timestampMs ?? ''),
 								source: String(utxoAddressTimestampHrefFields.source ?? ''),

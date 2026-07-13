@@ -9,8 +9,10 @@ export enum HederaToken_TimestampSelector {
 }
 export const HederaToken_Timestamp = entity({
 	entityType: EntityType.HederaToken_Timestamp,
-	label: 'hedera token timestamp',
-	labelPlural: 'hedera token observations',
+	labels: {
+		singular: 'hedera token timestamp',
+		plural: 'hedera token observations',
+	},
 })({
 	$token: {
 		label: 'token',

@@ -47,7 +47,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.path ?? prefetched.path) ?? '')].filter(Boolean).join(' ') || 'Git tree path resolution')
+	const titleFallback = $derived([String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || 'Git tree path resolution')
 	const viewDomId = $derived('git-tree-path-resolution-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitTreePathResolution}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.path ?? prefetched.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree path resolution'}
+				{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree path resolution'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -84,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitTreePathResolution}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.path ?? prefetched.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree path resolution'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || 'Git tree path resolution'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -97,7 +97,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitTreePathResolution}>
 			{#snippet Pending()}
-				{@const commitObjectId0 = selection.entitySelector.commitObjectId ?? prefetched.commitObjectId}
+				{@const commitObjectId0 = pendingEntity.commitObjectId}
 				{#if commitObjectId0 !== undefined && commitObjectId0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((commitObjectId0) ?? '')} />
@@ -143,7 +143,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const commitObjectId = selection.entitySelector.commitObjectId ?? prefetched.commitObjectId}
+							{@const commitObjectId = pendingEntity.commitObjectId}
 							{#if commitObjectId !== undefined && commitObjectId !== null}
 								<TruncatedValue value={String((commitObjectId) ?? '')} />
 							{/if}
@@ -173,7 +173,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const path = selection.entitySelector.path ?? prefetched.path}
+							{@const path = pendingEntity.path}
 							{#if path !== undefined && path !== null}
 								{String((path) ?? '')}
 							{/if}
@@ -203,7 +203,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const treeObjectIds = prefetched.treeObjectIds}
+							{@const treeObjectIds = pendingEntity.treeObjectIds}
 							{#if treeObjectIds !== undefined && treeObjectIds !== null}
 								{treeObjectIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -230,7 +230,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blobObjectId = prefetched.blobObjectId}
+					{@const blobObjectId = pendingEntity.blobObjectId}
 					{#if blobObjectId !== undefined && blobObjectId !== null}
 						<div>
 							<dt>blob object ID</dt>
@@ -265,7 +265,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const submoduleCommitId = prefetched.submoduleCommitId}
+					{@const submoduleCommitId = pendingEntity.submoduleCommitId}
 					{#if submoduleCommitId !== undefined && submoduleCommitId !== null}
 						<div>
 							<dt>submodule commit ID</dt>
@@ -303,7 +303,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}

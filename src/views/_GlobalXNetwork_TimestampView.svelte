@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalXNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -138,7 +138,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -170,7 +170,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedUserCount = prefetched.observedUserCount}
+					{@const observedUserCount = pendingEntity.observedUserCount}
 					{#if observedUserCount !== undefined && observedUserCount !== null}
 						<div>
 							<dt>observed user count</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedPostCount = prefetched.observedPostCount}
+					{@const observedPostCount = pendingEntity.observedPostCount}
 					{#if observedPostCount !== undefined && observedPostCount !== null}
 						<div>
 							<dt>observed post count</dt>
@@ -271,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededUserCount = prefetched.seededUserCount}
+					{@const seededUserCount = pendingEntity.seededUserCount}
 					{#if seededUserCount !== undefined && seededUserCount !== null}
 						<div>
 							<dt>seeded user count</dt>
@@ -306,7 +306,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededPostCount = prefetched.seededPostCount}
+					{@const seededPostCount = pendingEntity.seededPostCount}
 					{#if seededPostCount !== undefined && seededPostCount !== null}
 						<div>
 							<dt>seeded post count</dt>
@@ -343,7 +343,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>
@@ -378,7 +378,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rateLimitRemaining = prefetched.rateLimitRemaining}
+					{@const rateLimitRemaining = pendingEntity.rateLimitRemaining}
 					{#if rateLimitRemaining !== undefined && rateLimitRemaining !== null}
 						<div>
 							<dt>rate limit remaining</dt>
@@ -415,7 +415,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const searchWindowStartMs = prefetched.searchWindowStartMs}
+					{@const searchWindowStartMs = pendingEntity.searchWindowStartMs}
 					{#if searchWindowStartMs !== undefined && searchWindowStartMs !== null}
 						<div>
 							<dt>search window start ms</dt>
@@ -450,7 +450,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const searchWindowEndMs = prefetched.searchWindowEndMs}
+					{@const searchWindowEndMs = pendingEntity.searchWindowEndMs}
 					{#if searchWindowEndMs !== undefined && searchWindowEndMs !== null}
 						<div>
 							<dt>search window end ms</dt>

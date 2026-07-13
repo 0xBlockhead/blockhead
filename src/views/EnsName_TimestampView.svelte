@@ -69,10 +69,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$name !== undefined && pendingEntity.$name.name !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			ensName: String(pendingEntity.$name.name ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$name !== undefined && pendingEntity.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			ensName: String(pendingEntity.$name.name ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -85,7 +85,7 @@
 				<EnsNameView
 					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 					href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 							ensName: String(selection.entitySelector.$name.name ?? ''),
 						}) : undefined)
 					}
@@ -99,7 +99,7 @@
 				<EnsNameView
 					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 					href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 							ensName: String(selection.entitySelector.$name.name ?? ''),
 						}) : undefined)
 					}
@@ -113,7 +113,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={ensNameTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -137,7 +137,7 @@
 					<EnsNameView
 						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
 						href={
-							(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+							(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 								ensName: String(selection.entitySelector.$name.name ?? ''),
 							}) : undefined)
 						}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -194,7 +194,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -216,6 +216,8 @@
 			<ResourceBoundary
 				resource={selection.$resolvedActor}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -225,7 +227,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -243,6 +245,8 @@
 			<ResourceBoundary
 				resource={selection.$resolverContract}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -252,8 +256,8 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmContract[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -271,6 +275,8 @@
 			<ResourceBoundary
 				resource={selection.$ownerActor}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -280,7 +286,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -305,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subdomainCount = prefetched.subdomainCount}
+					{@const subdomainCount = pendingEntity.subdomainCount}
 					{#if subdomainCount !== undefined && subdomainCount !== null}
 						<div>
 							<dt>Subdomains</dt>
@@ -342,7 +348,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ttl = prefetched.ttl}
+					{@const ttl = pendingEntity.ttl}
 					{#if ttl !== undefined && ttl !== null}
 						<div>
 							<dt>TTL</dt>
@@ -379,7 +385,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isMigrated = prefetched.isMigrated}
+					{@const isMigrated = pendingEntity.isMigrated}
 					{#if isMigrated !== undefined && isMigrated !== null}
 						<div>
 							<dt>Migrated</dt>

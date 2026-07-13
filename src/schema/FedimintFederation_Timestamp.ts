@@ -9,8 +9,10 @@ export enum FedimintFederation_TimestampSelector {
 }
 export const FedimintFederation_Timestamp = entity({
 	entityType: EntityType.FedimintFederation_Timestamp,
-	label: 'Fedimint federation timestamp',
-	labelPlural: 'Fedimint federation observations',
+	labels: {
+		singular: 'Fedimint federation timestamp',
+		plural: 'Fedimint federation observations',
+	},
 })({
 	$federation: {
 		label: 'federation',

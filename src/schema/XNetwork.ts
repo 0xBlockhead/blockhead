@@ -10,8 +10,10 @@ export enum XNetworkSelector {
 }
 export const XNetwork = entity({
 	entityType: EntityType.XNetwork,
-	label: 'X',
-	labelPlural: 'X',
+	labels: {
+		singular: 'X',
+		plural: 'X',
+	},
 	description: 'X profiles and posts surfaced through declared public HTTP sources.',
 })({
 	scope: {

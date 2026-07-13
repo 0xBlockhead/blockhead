@@ -10,8 +10,10 @@ export enum AtprotoActor_TimestampSelector {
 }
 export const AtprotoActor_Timestamp = entity({
 	entityType: EntityType.AtprotoActor_Timestamp,
-	label: 'AT Protocol account observation',
-	labelPlural: 'AT Protocol account observations',
+	labels: {
+		singular: 'AT Protocol account observation',
+		plural: 'AT Protocol account observations',
+	},
 })({
 	$actor: {
 		label: 'Account',
@@ -23,7 +25,7 @@ export const AtprotoActor_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	followersCount: {

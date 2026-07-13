@@ -13,13 +13,15 @@ export enum BlockheadFarcasterAccountConnectionSelector {
 }
 export const BlockheadFarcasterAccountConnection = entity({
 	entityType: EntityType.BlockheadFarcasterAccountConnection,
-	label: 'Blockhead Farcaster account connection',
-	labelPlural: 'Blockhead Farcaster account connections',
+	labels: {
+		singular: 'Blockhead Farcaster account connection',
+		plural: 'Blockhead Farcaster account connections',
+	},
 })({
 	fid: {
 		label: 'FID',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	username: {

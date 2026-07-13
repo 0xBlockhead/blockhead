@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const symbol = prefetched.symbol}
+					{@const symbol = pendingEntity.symbol}
 					{#if symbol !== undefined && symbol !== null}
 						<div>
 							<dt>Symbol</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fee = prefetched.fee}
+					{@const fee = pendingEntity.fee}
 					{#if fee !== undefined && fee !== null}
 						<div>
 							<dt>fee</dt>
@@ -301,7 +301,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const archiveCanisterIds = prefetched.archiveCanisterIds}
+							{@const archiveCanisterIds = pendingEntity.archiveCanisterIds}
 							{#if archiveCanisterIds !== undefined && archiveCanisterIds !== null}
 								{archiveCanisterIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -331,7 +331,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const supportedStandards = prefetched.supportedStandards}
+							{@const supportedStandards = pendingEntity.supportedStandards}
 							{#if supportedStandards !== undefined && supportedStandards !== null}
 								{supportedStandards.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -358,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestBlockIndex = prefetched.latestBlockIndex}
+					{@const latestBlockIndex = pendingEntity.latestBlockIndex}
 					{#if latestBlockIndex !== undefined && latestBlockIndex !== null}
 						<div>
 							<dt>latest block index</dt>

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -52,7 +51,7 @@
 			commitmentHex: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.commitmentHex) ?? '')].filter(Boolean).join(' ') || 'Bitcoin Cash CashToken commitment')
+	const titleFallback = $derived([String((pendingEntity.commitmentHex) ?? '')].filter(Boolean).join(' ') || 'Bitcoin Cash CashToken commitment')
 	const viewDomId = $derived('bitcoin-cash-cash-token-commitment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -69,9 +68,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$output !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.caip2 !== undefined && pendingEntity.$output.$transaction.$network.caip2.namespace !== undefined && pendingEntity.$output !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.caip2 !== undefined && pendingEntity.$output.$transaction.$network.caip2.reference !== undefined && pendingEntity.$output !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output !== undefined && pendingEntity.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
-			networkSlug: String(networkByCaip2[String(String(pendingEntity.$output.$transaction.$network.caip2.namespace) + ':' + String(pendingEntity.$output.$transaction.$network.caip2.reference))].slug ?? ''),
-			txId: String(pendingEntity.$output.$transaction.txId ?? ''),
+		href ?? (pendingEntity.$output !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.slug !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
+			network: String(pendingEntity.$output.$transaction.$network.slug ?? ''),
+			transactionId: String(pendingEntity.$output.$transaction.txId ?? ''),
 			outputIndex: String(pendingEntity.$output.indexInTransaction ?? ''),
 		}) : undefined)
 	}
@@ -82,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bitcoinCashCashTokenCommitment}>
 			{#snippet Pending()}
-				{@const commitmentHex0 = prefetched.commitmentHex}
+				{@const commitmentHex0 = pendingEntity.commitmentHex}
 				{#if commitmentHex0 !== undefined && commitmentHex0 !== null}
 					<TruncatedValue value={String((commitmentHex0) ?? '')} />
 				{/if}
@@ -101,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bitcoinCashCashTokenCommitment}>
 			{#snippet Pending()}
-				{@const commitmentHex0 = prefetched.commitmentHex}
+				{@const commitmentHex0 = pendingEntity.commitmentHex}
 				{#if commitmentHex0 !== undefined && commitmentHex0 !== null}
 					<TruncatedValue value={String((commitmentHex0) ?? '')} />
 				{/if}
@@ -124,9 +123,9 @@
 					<UtxoOutputView
 						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output)}
 						href={
-							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$output.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$output.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
+							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.slug !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+								network: String(selection.entitySelector.$output.$transaction.$network.slug ?? ''),
+								transactionId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
 								outputIndex: String(selection.entitySelector.$output.indexInTransaction ?? ''),
 							}) : undefined)
 						}
@@ -142,9 +141,9 @@
 					<UtxoOutputView
 						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output)}
 						href={
-							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$output.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$output.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
+							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.slug !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+								network: String(selection.entitySelector.$output.$transaction.$network.slug ?? ''),
+								transactionId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
 								outputIndex: String(selection.entitySelector.$output.indexInTransaction ?? ''),
 							}) : undefined)
 						}
@@ -174,7 +173,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const commitmentHex = prefetched.commitmentHex}
+							{@const commitmentHex = pendingEntity.commitmentHex}
 							{#if commitmentHex !== undefined && commitmentHex !== null}
 								<TruncatedValue value={String((commitmentHex) ?? '')} />
 							{/if}
@@ -197,9 +196,9 @@
 					<UtxoOutputView
 						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output, {})}
 						href={
-							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$output.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$output.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
+							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.slug !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+								network: String(selection.entitySelector.$output.$transaction.$network.slug ?? ''),
+								transactionId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
 								outputIndex: String(selection.entitySelector.$output.indexInTransaction ?? ''),
 							}) : undefined)
 						}

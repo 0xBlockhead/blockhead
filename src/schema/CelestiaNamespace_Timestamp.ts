@@ -9,8 +9,10 @@ export enum CelestiaNamespace_TimestampSelector {
 }
 export const CelestiaNamespace_Timestamp = entity({
 	entityType: EntityType.CelestiaNamespace_Timestamp,
-	label: 'celestia namespace timestamp',
-	labelPlural: 'celestia namespace observations',
+	labels: {
+		singular: 'celestia namespace timestamp',
+		plural: 'celestia namespace observations',
+	},
 })({
 	$namespace: {
 		label: 'Namespace',

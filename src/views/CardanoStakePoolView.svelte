@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const poolId = selection.entitySelector.poolId ?? prefetched.poolId}
+							{@const poolId = pendingEntity.poolId}
 							{#if poolId !== undefined && poolId !== null}
 								{String((poolId) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const vrfKeyHash = prefetched.vrfKeyHash}
+					{@const vrfKeyHash = pendingEntity.vrfKeyHash}
 					{#if vrfKeyHash !== undefined && vrfKeyHash !== null}
 						<div>
 							<dt>vrf key hash</dt>

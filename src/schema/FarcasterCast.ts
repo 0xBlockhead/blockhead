@@ -13,13 +13,15 @@ export enum FarcasterCastSelector {
 }
 export const FarcasterCast = entity({
 	entityType: EntityType.FarcasterCast,
-	label: 'Farcaster cast',
-	labelPlural: 'Farcaster casts',
+	labels: {
+		singular: 'Farcaster cast',
+		plural: 'Farcaster casts',
+	},
 })({
 	fid: {
 		label: 'FID',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {

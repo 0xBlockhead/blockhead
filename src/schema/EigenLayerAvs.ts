@@ -11,8 +11,10 @@ export enum EigenLayerAvsSelector {
 }
 export const EigenLayerAvs = entity({
 	entityType: EntityType.EigenLayerAvs,
-	label: 'eigen layer avs',
-	labelPlural: 'EigenLayer AVSs',
+	labels: {
+		singular: 'eigen layer avs',
+		plural: 'EigenLayer AVSs',
+	},
 })({
 	$network: {
 		label: 'network',

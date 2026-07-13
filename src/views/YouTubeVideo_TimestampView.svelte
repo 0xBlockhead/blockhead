@@ -43,7 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const youtubeVideoTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube video observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube video observation')
 	const viewDomId = $derived('youtube-video-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -60,9 +60,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$video !== undefined && pendingEntity.$video.videoId !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]/observations/[timestampMs]', {
-			videoId: String(pendingEntity.$video.videoId ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$video !== undefined && pendingEntity.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			videoId: String(pendingEntity.$video.videoId ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -75,14 +75,14 @@
 				<YoutubeVideoView
 					selection={select(EntityType.YoutubeVideo, selection.entitySelector.$video)}
 					href={
-						(selection.entitySelector.$video.videoId !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-							videoId: encodeURIComponent(String(selection.entitySelector.$video.videoId ?? '')),
+						(selection.entitySelector.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
+							videoId: String(selection.entitySelector.$video.videoId ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
-				{@const timestampMs1 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs1 = pendingEntity.timestampMs}
 				{#if timestampMs1 !== undefined && timestampMs1 !== null}
 					<Timestamp timestamp={Number(timestampMs1)} />
 				{/if}
@@ -93,8 +93,8 @@
 				<YoutubeVideoView
 					selection={select(EntityType.YoutubeVideo, selection.entitySelector.$video)}
 					href={
-						(selection.entitySelector.$video.videoId !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-							videoId: encodeURIComponent(String(selection.entitySelector.$video.videoId ?? '')),
+						(selection.entitySelector.$video.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
+							videoId: String(selection.entitySelector.$video.videoId ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -123,7 +123,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}

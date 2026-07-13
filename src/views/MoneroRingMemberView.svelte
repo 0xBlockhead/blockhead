@@ -50,7 +50,7 @@
 			globalOutputIndex: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.memberIndex ?? prefetched.memberIndex) ?? '')].filter(Boolean).join(' ') || 'monero ring member')
+	const titleFallback = $derived([String((pendingEntity.memberIndex) ?? '')].filter(Boolean).join(' ') || 'monero ring member')
 	const viewDomId = $derived('monero-ring-member-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={moneroRingMember}>
 			{#snippet Pending()}
-				{@const memberIndex0 = selection.entitySelector.memberIndex ?? prefetched.memberIndex}
+				{@const memberIndex0 = pendingEntity.memberIndex}
 				{#if memberIndex0 !== undefined && memberIndex0 !== null}
 					<NumberValue value={Number(memberIndex0)} />
 				{/if}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={moneroRingMember}>
 			{#snippet Pending()}
-				{@const globalOutputIndex0 = prefetched.globalOutputIndex}
+				{@const globalOutputIndex0 = pendingEntity.globalOutputIndex}
 				{#if globalOutputIndex0 !== undefined && globalOutputIndex0 !== null}
 					<NumberValue value={Number(globalOutputIndex0)} />
 				{/if}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const memberIndex = selection.entitySelector.memberIndex ?? prefetched.memberIndex}
+							{@const memberIndex = pendingEntity.memberIndex}
 							{#if memberIndex !== undefined && memberIndex !== null}
 								<NumberValue value={Number(memberIndex)} />
 							{/if}
@@ -165,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const globalOutputIndex = prefetched.globalOutputIndex}
+					{@const globalOutputIndex = pendingEntity.globalOutputIndex}
 					{#if globalOutputIndex !== undefined && globalOutputIndex !== null}
 						<div>
 							<dt>Global output index</dt>

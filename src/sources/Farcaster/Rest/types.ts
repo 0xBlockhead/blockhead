@@ -60,6 +60,12 @@ export type FarcasterThreadCast = {
 	hash?: string
 	threadHash?: string
 	author?: FarcasterThreadCastAuthor
+	parentHash?: string
+	parentAuthor?: FarcasterThreadCastAuthor
+	parentUrl?: string
+	channel?: {
+		id?: string
+	}
 	text?: string
 	timestamp?: number
 	replies?: {

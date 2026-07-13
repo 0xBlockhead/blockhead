@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -160,7 +160,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerSequence = prefetched.ledgerSequence}
+					{@const ledgerSequence = pendingEntity.ledgerSequence}
 					{#if ledgerSequence !== undefined && ledgerSequence !== null}
 						<div>
 							<dt>ledger sequence</dt>
@@ -188,6 +188,8 @@
 			<ResourceBoundary
 				resource={selection.$asset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -215,7 +217,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -250,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sponsor = prefetched.sponsor}
+					{@const sponsor = pendingEntity.sponsor}
 					{#if sponsor !== undefined && sponsor !== null}
 						<div>
 							<dt>sponsor</dt>
@@ -278,6 +280,8 @@
 			<ResourceBoundary
 				resource={selection.$claimedByTransaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarTransaction)}
 					{#if stellarTransaction != null && stellarTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -305,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>

@@ -10,8 +10,10 @@ export enum LightningNode_TimestampSelector {
 }
 export const LightningNode_Timestamp = entity({
 	entityType: EntityType.LightningNode_Timestamp,
-	label: 'Lightning node timestamp',
-	labelPlural: 'Lightning node observations',
+	labels: {
+		singular: 'Lightning node timestamp',
+		plural: 'Lightning node observations',
+	},
 })({
 	$node: {
 		label: 'Node',

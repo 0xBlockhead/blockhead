@@ -48,7 +48,7 @@
 			runtimeMatch: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.match) ?? ''), String((prefetched.runtimeMatch) ?? '')].filter(Boolean).join(' ') || 'EVM contract verification')
+	const titleFallback = $derived([String((pendingEntity.match) ?? ''), String((pendingEntity.runtimeMatch) ?? '')].filter(Boolean).join(' ') || 'EVM contract verification')
 	const viewDomId = $derived('evm-contract-verification-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,8 +67,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$contract !== undefined && pendingEntity.$contract.$network !== undefined && pendingEntity.$contract.$network.caip2 !== undefined && pendingEntity.$contract.$network.caip2.namespace !== undefined && pendingEntity.$contract !== undefined && pendingEntity.$contract.$network !== undefined && pendingEntity.$contract.$network.caip2 !== undefined && pendingEntity.$contract.$network.caip2.reference !== undefined && pendingEntity.$contract !== undefined && pendingEntity.$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]/verification', {
-			caip2: `${String(pendingEntity.$contract.$network.caip2.namespace ?? '')}:${String(pendingEntity.$contract.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$contract !== undefined && pendingEntity.$contract.$network !== undefined && pendingEntity.$contract.$network.slug !== undefined && pendingEntity.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]/verification', {
+			network: String(pendingEntity.$contract.$network.slug ?? ''),
 			address: String(pendingEntity.$contract.address ?? ''),
 		}) : undefined)
 	}
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmContractVerification}>
 			{#snippet Pending()}
-				{[String((prefetched.match) ?? ''), String((prefetched.runtimeMatch) ?? '')].filter(Boolean).join(' ') || title || 'EVM contract verification'}
+				{[String((pendingEntity.match) ?? ''), String((pendingEntity.runtimeMatch) ?? '')].filter(Boolean).join(' ') || title || 'EVM contract verification'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmContractVerification}>
 			{#snippet Pending()}
-				{[String((prefetched.match) ?? '')].filter(Boolean).join(' ') || [String((prefetched.match) ?? ''), String((prefetched.runtimeMatch) ?? '')].filter(Boolean).join(' ') || title || 'EVM contract verification'}
+				{[String((pendingEntity.match) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.match) ?? ''), String((pendingEntity.runtimeMatch) ?? '')].filter(Boolean).join(' ') || title || 'EVM contract verification'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,8 +109,8 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 						href={
-							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.namespace !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$contract.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$contract.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 								address: String(selection.entitySelector.$contract.address ?? ''),
 							}) : undefined)
 						}
@@ -126,8 +126,8 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 						href={
-							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.namespace !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$contract.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$contract.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 								address: String(selection.entitySelector.$contract.address ?? ''),
 							}) : undefined)
 						}
@@ -151,7 +151,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const match = prefetched.match}
+					{@const match = pendingEntity.match}
 					{#if match !== undefined && match !== null}
 						<div>
 							<dt>Match</dt>
@@ -186,7 +186,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const creationMatch = prefetched.creationMatch}
+					{@const creationMatch = pendingEntity.creationMatch}
 					{#if creationMatch !== undefined && creationMatch !== null}
 						<div>
 							<dt>Creation match</dt>
@@ -221,7 +221,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const runtimeMatch = prefetched.runtimeMatch}
+					{@const runtimeMatch = pendingEntity.runtimeMatch}
 					{#if runtimeMatch !== undefined && runtimeMatch !== null}
 						<div>
 							<dt>Runtime match</dt>
@@ -256,7 +256,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedAtMs = prefetched.verifiedAtMs}
+					{@const verifiedAtMs = pendingEntity.verifiedAtMs}
 					{#if verifiedAtMs !== undefined && verifiedAtMs !== null}
 						<div>
 							<dt>Verified at</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const matchId = prefetched.matchId}
+					{@const matchId = pendingEntity.matchId}
 					{#if matchId !== undefined && matchId !== null}
 						<div>
 							<dt>Match ID</dt>
@@ -324,8 +324,8 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract, {})}
 						href={
-							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.namespace !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$contract.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$contract.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 								address: String(selection.entitySelector.$contract.address ?? ''),
 							}) : undefined)
 						}
@@ -338,6 +338,8 @@
 			<ResourceBoundary
 				resource={selection.$compilation}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmContractCompilation)}
 					{#if evmContractCompilation != null && evmContractCompilation[EntityMetaKey.Selector] != null}
 						<div>
@@ -358,6 +360,8 @@
 			<ResourceBoundary
 				resource={selection.$sourceBundle}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmContractSourceBundle)}
 					{#if evmContractSourceBundle != null && evmContractSourceBundle[EntityMetaKey.Selector] != null}
 						<div>

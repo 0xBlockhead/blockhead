@@ -51,7 +51,7 @@
 			nodeVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle node state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle node state timestamp')
 	const viewDomId = $derived('blockhead-radicle-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadRadicleNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadicleNodeStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.alias) ?? ''), String((prefetched.nodeVersion) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle node state timestamp'}
+				{[String((pendingEntity.alias) ?? ''), String((pendingEntity.nodeVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle node state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadRadicleNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -211,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const alias = prefetched.alias}
+					{@const alias = pendingEntity.alias}
 					{#if alias !== undefined && alias !== null}
 						<div>
 							<dt>alias</dt>
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeVersion = prefetched.nodeVersion}
+					{@const nodeVersion = pendingEntity.nodeVersion}
 					{#if nodeVersion !== undefined && nodeVersion !== null}
 						<div>
 							<dt>node version</dt>
@@ -281,7 +281,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const policy = prefetched.policy}
+					{@const policy = pendingEntity.policy}
 					{#if policy !== undefined && policy !== null}
 						<div>
 							<dt>policy</dt>
@@ -321,7 +321,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const listenAddresses = prefetched.listenAddresses}
+							{@const listenAddresses = pendingEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
 								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -351,7 +351,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const externalAddresses = prefetched.externalAddresses}
+							{@const externalAddresses = pendingEntity.externalAddresses}
 							{#if externalAddresses !== undefined && externalAddresses !== null}
 								<TruncatedValue value={externalAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -378,7 +378,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>

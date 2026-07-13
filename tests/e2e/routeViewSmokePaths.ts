@@ -15,7 +15,7 @@ export const routeViewSmokeOptionalDetailPathByLabel: Record<string, `/${string}
 export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	baseNetwork: '/network/eip155:1',
 	evmAccount: `/network/eip155:1/account/${ADDR}`,
-	polkadotPilot: '/network/polkadot/polkadot',
-	zcashShieldedPool: '/network/zcash/utxo/shielded-pool/orchard',
+	polkadotPilot: '/network/polkadot',
+	zcashShieldedPool: '/network/zcash/shielded-pool/orchard',
 	markets: '/markets',
 } as const

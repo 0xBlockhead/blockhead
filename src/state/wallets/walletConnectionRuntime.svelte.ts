@@ -30,6 +30,7 @@ const createWalletRuntimeState = (
 	context: LocalMutationContext
 ): WalletRuntime => {
 	const cleanupByWalletId = new SvelteMap<string, () => void>()
+	const connectionKeyByWalletId = new SvelteMap<string, string>()
 	const adapterByWalletId = new SvelteMap<string, WalletAdapter>()
 	const adapterCleanups: (() => void)[] = []
 	const candidatesByAdapterId = new SvelteMap<string, WalletCandidate[]>()
@@ -38,11 +39,19 @@ const createWalletRuntimeState = (
 	let connections = $state<WalletConnection[]>([])
 
 	const upsertConnection = (connection: WalletConnection) => {
+		const connectionKey = connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+		connectionKeyByWalletId.set(connection.walletId, connectionKey)
 		connections = [
 			...connections.filter((candidate) => candidate.walletId !== connection.walletId),
-			connection,
+			{
+				...connection,
+				connectionKey,
+			},
 		]
-		writeLocalBlockheadWalletConnection(context, connection)
+		writeLocalBlockheadWalletConnection(context, {
+			...connection,
+			connectionKey,
+		})
 	}
 
 	const adapters = [
@@ -116,7 +125,8 @@ const createWalletRuntimeState = (
 		cleanupByWalletId.delete(walletId)
 		adapterByWalletId.get(walletId)?.disconnect(walletId)
 		connections = connections.filter((connection) => connection.walletId !== walletId)
-		deleteLocalBlockheadWalletConnection(context, walletId)
+		deleteLocalBlockheadWalletConnection(context, connectionKeyByWalletId.get(walletId) ?? walletId)
+		connectionKeyByWalletId.delete(walletId)
 	}
 
 	return {
@@ -136,6 +146,7 @@ const createWalletRuntimeState = (
 				cleanup()
 
 			cleanupByWalletId.clear()
+			connectionKeyByWalletId.clear()
 			adapterByWalletId.clear()
 			candidatesByAdapterId.clear()
 		},

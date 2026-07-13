@@ -50,7 +50,7 @@
 			metagraphByteLength: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Bittensor metagraph observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Bittensor metagraph observation')
 	const viewDomId = $derived('bittensor-metagraph-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bittensorMetagraphTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bittensorMetagraphTimestamp}>
 			{#snippet Pending()}
-				{@const metagraphByteLength0 = prefetched.metagraphByteLength}
+				{@const metagraphByteLength0 = pendingEntity.metagraphByteLength}
 				{#if metagraphByteLength0 !== undefined && metagraphByteLength0 !== null}
 					<NumberValue value={Number(metagraphByteLength0)} />
 				{/if}
@@ -136,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -166,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metagraphByteLength = prefetched.metagraphByteLength}
+					{@const metagraphByteLength = pendingEntity.metagraphByteLength}
 					{#if metagraphByteLength !== undefined && metagraphByteLength !== null}
 						<div>
 							<dt>Metagraph bytes</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const neuronCount = prefetched.neuronCount}
+					{@const neuronCount = pendingEntity.neuronCount}
 					{#if neuronCount !== undefined && neuronCount !== null}
 						<div>
 							<dt>Neurons</dt>

@@ -82,8 +82,8 @@
 				<LightningChannelView
 					selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
 					href={
-						(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-							networkSlug: String(selection.entitySelector.$channel.$network.slug ?? ''),
+						(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+							network: String(selection.entitySelector.$channel.$network.slug ?? ''),
 							channelId: String(selection.entitySelector.$channel.channelId ?? ''),
 						}) : undefined)
 					}
@@ -97,8 +97,8 @@
 				<LightningChannelView
 					selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
 					href={
-						(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-							networkSlug: String(selection.entitySelector.$channel.$network.slug ?? ''),
+						(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+							network: String(selection.entitySelector.$channel.$network.slug ?? ''),
 							channelId: String(selection.entitySelector.$channel.channelId ?? ''),
 						}) : undefined)
 					}
@@ -133,7 +133,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLightningChannelState}>
 			{#snippet Pending()}
-				{@const privateValue0 = prefetched.private}
+				{@const privateValue0 = pendingEntity.private}
 				{#if privateValue0 !== undefined && privateValue0 !== null}
 					<span data-text="muted">
 						{privateValue0 ? 'Yes' : 'No'}
@@ -172,8 +172,8 @@
 					<LightningChannelView
 						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel, {})}
 						href={
-							(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-								networkSlug: String(selection.entitySelector.$channel.$network.slug ?? ''),
+							(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+								network: String(selection.entitySelector.$channel.$network.slug ?? ''),
 								channelId: String(selection.entitySelector.$channel.channelId ?? ''),
 							}) : undefined)
 						}
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const privateValue = prefetched.private}
+					{@const privateValue = pendingEntity.private}
 					{#if privateValue !== undefined && privateValue !== null}
 						<div>
 							<dt>private</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const initiator = prefetched.initiator}
+					{@const initiator = pendingEntity.initiator}
 					{#if initiator !== undefined && initiator !== null}
 						<div>
 							<dt>initiator</dt>

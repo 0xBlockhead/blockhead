@@ -9,8 +9,10 @@ export enum ElementsIssuanceSelector {
 }
 export const ElementsIssuance = entity({
 	entityType: EntityType.ElementsIssuance,
-	label: 'Elements issuance',
-	labelPlural: 'Elements issuances',
+	labels: {
+		singular: 'Elements issuance',
+		plural: 'Elements issuances',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',

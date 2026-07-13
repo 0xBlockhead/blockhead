@@ -10,8 +10,10 @@ export enum GitPackfileSelector {
 }
 export const GitPackfile = entity({
 	entityType: EntityType.GitPackfile,
-	label: 'Git packfile',
-	labelPlural: 'Git packfiles',
+	labels: {
+		singular: 'Git packfile',
+		plural: 'Git packfiles',
+	},
 })({
 	packHash: {
 		label: 'pack hash',

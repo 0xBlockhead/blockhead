@@ -45,7 +45,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? ''), String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || 'Lens feed')
+	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'Lens feed')
 	const viewDomId = $derived('lens-feed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -70,7 +70,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensFeed}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? ''), String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || title || 'Lens feed'}
+				{[String((pendingEntity.name) ?? ''), String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || 'Lens feed'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -83,7 +83,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensFeed}>
 			{#snippet Pending()}
-				{@const address0 = selection.entitySelector.address ?? prefetched.address}
+				{@const address0 = pendingEntity.address}
 				{#if address0 !== undefined && address0 !== null}
 					<TruncatedValue value={String((address0) ?? '')} />
 				{/if}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensFeed}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -134,7 +134,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -172,7 +172,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const owner = prefetched.owner}
+					{@const owner = pendingEntity.owner}
 					{#if owner !== undefined && owner !== null}
 						<div>
 							<dt>Owner</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -284,7 +284,7 @@
 			<LensPostsView
 				selection={selection.$$posts}
 				title='Posts'
-				href={resolve('/(social)/(lens)/lens/posts')}
+				href={resolve('/lens/observations/posts')}
 				emptyText='No Lens posts for this feed.'
 				id='LensPostsView-posts'
 			/>

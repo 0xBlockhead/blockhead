@@ -10,8 +10,10 @@ export enum BridgeTransfer_TimestampSelector {
 }
 export const BridgeTransfer_Timestamp = entity({
 	entityType: EntityType.BridgeTransfer_Timestamp,
-	label: 'bridge transfer timestamp',
-	labelPlural: 'bridge transfer observations',
+	labels: {
+		singular: 'bridge transfer timestamp',
+		plural: 'bridge transfer observations',
+	},
 })({
 	$transfer: {
 		label: 'transfer',

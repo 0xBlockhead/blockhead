@@ -51,7 +51,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.fullname ?? prefetched.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission')
+	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission')
 	const viewDomId = $derived('reddit-link-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={redditLink}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.fullname ?? prefetched.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission'}
+				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={redditLink}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -125,7 +125,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fullname = selection.entitySelector.fullname ?? prefetched.fullname}
+							{@const fullname = pendingEntity.fullname}
 							{#if fullname !== undefined && fullname !== null}
 								<TruncatedValue value={String((fullname) ?? '')} />
 							{/if}
@@ -152,7 +152,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const title = prefetched.title}
+					{@const title = pendingEntity.title}
 					{#if title !== undefined && title !== null}
 						<div>
 							<dt>Title</dt>
@@ -188,7 +188,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const selftext = prefetched.selftext}
+						{@const selftext = pendingEntity.selftext}
 						{#if selftext !== undefined && selftext !== null}
 							<div>
 								<dt>Body</dt>
@@ -225,7 +225,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const author = prefetched.author}
+						{@const author = pendingEntity.author}
 						{#if author !== undefined && author !== null}
 							<div>
 								<dt>Author</dt>
@@ -262,7 +262,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const createdAt = prefetched.createdAt}
+						{@const createdAt = pendingEntity.createdAt}
 						{#if createdAt !== undefined && createdAt !== null}
 							<div>
 								<dt>Created</dt>
@@ -292,6 +292,8 @@
 				<ResourceBoundary
 					resource={selection.$subreddit}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(redditSubreddit)}
 						{#if redditSubreddit != null && redditSubreddit[EntityMetaKey.Selector] != null}
 							<div>
@@ -321,7 +323,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const url = prefetched.url}
+						{@const url = pendingEntity.url}
 						{#if url !== undefined && url !== null}
 							<div>
 								<dt>URL</dt>
@@ -372,7 +374,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const permalink = prefetched.permalink}
+						{@const permalink = pendingEntity.permalink}
 						{#if permalink !== undefined && permalink !== null}
 							<div>
 								<dt>Reddit permalink</dt>

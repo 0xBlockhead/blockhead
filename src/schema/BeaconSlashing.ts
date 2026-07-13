@@ -9,8 +9,10 @@ export enum BeaconSlashingSelector {
 }
 export const BeaconSlashing = entity({
 	entityType: EntityType.BeaconSlashing,
-	label: 'beacon slashing',
-	labelPlural: 'Beacon slashings',
+	labels: {
+		singular: 'beacon slashing',
+		plural: 'Beacon slashings',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -21,7 +23,7 @@ export const BeaconSlashing = entity({
 	slot: {
 		label: 'Slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	kind: {
@@ -33,7 +35,7 @@ export const BeaconSlashing = entity({
 	indexInSlot: {
 		label: 'Index in slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 })({

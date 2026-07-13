@@ -47,7 +47,7 @@
 			endpoint: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead waku node state')
+	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead waku node state')
 	const viewDomId = $derived('blockhead-waku-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadWakuNodeState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead waku node state'}
+				{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead waku node state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWakuNodeState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead waku node state'}
+				{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead waku node state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -98,7 +98,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadWakuNodeState}>
 			{#snippet Pending()}
-				{@const endpoint0 = prefetched.endpoint}
+				{@const endpoint0 = pendingEntity.endpoint}
 				{#if endpoint0 !== undefined && endpoint0 !== null}
 					<span data-text="muted">
 						<svelte:element
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const connectionId = selection.entitySelector.connectionId ?? prefetched.connectionId}
+							{@const connectionId = pendingEntity.connectionId}
 							{#if connectionId !== undefined && connectionId !== null}
 								{String((connectionId) ?? '')}
 							{/if}
@@ -177,7 +177,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nodeId = selection.entitySelector.nodeId ?? prefetched.nodeId}
+							{@const nodeId = pendingEntity.nodeId}
 							{#if nodeId !== undefined && nodeId !== null}
 								{String((nodeId) ?? '')}
 							{/if}
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endpoint = prefetched.endpoint}
+					{@const endpoint = pendingEntity.endpoint}
 					{#if endpoint !== undefined && endpoint !== null}
 						<div>
 							<dt>endpoint</dt>

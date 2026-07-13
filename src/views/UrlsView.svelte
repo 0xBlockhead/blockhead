@@ -117,8 +117,8 @@
 						selection={select(EntityType.Url, url[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={urlFields}
 						href={
-							(urlHrefFields.url !== undefined ? resolve('/(explore)/url/[url]', {
-								url: encodeURIComponent(String(urlHrefFields.url ?? '')),
+							(urlHrefFields.url !== undefined ? resolve('/url/[url=absoluteUrl]', {
+								url: String(urlHrefFields.url ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

@@ -10,8 +10,10 @@ export enum NostrRepostSelector {
 }
 export const NostrRepost = entity({
 	entityType: EntityType.NostrRepost,
-	label: 'Nostr repost',
-	labelPlural: 'Nostr reposts',
+	labels: {
+		singular: 'Nostr repost',
+		plural: 'Nostr reposts',
+	},
 	description: 'A Nostr repost is a kind-6 or kind-16 event keyed by event id and linked to the reposted note or article.',
 })({
 	eventId: {

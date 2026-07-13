@@ -10,8 +10,10 @@ export enum YoutubePlaylistSelector {
 }
 export const YoutubePlaylist = entity({
 	entityType: EntityType.YoutubePlaylist,
-	label: 'YouTube playlist',
-	labelPlural: 'YouTube playlists',
+	labels: {
+		singular: 'YouTube playlist',
+		plural: 'YouTube playlists',
+	},
 })({
 	playlistId: {
 		label: 'Playlist ID',

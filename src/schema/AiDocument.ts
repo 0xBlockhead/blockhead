@@ -13,8 +13,10 @@ export enum AiDocumentSelector {
 }
 export const AiDocument = entity({
 	entityType: EntityType.AiDocument,
-	label: 'AI document',
-	labelPlural: 'AI documents',
+	labels: {
+		singular: 'AI document',
+		plural: 'AI documents',
+	},
 })({
 	documentKind: {
 		label: 'document kind',

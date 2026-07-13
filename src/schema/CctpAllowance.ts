@@ -9,8 +9,10 @@ export enum CctpAllowanceSelector {
 }
 export const CctpAllowance = entity({
 	entityType: EntityType.CctpAllowance,
-	label: 'CCTP allowance',
-	labelPlural: 'CCTP allowances',
+	labels: {
+		singular: 'CCTP allowance',
+		plural: 'CCTP allowances',
+	},
 })({
 	apiHost: {
 		label: 'API host',

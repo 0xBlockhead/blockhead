@@ -47,7 +47,7 @@
 			height: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin deal timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin deal timestamp')
 	const viewDomId = $derived('filecoin-deal-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={filecoinDealTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={filecoinDealTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.verifiedDeal) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'filecoin deal timestamp'}
+				{[String((pendingEntity.verifiedDeal) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'filecoin deal timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinDealTimestamp}>
 			{#snippet Pending()}
-				{@const height0 = prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(height0)} />
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const height = prefetched.height}
+					{@const height = pendingEntity.height}
 					{#if height !== undefined && height !== null}
 						<div>
 							<dt>Height</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tipsetKey = prefetched.tipsetKey}
+					{@const tipsetKey = pendingEntity.tipsetKey}
 					{#if tipsetKey !== undefined && tipsetKey !== null}
 						<div>
 							<dt>Tipset key</dt>
@@ -271,6 +271,8 @@
 			<ResourceBoundary
 				resource={selection.$tipset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(filecoinTipset)}
 					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
 						<div>
@@ -298,7 +300,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sectorStartEpoch = prefetched.sectorStartEpoch}
+					{@const sectorStartEpoch = pendingEntity.sectorStartEpoch}
 					{#if sectorStartEpoch !== undefined && sectorStartEpoch !== null}
 						<div>
 							<dt>Sector start epoch</dt>
@@ -333,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastUpdatedEpoch = prefetched.lastUpdatedEpoch}
+					{@const lastUpdatedEpoch = pendingEntity.lastUpdatedEpoch}
 					{#if lastUpdatedEpoch !== undefined && lastUpdatedEpoch !== null}
 						<div>
 							<dt>Last updated epoch</dt>
@@ -368,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slashEpoch = prefetched.slashEpoch}
+					{@const slashEpoch = pendingEntity.slashEpoch}
 					{#if slashEpoch !== undefined && slashEpoch !== null}
 						<div>
 							<dt>Slash epoch</dt>
@@ -403,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedDeal = prefetched.verifiedDeal}
+					{@const verifiedDeal = pendingEntity.verifiedDeal}
 					{#if verifiedDeal !== undefined && verifiedDeal !== null}
 						<div>
 							<dt>Verified deal</dt>
@@ -438,7 +440,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerCollateralAttoFil = prefetched.providerCollateralAttoFil}
+					{@const providerCollateralAttoFil = pendingEntity.providerCollateralAttoFil}
 					{#if providerCollateralAttoFil !== undefined && providerCollateralAttoFil !== null}
 						<div>
 							<dt>Provider collateral attoFIL</dt>
@@ -473,7 +475,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clientCollateralAttoFil = prefetched.clientCollateralAttoFil}
+					{@const clientCollateralAttoFil = pendingEntity.clientCollateralAttoFil}
 					{#if clientCollateralAttoFil !== undefined && clientCollateralAttoFil !== null}
 						<div>
 							<dt>Client collateral attoFIL</dt>

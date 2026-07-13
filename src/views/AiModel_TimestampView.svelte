@@ -54,7 +54,7 @@
 			providerLifecycleStatus: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.providerDisplayName) ?? '')].filter(Boolean).join(' ') || 'AI model timestamp')
+	const titleFallback = $derived([String((pendingEntity.providerDisplayName) ?? '')].filter(Boolean).join(' ') || 'AI model timestamp')
 	const viewDomId = $derived('ai-model-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiModelTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.providerDisplayName) ?? '')].filter(Boolean).join(' ') || title || 'AI model timestamp'}
+				{[String((pendingEntity.providerDisplayName) ?? '')].filter(Boolean).join(' ') || title || 'AI model timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiModelTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.availabilityStatus) ?? '')].filter(Boolean).join(' ') || [String((prefetched.providerDisplayName) ?? '')].filter(Boolean).join(' ') || title || 'AI model timestamp'}
+				{[String((pendingEntity.availabilityStatus) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerDisplayName) ?? '')].filter(Boolean).join(' ') || title || 'AI model timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiModelTimestamp}>
 			{#snippet Pending()}
-				{@const providerLifecycleStatus0 = prefetched.providerLifecycleStatus}
+				{@const providerLifecycleStatus0 = pendingEntity.providerLifecycleStatus}
 				{#if providerLifecycleStatus0 !== undefined && providerLifecycleStatus0 !== null}
 					<span data-text="muted">
 						{String((providerLifecycleStatus0) ?? '')}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerObjectType = prefetched.providerObjectType}
+					{@const providerObjectType = pendingEntity.providerObjectType}
 					{#if providerObjectType !== undefined && providerObjectType !== null}
 						<div>
 							<dt>provider object type</dt>
@@ -245,7 +245,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerDisplayName = prefetched.providerDisplayName}
+					{@const providerDisplayName = pendingEntity.providerDisplayName}
 					{#if providerDisplayName !== undefined && providerDisplayName !== null}
 						<div>
 							<dt>provider display name</dt>
@@ -280,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerDescription = prefetched.providerDescription}
+					{@const providerDescription = pendingEntity.providerDescription}
 					{#if providerDescription !== undefined && providerDescription !== null}
 						<div>
 							<dt>provider description</dt>
@@ -315,7 +315,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerVersion = prefetched.providerVersion}
+					{@const providerVersion = pendingEntity.providerVersion}
 					{#if providerVersion !== undefined && providerVersion !== null}
 						<div>
 							<dt>provider version</dt>
@@ -350,7 +350,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerOwnedBy = prefetched.providerOwnedBy}
+					{@const providerOwnedBy = pendingEntity.providerOwnedBy}
 					{#if providerOwnedBy !== undefined && providerOwnedBy !== null}
 						<div>
 							<dt>provider owned by</dt>
@@ -385,7 +385,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const availabilityStatus = prefetched.availabilityStatus}
+					{@const availabilityStatus = pendingEntity.availabilityStatus}
 					{#if availabilityStatus !== undefined && availabilityStatus !== null}
 						<div>
 							<dt>availability status</dt>
@@ -420,7 +420,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerLifecycleStatus = prefetched.providerLifecycleStatus}
+					{@const providerLifecycleStatus = pendingEntity.providerLifecycleStatus}
 					{#if providerLifecycleStatus !== undefined && providerLifecycleStatus !== null}
 						<div>
 							<dt>provider lifecycle status</dt>
@@ -457,7 +457,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const releaseDate = prefetched.releaseDate}
+					{@const releaseDate = pendingEntity.releaseDate}
 					{#if releaseDate !== undefined && releaseDate !== null}
 						<div>
 							<dt>release date</dt>
@@ -492,7 +492,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deprecationDate = prefetched.deprecationDate}
+					{@const deprecationDate = pendingEntity.deprecationDate}
 					{#if deprecationDate !== undefined && deprecationDate !== null}
 						<div>
 							<dt>deprecation date</dt>
@@ -527,7 +527,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deprecated = prefetched.deprecated}
+					{@const deprecated = pendingEntity.deprecated}
 					{#if deprecated !== undefined && deprecated !== null}
 						<div>
 							<dt>deprecated</dt>
@@ -562,7 +562,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>
@@ -599,7 +599,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contextWindowTokens = prefetched.contextWindowTokens}
+					{@const contextWindowTokens = pendingEntity.contextWindowTokens}
 					{#if contextWindowTokens !== undefined && contextWindowTokens !== null}
 						<div>
 							<dt>context window tokens</dt>
@@ -634,7 +634,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxInputTokens = prefetched.maxInputTokens}
+					{@const maxInputTokens = pendingEntity.maxInputTokens}
 					{#if maxInputTokens !== undefined && maxInputTokens !== null}
 						<div>
 							<dt>max input tokens</dt>
@@ -669,7 +669,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxOutputTokens = prefetched.maxOutputTokens}
+					{@const maxOutputTokens = pendingEntity.maxOutputTokens}
 					{#if maxOutputTokens !== undefined && maxOutputTokens !== null}
 						<div>
 							<dt>max output tokens</dt>
@@ -706,7 +706,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedToolUse = prefetched.supportedToolUse}
+					{@const supportedToolUse = pendingEntity.supportedToolUse}
 					{#if supportedToolUse !== undefined && supportedToolUse !== null}
 						<div>
 							<dt>supported tool use</dt>
@@ -741,7 +741,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedStructuredOutput = prefetched.supportedStructuredOutput}
+					{@const supportedStructuredOutput = pendingEntity.supportedStructuredOutput}
 					{#if supportedStructuredOutput !== undefined && supportedStructuredOutput !== null}
 						<div>
 							<dt>supported structured output</dt>
@@ -776,7 +776,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedJsonMode = prefetched.supportedJsonMode}
+					{@const supportedJsonMode = pendingEntity.supportedJsonMode}
 					{#if supportedJsonMode !== undefined && supportedJsonMode !== null}
 						<div>
 							<dt>supported JSON mode</dt>
@@ -811,7 +811,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedStreaming = prefetched.supportedStreaming}
+					{@const supportedStreaming = pendingEntity.supportedStreaming}
 					{#if supportedStreaming !== undefined && supportedStreaming !== null}
 						<div>
 							<dt>supported streaming</dt>
@@ -846,7 +846,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedThinking = prefetched.supportedThinking}
+					{@const supportedThinking = pendingEntity.supportedThinking}
 					{#if supportedThinking !== undefined && supportedThinking !== null}
 						<div>
 							<dt>supported thinking</dt>
@@ -881,7 +881,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenizerUrl = prefetched.tokenizerUrl}
+					{@const tokenizerUrl = pendingEntity.tokenizerUrl}
 					{#if tokenizerUrl !== undefined && tokenizerUrl !== null}
 						<div>
 							<dt>tokenizer URL</dt>
@@ -932,7 +932,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputPricePerMillionTokens = prefetched.inputPricePerMillionTokens}
+					{@const inputPricePerMillionTokens = pendingEntity.inputPricePerMillionTokens}
 					{#if inputPricePerMillionTokens !== undefined && inputPricePerMillionTokens !== null}
 						<div>
 							<dt>input price per million tokens</dt>
@@ -967,7 +967,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outputPricePerMillionTokens = prefetched.outputPricePerMillionTokens}
+					{@const outputPricePerMillionTokens = pendingEntity.outputPricePerMillionTokens}
 					{#if outputPricePerMillionTokens !== undefined && outputPricePerMillionTokens !== null}
 						<div>
 							<dt>output price per million tokens</dt>
@@ -1002,7 +1002,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cacheReadPricePerMillionTokens = prefetched.cacheReadPricePerMillionTokens}
+					{@const cacheReadPricePerMillionTokens = pendingEntity.cacheReadPricePerMillionTokens}
 					{#if cacheReadPricePerMillionTokens !== undefined && cacheReadPricePerMillionTokens !== null}
 						<div>
 							<dt>cache read price per million tokens</dt>
@@ -1037,7 +1037,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cacheWritePricePerMillionTokens = prefetched.cacheWritePricePerMillionTokens}
+					{@const cacheWritePricePerMillionTokens = pendingEntity.cacheWritePricePerMillionTokens}
 					{#if cacheWritePricePerMillionTokens !== undefined && cacheWritePricePerMillionTokens !== null}
 						<div>
 							<dt>cache write price per million tokens</dt>
@@ -1072,7 +1072,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rateLimitTier = prefetched.rateLimitTier}
+					{@const rateLimitTier = pendingEntity.rateLimitTier}
 					{#if rateLimitTier !== undefined && rateLimitTier !== null}
 						<div>
 							<dt>rate limit tier</dt>

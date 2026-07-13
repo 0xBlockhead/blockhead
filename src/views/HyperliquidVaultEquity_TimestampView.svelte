@@ -114,7 +114,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -171,7 +171,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const equity = prefetched.equity}
+					{@const equity = pendingEntity.equity}
 					{#if equity !== undefined && equity !== null}
 						<div>
 							<dt>equity</dt>
@@ -206,7 +206,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pnl = prefetched.pnl}
+					{@const pnl = pendingEntity.pnl}
 					{#if pnl !== undefined && pnl !== null}
 						<div>
 							<dt>pnl</dt>
@@ -241,7 +241,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const allTimePnl = prefetched.allTimePnl}
+					{@const allTimePnl = pendingEntity.allTimePnl}
 					{#if allTimePnl !== undefined && allTimePnl !== null}
 						<div>
 							<dt>all time pnl</dt>
@@ -276,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const daysFollowing = prefetched.daysFollowing}
+					{@const daysFollowing = pendingEntity.daysFollowing}
 					{#if daysFollowing !== undefined && daysFollowing !== null}
 						<div>
 							<dt>days following</dt>
@@ -311,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const vaultEntryTimeMs = prefetched.vaultEntryTimeMs}
+					{@const vaultEntryTimeMs = pendingEntity.vaultEntryTimeMs}
 					{#if vaultEntryTimeMs !== undefined && vaultEntryTimeMs !== null}
 						<div>
 							<dt>vault entry time ms</dt>
@@ -346,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lockupUntilMs = prefetched.lockupUntilMs}
+					{@const lockupUntilMs = pendingEntity.lockupUntilMs}
 					{#if lockupUntilMs !== undefined && lockupUntilMs !== null}
 						<div>
 							<dt>lockup until ms</dt>

@@ -9,8 +9,10 @@ export enum AvalancheSubnetSelector {
 }
 export const AvalancheSubnet = entity({
 	entityType: EntityType.AvalancheSubnet,
-	label: 'avalanche subnet',
-	labelPlural: 'avalanche subnets',
+	labels: {
+		singular: 'avalanche subnet',
+		plural: 'avalanche subnets',
+	},
 })({
 	subnetId: {
 		label: 'subnet ID',

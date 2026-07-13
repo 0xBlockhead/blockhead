@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const originalPackageId = selection.entitySelector.originalPackageId ?? prefetched.originalPackageId}
+							{@const originalPackageId = pendingEntity.originalPackageId}
 							{#if originalPackageId !== undefined && originalPackageId !== null}
 								{String((originalPackageId) ?? '')}
 							{/if}

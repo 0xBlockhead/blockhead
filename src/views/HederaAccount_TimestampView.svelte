@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const alias = prefetched.alias}
+					{@const alias = pendingEntity.alias}
 					{#if alias !== undefined && alias !== null}
 						<div>
 							<dt>alias</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evmAddress = prefetched.evmAddress}
+					{@const evmAddress = pendingEntity.evmAddress}
 					{#if evmAddress !== undefined && evmAddress !== null}
 						<div>
 							<dt>EVM address</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const receiverSigRequired = prefetched.receiverSigRequired}
+					{@const receiverSigRequired = pendingEntity.receiverSigRequired}
 					{#if receiverSigRequired !== undefined && receiverSigRequired !== null}
 						<div>
 							<dt>receiver sig required</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo}
+					{@const memo = pendingEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>memo</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceTinybar = prefetched.balanceTinybar}
+					{@const balanceTinybar = pendingEntity.balanceTinybar}
 					{#if balanceTinybar !== undefined && balanceTinybar !== null}
 						<div>
 							<dt>balance tinybar</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const autoRenewPeriodSeconds = prefetched.autoRenewPeriodSeconds}
+					{@const autoRenewPeriodSeconds = pendingEntity.autoRenewPeriodSeconds}
 					{#if autoRenewPeriodSeconds !== undefined && autoRenewPeriodSeconds !== null}
 						<div>
 							<dt>auto renew period seconds</dt>
@@ -404,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiryTimestamp = prefetched.expiryTimestamp}
+					{@const expiryTimestamp = pendingEntity.expiryTimestamp}
 					{#if expiryTimestamp !== undefined && expiryTimestamp !== null}
 						<div>
 							<dt>expiry timestamp</dt>
@@ -439,7 +439,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakedNodeId = prefetched.stakedNodeId}
+					{@const stakedNodeId = pendingEntity.stakedNodeId}
 					{#if stakedNodeId !== undefined && stakedNodeId !== null}
 						<div>
 							<dt>staked node ID</dt>
@@ -474,7 +474,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakedAccountId = prefetched.stakedAccountId}
+					{@const stakedAccountId = pendingEntity.stakedAccountId}
 					{#if stakedAccountId !== undefined && stakedAccountId !== null}
 						<div>
 							<dt>staked account ID</dt>
@@ -509,7 +509,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const declineReward = prefetched.declineReward}
+					{@const declineReward = pendingEntity.declineReward}
 					{#if declineReward !== undefined && declineReward !== null}
 						<div>
 							<dt>decline reward</dt>
@@ -544,7 +544,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingRewardTinybar = prefetched.pendingRewardTinybar}
+					{@const pendingRewardTinybar = pendingEntity.pendingRewardTinybar}
 					{#if pendingRewardTinybar !== undefined && pendingRewardTinybar !== null}
 						<div>
 							<dt>pending reward tinybar</dt>

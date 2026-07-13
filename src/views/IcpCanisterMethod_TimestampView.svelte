@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const candidSignature = prefetched.candidSignature}
+					{@const candidSignature = pendingEntity.candidSignature}
 					{#if candidSignature !== undefined && candidSignature !== null}
 						<div>
 							<dt>candid signature</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const certifiedResponseSupported = prefetched.certifiedResponseSupported}
+					{@const certifiedResponseSupported = pendingEntity.certifiedResponseSupported}
 					{#if certifiedResponseSupported !== undefined && certifiedResponseSupported !== null}
 						<div>
 							<dt>certified response supported</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestCount = prefetched.requestCount}
+					{@const requestCount = pendingEntity.requestCount}
 					{#if requestCount !== undefined && requestCount !== null}
 						<div>
 							<dt>request count</dt>

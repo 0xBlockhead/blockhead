@@ -55,7 +55,7 @@
 			$icon: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.displayName) ?? ''), String((prefetched.acct) ?? ''), String((prefetched.username) ?? ''), String((prefetched.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')
+	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')
 	const viewDomId = $derived('activity-pub-actor-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.instanceOrigin !== undefined && pendingEntity.localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+		href ?? (pendingEntity.instanceOrigin !== undefined && pendingEntity.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
 			instanceOrigin: String(pendingEntity.instanceOrigin ?? ''),
 			localAccountId: String(pendingEntity.localAccountId ?? ''),
 		}) : undefined)
@@ -107,7 +107,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubActor}>
 			{#snippet Pending()}
-				{[String((prefetched.displayName) ?? ''), String((prefetched.acct) ?? ''), String((prefetched.username) ?? ''), String((prefetched.localAccountId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub actor'}
+				{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub actor'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -120,7 +120,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubActor}>
 			{#snippet Pending()}
-				{[String((prefetched.acct) ?? ''), String((prefetched.localAccountId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.displayName) ?? ''), String((prefetched.acct) ?? ''), String((prefetched.username) ?? ''), String((prefetched.localAccountId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub actor'}
+				{[String((pendingEntity.acct) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub actor'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const acct = prefetched.acct}
+							{@const acct = pendingEntity.acct}
 							{#if acct !== undefined && acct !== null}
 								{String((acct) ?? '')}
 							{/if}
@@ -174,7 +174,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const username = prefetched.username}
+					{@const username = pendingEntity.username}
 					{#if username !== undefined && username !== null}
 						<div>
 							<dt>Username</dt>
@@ -211,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const profileUrl = prefetched.profileUrl}
+					{@const profileUrl = pendingEntity.profileUrl}
 					{#if profileUrl !== undefined && profileUrl !== null}
 						<div>
 							<dt>Profile URL</dt>
@@ -265,7 +265,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const activityStreamsUri = prefetched.activityStreamsUri}
+							{@const activityStreamsUri = pendingEntity.activityStreamsUri}
 							{#if activityStreamsUri !== undefined && activityStreamsUri !== null}
 								<svelte:element
 									this={'a'}
@@ -308,7 +308,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>

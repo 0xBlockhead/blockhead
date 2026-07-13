@@ -9,8 +9,10 @@ export enum NftCollectionSelector {
 }
 export const NftCollection = entity({
 	entityType: EntityType.NftCollection,
-	label: 'NFT collection',
-	labelPlural: 'NFT collections',
+	labels: {
+		singular: 'NFT collection',
+		plural: 'NFT collections',
+	},
 })({
 	$assetInstance: {
 		label: 'asset instance',

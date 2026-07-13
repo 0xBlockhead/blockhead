@@ -9,8 +9,10 @@ export enum EigenLayerProtocolSelector {
 }
 export const EigenLayerProtocol = entity({
 	entityType: EntityType.EigenLayerProtocol,
-	label: 'eigen layer protocol',
-	labelPlural: 'eigen layer protocols',
+	labels: {
+		singular: 'eigen layer protocol',
+		plural: 'eigen layer protocols',
+	},
 })({
 	$network: {
 		label: 'network',

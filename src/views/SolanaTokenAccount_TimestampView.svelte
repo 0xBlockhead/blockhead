@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -49,7 +48,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.slot ?? prefetched.slot) ?? '')].filter(Boolean).join(' ') || 'solana token account timestamp')
+	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana token account timestamp')
 	const viewDomId = $derived('solana-token-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={solanaTokenAccountTimestamp}>
 			{#snippet Pending()}
-				{@const slot0 = selection.entitySelector.slot ?? prefetched.slot}
+				{@const slot0 = pendingEntity.slot}
 				{#if slot0 !== undefined && slot0 !== null}
 					<NumberValue value={Number(slot0)} />
 				{/if}
@@ -94,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaTokenAccountTimestamp}>
 			{#snippet Pending()}
-				{@const amount0 = prefetched.amount}
+				{@const amount0 = pendingEntity.amount}
 				{#if amount0 !== undefined && amount0 !== null}
 					<NumberValue value={Number(amount0)} />
 				{/if}
@@ -113,7 +112,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaTokenAccountTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -141,8 +140,8 @@
 					<SolanaTokenAccountView
 						selection={select(EntityType.SolanaTokenAccount, selection.entitySelector.$tokenAccount, {})}
 						href={
-							(selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.caip2 !== undefined && selection.entitySelector.$tokenAccount.$network.caip2.namespace !== undefined && selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.caip2 !== undefined && selection.entitySelector.$tokenAccount.$network.caip2.reference !== undefined && selection.entitySelector.$tokenAccount.tokenAccountPubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/token-account/[tokenAccountPubkey]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$tokenAccount.$network.caip2.namespace) + ':' + String(selection.entitySelector.$tokenAccount.$network.caip2.reference))].slug ?? ''),
+							(selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.slug !== undefined && selection.entitySelector.$tokenAccount.tokenAccountPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
+								network: String(selection.entitySelector.$tokenAccount.$network.slug ?? ''),
 								tokenAccountPubkey: String(selection.entitySelector.$tokenAccount.tokenAccountPubkey ?? ''),
 							}) : undefined)
 						}
@@ -165,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -192,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -227,7 +226,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uiAmountString = prefetched.uiAmountString}
+					{@const uiAmountString = pendingEntity.uiAmountString}
 					{#if uiAmountString !== undefined && uiAmountString !== null}
 						<div>
 							<dt>UI amount</dt>
@@ -262,7 +261,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const state = prefetched.state}
+					{@const state = pendingEntity.state}
 					{#if state !== undefined && state !== null}
 						<div>
 							<dt>State</dt>
@@ -297,7 +296,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isNative = prefetched.isNative}
+					{@const isNative = pendingEntity.isNative}
 					{#if isNative !== undefined && isNative !== null}
 						<div>
 							<dt>Native</dt>
@@ -332,7 +331,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatedAmount = prefetched.delegatedAmount}
+					{@const delegatedAmount = pendingEntity.delegatedAmount}
 					{#if delegatedAmount !== undefined && delegatedAmount !== null}
 						<div>
 							<dt>Delegated amount</dt>
@@ -367,7 +366,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rentExemptReserveLamports = prefetched.rentExemptReserveLamports}
+					{@const rentExemptReserveLamports = pendingEntity.rentExemptReserveLamports}
 					{#if rentExemptReserveLamports !== undefined && rentExemptReserveLamports !== null}
 						<div>
 							<dt>Rent exempt reserve</dt>
@@ -402,7 +401,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownerPubkey = prefetched.ownerPubkey}
+					{@const ownerPubkey = pendingEntity.ownerPubkey}
 					{#if ownerPubkey !== undefined && ownerPubkey !== null}
 						<div>
 							<dt>Owner public key</dt>
@@ -437,7 +436,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mintAddress = prefetched.mintAddress}
+					{@const mintAddress = pendingEntity.mintAddress}
 					{#if mintAddress !== undefined && mintAddress !== null}
 						<div>
 							<dt>Mint address</dt>
@@ -472,7 +471,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatePubkey = prefetched.delegatePubkey}
+					{@const delegatePubkey = pendingEntity.delegatePubkey}
 					{#if delegatePubkey !== undefined && delegatePubkey !== null}
 						<div>
 							<dt>Delegate public key</dt>
@@ -507,7 +506,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const closeAuthorityPubkey = prefetched.closeAuthorityPubkey}
+					{@const closeAuthorityPubkey = pendingEntity.closeAuthorityPubkey}
 					{#if closeAuthorityPubkey !== undefined && closeAuthorityPubkey !== null}
 						<div>
 							<dt>Close authority public key</dt>

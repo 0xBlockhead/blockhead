@@ -10,8 +10,10 @@ export enum _GlobalAgentNetwork_TimestampSelector {
 }
 export const _GlobalAgentNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalAgentNetwork_Timestamp,
-	label: 'global agent network timestamp',
-	labelPlural: 'global agent network observations',
+	labels: {
+		singular: 'global agent network timestamp',
+		plural: 'global agent network observations',
+	},
 })({
 	$network: {
 		label: 'network',

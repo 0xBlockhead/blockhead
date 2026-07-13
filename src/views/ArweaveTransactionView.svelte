@@ -44,11 +44,9 @@
 	const arweaveTransaction = $derived(selection({
 		fields: {
 			quantityWinston: true,
-			$block: true,
-			$resource: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.transactionId ?? prefetched.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave transaction')
+	const titleFallback = $derived([String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave transaction')
 	const viewDomId = $derived('arweave-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={arweaveTransaction}>
 			{#snippet Pending()}
-				{@const transactionId0 = selection.entitySelector.transactionId ?? prefetched.transactionId}
+				{@const transactionId0 = pendingEntity.transactionId}
 				{#if transactionId0 !== undefined && transactionId0 !== null}
 					<TruncatedValue value={String((transactionId0) ?? '')} />
 				{/if}
@@ -94,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveTransaction}>
 			{#snippet Pending()}
-				{@const quantityWinston0 = prefetched.quantityWinston}
+				{@const quantityWinston0 = pendingEntity.quantityWinston}
 				{#if quantityWinston0 !== undefined && quantityWinston0 !== null}
 					<NumberValue value={Number(quantityWinston0)} />
 				{/if}
@@ -213,7 +211,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionId = selection.entitySelector.transactionId ?? prefetched.transactionId}
+							{@const transactionId = pendingEntity.transactionId}
 							{#if transactionId !== undefined && transactionId !== null}
 								<TruncatedValue value={String((transactionId) ?? '')} />
 							{/if}
@@ -233,6 +231,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(arweaveBlock)}
 					{#if arweaveBlock != null && arweaveBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -253,6 +253,8 @@
 			<ResourceBoundary
 				resource={selection.$resource}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(arweaveResource)}
 					{#if arweaveResource != null && arweaveResource[EntityMetaKey.Selector] != null}
 						<div>
@@ -282,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownerAddress = prefetched.ownerAddress}
+					{@const ownerAddress = pendingEntity.ownerAddress}
 					{#if ownerAddress !== undefined && ownerAddress !== null}
 						<div>
 							<dt>owner address</dt>
@@ -317,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetAddress = prefetched.targetAddress}
+					{@const targetAddress = pendingEntity.targetAddress}
 					{#if targetAddress !== undefined && targetAddress !== null}
 						<div>
 							<dt>target address</dt>
@@ -352,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quantityWinston = prefetched.quantityWinston}
+					{@const quantityWinston = pendingEntity.quantityWinston}
 					{#if quantityWinston !== undefined && quantityWinston !== null}
 						<div>
 							<dt>quantity winston</dt>
@@ -387,7 +389,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardWinston = prefetched.rewardWinston}
+					{@const rewardWinston = pendingEntity.rewardWinston}
 					{#if rewardWinston !== undefined && rewardWinston !== null}
 						<div>
 							<dt>reward winston</dt>
@@ -424,7 +426,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signature = prefetched.signature}
+					{@const signature = pendingEntity.signature}
 					{#if signature !== undefined && signature !== null}
 						<div>
 							<dt>signature</dt>
@@ -459,7 +461,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastTx = prefetched.lastTx}
+					{@const lastTx = pendingEntity.lastTx}
 					{#if lastTx !== undefined && lastTx !== null}
 						<div>
 							<dt>last transaction</dt>
@@ -494,7 +496,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataRoot = prefetched.dataRoot}
+					{@const dataRoot = pendingEntity.dataRoot}
 					{#if dataRoot !== undefined && dataRoot !== null}
 						<div>
 							<dt>data root</dt>
@@ -529,7 +531,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataSizeBytes = prefetched.dataSizeBytes}
+					{@const dataSizeBytes = pendingEntity.dataSizeBytes}
 					{#if dataSizeBytes !== undefined && dataSizeBytes !== null}
 						<div>
 							<dt>data size bytes</dt>
@@ -566,7 +568,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const format = prefetched.format}
+					{@const format = pendingEntity.format}
 					{#if format !== undefined && format !== null}
 						<div>
 							<dt>format</dt>
@@ -601,7 +603,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const denomination = prefetched.denomination}
+					{@const denomination = pendingEntity.denomination}
 					{#if denomination !== undefined && denomination !== null}
 						<div>
 							<dt>denomination</dt>

@@ -9,8 +9,10 @@ export enum BlockheadLightningHtlcSelector {
 }
 export const BlockheadLightningHtlc = entity({
 	entityType: EntityType.BlockheadLightningHtlc,
-	label: 'blockhead Lightning htlc',
-	labelPlural: 'blockhead Lightning htlcs',
+	labels: {
+		singular: 'blockhead Lightning htlc',
+		plural: 'blockhead Lightning htlcs',
+	},
 })({
 	$channelState: {
 		label: 'channel state',

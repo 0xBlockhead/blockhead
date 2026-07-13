@@ -9,8 +9,10 @@ export enum BlockheadZeroGStorageProofSelector {
 }
 export const BlockheadZeroGStorageProof = entity({
 	entityType: EntityType.BlockheadZeroGStorageProof,
-	label: 'blockhead zero g storage proof',
-	labelPlural: 'blockhead zero g storage proofs',
+	labels: {
+		singular: 'blockhead zero g storage proof',
+		plural: 'blockhead zero g storage proofs',
+	},
 })({
 	$nodeState: {
 		label: 'node state',

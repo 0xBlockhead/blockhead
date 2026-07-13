@@ -10,8 +10,10 @@ export enum BlockheadWalletRequestSelector {
 }
 export const BlockheadWalletRequest = entity({
 	entityType: EntityType.BlockheadWalletRequest,
-	label: 'blockhead wallet request',
-	labelPlural: 'blockhead wallet requests',
+	labels: {
+		singular: 'blockhead wallet request',
+		plural: 'blockhead wallet requests',
+	},
 })({
 	id: {
 		label: 'ID',
@@ -123,6 +125,12 @@ export const BlockheadWalletRequest = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$calls: {
+		label: 'calls',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.BlockheadWalletRequestCall,
+		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
 		label: 'timestamps',

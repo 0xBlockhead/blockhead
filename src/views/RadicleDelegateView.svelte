@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const did = selection.entitySelector.did ?? prefetched.did}
+							{@const did = pendingEntity.did}
 							{#if did !== undefined && did !== null}
 								{String((did) ?? '')}
 							{/if}
@@ -128,7 +128,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const role = prefetched.role}
+					{@const role = pendingEntity.role}
 					{#if role !== undefined && role !== null}
 						<div>
 							<dt>role</dt>
@@ -163,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validFromRevision = prefetched.validFromRevision}
+					{@const validFromRevision = pendingEntity.validFromRevision}
 					{#if validFromRevision !== undefined && validFromRevision !== null}
 						<div>
 							<dt>valid from revision</dt>
@@ -198,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validToRevision = prefetched.validToRevision}
+					{@const validToRevision = pendingEntity.validToRevision}
 					{#if validToRevision !== undefined && validToRevision !== null}
 						<div>
 							<dt>valid to revision</dt>

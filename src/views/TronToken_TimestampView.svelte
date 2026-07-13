@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>Block height</dt>
@@ -197,7 +197,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -235,7 +235,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const symbol = prefetched.symbol}
+					{@const symbol = pendingEntity.symbol}
 					{#if symbol !== undefined && symbol !== null}
 						<div>
 							<dt>Symbol</dt>
@@ -273,7 +273,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -311,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalSupply = prefetched.totalSupply}
+					{@const totalSupply = pendingEntity.totalSupply}
 					{#if totalSupply !== undefined && totalSupply !== null}
 						<div>
 							<dt>Total supply</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const holderCount = prefetched.holderCount}
+					{@const holderCount = pendingEntity.holderCount}
 					{#if holderCount !== undefined && holderCount !== null}
 						<div>
 							<dt>Holders</dt>
@@ -384,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transferCount = prefetched.transferCount}
+					{@const transferCount = pendingEntity.transferCount}
 					{#if transferCount !== undefined && transferCount !== null}
 						<div>
 							<dt>Transfers</dt>
@@ -419,7 +419,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractVerified = prefetched.contractVerified}
+					{@const contractVerified = pendingEntity.contractVerified}
 					{#if contractVerified !== undefined && contractVerified !== null}
 						<div>
 							<dt>Contract verified</dt>

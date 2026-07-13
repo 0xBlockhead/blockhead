@@ -9,8 +9,10 @@ export enum AssetClassSelector {
 }
 export const AssetClass = entity({
 	entityType: EntityType.AssetClass,
-	label: 'asset class',
-	labelPlural: 'asset classes',
+	labels: {
+		singular: 'asset class',
+		plural: 'asset classes',
+	},
 	description: 'A reusable asset classification used to group related asset instances and objects.',
 })({
 	$assetInstance: {

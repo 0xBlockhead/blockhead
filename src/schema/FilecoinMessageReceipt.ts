@@ -9,8 +9,10 @@ export enum FilecoinMessageReceiptSelector {
 }
 export const FilecoinMessageReceipt = entity({
 	entityType: EntityType.FilecoinMessageReceipt,
-	label: 'filecoin message receipt',
-	labelPlural: 'filecoin message receipts',
+	labels: {
+		singular: 'filecoin message receipt',
+		plural: 'filecoin message receipts',
+	},
 })({
 	$message: {
 		label: 'Message',

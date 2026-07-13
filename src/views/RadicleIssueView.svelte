@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const issueId = selection.entitySelector.issueId ?? prefetched.issueId}
+							{@const issueId = pendingEntity.issueId}
 							{#if issueId !== undefined && issueId !== null}
 								{String((issueId) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const title = prefetched.title}
+					{@const title = pendingEntity.title}
 					{#if title !== undefined && title !== null}
 						<div>
 							<dt>title</dt>
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorDid = prefetched.authorDid}
+					{@const authorDid = pendingEntity.authorDid}
 					{#if authorDid !== undefined && authorDid !== null}
 						<div>
 							<dt>author DID</dt>
@@ -202,7 +202,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const state = prefetched.state}
+							{@const state = pendingEntity.state}
 							{#if state !== undefined && state !== null}
 								{String((state) ?? '')}
 							{/if}
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadObjectId = prefetched.payloadObjectId}
+					{@const payloadObjectId = pendingEntity.payloadObjectId}
 					{#if payloadObjectId !== undefined && payloadObjectId !== null}
 						<div>
 							<dt>payload object ID</dt>
@@ -327,6 +327,8 @@
 			<ResourceBoundary
 				resource={selection.$payloadObject}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>

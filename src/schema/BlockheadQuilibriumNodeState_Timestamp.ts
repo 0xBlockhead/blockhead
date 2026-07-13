@@ -9,8 +9,10 @@ export enum BlockheadQuilibriumNodeState_TimestampSelector {
 }
 export const BlockheadQuilibriumNodeState_Timestamp = entity({
 	entityType: EntityType.BlockheadQuilibriumNodeState_Timestamp,
-	label: 'blockhead quilibrium node state timestamp',
-	labelPlural: 'blockhead quilibrium node state observations',
+	labels: {
+		singular: 'blockhead quilibrium node state timestamp',
+		plural: 'blockhead quilibrium node state observations',
+	},
 })({
 	$nodeState: {
 		label: 'node state',

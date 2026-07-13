@@ -67,10 +67,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$cast !== undefined && pendingEntity.$cast.fid !== undefined && pendingEntity.$cast !== undefined && pendingEntity.$cast.hash !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]/observations/[timestampMs=nonNegativeInteger]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$cast !== undefined && pendingEntity.$cast.fid !== undefined && pendingEntity.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			fid: String(pendingEntity.$cast.fid ?? ''),
 			hash: String(pendingEntity.$cast.hash ?? ''),
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -83,7 +83,7 @@
 				<FarcasterCastView
 					selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
 					href={
-						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 							fid: String(selection.entitySelector.$cast.fid ?? ''),
 							hash: String(selection.entitySelector.$cast.hash ?? ''),
 						}) : undefined)
@@ -98,7 +98,7 @@
 				<FarcasterCastView
 					selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
 					href={
-						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 							fid: String(selection.entitySelector.$cast.fid ?? ''),
 							hash: String(selection.entitySelector.$cast.hash ?? ''),
 						}) : undefined)
@@ -113,7 +113,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterCastTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -137,7 +137,7 @@
 					<FarcasterCastView
 						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast, {})}
 						href={
-							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 								fid: String(selection.entitySelector.$cast.fid ?? ''),
 								hash: String(selection.entitySelector.$cast.hash ?? ''),
 							}) : undefined)
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -192,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const likeCount = prefetched.likeCount}
+					{@const likeCount = pendingEntity.likeCount}
 					{#if likeCount !== undefined && likeCount !== null}
 						<div>
 							<dt>Likes</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const recastCount = prefetched.recastCount}
+					{@const recastCount = pendingEntity.recastCount}
 					{#if recastCount !== undefined && recastCount !== null}
 						<div>
 							<dt>Recasts</dt>
@@ -266,7 +266,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const replyCount = prefetched.replyCount}
+					{@const replyCount = pendingEntity.replyCount}
 					{#if replyCount !== undefined && replyCount !== null}
 						<div>
 							<dt>Replies</dt>

@@ -123,10 +123,10 @@
 						selection={select(EntityType.UrlPreview_Timestamp, urlPreviewTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={urlPreviewTimestampFields}
 						href={
-							(urlPreviewTimestampHrefFields.$url !== undefined && urlPreviewTimestampHrefFields.$url.url !== undefined && urlPreviewTimestampHrefFields.timestampMs !== undefined && urlPreviewTimestampHrefFields.source !== undefined ? resolve('/(explore)/url/[url]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								url: encodeURIComponent(String(urlPreviewTimestampHrefFields.$url.url ?? '')),
+							(urlPreviewTimestampHrefFields.timestampMs !== undefined && urlPreviewTimestampHrefFields.source !== undefined && urlPreviewTimestampHrefFields.$url !== undefined && urlPreviewTimestampHrefFields.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(urlPreviewTimestampHrefFields.timestampMs ?? ''),
-								source: encodeURIComponent(String(urlPreviewTimestampHrefFields.source ?? '')),
+								source: String(urlPreviewTimestampHrefFields.source ?? ''),
+								url: String(urlPreviewTimestampHrefFields.$url.url ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

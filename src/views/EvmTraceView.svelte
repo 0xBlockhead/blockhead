@@ -50,7 +50,7 @@
 			error: true,
 		},
 	}))
-	const titleFallback = $derived((String((prefetched.index) ?? '') ? 'Trace #' + String((prefetched.index) ?? '') : '') || [String((selection.entitySelector.traceAddress ?? prefetched.traceAddress) ?? '')].filter(Boolean).join(' ') || 'EVM trace')
+	const titleFallback = $derived((String((pendingEntity.index) ?? '') ? 'Trace #' + String((pendingEntity.index) ?? '') : '') || [String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ') || 'EVM trace')
 	const viewDomId = $derived('evm-trace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,7 +68,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(prefetched.index ?? '')}
+	idDragPlainText={String(pendingEntity.index ?? '')}
 	{href}
 	{layout}
 	bind:open
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmTrace}>
 			{#snippet Pending()}
-				{@const serialValue = prefetched.index}
+				{@const serialValue = pendingEntity.index}
 				{#if serialValue !== undefined && serialValue !== null}
 					<span data-row="inline align-center gap-2 wrap">
 						<span>Trace </span>
@@ -86,7 +86,7 @@
 						</span>
 					</span>
 				{:else}
-					{[String((selection.entitySelector.traceAddress ?? prefetched.traceAddress) ?? '')].filter(Boolean).join(' ')}
+					{[String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
 				{/if}
 			{/snippet}
 
@@ -110,13 +110,13 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmTrace}>
 			{#snippet Pending()}
-				{@const serialValue = prefetched.index}
+				{@const serialValue = pendingEntity.index}
 				{#if serialValue !== undefined && serialValue !== null}
 					<span data-badge="small">
 						#{String((serialValue) ?? '')}
 					</span>
 				{:else}
-					{[String((selection.entitySelector.traceAddress ?? prefetched.traceAddress) ?? '')].filter(Boolean).join(' ')}
+					{[String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
 				{/if}
 			{/snippet}
 
@@ -137,13 +137,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={evmTrace}>
 			{#snippet Pending()}
-				{@const type0 = prefetched.type}
+				{@const type0 = pendingEntity.type}
 				{#if type0 !== undefined && type0 !== null}
 					<span data-text="muted">
 						{String((type0) ?? '')}
 					</span>
 				{/if}
-				{@const error1 = prefetched.error}
+				{@const error1 = pendingEntity.error}
 				{#if error1 !== undefined && error1 !== null}
 					<span data-text="muted">
 						{String((error1) ?? '')}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const traceAddress = selection.entitySelector.traceAddress ?? prefetched.traceAddress}
+							{@const traceAddress = pendingEntity.traceAddress}
 							{#if traceAddress !== undefined && traceAddress !== null}
 								<TruncatedValue value={String((traceAddress) ?? '')} />
 							{/if}
@@ -214,7 +214,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const index = prefetched.index}
+							{@const index = pendingEntity.index}
 							{#if index !== undefined && index !== null}
 								{String((index) ?? '')}
 							{/if}
@@ -241,7 +241,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const type = prefetched.type}
+					{@const type = pendingEntity.type}
 					{#if type !== undefined && type !== null}
 						<div>
 							<dt>Type</dt>
@@ -276,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>Error</dt>
@@ -313,7 +313,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const from = prefetched.from}
+					{@const from = pendingEntity.from}
 					{#if from !== undefined && from !== null}
 						<div>
 							<dt>From</dt>
@@ -348,7 +348,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const to = prefetched.to}
+					{@const to = pendingEntity.to}
 					{#if to !== undefined && to !== null}
 						<div>
 							<dt>To</dt>
@@ -383,7 +383,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const value = prefetched.value}
+					{@const value = pendingEntity.value}
 					{#if value !== undefined && value !== null}
 						<div>
 							<dt>Value</dt>
@@ -418,7 +418,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gas = prefetched.gas}
+					{@const gas = pendingEntity.gas}
 					{#if gas !== undefined && gas !== null}
 						<div>
 							<dt>Gas</dt>
@@ -453,7 +453,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>Gas used</dt>
@@ -490,7 +490,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const input = prefetched.input}
+					{@const input = pendingEntity.input}
 					{#if input !== undefined && input !== null}
 						<div>
 							<dt>Input</dt>
@@ -525,7 +525,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const output = prefetched.output}
+					{@const output = pendingEntity.output}
 					{#if output !== undefined && output !== null}
 						<div>
 							<dt>Output</dt>
@@ -556,8 +556,8 @@
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction, {})}
 						href={
-							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${String(selection.entitySelector.$transaction.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$transaction.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined && selection.entitySelector.$transaction.txHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
 								transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
 							}) : undefined)
 						}

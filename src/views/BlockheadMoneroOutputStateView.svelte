@@ -51,7 +51,7 @@
 			amountAtomicUnits: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || 'blockhead monero output state')
+	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'blockhead monero output state')
 	const viewDomId = $derived('blockhead-monero-output-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadMoneroOutputState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero output state'}
+				{[String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero output state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroOutputState}>
 			{#snippet Pending()}
-				{@const outputIndex0 = selection.entitySelector.outputIndex ?? prefetched.outputIndex}
+				{@const outputIndex0 = pendingEntity.outputIndex}
 				{#if outputIndex0 !== undefined && outputIndex0 !== null}
 					<NumberValue value={Number(outputIndex0)} />
 				{/if}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadMoneroOutputState}>
 			{#snippet Pending()}
-				{@const amountAtomicUnits0 = prefetched.amountAtomicUnits}
+				{@const amountAtomicUnits0 = pendingEntity.amountAtomicUnits}
 				{#if amountAtomicUnits0 !== undefined && amountAtomicUnits0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(amountAtomicUnits0)} />
@@ -146,7 +146,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const walletId = selection.entitySelector.walletId ?? prefetched.walletId}
+							{@const walletId = pendingEntity.walletId}
 							{#if walletId !== undefined && walletId !== null}
 								{String((walletId) ?? '')}
 							{/if}
@@ -166,6 +166,8 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -190,7 +192,7 @@
 						resource={selection.$network}
 					>
 						{#snippet children(moneroNetwork)}
-							{#if moneroNetwork[EntityMetaKey.Selector] != null}
+							{#if moneroNetwork != null && moneroNetwork[EntityMetaKey.Selector] != null}
 								<MoneroNetworkView
 									selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 									prefetched={moneroNetwork}
@@ -206,6 +208,8 @@
 			<ResourceBoundary
 				resource={selection.$stealthOutput}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(moneroStealthOutput)}
 					{#if moneroStealthOutput != null && moneroStealthOutput[EntityMetaKey.Selector] != null}
 						<div>
@@ -238,7 +242,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const txHash = selection.entitySelector.txHash ?? prefetched.txHash}
+							{@const txHash = pendingEntity.txHash}
 							{#if txHash !== undefined && txHash !== null}
 								<TruncatedValue value={String((txHash) ?? '')} />
 							{/if}
@@ -268,7 +272,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const outputIndex = selection.entitySelector.outputIndex ?? prefetched.outputIndex}
+							{@const outputIndex = pendingEntity.outputIndex}
 							{#if outputIndex !== undefined && outputIndex !== null}
 								<NumberValue value={Number(outputIndex)} />
 							{/if}
@@ -295,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountIndex = prefetched.accountIndex}
+					{@const accountIndex = pendingEntity.accountIndex}
 					{#if accountIndex !== undefined && accountIndex !== null}
 						<div>
 							<dt>account index</dt>
@@ -330,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const addressIndex = prefetched.addressIndex}
+					{@const addressIndex = pendingEntity.addressIndex}
 					{#if addressIndex !== undefined && addressIndex !== null}
 						<div>
 							<dt>address index</dt>
@@ -365,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountAtomicUnits = prefetched.amountAtomicUnits}
+					{@const amountAtomicUnits = pendingEntity.amountAtomicUnits}
 					{#if amountAtomicUnits !== undefined && amountAtomicUnits !== null}
 						<div>
 							<dt>amount atomic units</dt>
@@ -402,7 +406,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const keyImage = prefetched.keyImage}
+					{@const keyImage = pendingEntity.keyImage}
 					{#if keyImage !== undefined && keyImage !== null}
 						<div>
 							<dt>key image</dt>
@@ -437,7 +441,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const keyImageSignature = prefetched.keyImageSignature}
+					{@const keyImageSignature = pendingEntity.keyImageSignature}
 					{#if keyImageSignature !== undefined && keyImageSignature !== null}
 						<div>
 							<dt>key image signature</dt>
@@ -472,7 +476,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const globalOutputIndex = prefetched.globalOutputIndex}
+					{@const globalOutputIndex = pendingEntity.globalOutputIndex}
 					{#if globalOutputIndex !== undefined && globalOutputIndex !== null}
 						<div>
 							<dt>global output index</dt>

@@ -10,8 +10,10 @@ export enum EvmTraceSelector {
 }
 export const EvmTrace = entity({
 	entityType: EntityType.EvmTrace,
-	label: 'EVM trace',
-	labelPlural: 'EVM traces',
+	labels: {
+		singular: 'EVM trace',
+		plural: 'EVM traces',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',

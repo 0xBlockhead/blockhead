@@ -11,8 +11,10 @@ export enum AtprotoActorSelector {
 }
 export const AtprotoActor = entity({
 	entityType: EntityType.AtprotoActor,
-	label: 'AT Protocol account',
-	labelPlural: 'AT Protocol accounts',
+	labels: {
+		singular: 'AT Protocol account',
+		plural: 'AT Protocol accounts',
+	},
 	description: 'An AT Protocol actor is a DID-addressed repository identity. Handles, display names, avatars, banners, and counts are mutable appview observations over that identity.',
 })({
 	did: {

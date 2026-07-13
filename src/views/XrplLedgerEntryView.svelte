@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const entryHash = selection.entitySelector.entryHash ?? prefetched.entryHash}
+							{@const entryHash = pendingEntity.entryHash}
 							{#if entryHash !== undefined && entryHash !== null}
 								<TruncatedValue value={String((entryHash) ?? '')} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const entryType = prefetched.entryType}
+							{@const entryType = pendingEntity.entryType}
 							{#if entryType !== undefined && entryType !== null}
 								{String((entryType) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const account = prefetched.account}
+					{@const account = pendingEntity.account}
 					{#if account !== undefined && account !== null}
 						<div>
 							<dt>account</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousTransactionHash = prefetched.previousTransactionHash}
+					{@const previousTransactionHash = pendingEntity.previousTransactionHash}
 					{#if previousTransactionHash !== undefined && previousTransactionHash !== null}
 						<div>
 							<dt>previous transaction hash</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousTransactionLedgerIndex = prefetched.previousTransactionLedgerIndex}
+					{@const previousTransactionLedgerIndex = pendingEntity.previousTransactionLedgerIndex}
 					{#if previousTransactionLedgerIndex !== undefined && previousTransactionLedgerIndex !== null}
 						<div>
 							<dt>previous transaction ledger index</dt>

@@ -10,8 +10,10 @@ export enum LogosBlockchainNetwork_TimestampSelector {
 }
 export const LogosBlockchainNetwork_Timestamp = entity({
 	entityType: EntityType.LogosBlockchainNetwork_Timestamp,
-	label: 'Logos blockchain network timestamp',
-	labelPlural: 'Logos blockchain network observations',
+	labels: {
+		singular: 'Logos blockchain network timestamp',
+		plural: 'Logos blockchain network observations',
+	},
 })({
 	$network: {
 		label: 'Network',

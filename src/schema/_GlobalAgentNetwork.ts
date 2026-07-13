@@ -9,8 +9,10 @@ export enum _GlobalAgentNetworkSelector {
 }
 export const _GlobalAgentNetwork = entity({
 	entityType: EntityType._GlobalAgentNetwork,
-	label: 'global agent network',
-	labelPlural: 'global agent networks',
+	labels: {
+		singular: 'global agent network',
+		plural: 'global agent networks',
+	},
 })({
 	networkId: {
 		label: 'network ID',

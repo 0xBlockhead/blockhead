@@ -10,8 +10,10 @@ export enum AiArtifactAttestationSelector {
 }
 export const AiArtifactAttestation = entity({
 	entityType: EntityType.AiArtifactAttestation,
-	label: 'AI artifact attestation',
-	labelPlural: 'AI artifact attestations',
+	labels: {
+		singular: 'AI artifact attestation',
+		plural: 'AI artifact attestations',
+	},
 })({
 	$artifact: {
 		label: 'artifact',

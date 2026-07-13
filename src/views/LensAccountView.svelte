@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -54,16 +55,21 @@
 			$icon: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.displayName) ?? ''), String((prefetched.localName) ?? ''), String((prefetched.address) ?? ''), String((prefetched.legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account')
+	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account')
 	const viewDomId = $derived('lens-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import LensPostsView from '$/views/LensPostsView.svelte'
+	import LensAccountManagersView from '$/views/LensAccountManagersView.svelte'
+	import LensAccount_TimestampsView from '$/views/LensAccount_TimestampsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
 
@@ -102,7 +108,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet Pending()}
-				{[String((prefetched.displayName) ?? ''), String((prefetched.localName) ?? ''), String((prefetched.address) ?? ''), String((prefetched.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
+				{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -115,7 +121,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet Pending()}
-				{[String((prefetched.localName) ?? ''), String((prefetched.address) ?? ''), String((prefetched.legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.displayName) ?? ''), String((prefetched.localName) ?? ''), String((prefetched.address) ?? ''), String((prefetched.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
+				{[String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -128,7 +134,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -163,7 +169,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -192,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const localName = prefetched.localName}
+					{@const localName = pendingEntity.localName}
 					{#if localName !== undefined && localName !== null}
 						<div>
 							<dt>Local name</dt>
@@ -229,7 +235,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const legacyProfileId = prefetched.legacyProfileId}
+					{@const legacyProfileId = pendingEntity.legacyProfileId}
 					{#if legacyProfileId !== undefined && legacyProfileId !== null}
 						<div>
 							<dt>Legacy profile ID</dt>
@@ -266,7 +272,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const owner = prefetched.owner}
+					{@const owner = pendingEntity.owner}
 					{#if owner !== undefined && owner !== null}
 						<div>
 							<dt>Owner</dt>
@@ -303,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -340,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const score = prefetched.score}
+					{@const score = pendingEntity.score}
 					{#if score !== undefined && score !== null}
 						<div>
 							<dt>Score</dt>
@@ -377,7 +383,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const iconUrl = prefetched.iconUrl}
+					{@const iconUrl = pendingEntity.iconUrl}
 					{#if iconUrl !== undefined && iconUrl !== null}
 						<div>
 							<dt>Icon URL</dt>
@@ -434,5 +440,103 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-lens-account-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'lens-account-posts',
+							label: 'Posts',
+						},
+						{
+							id: 'lens-account-managers',
+							label: 'Managers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionLensAccountPosts({ id, label, open })}
+					<LensPostsView
+						selection={
+							selection.$$posts({
+								sources: [
+									Source.Lens_Graphql,
+								],
+							})
+						}
+						href={resolve('/lens/observations/posts')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Lens posts for this account.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionLensAccountManagers({ id, label, open })}
+					<LensAccountManagersView
+						selection={selection.$$managers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Lens account managers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-lens-account-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'lens-account-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionLensAccountTimestamps({ id, label, open })}
+					<LensAccount_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Lens account observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

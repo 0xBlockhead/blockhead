@@ -118,9 +118,9 @@
 						selection={select(EntityType.YoutubePlaylist_Timestamp, youtubePlaylistTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={youtubePlaylistTimestampFields}
 						href={
-							(youtubePlaylistTimestampHrefFields.$playlist !== undefined && youtubePlaylistTimestampHrefFields.$playlist.playlistId !== undefined && youtubePlaylistTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]', {
-								playlistId: String(youtubePlaylistTimestampHrefFields.$playlist.playlistId ?? ''),
+							(youtubePlaylistTimestampHrefFields.timestampMs !== undefined && youtubePlaylistTimestampHrefFields.$playlist !== undefined && youtubePlaylistTimestampHrefFields.$playlist.playlistId !== undefined ? resolve('/youtube/playlist/[playlistId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 								timestampMs: String(youtubePlaylistTimestampHrefFields.timestampMs ?? ''),
+								playlistId: String(youtubePlaylistTimestampHrefFields.$playlist.playlistId ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

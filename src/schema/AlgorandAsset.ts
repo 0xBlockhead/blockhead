@@ -9,8 +9,10 @@ export enum AlgorandAssetSelector {
 }
 export const AlgorandAsset = entity({
 	entityType: EntityType.AlgorandAsset,
-	label: 'algorand asset',
-	labelPlural: 'algorand assets',
+	labels: {
+		singular: 'algorand asset',
+		plural: 'algorand assets',
+	},
 })({
 	$network: {
 		label: 'network',

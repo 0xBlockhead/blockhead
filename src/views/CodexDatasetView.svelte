@@ -48,7 +48,7 @@
 			datasetSizeBytes: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.filename) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.cid ?? prefetched.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset')
+	const titleFallback = $derived([String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset')
 	const viewDomId = $derived('codex-dataset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={codexDataset}>
 			{#snippet Pending()}
-				{[String((prefetched.filename) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.cid ?? prefetched.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset'}
+				{[String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={codexDataset}>
 			{#snippet Pending()}
-				{[String((prefetched.mimetype) ?? '')].filter(Boolean).join(' ') || [String((prefetched.filename) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.cid ?? prefetched.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset'}
+				{[String((pendingEntity.mimetype) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -98,7 +98,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={codexDataset}>
 			{#snippet Pending()}
-				{@const datasetSizeBytes0 = prefetched.datasetSizeBytes}
+				{@const datasetSizeBytes0 = pendingEntity.datasetSizeBytes}
 				{#if datasetSizeBytes0 !== undefined && datasetSizeBytes0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(datasetSizeBytes0)} />
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const cid = selection.entitySelector.cid ?? prefetched.cid}
+							{@const cid = pendingEntity.cid}
 							{#if cid !== undefined && cid !== null}
 								{String((cid) ?? '')}
 							{/if}
@@ -160,7 +160,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const treeCid = prefetched.treeCid}
+					{@const treeCid = pendingEntity.treeCid}
 					{#if treeCid !== undefined && treeCid !== null}
 						<div>
 							<dt>tree CID</dt>
@@ -195,7 +195,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const filename = prefetched.filename}
+					{@const filename = pendingEntity.filename}
 					{#if filename !== undefined && filename !== null}
 						<div>
 							<dt>filename</dt>
@@ -230,7 +230,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mimetype = prefetched.mimetype}
+					{@const mimetype = pendingEntity.mimetype}
 					{#if mimetype !== undefined && mimetype !== null}
 						<div>
 							<dt>mimetype</dt>
@@ -267,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datasetSizeBytes = prefetched.datasetSizeBytes}
+					{@const datasetSizeBytes = pendingEntity.datasetSizeBytes}
 					{#if datasetSizeBytes !== undefined && datasetSizeBytes !== null}
 						<div>
 							<dt>dataset size bytes</dt>
@@ -302,7 +302,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockSizeBytes = prefetched.blockSizeBytes}
+					{@const blockSizeBytes = pendingEntity.blockSizeBytes}
 					{#if blockSizeBytes !== undefined && blockSizeBytes !== null}
 						<div>
 							<dt>block size bytes</dt>

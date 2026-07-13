@@ -10,8 +10,10 @@ export enum CctpMessageSelector {
 }
 export const CctpMessage = entity({
 	entityType: EntityType.CctpMessage,
-	label: 'CCTP message',
-	labelPlural: 'CCTP messages',
+	labels: {
+		singular: 'CCTP message',
+		plural: 'CCTP messages',
+	},
 })({
 	sourceDomain: {
 		label: 'Source domain',

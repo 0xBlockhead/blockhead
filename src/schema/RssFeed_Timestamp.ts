@@ -9,8 +9,10 @@ export enum RssFeed_TimestampSelector {
 }
 export const RssFeed_Timestamp = entity({
 	entityType: EntityType.RssFeed_Timestamp,
-	label: 'RSS feed observation',
-	labelPlural: 'RSS feed observations',
+	labels: {
+		singular: 'RSS feed observation',
+		plural: 'RSS feed observations',
+	},
 })({
 	$feed: {
 		label: 'Feed',
@@ -21,7 +23,7 @@ export const RssFeed_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

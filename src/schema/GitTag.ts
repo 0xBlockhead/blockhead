@@ -10,8 +10,10 @@ export enum GitTagSelector {
 }
 export const GitTag = entity({
 	entityType: EntityType.GitTag,
-	label: 'Git tag',
-	labelPlural: 'Git tags',
+	labels: {
+		singular: 'Git tag',
+		plural: 'Git tags',
+	},
 })({
 	objectId: {
 		label: 'object ID',

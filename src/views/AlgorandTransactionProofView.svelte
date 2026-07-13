@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const round = selection.entitySelector.round ?? prefetched.round}
+							{@const round = pendingEntity.round}
 							{#if round !== undefined && round !== null}
 								{String((round) ?? '')}
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hashType = selection.entitySelector.hashType ?? prefetched.hashType}
+							{@const hashType = pendingEntity.hashType}
 							{#if hashType !== undefined && hashType !== null}
 								<TruncatedValue value={String((hashType) ?? '')} />
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -192,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proofBytes = prefetched.proofBytes}
+					{@const proofBytes = pendingEntity.proofBytes}
 					{#if proofBytes !== undefined && proofBytes !== null}
 						<div>
 							<dt>proof bytes</dt>
@@ -227,7 +227,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stibHash = prefetched.stibHash}
+					{@const stibHash = pendingEntity.stibHash}
 					{#if stibHash !== undefined && stibHash !== null}
 						<div>
 							<dt>stib hash</dt>
@@ -262,7 +262,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const treeDepth = prefetched.treeDepth}
+					{@const treeDepth = pendingEntity.treeDepth}
 					{#if treeDepth !== undefined && treeDepth !== null}
 						<div>
 							<dt>tree depth</dt>

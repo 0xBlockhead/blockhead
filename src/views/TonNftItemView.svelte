@@ -87,7 +87,7 @@
 						resource={selection.$network}
 					>
 						{#snippet children(tonNetwork)}
-							{#if tonNetwork[EntityMetaKey.Selector] != null}
+							{#if tonNetwork != null && tonNetwork[EntityMetaKey.Selector] != null}
 								<TonNetworkView
 									selection={select(EntityType.TonNetwork, tonNetwork[EntityMetaKey.Selector])}
 									prefetched={tonNetwork}
@@ -110,7 +110,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const itemAddress = prefetched.itemAddress}
+					{@const itemAddress = pendingEntity.itemAddress}
 					{#if itemAddress !== undefined && itemAddress !== null}
 						<div>
 							<dt>item address</dt>
@@ -138,6 +138,8 @@
 			<ResourceBoundary
 				resource={selection.$collection}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonNftCollection)}
 					{#if tonNftCollection != null && tonNftCollection[EntityMetaKey.Selector] != null}
 						<div>
@@ -165,7 +167,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const itemIndex = prefetched.itemIndex}
+					{@const itemIndex = pendingEntity.itemIndex}
 					{#if itemIndex !== undefined && itemIndex !== null}
 						<div>
 							<dt>item index</dt>
@@ -193,6 +195,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
 						<div>

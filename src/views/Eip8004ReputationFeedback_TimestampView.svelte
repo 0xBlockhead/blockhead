@@ -53,7 +53,7 @@
 			value: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.value) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.feedbackIndex ?? prefetched.feedbackIndex) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 reputation feedback timestamp')
+	const titleFallback = $derived([String((pendingEntity.value) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.feedbackIndex) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 reputation feedback timestamp')
 	const viewDomId = $derived('eip8004reputation-feedback-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eip8004ReputationFeedbackTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.value) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.feedbackIndex ?? prefetched.feedbackIndex) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 reputation feedback timestamp'}
+				{[String((pendingEntity.value) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.feedbackIndex) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 reputation feedback timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004ReputationFeedbackTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip8004ReputationFeedbackTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const clientAddress = selection.entitySelector.clientAddress ?? prefetched.clientAddress}
+							{@const clientAddress = pendingEntity.clientAddress}
 							{#if clientAddress !== undefined && clientAddress !== null}
 								<TruncatedValue value={String((clientAddress) ?? '')} />
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const feedbackIndex = selection.entitySelector.feedbackIndex ?? prefetched.feedbackIndex}
+							{@const feedbackIndex = pendingEntity.feedbackIndex}
 							{#if feedbackIndex !== undefined && feedbackIndex !== null}
 								<NumberValue value={Number(feedbackIndex)} />
 							{/if}
@@ -217,7 +217,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const value = prefetched.value}
+					{@const value = pendingEntity.value}
 					{#if value !== undefined && value !== null}
 						<div>
 							<dt>Value</dt>
@@ -281,7 +281,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueDecimals = prefetched.valueDecimals}
+					{@const valueDecimals = pendingEntity.valueDecimals}
 					{#if valueDecimals !== undefined && valueDecimals !== null}
 						<div>
 							<dt>Value decimals</dt>
@@ -316,7 +316,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tag1 = prefetched.tag1}
+					{@const tag1 = pendingEntity.tag1}
 					{#if tag1 !== undefined && tag1 !== null}
 						<div>
 							<dt>Tag 1</dt>
@@ -351,7 +351,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tag2 = prefetched.tag2}
+					{@const tag2 = pendingEntity.tag2}
 					{#if tag2 !== undefined && tag2 !== null}
 						<div>
 							<dt>Tag 2</dt>
@@ -386,7 +386,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endpoint = prefetched.endpoint}
+					{@const endpoint = pendingEntity.endpoint}
 					{#if endpoint !== undefined && endpoint !== null}
 						<div>
 							<dt>Endpoint</dt>
@@ -435,7 +435,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feedbackUri = prefetched.feedbackUri}
+					{@const feedbackUri = pendingEntity.feedbackUri}
 					{#if feedbackUri !== undefined && feedbackUri !== null}
 						<div>
 							<dt>Feedback URI</dt>
@@ -486,7 +486,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feedbackHashAlgorithm = prefetched.feedbackHashAlgorithm}
+					{@const feedbackHashAlgorithm = pendingEntity.feedbackHashAlgorithm}
 					{#if feedbackHashAlgorithm !== undefined && feedbackHashAlgorithm !== null}
 						<div>
 							<dt>Feedback hash algorithm</dt>
@@ -521,7 +521,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feedbackHash = prefetched.feedbackHash}
+					{@const feedbackHash = pendingEntity.feedbackHash}
 					{#if feedbackHash !== undefined && feedbackHash !== null}
 						<div>
 							<dt>Feedback hash</dt>
@@ -556,7 +556,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const revoked = prefetched.revoked}
+					{@const revoked = pendingEntity.revoked}
 					{#if revoked !== undefined && revoked !== null}
 						<div>
 							<dt>Revoked</dt>
@@ -591,7 +591,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -626,7 +626,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>Transaction hash</dt>

@@ -118,10 +118,10 @@
 						selection={select(EntityType.ActivityPubActor_Timestamp, activityPubActorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={activityPubActorTimestampFields}
 						href={
-							(activityPubActorTimestampHrefFields.$actor !== undefined && activityPubActorTimestampHrefFields.$actor.instanceOrigin !== undefined && activityPubActorTimestampHrefFields.$actor !== undefined && activityPubActorTimestampHrefFields.$actor.localAccountId !== undefined && activityPubActorTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/(actor)/observations/[timestampMs=nonNegativeInteger]', {
+							(activityPubActorTimestampHrefFields.timestampMs !== undefined && activityPubActorTimestampHrefFields.$actor !== undefined && activityPubActorTimestampHrefFields.$actor.instanceOrigin !== undefined && activityPubActorTimestampHrefFields.$actor.localAccountId !== undefined ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+								timestampMs: String(activityPubActorTimestampHrefFields.timestampMs ?? ''),
 								instanceOrigin: String(activityPubActorTimestampHrefFields.$actor.instanceOrigin ?? ''),
 								localAccountId: String(activityPubActorTimestampHrefFields.$actor.localAccountId ?? ''),
-								timestampMs: String(activityPubActorTimestampHrefFields.timestampMs ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

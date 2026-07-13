@@ -10,8 +10,10 @@ export enum AlgorandBoxSelector {
 }
 export const AlgorandBox = entity({
 	entityType: EntityType.AlgorandBox,
-	label: 'algorand box',
-	labelPlural: 'algorand boxes',
+	labels: {
+		singular: 'algorand box',
+		plural: 'algorand boxes',
+	},
 })({
 	$application: {
 		label: 'application',

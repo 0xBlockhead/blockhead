@@ -53,7 +53,7 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation')
 	const viewDomId = $derived('blockhead-agent-conversation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAgentConversation}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentConversation}>
 			{#snippet Pending()}
-				{@const updatedAt0 = prefetched.updatedAt}
+				{@const updatedAt0 = pendingEntity.updatedAt}
 				{#if updatedAt0 !== undefined && updatedAt0 !== null}
 					<Timestamp timestamp={Number(updatedAt0)} />
 				{/if}
@@ -123,7 +123,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const pinned = prefetched.pinned}
+							{@const pinned = pendingEntity.pinned}
 							{#if pinned !== undefined && pinned !== null}
 								{pinned ? 'Yes' : 'No'}
 							{/if}
@@ -153,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}
@@ -183,7 +183,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const updatedAt = prefetched.updatedAt}
+							{@const updatedAt = pendingEntity.updatedAt}
 							{#if updatedAt !== undefined && updatedAt !== null}
 								<Timestamp timestamp={Number(updatedAt)} />
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const defaultConnectionId = prefetched.defaultConnectionId}
+					{@const defaultConnectionId = pendingEntity.defaultConnectionId}
 					{#if defaultConnectionId !== undefined && defaultConnectionId !== null}
 						<div>
 							<dt>Default connection ID</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const defaultModelId = prefetched.defaultModelId}
+					{@const defaultModelId = pendingEntity.defaultModelId}
 					{#if defaultModelId !== undefined && defaultModelId !== null}
 						<div>
 							<dt>Default model ID</dt>
@@ -275,6 +275,8 @@
 			<ResourceBoundary
 				resource={selection.$profile}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadAgentProfile)}
 					{#if blockheadAgentProfile != null && blockheadAgentProfile[EntityMetaKey.Selector] != null}
 						<div>

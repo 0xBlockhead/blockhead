@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const chunkIndex = selection.entitySelector.chunkIndex ?? prefetched.chunkIndex}
+							{@const chunkIndex = pendingEntity.chunkIndex}
 							{#if chunkIndex !== undefined && chunkIndex !== null}
 								{String((chunkIndex) ?? '')}
 							{/if}
@@ -128,7 +128,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chunkRoot = prefetched.chunkRoot}
+					{@const chunkRoot = pendingEntity.chunkRoot}
 					{#if chunkRoot !== undefined && chunkRoot !== null}
 						<div>
 							<dt>chunk root</dt>
@@ -163,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sizeBytes = prefetched.sizeBytes}
+					{@const sizeBytes = pendingEntity.sizeBytes}
 					{#if sizeBytes !== undefined && sizeBytes !== null}
 						<div>
 							<dt>size bytes</dt>

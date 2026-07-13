@@ -47,8 +47,13 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
+	import SorobanContractStorageEntriesView from '$/views/SorobanContractStorageEntriesView.svelte'
+	import StellarTransactionsView from '$/views/StellarTransactionsView.svelte'
+	import SorobanContract_TimestampsView from '$/views/SorobanContract_TimestampsView.svelte'
 </script>
 
 
@@ -101,7 +106,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const contractId = selection.entitySelector.contractId ?? prefetched.contractId}
+							{@const contractId = pendingEntity.contractId}
 							{#if contractId !== undefined && contractId !== null}
 								{String((contractId) ?? '')}
 							{/if}
@@ -118,5 +123,96 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-soroban-contract-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'soroban-contract-storage-entries',
+							label: 'Storage Entries',
+						},
+						{
+							id: 'soroban-contract-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionSorobanContractStorageEntries({ id, label, open })}
+					<SorobanContractStorageEntriesView
+						selection={selection.$$storageEntries}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No storage entries.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionSorobanContractTransactions({ id, label, open })}
+					<StellarTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-soroban-contract-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'soroban-contract-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionSorobanContractTimestamps({ id, label, open })}
+					<SorobanContract_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

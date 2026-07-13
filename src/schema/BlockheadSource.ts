@@ -9,8 +9,10 @@ export enum BlockheadSourceSelector {
 }
 export const BlockheadSource = entity({
 	entityType: EntityType.BlockheadSource,
-	label: 'source',
-	labelPlural: 'sources',
+	labels: {
+		singular: 'source',
+		plural: 'sources',
+	},
 })({
 	id: {
 		label: 'ID',

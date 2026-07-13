@@ -9,8 +9,10 @@ export enum BeaconValidator_TimestampSelector {
 }
 export const BeaconValidator_Timestamp = entity({
 	entityType: EntityType.BeaconValidator_Timestamp,
-	label: 'beacon validator timestamp',
-	labelPlural: 'Beacon validator observations',
+	labels: {
+		singular: 'beacon validator timestamp',
+		plural: 'Beacon validator observations',
+	},
 })({
 	$validator: {
 		label: 'Validator',
@@ -21,7 +23,7 @@ export const BeaconValidator_Timestamp = entity({
 	slot: {
 		label: 'Slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

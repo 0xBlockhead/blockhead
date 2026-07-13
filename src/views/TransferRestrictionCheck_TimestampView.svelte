@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subjectKey = selection.entitySelector.subjectKey ?? prefetched.subjectKey}
+							{@const subjectKey = pendingEntity.subjectKey}
 							{#if subjectKey !== undefined && subjectKey !== null}
 								{String((subjectKey) ?? '')}
 							{/if}
@@ -186,6 +186,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(account)}
 					{#if account != null && account[EntityMetaKey.Selector] != null}
 						<div>
@@ -213,7 +215,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -248,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canTransfer = prefetched.canTransfer}
+					{@const canTransfer = pendingEntity.canTransfer}
 					{#if canTransfer !== undefined && canTransfer !== null}
 						<div>
 							<dt>can transfer</dt>
@@ -283,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reason = prefetched.reason}
+					{@const reason = pendingEntity.reason}
 					{#if reason !== undefined && reason !== null}
 						<div>
 							<dt>reason</dt>
@@ -320,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateKind = prefetched.ledgerCoordinateKind}
+					{@const ledgerCoordinateKind = pendingEntity.ledgerCoordinateKind}
 					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
 						<div>
 							<dt>ledger coordinate kind</dt>
@@ -355,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateValue = prefetched.ledgerCoordinateValue}
+					{@const ledgerCoordinateValue = pendingEntity.ledgerCoordinateValue}
 					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
 						<div>
 							<dt>ledger coordinate value</dt>
@@ -390,7 +392,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validFromMs = prefetched.validFromMs}
+					{@const validFromMs = pendingEntity.validFromMs}
 					{#if validFromMs !== undefined && validFromMs !== null}
 						<div>
 							<dt>valid from ms</dt>
@@ -425,7 +427,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validToMs = prefetched.validToMs}
+					{@const validToMs = pendingEntity.validToMs}
 					{#if validToMs !== undefined && validToMs !== null}
 						<div>
 							<dt>valid to ms</dt>

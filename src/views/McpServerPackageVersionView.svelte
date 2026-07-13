@@ -51,7 +51,7 @@
 			registryStatus: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.version) ?? '')].filter(Boolean).join(' ') || 'mcp server package version')
+	const titleFallback = $derived([String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'mcp server package version')
 	const viewDomId = $derived('mcp-server-package-version-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpServerPackageVersion}>
 			{#snippet Pending()}
-				{[String((prefetched.version) ?? '')].filter(Boolean).join(' ') || title || 'mcp server package version'}
+				{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || 'mcp server package version'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -129,7 +129,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpServerPackageVersion}>
 			{#snippet Pending()}
-				{@const registryStatus0 = prefetched.registryStatus}
+				{@const registryStatus0 = pendingEntity.registryStatus}
 				{#if registryStatus0 !== undefined && registryStatus0 !== null}
 					<span data-text="muted">
 						{String((registryStatus0) ?? '')}
@@ -154,6 +154,8 @@
 			<ResourceBoundary
 				resource={selection.$package}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(mcpServerPackage)}
 					{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
 						<div>
@@ -181,7 +183,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -209,6 +211,8 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -236,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registryStatus = prefetched.registryStatus}
+					{@const registryStatus = pendingEntity.registryStatus}
 					{#if registryStatus !== undefined && registryStatus !== null}
 						<div>
 							<dt>registry status</dt>
@@ -271,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isLatest = prefetched.isLatest}
+					{@const isLatest = pendingEntity.isLatest}
 					{#if isLatest !== undefined && isLatest !== null}
 						<div>
 							<dt>is latest</dt>
@@ -308,7 +312,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const releaseDate = prefetched.releaseDate}
+					{@const releaseDate = pendingEntity.releaseDate}
 					{#if releaseDate !== undefined && releaseDate !== null}
 						<div>
 							<dt>release date</dt>
@@ -343,7 +347,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const publishedAt = prefetched.publishedAt}
+					{@const publishedAt = pendingEntity.publishedAt}
 					{#if publishedAt !== undefined && publishedAt !== null}
 						<div>
 							<dt>published AT</dt>
@@ -378,7 +382,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packageRegistryType = prefetched.packageRegistryType}
+					{@const packageRegistryType = pendingEntity.packageRegistryType}
 					{#if packageRegistryType !== undefined && packageRegistryType !== null}
 						<div>
 							<dt>package registry type</dt>
@@ -413,7 +417,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packageRegistryBaseUrl = prefetched.packageRegistryBaseUrl}
+					{@const packageRegistryBaseUrl = pendingEntity.packageRegistryBaseUrl}
 					{#if packageRegistryBaseUrl !== undefined && packageRegistryBaseUrl !== null}
 						<div>
 							<dt>package registry base URL</dt>
@@ -462,7 +466,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packageIdentifier = prefetched.packageIdentifier}
+					{@const packageIdentifier = pendingEntity.packageIdentifier}
 					{#if packageIdentifier !== undefined && packageIdentifier !== null}
 						<div>
 							<dt>package identifier</dt>
@@ -497,7 +501,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const runtimeHint = prefetched.runtimeHint}
+					{@const runtimeHint = pendingEntity.runtimeHint}
 					{#if runtimeHint !== undefined && runtimeHint !== null}
 						<div>
 							<dt>runtime hint</dt>
@@ -532,7 +536,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transportKind = prefetched.transportKind}
+					{@const transportKind = pendingEntity.transportKind}
 					{#if transportKind !== undefined && transportKind !== null}
 						<div>
 							<dt>transport kind</dt>

@@ -47,7 +47,7 @@
 			totalAmount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu token')
+	const titleFallback = $derived([String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu token')
 	const viewDomId = $derived('blockhead-cashu-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadCashuToken}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu token'}
+				{[String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu token'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuToken}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? ''), String((prefetched.totalAmount) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu token'}
+				{[String((pendingEntity.status) ?? ''), String((pendingEntity.totalAmount) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu token'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -112,7 +112,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
 							{/if}
@@ -142,7 +142,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tokenVersion = prefetched.tokenVersion}
+							{@const tokenVersion = pendingEntity.tokenVersion}
 							{#if tokenVersion !== undefined && tokenVersion !== null}
 								{String((tokenVersion) ?? '')}
 							{/if}
@@ -172,7 +172,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unit = prefetched.unit}
+					{@const unit = pendingEntity.unit}
 					{#if unit !== undefined && unit !== null}
 						<div>
 							<dt>unit</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo}
+					{@const memo = pendingEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>memo</dt>
@@ -271,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mintUrl = prefetched.mintUrl}
+					{@const mintUrl = pendingEntity.mintUrl}
 					{#if mintUrl !== undefined && mintUrl !== null}
 						<div>
 							<dt>mint URL</dt>
@@ -313,6 +313,8 @@
 			<ResourceBoundary
 				resource={selection.$mint}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cashuMint)}
 					{#if cashuMint != null && cashuMint[EntityMetaKey.Selector] != null}
 						<div>
@@ -340,7 +342,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proofCount = prefetched.proofCount}
+					{@const proofCount = pendingEntity.proofCount}
 					{#if proofCount !== undefined && proofCount !== null}
 						<div>
 							<dt>proof count</dt>
@@ -375,7 +377,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalAmount = prefetched.totalAmount}
+					{@const totalAmount = pendingEntity.totalAmount}
 					{#if totalAmount !== undefined && totalAmount !== null}
 						<div>
 							<dt>total amount</dt>
@@ -415,7 +417,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const importedAt = prefetched.importedAt}
+							{@const importedAt = pendingEntity.importedAt}
 							{#if importedAt !== undefined && importedAt !== null}
 								<Timestamp timestamp={Number(importedAt)} />
 							{/if}
@@ -442,7 +444,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const redeemedAt = prefetched.redeemedAt}
+					{@const redeemedAt = pendingEntity.redeemedAt}
 					{#if redeemedAt !== undefined && redeemedAt !== null}
 						<div>
 							<dt>redeemed AT</dt>

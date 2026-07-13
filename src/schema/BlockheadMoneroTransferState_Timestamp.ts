@@ -9,8 +9,10 @@ export enum BlockheadMoneroTransferState_TimestampSelector {
 }
 export const BlockheadMoneroTransferState_Timestamp = entity({
 	entityType: EntityType.BlockheadMoneroTransferState_Timestamp,
-	label: 'blockhead monero transfer state timestamp',
-	labelPlural: 'blockhead monero transfer state observations',
+	labels: {
+		singular: 'blockhead monero transfer state timestamp',
+		plural: 'blockhead monero transfer state observations',
+	},
 })({
 	$transferState: {
 		label: 'transfer state',

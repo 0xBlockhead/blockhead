@@ -14,8 +14,22 @@
 
 	// State
 	let {
+		data,
 		params,
 	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType.Currency, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			name: true,
+			symbol: true,
+			minorUnitExponent: true,
+			catalogSortWeight: true,
+		},
+	}))
+	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).iso4217) ?? '')].filter(Boolean).join(' ') || 'currency')))
 
 
 	// Components
@@ -24,27 +38,18 @@
 </script>
 
 
+<svelte:head>
+	<title>{pageEntityTitle} • currency • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<CurrencyView
 		href={
-			resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+			resolve('/currency/[iso4217=iso4217]', {
 				iso4217: params.iso4217,
 			})
 		}
-		selection={
-			select(EntityType.Currency, {
-				iso4217: decodeURIComponent(params.iso4217),
-			}, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					name: true,
-					symbol: true,
-					minorUnitExponent: true,
-					catalogSortWeight: true,
-				},
-			})
-		}
+		selection={pageSelection}
 	/>
 </Page>

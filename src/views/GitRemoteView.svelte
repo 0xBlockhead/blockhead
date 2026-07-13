@@ -48,7 +48,7 @@
 			hostKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.remoteName ?? prefetched.remoteName) ?? '')].filter(Boolean).join(' ') || 'Git remote')
+	const titleFallback = $derived([String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || 'Git remote')
 	const viewDomId = $derived('git-remote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitRemote}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.remoteName ?? prefetched.remoteName) ?? '')].filter(Boolean).join(' ') || title || 'Git remote'}
+				{[String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || 'Git remote'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRemote}>
 			{#snippet Pending()}
-				{@const url0 = prefetched.url}
+				{@const url0 = pendingEntity.url}
 				{#if url0 !== undefined && url0 !== null}
 					<svelte:element
 						this={'a'}
@@ -118,13 +118,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitRemote}>
 			{#snippet Pending()}
-				{@const transportKind0 = prefetched.transportKind}
+				{@const transportKind0 = pendingEntity.transportKind}
 				{#if transportKind0 !== undefined && transportKind0 !== null}
 					<span data-text="muted">
 						{String((transportKind0) ?? '')}
 					</span>
 				{/if}
-				{@const hostKind1 = prefetched.hostKind}
+				{@const hostKind1 = pendingEntity.hostKind}
 				{#if hostKind1 !== undefined && hostKind1 !== null}
 					<span data-text="muted">
 						{String((hostKind1) ?? '')}
@@ -176,7 +176,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const remoteName = selection.entitySelector.remoteName ?? prefetched.remoteName}
+							{@const remoteName = pendingEntity.remoteName}
 							{#if remoteName !== undefined && remoteName !== null}
 								{String((remoteName) ?? '')}
 							{/if}
@@ -206,7 +206,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const url = prefetched.url}
+							{@const url = pendingEntity.url}
 							{#if url !== undefined && url !== null}
 								<svelte:element
 									this={'a'}
@@ -250,7 +250,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transportKind = prefetched.transportKind}
+							{@const transportKind = pendingEntity.transportKind}
 							{#if transportKind !== undefined && transportKind !== null}
 								{String((transportKind) ?? '')}
 							{/if}
@@ -277,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hostKind = prefetched.hostKind}
+					{@const hostKind = pendingEntity.hostKind}
 					{#if hostKind !== undefined && hostKind !== null}
 						<div>
 							<dt>host kind</dt>
@@ -312,7 +312,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const source = prefetched.source}
+					{@const source = pendingEntity.source}
 					{#if source !== undefined && source !== null}
 						<div>
 							<dt>Source</dt>

@@ -1,22 +1,5 @@
 // Types
 
-import type { MarketVenueId } from '$/constants/MarketVenue.ts'
-
-
-export type MarketAssetLegLabelInput =
-	| {
-		kind: MarketAssetKind.Coin
-		$coin: { coinId: string }
-	}
-	| {
-		kind: MarketAssetKind.CoinInstance
-		$coinInstance: object
-	}
-	| {
-		kind: MarketAssetKind.Currency
-		$currency: { iso4217: string }
-	}
-
 
 /** Spot CEX/DEX book vs perpetual vs dated futures. */
 export enum MarketKind {
@@ -25,34 +8,12 @@ export enum MarketKind {
 	Futures = 'Futures',
 }
 
-export type MarketIdLabelInput = {
-	$base: MarketAssetLegLabelInput
-	$quote: MarketAssetLegLabelInput
-	$marketVenue: { marketVenueId: MarketVenueId }
-	marketKind: MarketKind
-}
-
 export type MarketAssetRouteLabel = (
 	| 'coin'
+	| 'coin-instance'
 	| 'currency'
 )
 
-
-/**
-	* `Market` graph model (source-agnostic ids; resolvers map into provider APIs):
-	*
-	* - **MarketAsset** — discriminated value in `Market.$base` / `.$quote` (catalog `Coin`, on-chain
-	*   `CoinInstance`, or fiat `Currency` via `$currency` → `Currency`). Embedded in `Market.id`
-	*   and in `MarketPrice` / OHLC parents via `.$market`.
-	* - **Market** — `{$base, $quote, $marketVenue}`; venue is a real trading book (`Binance`, `Coinbase`, …).
-	* - **MarketPrice** — stream identity: `{$market, feedKey?, $network?}`; spot/index prints live on
-	*   **`Market_Timestamp`** rows referenced from `$$quotes` (`{$market, timestampMs, feedKey?}`).
-	* - **Market_TimeInterval_Timestamp** — one OHLC candle per row (`{$market, timeInterval, timestampMs}`).
-	*/
-
-/**
-	* How a market asset id discriminates value: catalog coin, `CoinInstance` id, or fiat via `$currency`.
-	*/
 export enum MarketAssetKind {
 	Coin = 'Coin',
 	CoinInstance = 'CoinInstance',
@@ -117,7 +78,7 @@ const marketAssetRouteLabels = [
 	},
 	{
 		kind: MarketAssetKind.CoinInstance,
-		label: 'currency',
+		label: 'coin-instance',
 	},
 	{
 		kind: MarketAssetKind.Currency,
@@ -127,21 +88,6 @@ const marketAssetRouteLabels = [
 	kind: MarketAssetKind
 	label: MarketAssetRouteLabel
 }[]
-
-const marketCoinInstanceRouteLabels = [
-	{
-		type: 'NativeCurrency',
-		label: 'native',
-	},
-	{
-		type: 'Contract',
-		label: 'erc20',
-	},
-] as const satisfies readonly {
-	type: string
-	label: string
-}[]
-
 
 // Lookups
 
@@ -155,13 +101,6 @@ export const marketKindByMarketKind = Object.fromEntries(
 export const marketAssetRouteLabelByKind = Object.fromEntries(
 	marketAssetRouteLabels.map((row) => [
 		row.kind,
-		row.label,
-	])
-)
-
-export const marketCoinInstanceRouteLabelByType = Object.fromEntries(
-	marketCoinInstanceRouteLabels.map((row) => [
-		row.type,
 		row.label,
 	])
 )

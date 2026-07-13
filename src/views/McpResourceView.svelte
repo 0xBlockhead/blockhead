@@ -54,7 +54,7 @@
 			subscribed: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((selection.entitySelector.uri ?? prefetched.uri) ?? '')].filter(Boolean).join(' ') || 'mcp resource')
+	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.uri) ?? '')].filter(Boolean).join(' ') || 'mcp resource')
 	const viewDomId = $derived('mcp-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpResource}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? ''), String((selection.entitySelector.uri ?? prefetched.uri) ?? '')].filter(Boolean).join(' ') || 'mcp resource'}
+				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? ''), String((pendingEntity.uri) ?? '')].filter(Boolean).join(' ') || 'mcp resource'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mcpResource}>
 			{#snippet Pending()}
-				{[String((prefetched.mimeType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? ''), String((selection.entitySelector.uri ?? prefetched.uri) ?? '')].filter(Boolean).join(' ') || 'mcp resource'}
+				{[String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? ''), String((pendingEntity.uri) ?? '')].filter(Boolean).join(' ') || 'mcp resource'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpResource}>
 			{#snippet Pending()}
-				{@const subscribed0 = prefetched.subscribed}
+				{@const subscribed0 = pendingEntity.subscribed}
 				{#if subscribed0 !== undefined && subscribed0 !== null}
 					<span data-text="muted">
 						{subscribed0 ? 'Yes' : 'No'}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const uri = selection.entitySelector.uri ?? prefetched.uri}
+							{@const uri = pendingEntity.uri}
 							{#if uri !== undefined && uri !== null}
 								<svelte:element
 									this={'a'}
@@ -192,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -227,7 +227,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const title = prefetched.title}
+					{@const title = pendingEntity.title}
 					{#if title !== undefined && title !== null}
 						<div>
 							<dt>title</dt>
@@ -262,7 +262,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -297,7 +297,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mimeType = prefetched.mimeType}
+					{@const mimeType = pendingEntity.mimeType}
 					{#if mimeType !== undefined && mimeType !== null}
 						<div>
 							<dt>mime type</dt>
@@ -332,7 +332,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subscribed = prefetched.subscribed}
+					{@const subscribed = pendingEntity.subscribed}
 					{#if subscribed !== undefined && subscribed !== null}
 						<div>
 							<dt>subscribed</dt>

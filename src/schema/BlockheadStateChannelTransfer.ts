@@ -9,8 +9,10 @@ export enum BlockheadStateChannelTransferSelector {
 }
 export const BlockheadStateChannelTransfer = entity({
 	entityType: EntityType.BlockheadStateChannelTransfer,
-	label: 'blockhead state channel transfer',
-	labelPlural: 'blockhead state channel transfers',
+	labels: {
+		singular: 'blockhead state channel transfer',
+		plural: 'blockhead state channel transfers',
+	},
 })({
 	$channel: {
 		label: 'channel',

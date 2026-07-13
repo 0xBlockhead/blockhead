@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const boxName = selection.entitySelector.boxName ?? prefetched.boxName}
+							{@const boxName = pendingEntity.boxName}
 							{#if boxName !== undefined && boxName !== null}
 								{String((boxName) ?? '')}
 							{/if}

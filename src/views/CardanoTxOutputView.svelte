@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const outputIndex = selection.entitySelector.outputIndex ?? prefetched.outputIndex}
+							{@const outputIndex = pendingEntity.outputIndex}
 							{#if outputIndex !== undefined && outputIndex !== null}
 								{String((outputIndex) ?? '')}
 							{/if}
@@ -130,7 +130,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const address = prefetched.address}
+					{@const address = pendingEntity.address}
 					{#if address !== undefined && address !== null}
 						<div>
 							<dt>Address</dt>
@@ -158,6 +158,8 @@
 			<ResourceBoundary
 				resource={selection.$address}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoAddress)}
 					{#if cardanoAddress != null && cardanoAddress[EntityMetaKey.Selector] != null}
 						<div>
@@ -185,7 +187,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lovelace = prefetched.lovelace}
+					{@const lovelace = pendingEntity.lovelace}
 					{#if lovelace !== undefined && lovelace !== null}
 						<div>
 							<dt>lovelace</dt>
@@ -220,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datumHash = prefetched.datumHash}
+					{@const datumHash = pendingEntity.datumHash}
 					{#if datumHash !== undefined && datumHash !== null}
 						<div>
 							<dt>datum hash</dt>
@@ -255,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const referenceScriptHash = prefetched.referenceScriptHash}
+					{@const referenceScriptHash = pendingEntity.referenceScriptHash}
 					{#if referenceScriptHash !== undefined && referenceScriptHash !== null}
 						<div>
 							<dt>reference script hash</dt>
@@ -290,7 +292,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spentByTxHash = prefetched.spentByTxHash}
+					{@const spentByTxHash = pendingEntity.spentByTxHash}
 					{#if spentByTxHash !== undefined && spentByTxHash !== null}
 						<div>
 							<dt>spent by transaction hash</dt>
@@ -325,7 +327,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spentByInputIndex = prefetched.spentByInputIndex}
+					{@const spentByInputIndex = pendingEntity.spentByInputIndex}
 					{#if spentByInputIndex !== undefined && spentByInputIndex !== null}
 						<div>
 							<dt>spent by input index</dt>

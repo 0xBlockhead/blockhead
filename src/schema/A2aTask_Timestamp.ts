@@ -9,8 +9,10 @@ export enum A2aTask_TimestampSelector {
 }
 export const A2aTask_Timestamp = entity({
 	entityType: EntityType.A2aTask_Timestamp,
-	label: 'a2a task timestamp',
-	labelPlural: 'a2a task observations',
+	labels: {
+		singular: 'a2a task timestamp',
+		plural: 'a2a task observations',
+	},
 })({
 	$task: {
 		label: 'task',

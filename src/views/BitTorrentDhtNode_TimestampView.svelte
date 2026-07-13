@@ -42,7 +42,7 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || 'bit torrent DHT node timestamp')
+	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'bit torrent DHT node timestamp')
 	const viewDomId = $derived('bit-torrent-dht-node-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bitTorrentDhtNodeTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent DHT node timestamp'}
+				{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent DHT node timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -80,7 +80,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentDhtNodeTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.reachable) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent DHT node timestamp'}
+				{[String((pendingEntity.reachable) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'bit torrent DHT node timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +93,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bitTorrentDhtNodeTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -128,7 +128,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nodeId = selection.entitySelector.nodeId ?? prefetched.nodeId}
+							{@const nodeId = pendingEntity.nodeId}
 							{#if nodeId !== undefined && nodeId !== null}
 								{String((nodeId) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -188,7 +188,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>
@@ -252,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const address = prefetched.address}
+					{@const address = pendingEntity.address}
 					{#if address !== undefined && address !== null}
 						<div>
 							<dt>Address</dt>
@@ -287,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const port = prefetched.port}
+					{@const port = pendingEntity.port}
 					{#if port !== undefined && port !== null}
 						<div>
 							<dt>port</dt>
@@ -325,7 +325,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const observedInfoHashes = prefetched.observedInfoHashes}
+							{@const observedInfoHashes = pendingEntity.observedInfoHashes}
 							{#if observedInfoHashes !== undefined && observedInfoHashes !== null}
 								<TruncatedValue value={observedInfoHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}

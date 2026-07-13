@@ -43,7 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const youtubePlaylistTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist observation')
 	const viewDomId = $derived('youtube-playlist-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -60,9 +60,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$playlist !== undefined && pendingEntity.$playlist.playlistId !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]', {
-			playlistId: String(pendingEntity.$playlist.playlistId ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$playlist !== undefined && pendingEntity.$playlist.playlistId !== undefined ? resolve('/youtube/playlist/[playlistId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			playlistId: String(pendingEntity.$playlist.playlistId ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -77,7 +77,7 @@
 					layout={EntityLayout.Title}
 					open={false}
 				/>
-				{@const timestampMs1 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs1 = pendingEntity.timestampMs}
 				{#if timestampMs1 !== undefined && timestampMs1 !== null}
 					<Timestamp timestamp={Number(timestampMs1)} />
 				{/if}
@@ -113,7 +113,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}

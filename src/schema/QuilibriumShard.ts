@@ -9,8 +9,10 @@ export enum QuilibriumShardSelector {
 }
 export const QuilibriumShard = entity({
 	entityType: EntityType.QuilibriumShard,
-	label: 'quilibrium shard',
-	labelPlural: 'quilibrium shards',
+	labels: {
+		singular: 'quilibrium shard',
+		plural: 'quilibrium shards',
+	},
 })({
 	$network: {
 		label: 'network',

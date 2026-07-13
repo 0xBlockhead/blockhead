@@ -46,7 +46,7 @@
 			clientVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state timestamp')
 	const viewDomId = $derived('blockhead-bit-torrent-client-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadBitTorrentClientStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadBitTorrentClientStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.clientVersion) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead bit torrent client state timestamp'}
+				{[String((pendingEntity.clientVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead bit torrent client state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadBitTorrentClientStateTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clientVersion = prefetched.clientVersion}
+					{@const clientVersion = pendingEntity.clientVersion}
 					{#if clientVersion !== undefined && clientVersion !== null}
 						<div>
 							<dt>client version</dt>
@@ -247,7 +247,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const listenAddresses = prefetched.listenAddresses}
+							{@const listenAddresses = pendingEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
 								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -274,7 +274,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const port = prefetched.port}
+					{@const port = pendingEntity.port}
 					{#if port !== undefined && port !== null}
 						<div>
 							<dt>port</dt>
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activeTorrentCount = prefetched.activeTorrentCount}
+					{@const activeTorrentCount = pendingEntity.activeTorrentCount}
 					{#if activeTorrentCount !== undefined && activeTorrentCount !== null}
 						<div>
 							<dt>active torrent count</dt>
@@ -344,7 +344,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>
@@ -381,7 +381,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const downloadRate = prefetched.downloadRate}
+					{@const downloadRate = pendingEntity.downloadRate}
 					{#if downloadRate !== undefined && downloadRate !== null}
 						<div>
 							<dt>download rate</dt>
@@ -416,7 +416,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uploadRate = prefetched.uploadRate}
+					{@const uploadRate = pendingEntity.uploadRate}
 					{#if uploadRate !== undefined && uploadRate !== null}
 						<div>
 							<dt>upload rate</dt>
@@ -451,7 +451,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const downloadedBytes = prefetched.downloadedBytes}
+					{@const downloadedBytes = pendingEntity.downloadedBytes}
 					{#if downloadedBytes !== undefined && downloadedBytes !== null}
 						<div>
 							<dt>downloaded bytes</dt>
@@ -486,7 +486,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uploadedBytes = prefetched.uploadedBytes}
+					{@const uploadedBytes = pendingEntity.uploadedBytes}
 					{#if uploadedBytes !== undefined && uploadedBytes !== null}
 						<div>
 							<dt>uploaded bytes</dt>

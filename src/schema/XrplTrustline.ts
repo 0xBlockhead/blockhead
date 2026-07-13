@@ -9,8 +9,10 @@ export enum XrplTrustlineSelector {
 }
 export const XrplTrustline = entity({
 	entityType: EntityType.XrplTrustline,
-	label: 'xrpl trustline',
-	labelPlural: 'xrpl trustlines',
+	labels: {
+		singular: 'xrpl trustline',
+		plural: 'xrpl trustlines',
+	},
 })({
 	$network: {
 		label: 'network',

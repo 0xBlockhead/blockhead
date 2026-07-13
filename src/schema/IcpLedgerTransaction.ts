@@ -9,8 +9,10 @@ export enum IcpLedgerTransactionSelector {
 }
 export const IcpLedgerTransaction = entity({
 	entityType: EntityType.IcpLedgerTransaction,
-	label: 'icp ledger transaction',
-	labelPlural: 'icp ledger transactions',
+	labels: {
+		singular: 'icp ledger transaction',
+		plural: 'icp ledger transactions',
+	},
 })({
 	$block: {
 		label: 'block',

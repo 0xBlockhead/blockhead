@@ -23,7 +23,7 @@ export const getProposalContents = (): Promise<SolanaSimdContentEntry[]> => (
 	getGithubContents({
 		endpoints: githubHttpEndpoints,
 		target: solanaSimdsGithubRepo,
-	}) as Promise<SolanaSimdContentEntry[]>
+	})
 )
 
 export const getProposalMarkdownText = ({ number }: { number: number }) => (

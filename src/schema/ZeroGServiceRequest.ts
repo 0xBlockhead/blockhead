@@ -9,8 +9,10 @@ export enum ZeroGServiceRequestSelector {
 }
 export const ZeroGServiceRequest = entity({
 	entityType: EntityType.ZeroGServiceRequest,
-	label: 'zero g service request',
-	labelPlural: 'zero g service requests',
+	labels: {
+		singular: 'zero g service request',
+		plural: 'zero g service requests',
+	},
 })({
 	$serviceProvider: {
 		label: 'service provider',

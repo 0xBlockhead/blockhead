@@ -10,8 +10,10 @@ export enum HederaContractSelector {
 }
 export const HederaContract = entity({
 	entityType: EntityType.HederaContract,
-	label: 'hedera contract',
-	labelPlural: 'hedera contracts',
+	labels: {
+		singular: 'hedera contract',
+		plural: 'hedera contracts',
+	},
 })({
 	$network: {
 		label: 'network',

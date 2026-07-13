@@ -10,8 +10,10 @@ export enum CosmosBlockSelector {
 }
 export const CosmosBlock = entity({
 	entityType: EntityType.CosmosBlock,
-	label: 'Cosmos block',
-	labelPlural: 'Cosmos blocks',
+	labels: {
+		singular: 'Cosmos block',
+		plural: 'Cosmos blocks',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -23,7 +25,7 @@ export const CosmosBlock = entity({
 		label: 'Height',
 		description: 'The block or ledger height in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {

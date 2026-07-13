@@ -49,7 +49,7 @@
 			capacitySats: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning channel timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning channel timestamp')
 	const viewDomId = $derived('lightning-channel-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lightningChannelTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lightningChannelTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? ''), String((prefetched.capacitySats) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Lightning channel timestamp'}
+				{[String((pendingEntity.status) ?? ''), String((pendingEntity.capacitySats) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Lightning channel timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,8 +111,8 @@
 					<LightningChannelView
 						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel, {})}
 						href={
-							(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-								networkSlug: String(selection.entitySelector.$channel.$network.slug ?? ''),
+							(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+								network: String(selection.entitySelector.$channel.$network.slug ?? ''),
 								channelId: String(selection.entitySelector.$channel.channelId ?? ''),
 							}) : undefined)
 						}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -165,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeRatePpm = prefetched.feeRatePpm}
+					{@const feeRatePpm = pendingEntity.feeRatePpm}
 					{#if feeRatePpm !== undefined && feeRatePpm !== null}
 						<div>
 							<dt>Fee rate ppm</dt>
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAtMs = prefetched.updatedAtMs}
+					{@const updatedAtMs = pendingEntity.updatedAtMs}
 					{#if updatedAtMs !== undefined && updatedAtMs !== null}
 						<div>
 							<dt>Updated</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const closingTransactionId = prefetched.closingTransactionId}
+					{@const closingTransactionId = pendingEntity.closingTransactionId}
 					{#if closingTransactionId !== undefined && closingTransactionId !== null}
 						<div>
 							<dt>Closing transaction ID</dt>
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const closingFeeSats = prefetched.closingFeeSats}
+					{@const closingFeeSats = pendingEntity.closingFeeSats}
 					{#if closingFeeSats !== undefined && closingFeeSats !== null}
 						<div>
 							<dt>Closing fee sats</dt>
@@ -321,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const closingReason = prefetched.closingReason}
+					{@const closingReason = pendingEntity.closingReason}
 					{#if closingReason !== undefined && closingReason !== null}
 						<div>
 							<dt>Closing reason</dt>
@@ -360,7 +360,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const closedAtMs = prefetched.closedAtMs}
+					{@const closedAtMs = pendingEntity.closedAtMs}
 					{#if closedAtMs !== undefined && closedAtMs !== null}
 						<div>
 							<dt>Closed</dt>

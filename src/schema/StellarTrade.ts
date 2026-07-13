@@ -9,8 +9,10 @@ export enum StellarTradeSelector {
 }
 export const StellarTrade = entity({
 	entityType: EntityType.StellarTrade,
-	label: 'stellar trade',
-	labelPlural: 'stellar trades',
+	labels: {
+		singular: 'stellar trade',
+		plural: 'stellar trades',
+	},
 })({
 	$network: {
 		label: 'network',

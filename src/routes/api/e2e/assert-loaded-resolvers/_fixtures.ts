@@ -3,7 +3,7 @@ import { stringify } from 'devalue'
 import { CoinId } from '$/constants/Coin.ts'
 import { currencyCatalogSnapshotTimestampMs, Iso4217 } from '$/constants/Currency.ts'
 import { seededCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
-import { MarketAssetKind, MarketKind, MarketTimeIntervalUnit, type MarketIdLabelInput } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind, MarketTimeIntervalUnit } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import {
 	Caip2Namespace,
@@ -135,24 +135,27 @@ const TRANSFER_TOPIC = (
 export const ethUsdCatalogMarket = {
 	$base: {
 		kind: MarketAssetKind.Coin,
-		$coin: { coinId: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].baseCoinId },
+		assetKey: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].baseCoinId,
 	},
 	$quote: {
 		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].quoteIso4217 },
+		assetKey: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].quoteIso4217,
 	},
 	$marketVenue: {
 		marketVenueId: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].marketVenueId,
 	},
 	marketKind: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].marketKind,
-} satisfies MarketIdLabelInput
+} satisfies EntitySelector<
+	typeof schema,
+	EntityType.Market
+>
 
 const mainnetChainId = 1
 
 const mainnet = {
 	caip2: {
-		namespace: 'eip155',
-		reference: '1',
+		namespace: Caip2Namespace.Eip155,
+		reference: Caip2Reference.EthereumMainnet,
 	},
 } as const
 
@@ -373,13 +376,13 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.BlockheadWallet]: { id: 'eip6963:e2e-probe-wallet' },
 	[EntityType.BlockheadWalletAccount]: {
 		caip10: {
-			namespace: 'eip155',
-			reference: '1',
+			namespace: Caip2Namespace.Eip155,
+			reference: Caip2Reference.EthereumMainnet,
 			accountAddress: VITALIK_ADDRESS,
 		},
 	},
 	[EntityType.BlockheadWalletConnection]: {
-		$wallet: { id: 'eip6963:e2e-probe-wallet' },
+		connectionKey: 'e2e-probe-wallet-connection',
 	},
 
 	[EntityType.ActivityPubActor]: {
@@ -546,8 +549,8 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		$toInstance: {
 			$network: {
 				caip2: {
-					namespace: 'eip155',
-					reference: '10',
+					namespace: Caip2Namespace.Eip155,
+					reference: Caip2Reference.Optimism,
 				},
 			},
 			type: CoinInstanceType.NativeCurrency,
@@ -722,8 +725,8 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.EvmNft]: {
 		$contract: {
 			$network: { caip2: {
-				namespace: 'eip155',
-				reference: '56',
+				namespace: Caip2Namespace.Eip155,
+				reference: Caip2Reference.BnbSmartChain,
 			} },
 			address: '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432',
 		},
@@ -766,15 +769,15 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.EvmNetworkBridge]: {
 		$fromNetwork: mainnet,
 		$toNetwork: { caip2: {
-			namespace: 'eip155',
-			reference: '10',
+			namespace: Caip2Namespace.Eip155,
+			reference: Caip2Reference.Optimism,
 		} },
 		url: 'https://bridge.example',
 	},
 	[EntityType.EvmRollup]: {
 		$network: { caip2: {
-			namespace: 'eip155',
-			reference: '10',
+			namespace: Caip2Namespace.Eip155,
+			reference: Caip2Reference.Optimism,
 		} },
 		projectId: 'optimism',
 	},
@@ -825,7 +828,6 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.NetworkStack]: {
 		networkStackId: NetworkStackId.Ethereum,
 	},
-	[EntityType.Network]: bitcoin,
 	[EntityType.AssetInstance]: {
 		$network: bitcoin,
 		kind: AssetInstanceKind.Native,
@@ -1754,122 +1756,119 @@ export const parentEntitySelectorForResolverValuePart = (
 	entityType === EntityType._Global ?
 		{ scope: 'global' }
 	:
-		entityType === EntityType.Network ?
-			bitcoin
-		:
-			entityType === EntityType.Network ?
-				mainnet
-			:
-				entityType === EntityType.EvmAccount ?
-				actorMainnetVitalik
-			:
-				entityType === EntityType.EvmNetworkAccount ?
-				evmNetworkAccountMainnetUsdc
-			:
-				entityType === EntityType.EvmBlock ?
-				({
-					$network: mainnet,
-					blockNumber: 18_000_000n,
-				})
-			:
-				entityType === EntityType.AtprotoActor ?
-				atprotoNetworkSeedActors[0]
-			:
-				entityType === EntityType.AtprotoPost ?
-				probeEntitySelectorForType(EntityType.AtprotoPost)
-			:
-				entityType === EntityType.ActivityPubNetwork ?
-				{ scope: 'ActivityPubNetwork' }
-			:
-				entityType === EntityType.ActivityPubActor ?
-				probeEntitySelectorForType(EntityType.ActivityPubActor)
-			:
-				entityType === EntityType.ActivityPubNote ?
-				probeEntitySelectorForType(EntityType.ActivityPubNote)
-			:
-				entityType === EntityType.AtprotoNetwork ?
-				{ scope: 'AtprotoNetwork' }
-			:
-				entityType === EntityType.LensNetwork ?
-				{ scope: 'LensNetwork' }
-			:
-				entityType === EntityType.RedditNetwork ?
-				{ scope: 'RedditNetwork' }
-			:
-				entityType === EntityType.RssNetwork ?
-				{ scope: 'RssNetwork' }
-			:
-				entityType === EntityType.RssFeed ?
-				probeEntitySelectorForType(EntityType.RssFeed)
-			:
-				entityType === EntityType.RedditSubreddit ?
-				probeEntitySelectorForType(EntityType.RedditSubreddit)
-			:
-				entityType === EntityType.RedditLink ?
-				probeEntitySelectorForType(EntityType.RedditLink)
-			:
-				entityType === EntityType.LensAccount ?
-				probeEntitySelectorForType(EntityType.LensAccount)
-			:
-				entityType === EntityType.XUser ?
-				probeEntitySelectorForType(EntityType.XUser)
-			:
-				entityType === EntityType.NostrNetwork ?
-				{ scope: 'NostrNetwork' }
-			:
-			entityType === EntityType.YoutubeNetwork ?
-				{ scope: 'YoutubeNetwork' }
-			:
-				entityType === EntityType.XNetwork ?
-				{ scope: 'XNetwork' }
-			:
-				entityType === EntityType.XmtpNetwork ?
-				{ scope: 'XmtpNetwork' }
-			:
-				entityType === EntityType._GlobalEnsNetwork ?
-				{ scope: '_GlobalEnsNetwork' }
-			:
-				entityType === EntityType.EvmProtocol ?
-				{ scope: 'EvmProtocol' }
-			:
-				entityType === EntityType.IpfsProtocol ?
-				{ scope: 'IpfsProtocol' }
-			:
-				entityType === EntityType.SwarmProtocol ?
-				{ scope: 'SwarmProtocol' }
-			:
-				entityType === EntityType.FarcasterNetwork ?
-				{ scope: 'FarcasterNetwork' }
-			:
-				entityType === EntityType.FarcasterFeed ?
-				({ variant: 'trending' })
-			:
-				entityType === EntityType.FarcasterUser ?
-				{ fid: 3 }
-			:
-				entityType === EntityType.FarcasterVerifiedAddress ?
-				{
-					fid: 3,
-					protocol: 'ethereum',
-					address: VITALIK_ADDRESS,
-				}
-			:
-				entityType === EntityType.FarcasterChannel ?
-				{ id: 'memes' }
-			:
-				entityType === EntityType.LightningNetwork ?
-				lightning
-			:
-				entityType === EntityType.LightningNode ?
-				probeEntitySelectorForType(EntityType.LightningNode)
-			:
-				entityType === EntityType.LightningChannel ?
-				probeEntitySelectorForType(EntityType.LightningChannel)
-			:
-				entityType === EntityType.ElementsNetwork ?
-				liquid
-			:
-				probeEntitySelectorForType(entityType)
+	entityType === EntityType.Network ?
+		bitcoin
+	:
+	entityType === EntityType.EvmAccount ?
+		actorMainnetVitalik
+	:
+	entityType === EntityType.EvmNetworkAccount ?
+		evmNetworkAccountMainnetUsdc
+	:
+	entityType === EntityType.EvmBlock ?
+		({
+			$network: mainnet,
+			blockNumber: 18_000_000n,
+		})
+	:
+	entityType === EntityType.AtprotoActor ?
+		atprotoNetworkSeedActors[0]
+	:
+	entityType === EntityType.AtprotoPost ?
+		probeEntitySelectorForType(EntityType.AtprotoPost)
+	:
+	entityType === EntityType.ActivityPubNetwork ?
+		{ scope: 'ActivityPubNetwork' }
+	:
+	entityType === EntityType.ActivityPubActor ?
+		probeEntitySelectorForType(EntityType.ActivityPubActor)
+	:
+	entityType === EntityType.ActivityPubNote ?
+		probeEntitySelectorForType(EntityType.ActivityPubNote)
+	:
+	entityType === EntityType.AtprotoNetwork ?
+		{ scope: 'AtprotoNetwork' }
+	:
+	entityType === EntityType.LensNetwork ?
+		{ scope: 'LensNetwork' }
+	:
+	entityType === EntityType.RedditNetwork ?
+		{ scope: 'RedditNetwork' }
+	:
+	entityType === EntityType.RssNetwork ?
+		{ scope: 'RssNetwork' }
+	:
+	entityType === EntityType.RssFeed ?
+		probeEntitySelectorForType(EntityType.RssFeed)
+	:
+	entityType === EntityType.RedditSubreddit ?
+		probeEntitySelectorForType(EntityType.RedditSubreddit)
+	:
+	entityType === EntityType.RedditLink ?
+		probeEntitySelectorForType(EntityType.RedditLink)
+	:
+	entityType === EntityType.LensAccount ?
+		probeEntitySelectorForType(EntityType.LensAccount)
+	:
+	entityType === EntityType.XUser ?
+		probeEntitySelectorForType(EntityType.XUser)
+	:
+	entityType === EntityType.NostrNetwork ?
+		{ scope: 'NostrNetwork' }
+	:
+	entityType === EntityType.YoutubeNetwork ?
+		{ scope: 'YoutubeNetwork' }
+	:
+	entityType === EntityType.XNetwork ?
+		{ scope: 'XNetwork' }
+	:
+	entityType === EntityType.XmtpNetwork ?
+		{ scope: 'XmtpNetwork' }
+	:
+	entityType === EntityType._GlobalEnsNetwork ?
+		{ scope: '_GlobalEnsNetwork' }
+	:
+	entityType === EntityType.EvmProtocol ?
+		{ scope: 'EvmProtocol' }
+	:
+	entityType === EntityType.IpfsProtocol ?
+		{ scope: 'IpfsProtocol' }
+	:
+	entityType === EntityType.SwarmProtocol ?
+		{ scope: 'SwarmProtocol' }
+	:
+	entityType === EntityType.FarcasterNetwork ?
+		{ scope: 'FarcasterNetwork' }
+	:
+	entityType === EntityType.FarcasterFeed ?
+		({ variant: 'trending' })
+	:
+	entityType === EntityType.FarcasterUser ?
+		{ fid: 3 }
+	:
+	entityType === EntityType.FarcasterVerifiedAddress ?
+		{
+			fid: 3,
+			protocol: 'ethereum',
+			address: VITALIK_ADDRESS,
+		}
+	:
+	entityType === EntityType.FarcasterChannel ?
+		{ id: 'memes' }
+	:
+	entityType === EntityType.LightningNetwork ?
+		lightning
+	:
+	entityType === EntityType.LightningNode ?
+		probeEntitySelectorForType(EntityType.LightningNode)
+	:
+	entityType === EntityType.LightningChannel ?
+		probeEntitySelectorForType(EntityType.LightningChannel)
+	:
+	entityType === EntityType.ElementsNetwork ?
+		liquid
+	:
+	probeEntitySelectorForType(entityType)
 )
 
 

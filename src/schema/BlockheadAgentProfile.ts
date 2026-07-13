@@ -9,8 +9,10 @@ export enum BlockheadAgentProfileSelector {
 }
 export const BlockheadAgentProfile = entity({
 	entityType: EntityType.BlockheadAgentProfile,
-	label: 'blockhead agent profile',
-	labelPlural: 'blockhead agent profiles',
+	labels: {
+		singular: 'blockhead agent profile',
+		plural: 'blockhead agent profiles',
+	},
 })({
 	profileId: {
 		label: 'profile ID',

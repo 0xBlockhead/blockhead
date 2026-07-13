@@ -44,7 +44,7 @@
 			memberKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? ''), String((prefetched.canonicalSignature) ?? ''), String((selection.entitySelector.memberKey ?? prefetched.memberKey) ?? '')].filter(Boolean).join(' ') || 'contract interface member')
+	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || 'contract interface member')
 	const viewDomId = $derived('contract-interface-member-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={contractInterfaceMember}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? ''), String((prefetched.canonicalSignature) ?? ''), String((selection.entitySelector.memberKey ?? prefetched.memberKey) ?? '')].filter(Boolean).join(' ') || title || 'contract interface member'}
+				{[String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || title || 'contract interface member'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -80,7 +80,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={contractInterfaceMember}>
 			{#snippet Pending()}
-				{[String((prefetched.memberKind) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((prefetched.canonicalSignature) ?? ''), String((selection.entitySelector.memberKey ?? prefetched.memberKey) ?? '')].filter(Boolean).join(' ') || title || 'contract interface member'}
+				{[String((pendingEntity.memberKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.canonicalSignature) ?? ''), String((pendingEntity.memberKey) ?? '')].filter(Boolean).join(' ') || title || 'contract interface member'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +93,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={contractInterfaceMember}>
 			{#snippet Pending()}
-				{@const interfaceId0 = selection.entitySelector.interfaceId ?? prefetched.interfaceId}
+				{@const interfaceId0 = pendingEntity.interfaceId}
 				{#if interfaceId0 !== undefined && interfaceId0 !== null}
 					<span data-text="muted">
 						{String((interfaceId0) ?? '')}
@@ -128,7 +128,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const interfaceId = selection.entitySelector.interfaceId ?? prefetched.interfaceId}
+							{@const interfaceId = pendingEntity.interfaceId}
 							{#if interfaceId !== undefined && interfaceId !== null}
 								{String((interfaceId) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const memberKey = selection.entitySelector.memberKey ?? prefetched.memberKey}
+							{@const memberKey = pendingEntity.memberKey}
 							{#if memberKey !== undefined && memberKey !== null}
 								{String((memberKey) ?? '')}
 							{/if}
@@ -188,7 +188,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const memberKind = prefetched.memberKind}
+							{@const memberKind = pendingEntity.memberKind}
 							{#if memberKind !== undefined && memberKind !== null}
 								{String((memberKind) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -252,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const canonicalSignature = prefetched.canonicalSignature}
+					{@const canonicalSignature = pendingEntity.canonicalSignature}
 					{#if canonicalSignature !== undefined && canonicalSignature !== null}
 						<div>
 							<dt>Canonical signature</dt>
@@ -287,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const selector = prefetched.selector}
+					{@const selector = pendingEntity.selector}
 					{#if selector !== undefined && selector !== null}
 						<div>
 							<dt>Selector</dt>
@@ -322,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stateMutability = prefetched.stateMutability}
+					{@const stateMutability = pendingEntity.stateMutability}
 					{#if stateMutability !== undefined && stateMutability !== null}
 						<div>
 							<dt>State mutability</dt>

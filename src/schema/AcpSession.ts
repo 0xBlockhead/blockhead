@@ -10,8 +10,10 @@ export enum AcpSessionSelector {
 }
 export const AcpSession = entity({
 	entityType: EntityType.AcpSession,
-	label: 'acp session',
-	labelPlural: 'acp sessions',
+	labels: {
+		singular: 'acp session',
+		plural: 'acp sessions',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

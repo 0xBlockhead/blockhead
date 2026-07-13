@@ -11,8 +11,10 @@ export enum EvmUserOperationSelector {
 }
 export const EvmUserOperation = entity({
 	entityType: EntityType.EvmUserOperation,
-	label: 'User operation',
-	labelPlural: 'user operations',
+	labels: {
+		singular: 'User operation',
+		plural: 'user operations',
+	},
 })({
 	$network: {
 		type: EntityFieldType.EntityReference,
@@ -22,7 +24,7 @@ export const EvmUserOperation = entity({
 	hash: {
 		label: 'Operation hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Blockscout_Rest,

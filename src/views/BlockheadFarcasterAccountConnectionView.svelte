@@ -54,7 +54,7 @@
 			$icon: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.displayName) ?? ''), String((prefetched.username) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || 'Blockhead Farcaster account connection')
+	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || 'Blockhead Farcaster account connection')
 	const viewDomId = $derived('blockhead-farcaster-account-connection-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -102,7 +102,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
 			{#snippet Pending()}
-				{[String((prefetched.displayName) ?? ''), String((prefetched.username) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
+				{[String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -115,7 +115,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || [String((prefetched.displayName) ?? ''), String((prefetched.username) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
+				{[String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -128,7 +128,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
 			{#snippet Pending()}
-				{@const username0 = prefetched.username}
+				{@const username0 = pendingEntity.username}
 				{#if username0 !== undefined && username0 !== null}
 					<span data-text="muted">
 						<span>@</span>
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fid = selection.entitySelector.fid ?? prefetched.fid}
+							{@const fid = pendingEntity.fid}
 							{#if fid !== undefined && fid !== null}
 								<NumberValue value={Number(fid)} />
 							{/if}
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const username = prefetched.username}
+					{@const username = pendingEntity.username}
 					{#if username !== undefined && username !== null}
 						<div>
 							<dt>Username</dt>
@@ -233,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const custody = prefetched.custody}
+					{@const custody = pendingEntity.custody}
 					{#if custody !== undefined && custody !== null}
 						<div>
 							<dt>Custody</dt>
@@ -270,7 +270,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authMethod = prefetched.authMethod}
+					{@const authMethod = pendingEntity.authMethod}
 					{#if authMethod !== undefined && authMethod !== null}
 						<div>
 							<dt>Auth method</dt>
@@ -307,7 +307,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signedAt = prefetched.signedAt}
+					{@const signedAt = pendingEntity.signedAt}
 					{#if signedAt !== undefined && signedAt !== null}
 						<div>
 							<dt>Signed</dt>

@@ -9,8 +9,10 @@ export enum BlockheadCashuProof_TimestampSelector {
 }
 export const BlockheadCashuProof_Timestamp = entity({
 	entityType: EntityType.BlockheadCashuProof_Timestamp,
-	label: 'blockhead Cashu proof timestamp',
-	labelPlural: 'blockhead Cashu proof observations',
+	labels: {
+		singular: 'blockhead Cashu proof timestamp',
+		plural: 'blockhead Cashu proof observations',
+	},
 })({
 	$proof: {
 		label: 'proof',

@@ -9,8 +9,10 @@ export enum CosmosAccountSelector {
 }
 export const CosmosAccount = entity({
 	entityType: EntityType.CosmosAccount,
-	label: 'Cosmos account',
-	labelPlural: 'Cosmos accounts',
+	labels: {
+		singular: 'Cosmos account',
+		plural: 'Cosmos accounts',
+	},
 })({
 	$network: {
 		label: 'Network',

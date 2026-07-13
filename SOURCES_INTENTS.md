@@ -170,6 +170,7 @@ export enum SourceBinding {
 | `BlockheadIntentOrder` | `Local_Internal` for the recorded submission/session link, `Constants_Internal` for normalized protocol labels, plus `Oif_Aggregator`, `Lifi_IntentsOrderServer`, `NearIntents_OrderServer`, `UniswapTrading_Rest`, `OneInchFusion_Rest` |
 | `BlockheadIntentOrder_Timestamp` | `Constants_Internal` for normalized status labels, plus `Oif_Aggregator`, `Lifi_IntentsOrderServer`, `NearIntents_OrderServer`, `UniswapTrading_Rest`, `OneInchFusion_Rest` |
 | `BlockheadWalletRequest` | `Local_Internal`, `Constants_Internal`, `Wallet_Eip1193`, `Wallet_Eip5792`, `Wallet_ProtocolApi` for non-EVM mock coverage until concrete bindings exist |
+| `BlockheadWalletRequestCall` | `Local_Internal` for ordered requested call children; wallet sources may correlate retained call evidence hashes but do not own status/signatures/tx hashes on this row |
 | `BlockheadWalletRequest_Timestamp` | `Local_Internal`, `Constants_Internal` for normalized status labels, `Wallet_Eip1193`, `Wallet_Eip5792`, `Wallet_ProtocolApi` |
 | `BlockheadSessionSimulation` | `Local_Internal`, `Tevm_Runtime`, `Voltaire_JsonRpc` |
 | `BlockheadSessionSimulationCall` | `Local_Internal`, `Tevm_Runtime` |
@@ -200,8 +201,9 @@ Use this table during schema and resolver review. It catches fields that are val
 | `quoteId`, `solverId`, `validUntil`, quote previews, quote checksums | `BlockheadIntentQuote_Timestamp` | `BlockheadIntentQuote`, typed intent rows, session action rows |
 | `source`, `quoteRequestHash`, `orderId` as correlation handles | `BlockheadIntentQuote` / `BlockheadIntentOrder` fields | Local selectors for quote/order parent rows |
 | Provider order `status`, fill/claim transaction hashes, gas used, provider error | `BlockheadIntentOrder_Timestamp` | `BlockheadIntentOrder`, `BlockheadSessionAction`, typed intent rows |
-| Wallet `status`, numeric status code, signatures, transaction hashes/ids, bundle ids, observed atomicity, receipt count, wallet error | `BlockheadWalletRequest_Timestamp` | `BlockheadWalletRequest`, `BlockheadSessionAction`, `BlockheadIntentOrder` |
+| Wallet `status`, numeric status code, signatures, transaction hashes/ids, bundle ids, observed atomicity, receipt count, wallet error | `BlockheadWalletRequest_Timestamp` | `BlockheadWalletRequest`, `BlockheadWalletRequestCall`, `BlockheadSessionAction`, `BlockheadIntentOrder` |
 | Requested wallet method, requested atomicity, requested call count, requested value | `BlockheadWalletRequest` | Wallet timestamp rows as source-observed truth, provider order rows |
+| Ordered requested call structure (`callIndex`, `caip2`, `toAddress`, `value`, `inputDataHash`) | `BlockheadWalletRequestCall` | `BlockheadWalletRequest` as raw call JSON, wallet timestamp rows, public trace/receipt rows |
 | Readiness `status`, observed amount, deficit amount, observed capability status | `BlockheadActionReadinessCheck_Timestamp` | `BlockheadActionReadinessCheck`, account/asset identity rows |
 | Readiness `checkKind`, requested capability key, required amount | `BlockheadActionReadinessCheck` | Timestamp rows as canonical balance/allowance/capability truth |
 | Outcome `status` and local `finality` label | `BlockheadActionOutcome_Timestamp` | Public transaction/receipt/bridge transfer rows as canonical finality |

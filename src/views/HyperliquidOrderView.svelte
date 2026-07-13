@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const oid = prefetched.oid}
+							{@const oid = pendingEntity.oid}
 							{#if oid !== undefined && oid !== null}
 								{String((oid) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cloid = prefetched.cloid}
+					{@const cloid = pendingEntity.cloid}
 					{#if cloid !== undefined && cloid !== null}
 						<div>
 							<dt>cloid</dt>
@@ -167,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const coin = prefetched.coin}
+							{@const coin = pendingEntity.coin}
 							{#if coin !== undefined && coin !== null}
 								{String((coin) ?? '')}
 							{/if}
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const side = prefetched.side}
+					{@const side = pendingEntity.side}
 					{#if side !== undefined && side !== null}
 						<div>
 							<dt>side</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const orderType = prefetched.orderType}
+					{@const orderType = pendingEntity.orderType}
 					{#if orderType !== undefined && orderType !== null}
 						<div>
 							<dt>order type</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const limitPrice = prefetched.limitPrice}
+					{@const limitPrice = pendingEntity.limitPrice}
 					{#if limitPrice !== undefined && limitPrice !== null}
 						<div>
 							<dt>limit price</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const originalSize = prefetched.originalSize}
+					{@const originalSize = pendingEntity.originalSize}
 					{#if originalSize !== undefined && originalSize !== null}
 						<div>
 							<dt>original size</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const triggerCondition = prefetched.triggerCondition}
+					{@const triggerCondition = pendingEntity.triggerCondition}
 					{#if triggerCondition !== undefined && triggerCondition !== null}
 						<div>
 							<dt>trigger condition</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const triggerPrice = prefetched.triggerPrice}
+					{@const triggerPrice = pendingEntity.triggerPrice}
 					{#if triggerPrice !== undefined && triggerPrice !== null}
 						<div>
 							<dt>trigger price</dt>
@@ -404,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reduceOnly = prefetched.reduceOnly}
+					{@const reduceOnly = pendingEntity.reduceOnly}
 					{#if reduceOnly !== undefined && reduceOnly !== null}
 						<div>
 							<dt>reduce only</dt>
@@ -439,7 +439,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tif = prefetched.tif}
+					{@const tif = pendingEntity.tif}
 					{#if tif !== undefined && tif !== null}
 						<div>
 							<dt>tif</dt>
@@ -474,7 +474,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isTrigger = prefetched.isTrigger}
+					{@const isTrigger = pendingEntity.isTrigger}
 					{#if isTrigger !== undefined && isTrigger !== null}
 						<div>
 							<dt>is trigger</dt>
@@ -509,7 +509,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isPositionTpsl = prefetched.isPositionTpsl}
+					{@const isPositionTpsl = pendingEntity.isPositionTpsl}
 					{#if isPositionTpsl !== undefined && isPositionTpsl !== null}
 						<div>
 							<dt>is position tpsl</dt>

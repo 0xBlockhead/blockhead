@@ -105,7 +105,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transferId = selection.entitySelector.transferId ?? prefetched.transferId}
+							{@const transferId = pendingEntity.transferId}
 							{#if transferId !== undefined && transferId !== null}
 								{String((transferId) ?? '')}
 							{/if}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -155,6 +155,8 @@
 			<ResourceBoundary
 				resource={selection.$token}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosToken)}
 					{#if tezosToken != null && tezosToken[EntityMetaKey.Selector] != null}
 						<div>
@@ -175,6 +177,8 @@
 			<ResourceBoundary
 				resource={selection.$from}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null && tezosAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -195,6 +199,8 @@
 			<ResourceBoundary
 				resource={selection.$to}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null && tezosAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -215,6 +221,8 @@
 			<ResourceBoundary
 				resource={selection.$operation}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosOperation)}
 					{#if tezosOperation != null && tezosOperation[EntityMetaKey.Selector] != null}
 						<div>
@@ -242,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const level = prefetched.level}
+					{@const level = pendingEntity.level}
 					{#if level !== undefined && level !== null}
 						<div>
 							<dt>level</dt>
@@ -277,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -312,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractAddress = prefetched.contractAddress}
+					{@const contractAddress = pendingEntity.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>contract address</dt>
@@ -347,7 +355,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenId = prefetched.tokenId}
+					{@const tokenId = pendingEntity.tokenId}
 					{#if tokenId !== undefined && tokenId !== null}
 						<div>
 							<dt>Token ID</dt>
@@ -382,7 +390,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -417,7 +425,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const standard = prefetched.standard}
+					{@const standard = pendingEntity.standard}
 					{#if standard !== undefined && standard !== null}
 						<div>
 							<dt>standard</dt>
@@ -452,7 +460,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionId = prefetched.transactionId}
+					{@const transactionId = pendingEntity.transactionId}
 					{#if transactionId !== undefined && transactionId !== null}
 						<div>
 							<dt>transaction ID</dt>

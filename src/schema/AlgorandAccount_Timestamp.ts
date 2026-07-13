@@ -9,8 +9,10 @@ export enum AlgorandAccount_TimestampSelector {
 }
 export const AlgorandAccount_Timestamp = entity({
 	entityType: EntityType.AlgorandAccount_Timestamp,
-	label: 'algorand account timestamp',
-	labelPlural: 'algorand account observations',
+	labels: {
+		singular: 'algorand account timestamp',
+		plural: 'algorand account observations',
+	},
 })({
 	$account: {
 		label: 'account',

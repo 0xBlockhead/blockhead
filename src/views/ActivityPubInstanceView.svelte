@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -48,7 +49,7 @@
 			version: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? ''), String((selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance')
+	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance')
 	const viewDomId = $derived('activity-pub-instance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubInstance}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? ''), String((selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance'}
+				{[String((pendingEntity.title) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -84,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubInstance}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? ''), String((prefetched.version) ?? '')].filter(Boolean).join(' ') || [String((prefetched.title) ?? ''), String((selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance'}
+				{[String((pendingEntity.source) ?? ''), String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? ''), String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || title || 'ActivityPub instance'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -115,7 +116,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const instanceOrigin = selection.entitySelector.instanceOrigin ?? prefetched.instanceOrigin}
+							{@const instanceOrigin = pendingEntity.instanceOrigin}
 							{#if instanceOrigin !== undefined && instanceOrigin !== null}
 								<svelte:element
 									this={'a'}
@@ -161,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -188,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const title = prefetched.title}
+					{@const title = pendingEntity.title}
 					{#if title !== undefined && title !== null}
 						<div>
 							<dt>Title</dt>
@@ -223,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>Version</dt>
@@ -260,7 +261,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>

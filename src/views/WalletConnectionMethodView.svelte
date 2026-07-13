@@ -50,7 +50,7 @@
 			implementationStatus: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || 'wallet connection method')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || 'wallet connection method')
 	const viewDomId = $derived('wallet-connection-method-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={walletConnectionMethod}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || 'wallet connection method'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || 'wallet connection method'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={walletConnectionMethod}>
 			{#snippet Pending()}
-				{[String((prefetched.protocol) ?? ''), String((prefetched.implementationStatus) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || 'wallet connection method'}
+				{[String((pendingEntity.protocol) ?? ''), String((pendingEntity.implementationStatus) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || 'wallet connection method'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +111,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
 							{/if}
@@ -141,7 +141,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocol = prefetched.protocol}
+							{@const protocol = pendingEntity.protocol}
 							{#if protocol !== undefined && protocol !== null}
 								{String((protocol) ?? '')}
 							{/if}
@@ -171,7 +171,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const discoveryKind = prefetched.discoveryKind}
+							{@const discoveryKind = pendingEntity.discoveryKind}
 							{#if discoveryKind !== undefined && discoveryKind !== null}
 								{String((discoveryKind) ?? '')}
 							{/if}
@@ -201,7 +201,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transportKind = prefetched.transportKind}
+							{@const transportKind = pendingEntity.transportKind}
 							{#if transportKind !== undefined && transportKind !== null}
 								{String((transportKind) ?? '')}
 							{/if}
@@ -231,7 +231,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const implementationStatus = prefetched.implementationStatus}
+							{@const implementationStatus = pendingEntity.implementationStatus}
 							{#if implementationStatus !== undefined && implementationStatus !== null}
 								{String((implementationStatus) ?? '')}
 							{/if}
@@ -261,7 +261,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const dependencyPolicy = prefetched.dependencyPolicy}
+							{@const dependencyPolicy = pendingEntity.dependencyPolicy}
 							{#if dependencyPolicy !== undefined && dependencyPolicy !== null}
 								{String((dependencyPolicy) ?? '')}
 							{/if}
@@ -290,7 +290,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const apiSurfaceKind = prefetched.apiSurfaceKind}
+					{@const apiSurfaceKind = pendingEntity.apiSurfaceKind}
 					{#if apiSurfaceKind !== undefined && apiSurfaceKind !== null}
 						<div>
 							<dt>API surface kind</dt>
@@ -325,7 +325,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sessionKind = prefetched.sessionKind}
+					{@const sessionKind = pendingEntity.sessionKind}
 					{#if sessionKind !== undefined && sessionKind !== null}
 						<div>
 							<dt>session kind</dt>
@@ -360,7 +360,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorizationKind = prefetched.authorizationKind}
+					{@const authorizationKind = pendingEntity.authorizationKind}
 					{#if authorizationKind !== undefined && authorizationKind !== null}
 						<div>
 							<dt>authorization kind</dt>
@@ -395,7 +395,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountExposureKind = prefetched.accountExposureKind}
+					{@const accountExposureKind = pendingEntity.accountExposureKind}
 					{#if accountExposureKind !== undefined && accountExposureKind !== null}
 						<div>
 							<dt>account exposure kind</dt>
@@ -430,7 +430,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestExecutionKind = prefetched.requestExecutionKind}
+					{@const requestExecutionKind = pendingEntity.requestExecutionKind}
 					{#if requestExecutionKind !== undefined && requestExecutionKind !== null}
 						<div>
 							<dt>request execution kind</dt>
@@ -465,7 +465,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const discoveryTrustKind = prefetched.discoveryTrustKind}
+					{@const discoveryTrustKind = pendingEntity.discoveryTrustKind}
 					{#if discoveryTrustKind !== undefined && discoveryTrustKind !== null}
 						<div>
 							<dt>discovery trust kind</dt>
@@ -505,7 +505,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const formFactors = prefetched.formFactors}
+							{@const formFactors = pendingEntity.formFactors}
 							{#if formFactors !== undefined && formFactors !== null}
 								{formFactors == null ? '' : String(((formFactors).join(', ')) ?? '')}
 							{/if}
@@ -535,7 +535,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const networkNamespaces = prefetched.networkNamespaces}
+							{@const networkNamespaces = pendingEntity.networkNamespaces}
 							{#if networkNamespaces !== undefined && networkNamespaces !== null}
 								{networkNamespaces == null ? '' : String(((networkNamespaces).join(', ')) ?? '')}
 							{/if}
@@ -565,7 +565,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const caipNamespaces = prefetched.caipNamespaces}
+							{@const caipNamespaces = pendingEntity.caipNamespaces}
 							{#if caipNamespaces !== undefined && caipNamespaces !== null}
 								{caipNamespaces == null ? '' : String(((caipNamespaces).join(', ')) ?? '')}
 							{/if}
@@ -595,7 +595,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const capabilities = prefetched.capabilities}
+							{@const capabilities = pendingEntity.capabilities}
 							{#if capabilities !== undefined && capabilities !== null}
 								{capabilities == null ? '' : String(((capabilities).join(', ')) ?? '')}
 							{/if}
@@ -622,7 +622,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceCapabilities = prefetched.sourceCapabilities}
+					{@const sourceCapabilities = pendingEntity.sourceCapabilities}
 					{#if sourceCapabilities !== undefined && sourceCapabilities !== null}
 						<div>
 							<dt>source capabilities</dt>
@@ -657,7 +657,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const runtimeCapabilities = prefetched.runtimeCapabilities}
+					{@const runtimeCapabilities = pendingEntity.runtimeCapabilities}
 					{#if runtimeCapabilities !== undefined && runtimeCapabilities !== null}
 						<div>
 							<dt>runtime capabilities</dt>

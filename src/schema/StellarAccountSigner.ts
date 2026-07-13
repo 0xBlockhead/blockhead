@@ -9,8 +9,10 @@ export enum StellarAccountSignerSelector {
 }
 export const StellarAccountSigner = entity({
 	entityType: EntityType.StellarAccountSigner,
-	label: 'stellar account signer',
-	labelPlural: 'stellar account signers',
+	labels: {
+		singular: 'stellar account signer',
+		plural: 'stellar account signers',
+	},
 })({
 	$account: {
 		label: 'account',

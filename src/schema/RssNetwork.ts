@@ -10,8 +10,10 @@ export enum RssNetworkSelector {
 }
 export const RssNetwork = entity({
 	entityType: EntityType.RssNetwork,
-	label: 'RSS / Atom',
-	labelPlural: 'RSS / Atom',
+	labels: {
+		singular: 'RSS / Atom',
+		plural: 'RSS / Atom',
+	},
 	description: 'RSS and Atom syndication feeds publish ordered item streams keyed by feed URL.',
 })({
 	scope: {

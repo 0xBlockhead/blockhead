@@ -10,8 +10,10 @@ export enum AlgorandNetwork_TimestampSelector {
 }
 export const AlgorandNetwork_Timestamp = entity({
 	entityType: EntityType.AlgorandNetwork_Timestamp,
-	label: 'algorand network timestamp',
-	labelPlural: 'algorand network observations',
+	labels: {
+		singular: 'algorand network timestamp',
+		plural: 'algorand network observations',
+	},
 })({
 	$network: {
 		label: 'network',

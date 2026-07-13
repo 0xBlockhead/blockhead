@@ -10,8 +10,10 @@ export enum LensNetworkSelector {
 }
 export const LensNetwork = entity({
 	entityType: EntityType.LensNetwork,
-	label: 'Lens',
-	labelPlural: 'Lens',
+	labels: {
+		singular: 'Lens',
+		plural: 'Lens',
+	},
 	description: 'Lens is a social graph protocol. This hub shows bounded account and post windows from the declared Lens GraphQL source.',
 })({
 	scope: {

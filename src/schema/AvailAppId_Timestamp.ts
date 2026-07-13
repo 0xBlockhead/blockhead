@@ -9,8 +9,10 @@ export enum AvailAppId_TimestampSelector {
 }
 export const AvailAppId_Timestamp = entity({
 	entityType: EntityType.AvailAppId_Timestamp,
-	label: 'avail app ID timestamp',
-	labelPlural: 'avail app ID observations',
+	labels: {
+		singular: 'avail app ID timestamp',
+		plural: 'avail app ID observations',
+	},
 })({
 	$appId: {
 		label: 'app ID',

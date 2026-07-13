@@ -94,7 +94,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subjectKind = selection.entitySelector.subjectKind ?? prefetched.subjectKind}
+							{@const subjectKind = pendingEntity.subjectKind}
 							{#if subjectKind !== undefined && subjectKind !== null}
 								{String((subjectKind) ?? '')}
 							{/if}
@@ -124,7 +124,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const paymentProtocol = selection.entitySelector.paymentProtocol ?? prefetched.paymentProtocol}
+							{@const paymentProtocol = pendingEntity.paymentProtocol}
 							{#if paymentProtocol !== undefined && paymentProtocol !== null}
 								{String((paymentProtocol) ?? '')}
 							{/if}
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -204,6 +204,8 @@
 			<ResourceBoundary
 				resource={selection.$a2aAgentService}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(a2aAgentService)}
 					{#if a2aAgentService != null && a2aAgentService[EntityMetaKey.Selector] != null}
 						<div>
@@ -224,6 +226,8 @@
 			<ResourceBoundary
 				resource={selection.$mcpServer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null && mcpServer[EntityMetaKey.Selector] != null}
 						<div>
@@ -244,6 +248,8 @@
 			<ResourceBoundary
 				resource={selection.$eip8004ServiceEndpoint}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(eip8004AgentServiceEndpoint)}
 					{#if eip8004AgentServiceEndpoint != null && eip8004AgentServiceEndpoint[EntityMetaKey.Selector] != null}
 						<div>
@@ -264,6 +270,8 @@
 			<ResourceBoundary
 				resource={selection.$blockheadConnection}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
 						<div>
@@ -291,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const required = prefetched.required}
+					{@const required = pendingEntity.required}
 					{#if required !== undefined && required !== null}
 						<div>
 							<dt>required</dt>
@@ -326,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const httpStatus = prefetched.httpStatus}
+					{@const httpStatus = pendingEntity.httpStatus}
 					{#if httpStatus !== undefined && httpStatus !== null}
 						<div>
 							<dt>HTTP status</dt>
@@ -361,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestMethod = prefetched.requestMethod}
+					{@const requestMethod = pendingEntity.requestMethod}
 					{#if requestMethod !== undefined && requestMethod !== null}
 						<div>
 							<dt>request method</dt>
@@ -396,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resourceUrl = prefetched.resourceUrl}
+					{@const resourceUrl = pendingEntity.resourceUrl}
 					{#if resourceUrl !== undefined && resourceUrl !== null}
 						<div>
 							<dt>resource URL</dt>
@@ -445,7 +453,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paymentRequiredHeader = prefetched.paymentRequiredHeader}
+					{@const paymentRequiredHeader = pendingEntity.paymentRequiredHeader}
 					{#if paymentRequiredHeader !== undefined && paymentRequiredHeader !== null}
 						<div>
 							<dt>payment required header</dt>
@@ -480,7 +488,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paymentSignatureHeader = prefetched.paymentSignatureHeader}
+					{@const paymentSignatureHeader = pendingEntity.paymentSignatureHeader}
 					{#if paymentSignatureHeader !== undefined && paymentSignatureHeader !== null}
 						<div>
 							<dt>payment signature header</dt>
@@ -515,7 +523,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paymentResponseHeader = prefetched.paymentResponseHeader}
+					{@const paymentResponseHeader = pendingEntity.paymentResponseHeader}
 					{#if paymentResponseHeader !== undefined && paymentResponseHeader !== null}
 						<div>
 							<dt>payment response header</dt>
@@ -550,7 +558,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const facilitatorUrl = prefetched.facilitatorUrl}
+					{@const facilitatorUrl = pendingEntity.facilitatorUrl}
 					{#if facilitatorUrl !== undefined && facilitatorUrl !== null}
 						<div>
 							<dt>facilitator URL</dt>
@@ -599,7 +607,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const scheme = prefetched.scheme}
+					{@const scheme = pendingEntity.scheme}
 					{#if scheme !== undefined && scheme !== null}
 						<div>
 							<dt>scheme</dt>
@@ -634,7 +642,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxAmountRequired = prefetched.maxAmountRequired}
+					{@const maxAmountRequired = pendingEntity.maxAmountRequired}
 					{#if maxAmountRequired !== undefined && maxAmountRequired !== null}
 						<div>
 							<dt>max amount required</dt>
@@ -669,7 +677,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxTimeoutSeconds = prefetched.maxTimeoutSeconds}
+					{@const maxTimeoutSeconds = pendingEntity.maxTimeoutSeconds}
 					{#if maxTimeoutSeconds !== undefined && maxTimeoutSeconds !== null}
 						<div>
 							<dt>max timeout seconds</dt>
@@ -704,7 +712,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evidenceUri = prefetched.evidenceUri}
+					{@const evidenceUri = pendingEntity.evidenceUri}
 					{#if evidenceUri !== undefined && evidenceUri !== null}
 						<div>
 							<dt>evidence URI</dt>
@@ -753,7 +761,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerIndex = selection.entitySelector.ledgerIndex ?? prefetched.ledgerIndex}
+							{@const ledgerIndex = pendingEntity.ledgerIndex}
 							{#if ledgerIndex !== undefined && ledgerIndex !== null}
 								{String((ledgerIndex) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const assetAmount = prefetched.assetAmount}
+					{@const assetAmount = pendingEntity.assetAmount}
 					{#if assetAmount !== undefined && assetAmount !== null}
 						<div>
 							<dt>asset amount</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const asset2Amount = prefetched.asset2Amount}
+					{@const asset2Amount = pendingEntity.asset2Amount}
 					{#if asset2Amount !== undefined && asset2Amount !== null}
 						<div>
 							<dt>asset2 amount</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lpTokenBalance = prefetched.lpTokenBalance}
+					{@const lpTokenBalance = pendingEntity.lpTokenBalance}
 					{#if lpTokenBalance !== undefined && lpTokenBalance !== null}
 						<div>
 							<dt>LP token balance</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tradingFee = prefetched.tradingFee}
+					{@const tradingFee = pendingEntity.tradingFee}
 					{#if tradingFee !== undefined && tradingFee !== null}
 						<div>
 							<dt>trading fee</dt>
@@ -327,6 +327,8 @@
 			<ResourceBoundary
 				resource={selection.$ledgerEntry}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(xrplLedgerEntry)}
 					{#if xrplLedgerEntry != null && xrplLedgerEntry[EntityMetaKey.Selector] != null}
 						<div>

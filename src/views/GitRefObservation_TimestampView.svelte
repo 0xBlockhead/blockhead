@@ -47,7 +47,7 @@
 			targetObjectId: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Git ref observation timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Git ref observation timestamp')
 	const viewDomId = $derived('git-ref-observation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitRefObservationTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRefObservationTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Git ref observation timestamp'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Git ref observation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitRefObservationTimestamp}>
 			{#snippet Pending()}
-				{@const targetObjectId0 = prefetched.targetObjectId}
+				{@const targetObjectId0 = pendingEntity.targetObjectId}
 				{#if targetObjectId0 !== undefined && targetObjectId0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((targetObjectId0) ?? '')} />
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetObjectId = prefetched.targetObjectId}
+					{@const targetObjectId = pendingEntity.targetObjectId}
 					{#if targetObjectId !== undefined && targetObjectId !== null}
 						<div>
 							<dt>target object ID</dt>
@@ -242,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peeledObjectId = prefetched.peeledObjectId}
+					{@const peeledObjectId = pendingEntity.peeledObjectId}
 					{#if peeledObjectId !== undefined && peeledObjectId !== null}
 						<div>
 							<dt>peeled object ID</dt>
@@ -277,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const advertised = prefetched.advertised}
+					{@const advertised = pendingEntity.advertised}
 					{#if advertised !== undefined && advertised !== null}
 						<div>
 							<dt>advertised</dt>

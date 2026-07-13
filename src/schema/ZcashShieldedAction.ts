@@ -15,8 +15,10 @@ export enum ZcashShieldedActionSelector {
 }
 export const ZcashShieldedAction = entity({
 	entityType: EntityType.ZcashShieldedAction,
-	label: 'Zcash shielded action',
-	labelPlural: 'Zcash shielded actions',
+	labels: {
+		singular: 'Zcash shielded action',
+		plural: 'Zcash shielded actions',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',
@@ -39,7 +41,7 @@ export const ZcashShieldedAction = entity({
 	indexInTransaction: {
 		label: 'Index in transaction',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$pool: {

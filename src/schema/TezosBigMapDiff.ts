@@ -9,8 +9,10 @@ export enum TezosBigMapDiffSelector {
 }
 export const TezosBigMapDiff = entity({
 	entityType: EntityType.TezosBigMapDiff,
-	label: 'tezos big map diff',
-	labelPlural: 'tezos big map diffs',
+	labels: {
+		singular: 'tezos big map diff',
+		plural: 'tezos big map diffs',
+	},
 })({
 	$operation: {
 		label: 'operation',

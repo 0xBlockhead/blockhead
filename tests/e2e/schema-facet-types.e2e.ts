@@ -5,8 +5,8 @@ import {
 	type EntityProxyResource,
 } from '$/client/$proxy.svelte.ts'
 import {
+	type EntityBaseFieldName,
 	type EntityFacetFieldName,
-	type EntityNonFacetFieldName,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -32,7 +32,7 @@ const assertCollisionProxyFieldTypes = (
 
 test('schema facet field-name helpers derive canonical Network projection fields', () => {
 	const solanaFacetFieldName: EntityFacetFieldName<typeof schema, EntityType.Network, 'Solana'> = '$$blocks'
-	const networkBaseFieldName: EntityNonFacetFieldName<typeof schema, EntityType.Network> = 'executionModels'
+	const networkBaseFieldName: EntityBaseFieldName<typeof schema, EntityType.Network> = 'executionModels'
 	// @ts-expect-error removed generated flat facet names must not type-check against projection fields.
 	const removedSolanaFacetFieldName: EntityFacetFieldName<typeof schema, EntityType.Network, 'Solana'> = '$$solanaBlocks'
 

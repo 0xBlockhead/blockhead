@@ -10,8 +10,10 @@ export enum IpfsProtocolSelector {
 }
 export const IpfsProtocol = entity({
 	entityType: EntityType.IpfsProtocol,
-	label: 'IPFS protocol',
-	labelPlural: 'IPFS protocols',
+	labels: {
+		singular: 'IPFS protocol',
+		plural: 'IPFS protocols',
+	},
 })({
 	scope: {
 		label: 'Scope',

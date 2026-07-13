@@ -9,8 +9,10 @@ export enum AlgorandAssetHolding_RoundSelector {
 }
 export const AlgorandAssetHolding_Round = entity({
 	entityType: EntityType.AlgorandAssetHolding_Round,
-	label: 'algorand asset holding round',
-	labelPlural: 'algorand asset holding rounds',
+	labels: {
+		singular: 'algorand asset holding round',
+		plural: 'algorand asset holding rounds',
+	},
 })({
 	$account: {
 		label: 'account',

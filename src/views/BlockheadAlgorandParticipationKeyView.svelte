@@ -50,7 +50,7 @@
 			firstValidRound: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.participationId ?? prefetched.participationId) ?? '')].filter(Boolean).join(' ') || 'blockhead algorand participation key')
+	const titleFallback = $derived([String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || 'blockhead algorand participation key')
 	const viewDomId = $derived('blockhead-algorand-participation-key-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.participationId ?? prefetched.participationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand participation key'}
+				{[String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand participation key'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.participationId ?? prefetched.participationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand participation key'}
+				{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead algorand participation key'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
 			{#snippet Pending()}
-				{@const firstValidRound0 = prefetched.firstValidRound}
+				{@const firstValidRound0 = pendingEntity.firstValidRound}
 				{#if firstValidRound0 !== undefined && firstValidRound0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(firstValidRound0)} />
@@ -138,7 +138,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nodeId = selection.entitySelector.nodeId ?? prefetched.nodeId}
+							{@const nodeId = pendingEntity.nodeId}
 							{#if nodeId !== undefined && nodeId !== null}
 								{String((nodeId) ?? '')}
 							{/if}
@@ -168,7 +168,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const participationId = selection.entitySelector.participationId ?? prefetched.participationId}
+							{@const participationId = pendingEntity.participationId}
 							{#if participationId !== undefined && participationId !== null}
 								{String((participationId) ?? '')}
 							{/if}
@@ -188,6 +188,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(algorandAccount)}
 					{#if algorandAccount != null && algorandAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -208,6 +210,8 @@
 			<ResourceBoundary
 				resource={selection.$network}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(algorandNetwork)}
 					{#if algorandNetwork != null && algorandNetwork[EntityMetaKey.Selector] != null}
 						<div>
@@ -237,7 +241,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const firstValidRound = prefetched.firstValidRound}
+					{@const firstValidRound = pendingEntity.firstValidRound}
 					{#if firstValidRound !== undefined && firstValidRound !== null}
 						<div>
 							<dt>first valid round</dt>
@@ -272,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastValidRound = prefetched.lastValidRound}
+					{@const lastValidRound = pendingEntity.lastValidRound}
 					{#if lastValidRound !== undefined && lastValidRound !== null}
 						<div>
 							<dt>last valid round</dt>
@@ -307,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const keyDilution = prefetched.keyDilution}
+					{@const keyDilution = pendingEntity.keyDilution}
 					{#if keyDilution !== undefined && keyDilution !== null}
 						<div>
 							<dt>key dilution</dt>
@@ -344,7 +348,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const selectionKey = prefetched.selectionKey}
+					{@const selectionKey = pendingEntity.selectionKey}
 					{#if selectionKey !== undefined && selectionKey !== null}
 						<div>
 							<dt>selection key</dt>
@@ -379,7 +383,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const votingKey = prefetched.votingKey}
+					{@const votingKey = pendingEntity.votingKey}
 					{#if votingKey !== undefined && votingKey !== null}
 						<div>
 							<dt>voting key</dt>
@@ -414,7 +418,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stateProofKey = prefetched.stateProofKey}
+					{@const stateProofKey = pendingEntity.stateProofKey}
 					{#if stateProofKey !== undefined && stateProofKey !== null}
 						<div>
 							<dt>state proof key</dt>
@@ -451,7 +455,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const effectiveFirstRound = prefetched.effectiveFirstRound}
+					{@const effectiveFirstRound = pendingEntity.effectiveFirstRound}
 					{#if effectiveFirstRound !== undefined && effectiveFirstRound !== null}
 						<div>
 							<dt>effective first round</dt>
@@ -486,7 +490,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const effectiveLastRound = prefetched.effectiveLastRound}
+					{@const effectiveLastRound = pendingEntity.effectiveLastRound}
 					{#if effectiveLastRound !== undefined && effectiveLastRound !== null}
 						<div>
 							<dt>effective last round</dt>
@@ -521,7 +525,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>

@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -55,18 +55,20 @@
 			channelCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.alias) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.publicKey ?? prefetched.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node')
+	const titleFallback = $derived([String((pendingEntity.alias) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node')
 	const viewDomId = $derived('lightning-node-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import LightningChannelsView from '$/views/LightningChannelsView.svelte'
-	import LightningNode_TimestampsView from '$/views/LightningNode_TimestampsView.svelte'
-	import BlockheadLightningNodeStatesView from '$/views/BlockheadLightningNodeStatesView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import LightningChannelsView from '$/views/LightningChannelsView.svelte'
+	import BlockheadLightningNodeStatesView from '$/views/BlockheadLightningNodeStatesView.svelte'
+	import LightningNode_TimestampsView from '$/views/LightningNode_TimestampsView.svelte'
 </script>
 
 
@@ -76,8 +78,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-			networkSlug: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			pubkey: String(pendingEntity.publicKey ?? ''),
 		}) : undefined)
 	}
@@ -88,7 +90,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lightningNode}>
 			{#snippet Pending()}
-				{[String((prefetched.alias) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.publicKey ?? prefetched.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node'}
+				{[String((pendingEntity.alias) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,7 +103,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lightningNode}>
 			{#snippet Pending()}
-				{@const channelCount0 = prefetched.channelCount}
+				{@const channelCount0 = pendingEntity.channelCount}
 				{#if channelCount0 !== undefined && channelCount0 !== null}
 					<NumberValue value={Number(channelCount0)} />
 				{/if}
@@ -132,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const publicKey = selection.entitySelector.publicKey ?? prefetched.publicKey}
+							{@const publicKey = pendingEntity.publicKey}
 							{#if publicKey !== undefined && publicKey !== null}
 								<TruncatedValue value={String((publicKey) ?? '')} />
 							{/if}
@@ -155,22 +157,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -191,7 +181,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const capacitySats = prefetched.capacitySats}
+					{@const capacitySats = pendingEntity.capacitySats}
 					{#if capacitySats !== undefined && capacitySats !== null}
 						<div>
 							<dt>Capacity sats</dt>
@@ -226,7 +216,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const channelCount = prefetched.channelCount}
+					{@const channelCount = pendingEntity.channelCount}
 					{#if channelCount !== undefined && channelCount !== null}
 						<div>
 							<dt>Channels</dt>
@@ -263,7 +253,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const countryCode = prefetched.countryCode}
+					{@const countryCode = pendingEntity.countryCode}
 					{#if countryCode !== undefined && countryCode !== null}
 						<div>
 							<dt>Country</dt>
@@ -298,7 +288,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const city = prefetched.city}
+					{@const city = pendingEntity.city}
 					{#if city !== undefined && city !== null}
 						<div>
 							<dt>City</dt>
@@ -333,7 +323,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const networkAddresses = prefetched.networkAddresses}
+					{@const networkAddresses = pendingEntity.networkAddresses}
 					{#if networkAddresses !== undefined && networkAddresses !== null}
 						<div>
 							<dt>Network addresses</dt>
@@ -362,26 +352,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<LightningChannelsView
-				selection={selection.$$channels}
-				title='Channels'
-				emptyText='No channels yet.'
-				id='LightningChannelsView-channels'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-lightning-node-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'lightning-node-channels',
+							label: 'Channels',
+						},
+						{
+							id: 'lightning-node-local-node-states',
+							label: 'Local Node States',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<LightningNode_TimestampsView
-				selection={selection.$$timestamps}
-				title='Observations'
-				emptyText='No observations yet.'
-				id='LightningNode_TimestampsView-timestamps'
-			/>
+				{#snippet SectionLightningNodeChannels({ id, label, open })}
+					<LightningChannelsView
+						selection={selection.$$channels}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No channels.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadLightningNodeStatesView
-				selection={selection.$$localNodeStates}
-				title='Local node states'
-				emptyText='No local node states.'
-				id='BlockheadLightningNodeStatesView-local-node-states'
-			/>
+				{#snippet SectionLightningNodeLocalNodeStates({ id, label, open })}
+					<BlockheadLightningNodeStatesView
+						selection={selection.$$localNodeStates}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No local node states.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-lightning-node-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'lightning-node-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionLightningNodeTimestamps({ id, label, open })}
+					<LightningNode_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

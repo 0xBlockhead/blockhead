@@ -120,8 +120,8 @@
 						selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ethereumConsensusUpgradeFields}
 						href={
-							(ethereumConsensusUpgradeHrefFields.$network !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2 !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2.namespace !== undefined && ethereumConsensusUpgradeHrefFields.$network !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2 !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2.reference !== undefined && ethereumConsensusUpgradeHrefFields.slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/consensus/[upgradeSlug]', {
-								caip2: `${String(ethereumConsensusUpgradeHrefFields.$network.caip2.namespace ?? '')}:${String(ethereumConsensusUpgradeHrefFields.$network.caip2.reference ?? '')}`,
+							(ethereumConsensusUpgradeHrefFields.$network !== undefined && ethereumConsensusUpgradeHrefFields.$network.slug !== undefined && ethereumConsensusUpgradeHrefFields.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
+								network: String(ethereumConsensusUpgradeHrefFields.$network.slug ?? ''),
 								upgradeSlug: String(ethereumConsensusUpgradeHrefFields.slug ?? ''),
 							}) : undefined)
 						}

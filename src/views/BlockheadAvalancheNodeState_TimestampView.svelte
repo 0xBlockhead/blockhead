@@ -52,7 +52,7 @@
 			connectedPeerCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead avalanche node state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead avalanche node state timestamp')
 	const viewDomId = $derived('blockhead-avalanche-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.nodeVersion) ?? ''), String((prefetched.networkName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead avalanche node state timestamp'}
+				{[String((pendingEntity.nodeVersion) ?? ''), String((pendingEntity.networkName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead avalanche node state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const connectedPeerCount0 = prefetched.connectedPeerCount}
+				{@const connectedPeerCount0 = pendingEntity.connectedPeerCount}
 				{#if connectedPeerCount0 !== undefined && connectedPeerCount0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(connectedPeerCount0)} />
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const networkName = prefetched.networkName}
+					{@const networkName = pendingEntity.networkName}
 					{#if networkName !== undefined && networkName !== null}
 						<div>
 							<dt>network name</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeVersion = prefetched.nodeVersion}
+					{@const nodeVersion = pendingEntity.nodeVersion}
 					{#if nodeVersion !== undefined && nodeVersion !== null}
 						<div>
 							<dt>node version</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const databaseVersion = prefetched.databaseVersion}
+					{@const databaseVersion = pendingEntity.databaseVersion}
 					{#if databaseVersion !== undefined && databaseVersion !== null}
 						<div>
 							<dt>database version</dt>
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gitCommit = prefetched.gitCommit}
+					{@const gitCommit = pendingEntity.gitCommit}
 					{#if gitCommit !== undefined && gitCommit !== null}
 						<div>
 							<dt>Git commit</dt>
@@ -354,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rpcProtocolVersion = prefetched.rpcProtocolVersion}
+					{@const rpcProtocolVersion = pendingEntity.rpcProtocolVersion}
 					{#if rpcProtocolVersion !== undefined && rpcProtocolVersion !== null}
 						<div>
 							<dt>RPC protocol version</dt>
@@ -391,7 +391,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const connectedPeerCount = prefetched.connectedPeerCount}
+					{@const connectedPeerCount = pendingEntity.connectedPeerCount}
 					{#if connectedPeerCount !== undefined && connectedPeerCount !== null}
 						<div>
 							<dt>connected peer count</dt>
@@ -426,7 +426,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uptimePercent = prefetched.uptimePercent}
+					{@const uptimePercent = pendingEntity.uptimePercent}
 					{#if uptimePercent !== undefined && uptimePercent !== null}
 						<div>
 							<dt>uptime percent</dt>
@@ -461,7 +461,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>

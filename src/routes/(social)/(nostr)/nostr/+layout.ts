@@ -8,16 +8,16 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	const globalNostrNetworkSelector = parseEntitySelector(
+	const globalNostrNetworkScopeSelector = parseEntitySelector(
 		schema,
 		_GlobalNostrNetworkSchema,
 		{
 			scope: '_GlobalNostrNetwork',
 		}
 	)
-	if (globalNostrNetworkSelector instanceof arktype.errors) error(404, 'Invalid _GlobalNostrNetwork selector')
+	if (globalNostrNetworkScopeSelector instanceof arktype.errors) error(404, 'Invalid _GlobalNostrNetwork selector')
 
 	return {
-		selector: globalNostrNetworkSelector,
+		selector: globalNostrNetworkScopeSelector,
 	}
 }

@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { type as arktype } from 'arktype'
 
 import {
-	conditionalOn,
 	EntityFieldCardinality,
 	EntityFieldType,
 	EntityMetaKey,
@@ -23,7 +22,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
 import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
-import { app } from '../../APP.ts'
 
 enum ParentSelector {
 	Slug = 'slug',
@@ -117,36 +115,14 @@ const fixtureSchema = [
 	Child,
 ] as const satisfies Schema
 
-const selectorFieldIsRequired = (
-	fieldDefinition: EntityFieldDefinition | undefined,
-	selectorFields: readonly string[],
-	entityType?: string
-) => (
-	fieldDefinition?.cardinality === EntityFieldCardinality.One
-	|| (
-		fieldDefinition?.name === 'caip2'
-		&& entityType === EntityType.Network
-	)
-	|| (
-		fieldDefinition?.when != null
-		&& selectorFields.includes(fieldDefinition.when.fieldName)
-	)
-)
-
 const selectorIsConcrete = (
 	entityDefinition: EntityDefinition,
 	selectorFields: readonly string[]
-) => {
-	const fieldDefinitionByName = Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
-		fieldDefinition.name,
-		fieldDefinition,
-	]))
-	return selectorFields.every((fieldName) => selectorFieldIsRequired(
-		fieldDefinitionByName[fieldName],
-		selectorFields,
-		entityDefinition.entityType
-	))
-}
+) => (
+	selectorFields.length > 0
+	&& selectorFields.every((fieldName) => entityDefinition.fields
+		.some((fieldDefinition) => fieldDefinition.name === fieldName))
+)
 
 describe('entity selectors', () => {
 	it('matches exact named selector field sets', () => {
@@ -307,18 +283,25 @@ describe('entity selectors', () => {
 				))
 				.flatMap((fileName) => {
 					const source = readFileSync(new URL(fileName, import.meta.url), 'utf8')
+					if (!source.includes(' = entity({'))
+						return []
+
+					const entityMetadataSource = source.slice(
+						source.indexOf(' = entity({'),
+						source.indexOf('\n})({', source.indexOf(' = entity({'))
+					)
 					return [
-						...(/\n\tid:/u.test(source) ? [`${fileName}: top-level id`] : []),
-						...(/\n\tidentities:/u.test(source) ? [`${fileName}: identities`] : []),
-						...(/\n\tlookups:/u.test(source) ? [`${fileName}: lookups`] : []),
-						...(/\n\t\tentityId:/u.test(source) ? [`${fileName}: entityId`] : []),
-						...(/\n\t\tdurable:/u.test(source) ? [`${fileName}: durable`] : []),
+						...(/\n\tid:/u.test(entityMetadataSource) ? [`${fileName}: top-level id`] : []),
+						...(/\n\tidentities:/u.test(entityMetadataSource) ? [`${fileName}: identities`] : []),
+						...(/\n\tlookups:/u.test(entityMetadataSource) ? [`${fileName}: lookups`] : []),
+						...(/\n\t\tentityId:/u.test(entityMetadataSource) ? [`${fileName}: entityId`] : []),
+						...(/\n\t\tdurable:/u.test(entityMetadataSource) ? [`${fileName}: durable`] : []),
 					]
 				})
 			).toEqual([])
 	})
 
-	it('declares selectors before fields in every concrete schema row', () => {
+	it('declares metadata, fields, selectors, and facets in constructor order', () => {
 		expect(
 			readdirSync(new URL('.', import.meta.url))
 				.filter((fileName) => (
@@ -332,16 +315,20 @@ describe('entity selectors', () => {
 					if (!source.includes('\n\tentityType:'))
 						return []
 
-					const entityDefinitionSource = source.slice(source.indexOf('export default'))
-					const selectorsIndex = entityDefinitionSource.indexOf('\n\tselectors: [')
-					const fieldsIndex = entityDefinitionSource.indexOf('\n\tfields:')
+					const metadataIndex = source.indexOf(' = entity({')
+					const fieldsIndex = source.indexOf('\n})({', metadataIndex)
+					const selectorsAndFacetsIndex = source.indexOf('\n})({', fieldsIndex + 1)
+					const selectorsIndex = source.indexOf('\n\tselectors: {', selectorsAndFacetsIndex)
+					const facetsIndex = source.indexOf('\n\tfacets: {', selectorsAndFacetsIndex)
 					return (
-						selectorsIndex !== -1
-						&& fieldsIndex !== -1
-						&& selectorsIndex < fieldsIndex ?
+						metadataIndex !== -1
+						&& fieldsIndex > metadataIndex
+						&& selectorsAndFacetsIndex > fieldsIndex
+						&& selectorsIndex > selectorsAndFacetsIndex
+						&& (facetsIndex === -1 || facetsIndex > selectorsIndex) ?
 							[]
 						:
-							[`${fileName}: selectors must be declared before fields`]
+							[`${fileName}: expected metadata, fields, selectors, then facets`]
 					)
 				})
 			).toEqual([])
@@ -350,7 +337,7 @@ describe('entity selectors', () => {
 	it('keeps every concrete selector field represented as an ordinary field definition', () => {
 		expect(
 			schema.flatMap((entityDefinition) => {
-				const fieldNames = new Set(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => fieldDefinition.name))
+				const fieldNames = new Set(entityDefinition.fields.map((fieldDefinition) => fieldDefinition.name))
 				return entityDefinition.selectors.flatMap((selector) => (
 					selector.fields.flatMap((fieldName) => (
 						fieldNames.has(fieldName) ?
@@ -365,30 +352,57 @@ describe('entity selectors', () => {
 
 	it('keeps every entity backed by at least one concrete selector', () => {
 		expect(
-			schema.flatMap((entityDefinition) => {
-				return entityDefinition.selectors.some((selector) => selectorIsConcrete(
+			[
+				...schema,
+				{
+					...Parent,
+					entityType: 'MissingSelectors',
+					selectors: [],
+				},
+			].flatMap((entityDefinition) => (
+				entityDefinition.selectors.length > 0
+				&& entityDefinition.selectors.every((selector) => selectorIsConcrete(
 					entityDefinition,
 					selector.fields
 				)) ?
 					[]
 				:
 					[entityDefinition.entityType]
-			})
-			).toEqual([])
+			))
+		).toEqual(['MissingSelectors'])
 	})
 
-	it('keeps entity field definitions unique by name', () => {
-		expect(
-			schema.flatMap((entityDefinition) => {
-				const fieldNames = entityFieldDefinitions(entityDefinition).map((fieldDefinition) => fieldDefinition.name)
-				return fieldNames.flatMap((fieldName, fieldIndex) => (
-					fieldNames.indexOf(fieldName) === fieldIndex ?
+	it('keeps entity field definitions unique within each projection', () => {
+		const duplicateFieldAddresses = (definitions: Schema) => indexSchema(definitions)
+			.projectionDefinitions.flatMap((projectionDefinition) => {
+				const fieldAddressKeys = projectionDefinition.fields.map((fieldDefinition) => entityFieldAddressKey(
+					projectionDefinition.entityType,
+					projectionDefinition.facetPath,
+					fieldDefinition.name
+				))
+				return projectionDefinition.fields.flatMap((fieldDefinition, fieldIndex) => (
+					fieldAddressKeys.indexOf(entityFieldAddressKey(
+						projectionDefinition.entityType,
+						projectionDefinition.facetPath,
+						fieldDefinition.name
+					)) === fieldIndex ?
 						[]
 					:
-						[`${entityDefinition.entityType}.${fieldName}`]
+						[`${projectionDefinition.entityType}.${[
+							...projectionDefinition.facetPath,
+							fieldDefinition.name,
+						].join('.')}`]
 				))
 			})
-		).toEqual([])
+
+		expect(duplicateFieldAddresses(schema)).toEqual([])
+		expect(duplicateFieldAddresses([{
+			...Parent,
+			fields: [
+				...Parent.fields,
+				Parent.fields[0],
+			],
+		}])).toEqual(['Parent.slug'])
 	})
 
 	it('keeps market quote feed identity separate from OHLC interval identity', () => {
@@ -417,6 +431,44 @@ describe('entity selectors', () => {
 			'timestampMs',
 		]])
 		expect(entityFieldDefinitions(marketTimeIntervalTimestamp).some((fieldDefinition) => fieldDefinition.name === 'feedKey')).toBe(false)
+	})
+
+	it('models market legs and venues as canonical entity references', () => {
+		const indexes = indexSchema(schema)
+		const market = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.Market)
+		if (market == null)
+			throw new Error('missing Market schema definition')
+
+		expect(market.selectors.map((selector) => selector.fields)).toEqual([[
+			'$base',
+			'$quote',
+			'$marketVenue',
+			'marketKind',
+		]])
+		expect(market.fields.find((fieldDefinition) => fieldDefinition.name === '$base')).toMatchObject({
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MarketAsset,
+		})
+		expect(market.fields.find((fieldDefinition) => fieldDefinition.name === '$quote')).toMatchObject({
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MarketAsset,
+		})
+		expect(market.fields.find((fieldDefinition) => fieldDefinition.name === '$marketVenue')).toMatchObject({
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MarketVenue,
+		})
+		expect(indexes.entityFieldDefinitionByEntityTypePathAndName[EntityType.MarketAsset][
+			entityFieldAddressKey(EntityType.MarketAsset, ['Coin'], '$coin')
+		]).toMatchObject({
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Coin,
+		})
+		expect(indexes.entityFieldDefinitionByEntityTypePathAndName[EntityType.MarketAsset][
+			entityFieldAddressKey(EntityType.MarketAsset, ['Currency'], '$currency')
+		]).toMatchObject({
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Currency,
+		})
 	})
 
 	it('keeps Solana instruction identity on explicit RPC instruction coordinates', () => {
@@ -493,17 +545,10 @@ describe('entity selectors', () => {
 				selector.fields
 			)).flatMap((selector) => (
 				selector.fields.flatMap((fieldName) => {
-					const fieldDefinition = entityFieldDefinitions(entityDefinition)
+					const fieldDefinition = entityDefinition.fields
 						.find((candidate) => candidate.name === fieldName)
 					if (fieldDefinition == null)
 						return [`${[...path, entityDefinition.entityType, selector.name, fieldName].join('.')}: missing field`]
-
-					if (!selectorFieldIsRequired(
-						fieldDefinition,
-						selector.fields,
-						entityDefinition.entityType
-					))
-						return [`${[...path, entityDefinition.entityType, selector.name, fieldName].join('.')}: selector field must be required`]
 
 					if (fieldDefinition.type !== EntityFieldType.EntityReference)
 						return []
@@ -568,95 +613,14 @@ describe('entity selectors', () => {
 			).toEqual([])
 	})
 
-	it('keeps concrete conditional discriminators required and primitive', () => {
-		expect(
-			schema.flatMap((entityDefinition) => {
-				const fieldDefinitionByName = Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
-					fieldDefinition.name,
-					fieldDefinition,
-				]))
-				return entityFieldDefinitions(entityDefinition).flatMap((fieldDefinition) => {
-					if (fieldDefinition.when == null)
-						return []
-
-					const discriminator = fieldDefinitionByName[fieldDefinition.when.fieldName]
-					return (
-						discriminator.type === EntityFieldType.Primitive
-						&& discriminator.cardinality === EntityFieldCardinality.One ?
-							[]
-						:
-							[`${entityDefinition.entityType}.${fieldDefinition.name}.${fieldDefinition.when.fieldName}`]
-					)
-				})
-			})
-			).toEqual([])
-	})
-
-	it('keeps indexed conditional discriminators on required primitive arrays', () => {
-		expect(
-			schema.flatMap((entityDefinition) => {
-				const fieldDefinitionByName = Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
-					fieldDefinition.name,
-					fieldDefinition,
-				]))
-				return entityFieldDefinitions(entityDefinition).flatMap((fieldDefinition) => {
-					if (fieldDefinition.when?.itemIndex == null)
-						return []
-
-					const discriminator = fieldDefinitionByName[fieldDefinition.when.fieldName]
-					return (
-						discriminator.type === EntityFieldType.Primitive
-						&& discriminator.cardinality === EntityFieldCardinality.One
-						&& !(discriminator.primitiveType(fieldDefinition.when.values) instanceof arktype.errors)
-						&& Number.isInteger(fieldDefinition.when.itemIndex)
-						&& fieldDefinition.when.itemIndex >= 0 ?
-							[]
-						:
-							[`${entityDefinition.entityType}.${fieldDefinition.name}.${fieldDefinition.when.fieldName}`]
-					)
-				})
-			})
-			).toEqual([])
-	})
-
-	it('rejects invalid indexed conditional discriminator positions at construction', () => {
-		const fields = [
-			{
-				name: 'topics',
-				type: EntityFieldType.Primitive,
-				primitiveType: arktype('string').array(),
-				cardinality: EntityFieldCardinality.One,
-			},
-		] as const satisfies readonly EntityFieldDefinition[]
-		const values = [
-			'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
-		] as const
-
-		expect(() => conditionalOn(
-			fields,
-			'topics',
-			values,
-			{
-				itemIndex: -1,
-			}
-		)).toThrow(/Invalid conditional field index/)
-
-		expect(() => conditionalOn(
-			fields,
-			'topics',
-			values,
-			{
-				itemIndex: 0.5,
-			}
-		)).toThrow(/Invalid conditional field index/)
-	})
-
 	it('indexes declared projections once by entity type and facet path', () => {
 		const indexes = indexSchema([
 			entity({
 				entityType: 'IndexedEntity',
-				label: 'Indexed entity',
-				labelPlural: 'Indexed entities',
+				labels: {
+					singular: 'Indexed entity',
+					plural: 'Indexed entities',
+				},
 			})({
 				kind: {
 					type: EntityFieldType.Primitive,
@@ -714,6 +678,33 @@ describe('entity selectors', () => {
 				entityFieldAddressKey(EntityType.Network, ['Evm'], '$$blocks')
 			]?.name
 		).toBe('$$blocks')
+		expect(
+			indexes.projectionDefinitionByEntityTypeAndPath[
+				entityFieldAddressKey('IndexedEntity', ['Parent', 'Child'], '')
+			]?.directDependencies
+		).toEqual([
+			{
+				entityType: 'IndexedEntity',
+				facetPath: ['Parent'],
+				fieldName: 'parentKind',
+			},
+		])
+		expect(
+			indexes.projectionDefinitionByEntityTypeAndPath[
+				entityFieldAddressKey('IndexedEntity', ['Parent', 'Child'], '')
+			]?.transitiveDependencies
+		).toEqual([
+			{
+				entityType: 'IndexedEntity',
+				facetPath: [],
+				fieldName: 'kind',
+			},
+			{
+				entityType: 'IndexedEntity',
+				facetPath: ['Parent'],
+				fieldName: 'parentKind',
+			},
+		])
 	})
 
 	it('keeps provisional network identifiers out of canonical CAIP-2 modeling', () => {

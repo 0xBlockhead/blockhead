@@ -52,7 +52,7 @@
 			amountAtomicUnits: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || 'blockhead monero transfer state')
+	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'blockhead monero transfer state')
 	const viewDomId = $derived('blockhead-monero-transfer-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -81,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadMoneroTransferState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero transfer state'}
+				{[String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero transfer state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroTransferState}>
 			{#snippet Pending()}
-				{[String((prefetched.direction) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero transfer state'}
+				{[String((pendingEntity.direction) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero transfer state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadMoneroTransferState}>
 			{#snippet Pending()}
-				{@const amountAtomicUnits0 = prefetched.amountAtomicUnits}
+				{@const amountAtomicUnits0 = pendingEntity.amountAtomicUnits}
 				{#if amountAtomicUnits0 !== undefined && amountAtomicUnits0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(amountAtomicUnits0)} />
@@ -142,7 +142,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const walletId = selection.entitySelector.walletId ?? prefetched.walletId}
+							{@const walletId = pendingEntity.walletId}
 							{#if walletId !== undefined && walletId !== null}
 								{String((walletId) ?? '')}
 							{/if}
@@ -162,6 +162,8 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -186,7 +188,7 @@
 						resource={selection.$network}
 					>
 						{#snippet children(moneroNetwork)}
-							{#if moneroNetwork[EntityMetaKey.Selector] != null}
+							{#if moneroNetwork != null && moneroNetwork[EntityMetaKey.Selector] != null}
 								<MoneroNetworkView
 									selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 									prefetched={moneroNetwork}
@@ -202,6 +204,8 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(moneroTransaction)}
 					{#if moneroTransaction != null && moneroTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -234,7 +238,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const txHash = selection.entitySelector.txHash ?? prefetched.txHash}
+							{@const txHash = pendingEntity.txHash}
 							{#if txHash !== undefined && txHash !== null}
 								<TruncatedValue value={String((txHash) ?? '')} />
 							{/if}
@@ -264,7 +268,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transferIndex = selection.entitySelector.transferIndex ?? prefetched.transferIndex}
+							{@const transferIndex = pendingEntity.transferIndex}
 							{#if transferIndex !== undefined && transferIndex !== null}
 								<NumberValue value={Number(transferIndex)} />
 							{/if}
@@ -294,7 +298,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const direction = prefetched.direction}
+							{@const direction = pendingEntity.direction}
 							{#if direction !== undefined && direction !== null}
 								{String((direction) ?? '')}
 							{/if}
@@ -321,7 +325,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amountAtomicUnits = prefetched.amountAtomicUnits}
+					{@const amountAtomicUnits = pendingEntity.amountAtomicUnits}
 					{#if amountAtomicUnits !== undefined && amountAtomicUnits !== null}
 						<div>
 							<dt>amount atomic units</dt>
@@ -356,7 +360,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeAtomicUnits = prefetched.feeAtomicUnits}
+					{@const feeAtomicUnits = pendingEntity.feeAtomicUnits}
 					{#if feeAtomicUnits !== undefined && feeAtomicUnits !== null}
 						<div>
 							<dt>fee atomic units</dt>
@@ -393,7 +397,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountIndex = prefetched.accountIndex}
+					{@const accountIndex = pendingEntity.accountIndex}
 					{#if accountIndex !== undefined && accountIndex !== null}
 						<div>
 							<dt>account index</dt>
@@ -428,7 +432,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const addressIndex = prefetched.addressIndex}
+					{@const addressIndex = pendingEntity.addressIndex}
 					{#if addressIndex !== undefined && addressIndex !== null}
 						<div>
 							<dt>address index</dt>
@@ -463,7 +467,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paymentId = prefetched.paymentId}
+					{@const paymentId = pendingEntity.paymentId}
 					{#if paymentId !== undefined && paymentId !== null}
 						<div>
 							<dt>payment ID</dt>
@@ -498,7 +502,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const note = prefetched.note}
+					{@const note = pendingEntity.note}
 					{#if note !== undefined && note !== null}
 						<div>
 							<dt>note</dt>
@@ -533,7 +537,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const keyImage = prefetched.keyImage}
+					{@const keyImage = pendingEntity.keyImage}
 					{#if keyImage !== undefined && keyImage !== null}
 						<div>
 							<dt>key image</dt>
@@ -568,7 +572,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>

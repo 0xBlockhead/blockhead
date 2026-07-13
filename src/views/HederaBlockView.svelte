@@ -99,7 +99,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -134,7 +134,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -169,7 +169,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusStartTimestamp = prefetched.consensusStartTimestamp}
+					{@const consensusStartTimestamp = pendingEntity.consensusStartTimestamp}
 					{#if consensusStartTimestamp !== undefined && consensusStartTimestamp !== null}
 						<div>
 							<dt>consensus start timestamp</dt>
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusEndTimestamp = prefetched.consensusEndTimestamp}
+					{@const consensusEndTimestamp = pendingEntity.consensusEndTimestamp}
 					{#if consensusEndTimestamp !== undefined && consensusEndTimestamp !== null}
 						<div>
 							<dt>consensus end timestamp</dt>
@@ -239,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>gas used</dt>
@@ -274,7 +274,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const recordFileName = prefetched.recordFileName}
+					{@const recordFileName = pendingEntity.recordFileName}
 					{#if recordFileName !== undefined && recordFileName !== null}
 						<div>
 							<dt>record file name</dt>
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount}
+					{@const transactionCount = pendingEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>transaction count</dt>

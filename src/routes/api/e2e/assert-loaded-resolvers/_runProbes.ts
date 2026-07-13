@@ -50,7 +50,6 @@ import {
 const {
 	resolverDefinitions,
 	resolverCountPartsByEntityTypeAndFieldName,
-	resolverDiscriminatorPartsByEntityTypeAndConditionKey,
 	resolverLivePartsByEntityTypeAndFieldName,
 	resolverRootLivePartsByEntityType,
 	resolverValuePartsByEntityTypeAndFieldName,
@@ -188,8 +187,6 @@ export type AssertLoadedResolverProbeResult = {
 	/** Resolvers exercised (same process as probes); `cases.length` must equal the sum. */
 	resolverDefinitionCount: number
 	resolverValuePartCount: number
-	conditionalScalarDiscriminatorCount: number
-	conditionalItemDiscriminatorCount: number
 	countResolverPartCount: number
 	countResolverFields: string[]
 	fieldLiveResolverPartCount: number
@@ -525,20 +522,6 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			cases,
 			resolverDefinitionCount: resolverDefinitionProbes.length,
 			resolverValuePartCount: resolverValuePartProbes.length,
-			conditionalScalarDiscriminatorCount: Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
-				.flatMap((partsByConditionKey) => Object.entries(partsByConditionKey))
-				.filter(([conditionKey, parts]) => (
-					!conditionKey.includes('[')
-					&& parts.length > 0
-				))
-				.length,
-			conditionalItemDiscriminatorCount: Object.values(resolverDiscriminatorPartsByEntityTypeAndConditionKey)
-				.flatMap((partsByConditionKey) => Object.entries(partsByConditionKey))
-				.filter(([conditionKey, parts]) => (
-					conditionKey.includes('[')
-					&& parts.length > 0
-				))
-			.length,
 		countResolverPartCount: Object.values(resolverCountPartsByEntityTypeAndFieldName)
 			.flatMap((parts) => parts)
 			.length,

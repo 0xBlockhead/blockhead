@@ -120,8 +120,8 @@
 						selection={select(EntityType.BeaconWithdrawal, beaconWithdrawal[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconWithdrawalFields}
 						href={
-							(beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.caip2 !== undefined && beaconWithdrawalHrefFields.$network.caip2.namespace !== undefined && beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.caip2 !== undefined && beaconWithdrawalHrefFields.$network.caip2.reference !== undefined && beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-								caip2: `${String(beaconWithdrawalHrefFields.$network.caip2.namespace ?? '')}:${String(beaconWithdrawalHrefFields.$network.caip2.reference ?? '')}`,
+							(beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.slug !== undefined && beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
+								network: String(beaconWithdrawalHrefFields.$network.slug ?? ''),
 								slot: String(beaconWithdrawalHrefFields.slot ?? ''),
 								index: String(beaconWithdrawalHrefFields.indexInSlot ?? ''),
 							}) : undefined)

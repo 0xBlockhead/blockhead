@@ -9,8 +9,10 @@ export enum BlockheadBridgeTransactionSelector {
 }
 export const BlockheadBridgeTransaction = entity({
 	entityType: EntityType.BlockheadBridgeTransaction,
-	label: 'bridge transaction',
-	labelPlural: 'bridge transactions',
+	labels: {
+		singular: 'bridge transaction',
+		plural: 'bridge transactions',
+	},
 })({
 	$account: {
 		label: 'Account',
@@ -27,7 +29,7 @@ export const BlockheadBridgeTransaction = entity({
 	createdAt: {
 		label: 'Created',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$bridgeTransfer: {

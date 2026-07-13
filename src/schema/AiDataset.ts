@@ -13,8 +13,10 @@ export enum AiDatasetSelector {
 }
 export const AiDataset = entity({
 	entityType: EntityType.AiDataset,
-	label: 'AI dataset',
-	labelPlural: 'AI datasets',
+	labels: {
+		singular: 'AI dataset',
+		plural: 'AI datasets',
+	},
 })({
 	datasetUri: {
 		label: 'dataset URI',

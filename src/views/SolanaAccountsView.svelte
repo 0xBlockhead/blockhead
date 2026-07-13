@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -120,9 +119,9 @@
 						selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaAccountFields}
 						href={
-							(solanaAccountHrefFields.$network !== undefined && solanaAccountHrefFields.$network.caip2 !== undefined && solanaAccountHrefFields.$network.caip2.namespace !== undefined && solanaAccountHrefFields.$network !== undefined && solanaAccountHrefFields.$network.caip2 !== undefined && solanaAccountHrefFields.$network.caip2.reference !== undefined && solanaAccountHrefFields.pubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/account/[pubkey]', {
-								networkSlug: String(networkByCaip2[String(String(solanaAccountHrefFields.$network.caip2.namespace) + ':' + String(solanaAccountHrefFields.$network.caip2.reference))].slug ?? ''),
-								pubkey: String(solanaAccountHrefFields.pubkey ?? ''),
+							(solanaAccountHrefFields.$network !== undefined && solanaAccountHrefFields.$network.slug !== undefined && solanaAccountHrefFields.pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
+								network: String(solanaAccountHrefFields.$network.slug ?? ''),
+								accountId: String(solanaAccountHrefFields.pubkey ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

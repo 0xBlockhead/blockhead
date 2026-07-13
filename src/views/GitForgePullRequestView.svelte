@@ -48,7 +48,7 @@
 			state: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.pullRequestNumber ?? prefetched.pullRequestNumber) ?? '')].filter(Boolean).join(' ') || 'Git forge pull request')
+	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.pullRequestNumber) ?? '')].filter(Boolean).join(' ') || 'Git forge pull request')
 	const viewDomId = $derived('git-forge-pull-request-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitForgePullRequest}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.pullRequestNumber ?? prefetched.pullRequestNumber) ?? '')].filter(Boolean).join(' ') || 'Git forge pull request'}
+				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.pullRequestNumber) ?? '')].filter(Boolean).join(' ') || 'Git forge pull request'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitForgePullRequest}>
 			{#snippet Pending()}
-				{[String((prefetched.state) ?? '')].filter(Boolean).join(' ') || [String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.pullRequestNumber ?? prefetched.pullRequestNumber) ?? '')].filter(Boolean).join(' ') || 'Git forge pull request'}
+				{[String((pendingEntity.state) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.pullRequestNumber) ?? '')].filter(Boolean).join(' ') || 'Git forge pull request'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -123,7 +123,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const pullRequestNumber = selection.entitySelector.pullRequestNumber ?? prefetched.pullRequestNumber}
+							{@const pullRequestNumber = pendingEntity.pullRequestNumber}
 							{#if pullRequestNumber !== undefined && pullRequestNumber !== null}
 								<NumberValue value={Number(pullRequestNumber)} />
 							{/if}
@@ -150,7 +150,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const title = prefetched.title}
+					{@const title = pendingEntity.title}
 					{#if title !== undefined && title !== null}
 						<div>
 							<dt>title</dt>
@@ -188,7 +188,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const state = prefetched.state}
+							{@const state = pendingEntity.state}
 							{#if state !== undefined && state !== null}
 								{String((state) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseRef = prefetched.baseRef}
+					{@const baseRef = pendingEntity.baseRef}
 					{#if baseRef !== undefined && baseRef !== null}
 						<div>
 							<dt>base ref</dt>
@@ -250,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const headRef = prefetched.headRef}
+					{@const headRef = pendingEntity.headRef}
 					{#if headRef !== undefined && headRef !== null}
 						<div>
 							<dt>head ref</dt>
@@ -285,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const headObjectId = prefetched.headObjectId}
+					{@const headObjectId = pendingEntity.headObjectId}
 					{#if headObjectId !== undefined && headObjectId !== null}
 						<div>
 							<dt>head object ID</dt>
@@ -322,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -357,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>
@@ -392,7 +392,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mergedAt = prefetched.mergedAt}
+					{@const mergedAt = pendingEntity.mergedAt}
 					{#if mergedAt !== undefined && mergedAt !== null}
 						<div>
 							<dt>merged AT</dt>

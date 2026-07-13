@@ -46,7 +46,7 @@
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.networkStackId ?? prefetched.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack')
 	const viewDomId = $derived('network-stack-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,7 +68,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={networkStack}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.networkStackId ?? prefetched.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,7 +99,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const networkStackId = selection.entitySelector.networkStackId ?? prefetched.networkStackId}
+							{@const networkStackId = pendingEntity.networkStackId}
 							{#if networkStackId !== undefined && networkStackId !== null}
 								{String((networkStackId) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const label = prefetched.label}
+							{@const label = pendingEntity.label}
 							{#if label !== undefined && label !== null}
 								{String((label) ?? '')}
 							{/if}

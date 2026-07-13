@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const methodName = selection.entitySelector.methodName ?? prefetched.methodName}
+							{@const methodName = pendingEntity.methodName}
 							{#if methodName !== undefined && methodName !== null}
 								{String((methodName) ?? '')}
 							{/if}

@@ -9,8 +9,10 @@ export enum AptosAccountResource_TimestampSelector {
 }
 export const AptosAccountResource_Timestamp = entity({
 	entityType: EntityType.AptosAccountResource_Timestamp,
-	label: 'aptos account resource timestamp',
-	labelPlural: 'aptos account resource observations',
+	labels: {
+		singular: 'aptos account resource timestamp',
+		plural: 'aptos account resource observations',
+	},
 })({
 	$resource: {
 		label: 'resource',

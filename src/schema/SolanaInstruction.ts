@@ -14,8 +14,10 @@ export enum SolanaInstructionSelector {
 }
 export const SolanaInstruction = entity({
 	entityType: EntityType.SolanaInstruction,
-	label: 'solana instruction',
-	labelPlural: 'Solana instructions',
+	labels: {
+		singular: 'solana instruction',
+		plural: 'Solana instructions',
+	},
 })({
 	$transaction: {
 		label: 'Transaction',
@@ -32,13 +34,13 @@ export const SolanaInstruction = entity({
 	indexInTransaction: {
 		label: 'Index in transaction',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInInstruction: {
 		label: 'Index in instruction',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$program: {

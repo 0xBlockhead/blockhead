@@ -9,8 +9,10 @@ export enum NostrNetworkSelector {
 }
 export const NostrNetwork = entity({
 	entityType: EntityType.NostrNetwork,
-	label: 'Nostr network',
-	labelPlural: 'Nostr networks',
+	labels: {
+		singular: 'Nostr network',
+		plural: 'Nostr networks',
+	},
 	description: 'Compatibility protocol row for the Nostr network concept. The product-backed observed is modeled by _GlobalNostrNetwork.',
 })({
 	scope: {

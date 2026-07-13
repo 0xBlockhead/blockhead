@@ -9,8 +9,10 @@ export enum RadicleSignedRefSelector {
 }
 export const RadicleSignedRef = entity({
 	entityType: EntityType.RadicleSignedRef,
-	label: 'radicle signed ref',
-	labelPlural: 'radicle signed refs',
+	labels: {
+		singular: 'radicle signed ref',
+		plural: 'radicle signed refs',
+	},
 })({
 	$repository: {
 		label: 'repository',

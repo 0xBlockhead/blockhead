@@ -55,7 +55,7 @@
 			timestamp: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.version ?? prefetched.version) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel state')
+	const titleFallback = $derived([String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel state')
 	const viewDomId = $derived('blockhead-state-channel-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadStateChannelState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.version ?? prefetched.version) ?? '')].filter(Boolean).join(' ') || title || 'blockhead state channel state'}
+				{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || 'blockhead state channel state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadStateChannelState}>
 			{#snippet Pending()}
-				{[String((prefetched.isFinal) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.version ?? prefetched.version) ?? '')].filter(Boolean).join(' ') || title || 'blockhead state channel state'}
+				{[String((pendingEntity.isFinal) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || 'blockhead state channel state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +106,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadStateChannelState}>
 			{#snippet Pending()}
-				{@const timestamp0 = prefetched.timestamp}
+				{@const timestamp0 = pendingEntity.timestamp}
 				{#if timestamp0 !== undefined && timestamp0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestamp0)} />
@@ -134,7 +134,7 @@
 					<BlockheadStateChannelView
 						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel, {})}
 						href={
-							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId]', {
+							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
 								channelId: String(selection.entitySelector.$channel.id ?? ''),
 							}) : undefined)
 						}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const version = selection.entitySelector.version ?? prefetched.version}
+							{@const version = pendingEntity.version}
 							{#if version !== undefined && version !== null}
 								{String((version) ?? '')}
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const stateData = selection.entitySelector.stateData ?? prefetched.stateData}
+							{@const stateData = pendingEntity.stateData}
 							{#if stateData !== undefined && stateData !== null}
 								{String((stateData) ?? '')}
 							{/if}
@@ -217,7 +217,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const intent = prefetched.intent}
+							{@const intent = pendingEntity.intent}
 							{#if intent !== undefined && intent !== null}
 								{String((intent) ?? '')}
 							{/if}
@@ -247,7 +247,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const allocations = prefetched.allocations}
+							{@const allocations = pendingEntity.allocations}
 							{#if allocations !== undefined && allocations !== null}
 								{allocations == null ? '' : String(((allocations).map((allocation) => `${allocation.destination}:${allocation.token}:${allocation.amount}`).join(', ')) ?? '')}
 							{/if}
@@ -277,7 +277,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signatures = prefetched.signatures}
+							{@const signatures = pendingEntity.signatures}
 							{#if signatures !== undefined && signatures !== null}
 								<TruncatedValue value={signatures == null ? '' : String(((signatures).join(', ')) ?? '')} />
 							{/if}
@@ -307,7 +307,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const isFinal = prefetched.isFinal}
+							{@const isFinal = pendingEntity.isFinal}
 							{#if isFinal !== undefined && isFinal !== null}
 								{isFinal ? 'Yes' : 'No'}
 							{/if}
@@ -337,7 +337,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestamp = prefetched.timestamp}
+							{@const timestamp = pendingEntity.timestamp}
 							{#if timestamp !== undefined && timestamp !== null}
 								<Timestamp timestamp={Number(timestamp)} />
 							{/if}

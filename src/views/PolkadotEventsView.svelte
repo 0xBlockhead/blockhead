@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -121,8 +120,8 @@
 						selection={select(EntityType.PolkadotEvent, polkadotEvent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotEventFields}
 						href={
-							(polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.caip2 !== undefined && polkadotEventHrefFields.$block.$network.caip2.namespace !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.caip2 !== undefined && polkadotEventHrefFields.$block.$network.caip2.reference !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.blockNumber !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.hash !== undefined && polkadotEventHrefFields.indexInBlock !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]/event/[eventIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(String(polkadotEventHrefFields.$block.$network.caip2.namespace) + ':' + String(polkadotEventHrefFields.$block.$network.caip2.reference))].slug ?? ''),
+							(polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.slug !== undefined && polkadotEventHrefFields.$block.blockNumber !== undefined && polkadotEventHrefFields.$block.hash !== undefined && polkadotEventHrefFields.indexInBlock !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/event/[eventIndex=nonNegativeInteger]', {
+								network: String(polkadotEventHrefFields.$block.$network.slug ?? ''),
 								blockNumber: String(polkadotEventHrefFields.$block.blockNumber ?? ''),
 								hash: String(polkadotEventHrefFields.$block.hash ?? ''),
 								eventIndex: String(polkadotEventHrefFields.indexInBlock ?? ''),

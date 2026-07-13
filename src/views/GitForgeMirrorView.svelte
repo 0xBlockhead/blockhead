@@ -43,7 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const gitForgeMirror = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.owner ?? prefetched.owner) ?? ''), String((selection.entitySelector.repositoryName ?? prefetched.repositoryName) ?? '')].filter(Boolean).join(' ') || 'Git forge mirror')
+	const titleFallback = $derived([String((pendingEntity.owner) ?? ''), String((pendingEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || 'Git forge mirror')
 	const viewDomId = $derived('git-forge-mirror-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitForgeMirror}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.owner ?? prefetched.owner) ?? ''), String((selection.entitySelector.repositoryName ?? prefetched.repositoryName) ?? '')].filter(Boolean).join(' ') || title || 'Git forge mirror'}
+				{[String((pendingEntity.owner) ?? ''), String((pendingEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || title || 'Git forge mirror'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -80,7 +80,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitForgeMirror}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.forgeHost ?? prefetched.forgeHost) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.owner ?? prefetched.owner) ?? ''), String((selection.entitySelector.repositoryName ?? prefetched.repositoryName) ?? '')].filter(Boolean).join(' ') || title || 'Git forge mirror'}
+				{[String((pendingEntity.forgeHost) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.owner) ?? ''), String((pendingEntity.repositoryName) ?? '')].filter(Boolean).join(' ') || title || 'Git forge mirror'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const forgeHost = selection.entitySelector.forgeHost ?? prefetched.forgeHost}
+							{@const forgeHost = pendingEntity.forgeHost}
 							{#if forgeHost !== undefined && forgeHost !== null}
 								{String((forgeHost) ?? '')}
 							{/if}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const owner = selection.entitySelector.owner ?? prefetched.owner}
+							{@const owner = pendingEntity.owner}
 							{#if owner !== undefined && owner !== null}
 								{String((owner) ?? '')}
 							{/if}
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const repositoryName = selection.entitySelector.repositoryName ?? prefetched.repositoryName}
+							{@const repositoryName = pendingEntity.repositoryName}
 							{#if repositoryName !== undefined && repositoryName !== null}
 								{String((repositoryName) ?? '')}
 							{/if}
@@ -185,6 +185,8 @@
 			<ResourceBoundary
 				resource={selection.$gitRepository}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitRepository)}
 					{#if gitRepository != null && gitRepository[EntityMetaKey.Selector] != null}
 						<div>
@@ -212,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const defaultBranch = prefetched.defaultBranch}
+					{@const defaultBranch = pendingEntity.defaultBranch}
 					{#if defaultBranch !== undefined && defaultBranch !== null}
 						<div>
 							<dt>default branch</dt>
@@ -247,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const visibility = prefetched.visibility}
+					{@const visibility = pendingEntity.visibility}
 					{#if visibility !== undefined && visibility !== null}
 						<div>
 							<dt>visibility</dt>
@@ -282,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const htmlUrl = prefetched.htmlUrl}
+					{@const htmlUrl = pendingEntity.htmlUrl}
 					{#if htmlUrl !== undefined && htmlUrl !== null}
 						<div>
 							<dt>HTML URL</dt>
@@ -331,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerRepositoryId = prefetched.providerRepositoryId}
+					{@const providerRepositoryId = pendingEntity.providerRepositoryId}
 					{#if providerRepositoryId !== undefined && providerRepositoryId !== null}
 						<div>
 							<dt>provider repository ID</dt>
@@ -366,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const source = prefetched.source}
+					{@const source = pendingEntity.source}
 					{#if source !== undefined && source !== null}
 						<div>
 							<dt>Source</dt>
@@ -406,7 +408,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const cloneUrls = prefetched.cloneUrls}
+							{@const cloneUrls = pendingEntity.cloneUrls}
 							{#if cloneUrls !== undefined && cloneUrls !== null}
 								<svelte:element
 									this={'a'}

@@ -48,11 +48,10 @@
 			Source.Local_Internal,
 		],
 		fields: {
-			$programVersion: true,
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.runtimeId ?? prefetched.runtimeId) ?? '')].filter(Boolean).join(' ') || 'ACP agent runtime')
+	const titleFallback = $derived([String((pendingEntity.runtimeId) ?? '')].filter(Boolean).join(' ') || 'ACP agent runtime')
 	const viewDomId = $derived('acp-agent-runtime-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpAgentRuntime}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.runtimeId ?? prefetched.runtimeId) ?? '')].filter(Boolean).join(' ') || title || 'ACP agent runtime'}
+				{[String((pendingEntity.runtimeId) ?? '')].filter(Boolean).join(' ') || title || 'ACP agent runtime'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -132,7 +131,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpAgentRuntime}>
 			{#snippet Pending()}
-				{@const transportKind0 = prefetched.transportKind}
+				{@const transportKind0 = pendingEntity.transportKind}
 				{#if transportKind0 !== undefined && transportKind0 !== null}
 					<span data-text="muted">
 						{String((transportKind0) ?? '')}
@@ -167,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const runtimeId = selection.entitySelector.runtimeId ?? prefetched.runtimeId}
+							{@const runtimeId = pendingEntity.runtimeId}
 							{#if runtimeId !== undefined && runtimeId !== null}
 								{String((runtimeId) ?? '')}
 							{/if}
@@ -187,6 +186,8 @@
 			<ResourceBoundary
 				resource={selection.$source}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
 						<div>
@@ -207,6 +208,8 @@
 			<ResourceBoundary
 				resource={selection.$programVersion}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(acpAgentProgramVersion)}
 					{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
 						<div>
@@ -227,6 +230,8 @@
 			<ResourceBoundary
 				resource={selection.$programInstall}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadAgentProgramInstall)}
 					{#if blockheadAgentProgramInstall != null && blockheadAgentProgramInstall[EntityMetaKey.Selector] != null}
 						<div>
@@ -254,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transportKind = prefetched.transportKind}
+					{@const transportKind = pendingEntity.transportKind}
 					{#if transportKind !== undefined && transportKind !== null}
 						<div>
 							<dt>transport kind</dt>
@@ -291,7 +296,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const processId = prefetched.processId}
+					{@const processId = pendingEntity.processId}
 					{#if processId !== undefined && processId !== null}
 						<div>
 							<dt>process ID</dt>
@@ -326,7 +331,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const initializedAt = prefetched.initializedAt}
+					{@const initializedAt = pendingEntity.initializedAt}
 					{#if initializedAt !== undefined && initializedAt !== null}
 						<div>
 							<dt>initialized AT</dt>

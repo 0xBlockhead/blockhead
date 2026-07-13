@@ -9,8 +9,10 @@ export enum Market_Derivative_TimestampSelector {
 }
 export const Market_Derivative_Timestamp = entity({
 	entityType: EntityType.Market_Derivative_Timestamp,
-	label: 'market derivative timestamp',
-	labelPlural: 'market derivative observations',
+	labels: {
+		singular: 'market derivative timestamp',
+		plural: 'market derivative observations',
+	},
 })({
 	$market: {
 		label: 'Market',
@@ -22,7 +24,7 @@ export const Market_Derivative_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	feedKey: {

@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const round = selection.entitySelector.round ?? prefetched.round}
+							{@const round = pendingEntity.round}
 							{#if round !== undefined && round !== null}
 								{String((round) ?? '')}
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -162,7 +162,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const approvalProgramHash = prefetched.approvalProgramHash}
+					{@const approvalProgramHash = pendingEntity.approvalProgramHash}
 					{#if approvalProgramHash !== undefined && approvalProgramHash !== null}
 						<div>
 							<dt>approval program hash</dt>
@@ -197,7 +197,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clearProgramHash = prefetched.clearProgramHash}
+					{@const clearProgramHash = pendingEntity.clearProgramHash}
 					{#if clearProgramHash !== undefined && clearProgramHash !== null}
 						<div>
 							<dt>clear program hash</dt>
@@ -232,7 +232,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const boxCount = prefetched.boxCount}
+					{@const boxCount = pendingEntity.boxCount}
 					{#if boxCount !== undefined && boxCount !== null}
 						<div>
 							<dt>box count</dt>
@@ -267,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>

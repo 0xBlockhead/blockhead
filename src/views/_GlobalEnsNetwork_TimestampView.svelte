@@ -68,7 +68,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(ens)/ens/observations/[timestampMs=nonNegativeInteger]/[source]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/ens/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
 		}) : undefined)
@@ -82,7 +82,7 @@
 			{#snippet Pending()}
 				<GlobalEnsNetworkView
 					selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
-					href={resolve('/(explore)/(ens)/ens')}
+					href={resolve('/ens')}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -92,7 +92,7 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<GlobalEnsNetworkView
 					selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
-					href={resolve('/(explore)/(ens)/ens')}
+					href={resolve('/ens')}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -103,7 +103,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalEnsNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -126,7 +126,7 @@
 				<dd>
 					<GlobalEnsNetworkView
 						selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub, {})}
-						href={resolve('/(explore)/(ens)/ens')}
+						href={resolve('/ens')}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -209,7 +209,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedNameCount = prefetched.observedNameCount}
+					{@const observedNameCount = pendingEntity.observedNameCount}
 					{#if observedNameCount !== undefined && observedNameCount !== null}
 						<div>
 							<dt>Observed names</dt>
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedRecordCount = prefetched.observedRecordCount}
+					{@const observedRecordCount = pendingEntity.observedRecordCount}
 					{#if observedRecordCount !== undefined && observedRecordCount !== null}
 						<div>
 							<dt>Observed records</dt>
@@ -283,7 +283,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedReverseRecordCount = prefetched.observedReverseRecordCount}
+					{@const observedReverseRecordCount = pendingEntity.observedReverseRecordCount}
 					{#if observedReverseRecordCount !== undefined && observedReverseRecordCount !== null}
 						<div>
 							<dt>Observed reverse records</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededContractCount = prefetched.seededContractCount}
+					{@const seededContractCount = pendingEntity.seededContractCount}
 					{#if seededContractCount !== undefined && seededContractCount !== null}
 						<div>
 							<dt>Seeded contracts</dt>
@@ -357,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const discoveredResolverContractCount = prefetched.discoveredResolverContractCount}
+					{@const discoveredResolverContractCount = pendingEntity.discoveredResolverContractCount}
 					{#if discoveredResolverContractCount !== undefined && discoveredResolverContractCount !== null}
 						<div>
 							<dt>Discovered resolver contracts</dt>
@@ -394,7 +394,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subgraphBlockNumber = prefetched.subgraphBlockNumber}
+					{@const subgraphBlockNumber = pendingEntity.subgraphBlockNumber}
 					{#if subgraphBlockNumber !== undefined && subgraphBlockNumber !== null}
 						<div>
 							<dt>Subgraph block</dt>
@@ -431,7 +431,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rpcBlockNumber = prefetched.rpcBlockNumber}
+					{@const rpcBlockNumber = pendingEntity.rpcBlockNumber}
 					{#if rpcBlockNumber !== undefined && rpcBlockNumber !== null}
 						<div>
 							<dt>RPC block</dt>
@@ -468,7 +468,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>

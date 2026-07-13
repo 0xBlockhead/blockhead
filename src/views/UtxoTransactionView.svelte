@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -49,19 +49,21 @@
 			isCoinbase: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || 'UTXO transaction')
+	const titleFallback = $derived([String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'UTXO transaction')
 	const viewDomId = $derived('utxo-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
 	import ZcashShieldedActionsView from '$/views/ZcashShieldedActionsView.svelte'
-	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -71,9 +73,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.txId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]', {
-			networkSlug: String(networkByCaip2[String(String(pendingEntity.$network.caip2.namespace) + ':' + String(pendingEntity.$network.caip2.reference))].slug ?? ''),
-			txId: String(pendingEntity.txId ?? ''),
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.txId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+			network: String(pendingEntity.$network.slug ?? ''),
+			transactionId: String(pendingEntity.txId ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -83,7 +85,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={utxoTransaction}>
 			{#snippet Pending()}
-				{@const txId0 = selection.entitySelector.txId ?? prefetched.txId}
+				{@const txId0 = pendingEntity.txId}
 				{#if txId0 !== undefined && txId0 !== null}
 					<TruncatedValue value={String((txId0) ?? '')} />
 				{/if}
@@ -102,7 +104,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={utxoTransaction}>
 			{#snippet Pending()}
-				{@const txId0 = selection.entitySelector.txId ?? prefetched.txId}
+				{@const txId0 = pendingEntity.txId}
 				{#if txId0 !== undefined && txId0 !== null}
 					<TruncatedValue value={String((txId0) ?? '')} />
 				{/if}
@@ -121,13 +123,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={utxoTransaction}>
 			{#snippet Pending()}
-				{@const feeSats0 = prefetched.feeSats}
+				{@const feeSats0 = pendingEntity.feeSats}
 				{#if feeSats0 !== undefined && feeSats0 !== null}
 					<span data-text="muted">
 						{String((feeSats0) ?? '')}
 					</span>
 				{/if}
-				{@const isCoinbase1 = prefetched.isCoinbase}
+				{@const isCoinbase1 = pendingEntity.isCoinbase}
 				{#if isCoinbase1 !== undefined && isCoinbase1 !== null}
 					<span data-text="muted">
 						{isCoinbase1 ? 'Yes' : 'No'}
@@ -168,7 +170,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const txId = selection.entitySelector.txId ?? prefetched.txId}
+							{@const txId = pendingEntity.txId}
 							{#if txId !== undefined && txId !== null}
 								<TruncatedValue value={String((txId) ?? '')} />
 							{/if}
@@ -195,7 +197,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>Version</dt>
@@ -230,7 +232,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lockTime = prefetched.lockTime}
+					{@const lockTime = pendingEntity.lockTime}
 					{#if lockTime !== undefined && lockTime !== null}
 						<div>
 							<dt>Lock time</dt>
@@ -265,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isCoinbase = prefetched.isCoinbase}
+					{@const isCoinbase = pendingEntity.isCoinbase}
 					{#if isCoinbase !== undefined && isCoinbase !== null}
 						<div>
 							<dt>Coinbase</dt>
@@ -302,7 +304,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sizeBytes = prefetched.sizeBytes}
+					{@const sizeBytes = pendingEntity.sizeBytes}
 					{#if sizeBytes !== undefined && sizeBytes !== null}
 						<div>
 							<dt>Size</dt>
@@ -337,7 +339,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const virtualSizeBytes = prefetched.virtualSizeBytes}
+					{@const virtualSizeBytes = pendingEntity.virtualSizeBytes}
 					{#if virtualSizeBytes !== undefined && virtualSizeBytes !== null}
 						<div>
 							<dt>Virtual size</dt>
@@ -372,7 +374,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const weightUnits = prefetched.weightUnits}
+					{@const weightUnits = pendingEntity.weightUnits}
 					{#if weightUnits !== undefined && weightUnits !== null}
 						<div>
 							<dt>Weight</dt>
@@ -407,7 +409,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeSats = prefetched.feeSats}
+					{@const feeSats = pendingEntity.feeSats}
 					{#if feeSats !== undefined && feeSats !== null}
 						<div>
 							<dt>Fee</dt>
@@ -435,6 +437,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(utxoBlock)}
 					{#if utxoBlock != null && utxoBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -444,9 +448,9 @@
 									selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector])}
 									prefetched={utxoBlock}
 									href={
-										(utxoBlock[EntityMetaKey.Selector].$network !== undefined && utxoBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && utxoBlock[EntityMetaKey.Selector].$network !== undefined && utxoBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && utxoBlock[EntityMetaKey.Selector].height !== undefined && utxoBlock[EntityMetaKey.Selector].hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-											networkSlug: String(networkByCaip2[String(String(utxoBlock[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(utxoBlock[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
-											height: String(utxoBlock[EntityMetaKey.Selector].height ?? ''),
+										(utxoBlock[EntityMetaKey.Selector].$network !== undefined && utxoBlock[EntityMetaKey.Selector].$network.slug !== undefined && utxoBlock[EntityMetaKey.Selector].height !== undefined && utxoBlock[EntityMetaKey.Selector].hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+											network: String(utxoBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+											blockNumber: String(utxoBlock[EntityMetaKey.Selector].height ?? ''),
 											hash: String(utxoBlock[EntityMetaKey.Selector].hash ?? ''),
 										}) : undefined)
 									}
@@ -465,22 +469,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -493,23 +485,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<UtxoInputsView
-				selection={selection.$$inputs}
-				title='Inputs'
-				id='UtxoInputsView-inputs'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-utxo-transaction-activity-a'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'utxo-transaction-inputs',
+							label: 'Inputs',
+						},
+						{
+							id: 'utxo-transaction-outputs',
+							label: 'Outputs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-a'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<UtxoOutputsView
-				selection={selection.$$outputs}
-				title='Outputs'
-				id='UtxoOutputsView-outputs'
-			/>
+				{#snippet SectionUtxoTransactionInputs({ id, label, open })}
+					<UtxoInputsView
+						selection={selection.$$inputs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No inputs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<ZcashShieldedActionsView
-				selection={selection.$$zcashShieldedActions}
-				title='Zcash shielded actions'
-				id='ZcashShieldedActionsView-zcash-shielded-actions'
-			/>
+				{#snippet SectionUtxoTransactionOutputs({ id, label, open })}
+					<UtxoOutputsView
+						selection={selection.$$outputs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No outputs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-utxo-transaction-activity-b'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'utxo-transaction-zcash-shielded-actions',
+							label: 'Zcash Shielded Actions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-b'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity continued</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionUtxoTransactionZcashShieldedActions({ id, label, open })}
+					<ZcashShieldedActionsView
+						selection={selection.$$zcashShieldedActions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No zcash shielded actions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

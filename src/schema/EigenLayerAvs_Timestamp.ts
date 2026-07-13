@@ -9,8 +9,10 @@ export enum EigenLayerAvs_TimestampSelector {
 }
 export const EigenLayerAvs_Timestamp = entity({
 	entityType: EntityType.EigenLayerAvs_Timestamp,
-	label: 'eigen layer avs timestamp',
-	labelPlural: 'eigen layer avs observations',
+	labels: {
+		singular: 'eigen layer avs timestamp',
+		plural: 'eigen layer avs observations',
+	},
 })({
 	$avs: {
 		label: 'AVS',

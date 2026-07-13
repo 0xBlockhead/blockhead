@@ -9,8 +9,10 @@ export enum TransferRestrictionSelector {
 }
 export const TransferRestriction = entity({
 	entityType: EntityType.TransferRestriction,
-	label: 'transfer restriction',
-	labelPlural: 'transfer restrictions',
+	labels: {
+		singular: 'transfer restriction',
+		plural: 'transfer restrictions',
+	},
 })({
 	$assetInstance: {
 		label: 'asset instance',

@@ -9,8 +9,10 @@ export enum DogecoinBlockAuxPowSelector {
 }
 export const DogecoinBlockAuxPow = entity({
 	entityType: EntityType.DogecoinBlockAuxPow,
-	label: 'dogecoin block aux pow',
-	labelPlural: 'dogecoin block aux pows',
+	labels: {
+		singular: 'dogecoin block aux pow',
+		plural: 'dogecoin block aux pows',
+	},
 })({
 	$block: {
 		label: 'Block',

@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerStrategyTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -119,7 +119,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eigenLayerStrategyTimestamp}>
 			{#snippet Pending()}
-				{@const totalShares0 = prefetched.totalShares}
+				{@const totalShares0 = pendingEntity.totalShares}
 				{#if totalShares0 !== undefined && totalShares0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(totalShares0)} />
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -195,7 +195,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -222,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalShares = prefetched.totalShares}
+					{@const totalShares = pendingEntity.totalShares}
 					{#if totalShares !== undefined && totalShares !== null}
 						<div>
 							<dt>total shares</dt>
@@ -294,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalUnderlying = prefetched.totalUnderlying}
+					{@const totalUnderlying = pendingEntity.totalUnderlying}
 					{#if totalUnderlying !== undefined && totalUnderlying !== null}
 						<div>
 							<dt>total underlying</dt>
@@ -329,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakerCount = prefetched.stakerCount}
+					{@const stakerCount = pendingEntity.stakerCount}
 					{#if stakerCount !== undefined && stakerCount !== null}
 						<div>
 							<dt>staker count</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegationCount = prefetched.delegationCount}
+					{@const delegationCount = pendingEntity.delegationCount}
 					{#if delegationCount !== undefined && delegationCount !== null}
 						<div>
 							<dt>delegation count</dt>

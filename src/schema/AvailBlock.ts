@@ -10,8 +10,10 @@ export enum AvailBlockSelector {
 }
 export const AvailBlock = entity({
 	entityType: EntityType.AvailBlock,
-	label: 'avail block',
-	labelPlural: 'avail blocks',
+	labels: {
+		singular: 'avail block',
+		plural: 'avail blocks',
+	},
 })({
 	$network: {
 		label: 'network',

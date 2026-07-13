@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const offerId = selection.entitySelector.offerId ?? prefetched.offerId}
+							{@const offerId = pendingEntity.offerId}
 							{#if offerId !== undefined && offerId !== null}
 								{String((offerId) ?? '')}
 							{/if}
@@ -123,6 +123,8 @@
 			<ResourceBoundary
 				resource={selection.$seller}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -143,6 +145,8 @@
 			<ResourceBoundary
 				resource={selection.$sellingAsset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -163,6 +167,8 @@
 			<ResourceBoundary
 				resource={selection.$buyingAsset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
 						<div>

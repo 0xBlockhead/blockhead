@@ -9,8 +9,10 @@ export enum TonNftCollection_TimestampSelector {
 }
 export const TonNftCollection_Timestamp = entity({
 	entityType: EntityType.TonNftCollection_Timestamp,
-	label: 'ton NFT collection timestamp',
-	labelPlural: 'ton NFT collection observations',
+	labels: {
+		singular: 'ton NFT collection timestamp',
+		plural: 'ton NFT collection observations',
+	},
 })({
 	$collection: {
 		label: 'collection',

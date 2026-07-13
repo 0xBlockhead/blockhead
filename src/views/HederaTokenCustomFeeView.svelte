@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const feeIndex = selection.entitySelector.feeIndex ?? prefetched.feeIndex}
+							{@const feeIndex = pendingEntity.feeIndex}
 							{#if feeIndex !== undefined && feeIndex !== null}
 								{String((feeIndex) ?? '')}
 							{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const feeKind = prefetched.feeKind}
+							{@const feeKind = pendingEntity.feeKind}
 							{#if feeKind !== undefined && feeKind !== null}
 								{String((feeKind) ?? '')}
 							{/if}
@@ -161,7 +161,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const collectorAccountId = prefetched.collectorAccountId}
+					{@const collectorAccountId = pendingEntity.collectorAccountId}
 					{#if collectorAccountId !== undefined && collectorAccountId !== null}
 						<div>
 							<dt>collector account ID</dt>
@@ -196,7 +196,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const denominatingTokenId = prefetched.denominatingTokenId}
+					{@const denominatingTokenId = pendingEntity.denominatingTokenId}
 					{#if denominatingTokenId !== undefined && denominatingTokenId !== null}
 						<div>
 							<dt>denominating token ID</dt>
@@ -231,7 +231,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -266,7 +266,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const numerator = prefetched.numerator}
+					{@const numerator = pendingEntity.numerator}
 					{#if numerator !== undefined && numerator !== null}
 						<div>
 							<dt>numerator</dt>
@@ -301,7 +301,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const denominator = prefetched.denominator}
+					{@const denominator = pendingEntity.denominator}
 					{#if denominator !== undefined && denominator !== null}
 						<div>
 							<dt>denominator</dt>
@@ -336,7 +336,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minimumAmount = prefetched.minimumAmount}
+					{@const minimumAmount = pendingEntity.minimumAmount}
 					{#if minimumAmount !== undefined && minimumAmount !== null}
 						<div>
 							<dt>minimum amount</dt>
@@ -371,7 +371,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maximumAmount = prefetched.maximumAmount}
+					{@const maximumAmount = pendingEntity.maximumAmount}
 					{#if maximumAmount !== undefined && maximumAmount !== null}
 						<div>
 							<dt>maximum amount</dt>
@@ -406,7 +406,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const netOfTransfers = prefetched.netOfTransfers}
+					{@const netOfTransfers = pendingEntity.netOfTransfers}
 					{#if netOfTransfers !== undefined && netOfTransfers !== null}
 						<div>
 							<dt>net of transfers</dt>
@@ -441,7 +441,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const allCollectorsAreExempt = prefetched.allCollectorsAreExempt}
+					{@const allCollectorsAreExempt = pendingEntity.allCollectorsAreExempt}
 					{#if allCollectorsAreExempt !== undefined && allCollectorsAreExempt !== null}
 						<div>
 							<dt>all collectors are exempt</dt>
@@ -469,6 +469,8 @@
 			<ResourceBoundary
 				resource={selection.$collector}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -489,6 +491,8 @@
 			<ResourceBoundary
 				resource={selection.$denominatingToken}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaToken)}
 					{#if hederaToken != null && hederaToken[EntityMetaKey.Selector] != null}
 						<div>

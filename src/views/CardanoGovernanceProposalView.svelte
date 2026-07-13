@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const proposalTxHash = selection.entitySelector.proposalTxHash ?? prefetched.proposalTxHash}
+							{@const proposalTxHash = pendingEntity.proposalTxHash}
 							{#if proposalTxHash !== undefined && proposalTxHash !== null}
 								<TruncatedValue value={String((proposalTxHash) ?? '')} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const proposalIndex = selection.entitySelector.proposalIndex ?? prefetched.proposalIndex}
+							{@const proposalIndex = pendingEntity.proposalIndex}
 							{#if proposalIndex !== undefined && proposalIndex !== null}
 								{String((proposalIndex) ?? '')}
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const proposalKind = prefetched.proposalKind}
+							{@const proposalKind = pendingEntity.proposalKind}
 							{#if proposalKind !== undefined && proposalKind !== null}
 								{String((proposalKind) ?? '')}
 							{/if}
@@ -183,6 +183,8 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoTransaction)}
 					{#if cardanoTransaction != null && cardanoTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -210,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const depositLovelace = prefetched.depositLovelace}
+					{@const depositLovelace = pendingEntity.depositLovelace}
 					{#if depositLovelace !== undefined && depositLovelace !== null}
 						<div>
 							<dt>deposit lovelace</dt>
@@ -245,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const returnAddress = prefetched.returnAddress}
+					{@const returnAddress = pendingEntity.returnAddress}
 					{#if returnAddress !== undefined && returnAddress !== null}
 						<div>
 							<dt>return address</dt>
@@ -280,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const anchorUrl = prefetched.anchorUrl}
+					{@const anchorUrl = pendingEntity.anchorUrl}
 					{#if anchorUrl !== undefined && anchorUrl !== null}
 						<div>
 							<dt>anchor URL</dt>
@@ -329,7 +331,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const anchorHash = prefetched.anchorHash}
+					{@const anchorHash = pendingEntity.anchorHash}
 					{#if anchorHash !== undefined && anchorHash !== null}
 						<div>
 							<dt>anchor hash</dt>

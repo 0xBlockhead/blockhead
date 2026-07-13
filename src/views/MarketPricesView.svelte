@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType } from '$/constants/Market.ts'
+	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -132,12 +132,12 @@
 						selection={select(EntityType.MarketPrice, marketPrice[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={marketPriceFields}
 						href={
-							resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
+							resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
 								marketVenue: String(marketPriceHrefFields.$market.$marketVenue.marketVenueId ?? ''),
 								baseKind: String(marketAssetRouteLabelByKind[String(marketPriceHrefFields.$market.$base.kind)] ?? ''),
-								base: String((marketPriceHrefFields.$market.$base.kind === 'Coin' ? marketPriceHrefFields.$market.$base.$coin.coinId : marketPriceHrefFields.$market.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketPriceHrefFields.$market.$base.$coinInstance.type)] : marketPriceHrefFields.$market.$base.$currency.iso4217)),
+								base: String(marketPriceHrefFields.$market.$base.assetKey ?? ''),
 								quoteKind: String(marketAssetRouteLabelByKind[String(marketPriceHrefFields.$market.$quote.kind)] ?? ''),
-								quote: String((marketPriceHrefFields.$market.$quote.kind === 'Coin' ? marketPriceHrefFields.$market.$quote.$coin.coinId : marketPriceHrefFields.$market.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketPriceHrefFields.$market.$quote.$coinInstance.type)] : marketPriceHrefFields.$market.$quote.$currency.iso4217)),
+								quote: String(marketPriceHrefFields.$market.$quote.assetKey ?? ''),
 								marketKind: String(marketPriceHrefFields.$market.marketKind ?? ''),
 							})
 						}

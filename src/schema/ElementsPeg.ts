@@ -13,8 +13,10 @@ export enum ElementsPegSelector {
 }
 export const ElementsPeg = entity({
 	entityType: EntityType.ElementsPeg,
-	label: 'Elements peg',
-	labelPlural: 'Elements pegs',
+	labels: {
+		singular: 'Elements peg',
+		plural: 'Elements pegs',
+	},
 })({
 	$network: {
 		label: 'Network',

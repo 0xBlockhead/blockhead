@@ -47,7 +47,7 @@
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'aptos network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'aptos network timestamp')
 	const viewDomId = $derived('aptos-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.ledgerVersion) ?? ''), String((prefetched.blockHeight) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'aptos network timestamp'}
+				{[String((pendingEntity.ledgerVersion) ?? ''), String((pendingEntity.blockHeight) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'aptos network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aptosNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chainId = prefetched.chainId}
+					{@const chainId = pendingEntity.chainId}
 					{#if chainId !== undefined && chainId !== null}
 						<div>
 							<dt>Chain ID</dt>
@@ -244,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerVersion = prefetched.ledgerVersion}
+					{@const ledgerVersion = pendingEntity.ledgerVersion}
 					{#if ledgerVersion !== undefined && ledgerVersion !== null}
 						<div>
 							<dt>ledger version</dt>
@@ -279,7 +279,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>block height</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epoch = prefetched.epoch}
+					{@const epoch = pendingEntity.epoch}
 					{#if epoch !== undefined && epoch !== null}
 						<div>
 							<dt>epoch</dt>
@@ -351,7 +351,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const oldestLedgerVersion = prefetched.oldestLedgerVersion}
+					{@const oldestLedgerVersion = pendingEntity.oldestLedgerVersion}
 					{#if oldestLedgerVersion !== undefined && oldestLedgerVersion !== null}
 						<div>
 							<dt>oldest ledger version</dt>
@@ -386,7 +386,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const oldestBlockHeight = prefetched.oldestBlockHeight}
+					{@const oldestBlockHeight = pendingEntity.oldestBlockHeight}
 					{#if oldestBlockHeight !== undefined && oldestBlockHeight !== null}
 						<div>
 							<dt>oldest block height</dt>
@@ -421,7 +421,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeRole = prefetched.nodeRole}
+					{@const nodeRole = pendingEntity.nodeRole}
 					{#if nodeRole !== undefined && nodeRole !== null}
 						<div>
 							<dt>node role</dt>

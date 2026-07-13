@@ -43,7 +43,7 @@
 			threshold: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.subnetId ?? prefetched.subnetId) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.subnetId) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet')
 	const viewDomId = $derived('avalanche-subnet-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={avalancheSubnet}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.subnetId ?? prefetched.subnetId) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.subnetId) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -84,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={avalancheSubnet}>
 			{#snippet Pending()}
-				{@const threshold0 = prefetched.threshold}
+				{@const threshold0 = pendingEntity.threshold}
 				{#if threshold0 !== undefined && threshold0 !== null}
 					<NumberValue value={Number(threshold0)} />
 				{/if}
@@ -115,7 +115,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subnetId = selection.entitySelector.subnetId ?? prefetched.subnetId}
+							{@const subnetId = pendingEntity.subnetId}
 							{#if subnetId !== undefined && subnetId !== null}
 								<TruncatedValue value={String((subnetId) ?? '')} />
 							{/if}
@@ -142,7 +142,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const threshold = prefetched.threshold}
+					{@const threshold = pendingEntity.threshold}
 					{#if threshold !== undefined && threshold !== null}
 						<div>
 							<dt>threshold</dt>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const workchain = selection.entitySelector.workchain ?? prefetched.workchain}
+							{@const workchain = pendingEntity.workchain}
 							{#if workchain !== undefined && workchain !== null}
 								{String((workchain) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const addressFormat = prefetched.addressFormat}
+					{@const addressFormat = pendingEntity.addressFormat}
 					{#if addressFormat !== undefined && addressFormat !== null}
 						<div>
 							<dt>address format</dt>
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionFormat = prefetched.transactionFormat}
+					{@const transactionFormat = pendingEntity.transactionFormat}
 					{#if transactionFormat !== undefined && transactionFormat !== null}
 						<div>
 							<dt>transaction format</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const virtualMachine = prefetched.virtualMachine}
+					{@const virtualMachine = pendingEntity.virtualMachine}
 					{#if virtualMachine !== undefined && virtualMachine !== null}
 						<div>
 							<dt>virtual machine</dt>

@@ -9,8 +9,10 @@ export enum EvmContractSourceBundleSelector {
 }
 export const EvmContractSourceBundle = entity({
 	entityType: EntityType.EvmContractSourceBundle,
-	label: 'EVM contract source bundle',
-	labelPlural: 'EVM contract source bundles',
+	labels: {
+		singular: 'EVM contract source bundle',
+		plural: 'EVM contract source bundles',
+	},
 })({
 	$contract: {
 		label: 'Contract',

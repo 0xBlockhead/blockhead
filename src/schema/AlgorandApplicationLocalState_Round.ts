@@ -9,8 +9,10 @@ export enum AlgorandApplicationLocalState_RoundSelector {
 }
 export const AlgorandApplicationLocalState_Round = entity({
 	entityType: EntityType.AlgorandApplicationLocalState_Round,
-	label: 'algorand application local state round',
-	labelPlural: 'algorand application local state rounds',
+	labels: {
+		singular: 'algorand application local state round',
+		plural: 'algorand application local state rounds',
+	},
 })({
 	$account: {
 		label: 'account',

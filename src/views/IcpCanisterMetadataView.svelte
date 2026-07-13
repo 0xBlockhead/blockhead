@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const metadataName = selection.entitySelector.metadataName ?? prefetched.metadataName}
+							{@const metadataName = pendingEntity.metadataName}
 							{#if metadataName !== undefined && metadataName !== null}
 								{String((metadataName) ?? '')}
 							{/if}

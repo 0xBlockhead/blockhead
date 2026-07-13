@@ -10,8 +10,10 @@ export enum NearValidator_TimestampSelector {
 }
 export const NearValidator_Timestamp = entity({
 	entityType: EntityType.NearValidator_Timestamp,
-	label: 'near validator timestamp',
-	labelPlural: 'near validator observations',
+	labels: {
+		singular: 'near validator timestamp',
+		plural: 'near validator observations',
+	},
 })({
 	$validator: {
 		label: 'Validator',

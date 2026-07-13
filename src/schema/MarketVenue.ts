@@ -3,6 +3,7 @@
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum MarketVenueSelector {
@@ -10,8 +11,10 @@ export enum MarketVenueSelector {
 }
 export const MarketVenue = entity({
 	entityType: EntityType.MarketVenue,
-	label: 'Market venue',
-	labelPlural: 'market venues',
+	labels: {
+		singular: 'Market venue',
+		plural: 'market venues',
+	},
 	description: 'A curated exchange or venue identifier used to group markets.',
 })({
 	marketVenueId: {
@@ -32,6 +35,9 @@ export const MarketVenue = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 })({
 	selectors: {

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const witnessIndex = selection.entitySelector.witnessIndex ?? prefetched.witnessIndex}
+							{@const witnessIndex = pendingEntity.witnessIndex}
 							{#if witnessIndex !== undefined && witnessIndex !== null}
 								{String((witnessIndex) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const scriptKind = prefetched.scriptKind}
+							{@const scriptKind = pendingEntity.scriptKind}
 							{#if scriptKind !== undefined && scriptKind !== null}
 								{String((scriptKind) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const language = prefetched.language}
+					{@const language = pendingEntity.language}
 					{#if language !== undefined && language !== null}
 						<div>
 							<dt>language</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const scriptHash = prefetched.scriptHash}
+					{@const scriptHash = pendingEntity.scriptHash}
 					{#if scriptHash !== undefined && scriptHash !== null}
 						<div>
 							<dt>script hash</dt>

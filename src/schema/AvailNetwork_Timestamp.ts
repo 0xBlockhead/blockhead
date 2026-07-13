@@ -9,8 +9,10 @@ export enum AvailNetwork_TimestampSelector {
 }
 export const AvailNetwork_Timestamp = entity({
 	entityType: EntityType.AvailNetwork_Timestamp,
-	label: 'avail network timestamp',
-	labelPlural: 'avail network observations',
+	labels: {
+		singular: 'avail network timestamp',
+		plural: 'avail network observations',
+	},
 })({
 	$network: {
 		label: 'network',

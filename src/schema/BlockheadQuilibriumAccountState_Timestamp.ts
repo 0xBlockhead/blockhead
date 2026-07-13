@@ -9,8 +9,10 @@ export enum BlockheadQuilibriumAccountState_TimestampSelector {
 }
 export const BlockheadQuilibriumAccountState_Timestamp = entity({
 	entityType: EntityType.BlockheadQuilibriumAccountState_Timestamp,
-	label: 'blockhead quilibrium account state timestamp',
-	labelPlural: 'blockhead quilibrium account state observations',
+	labels: {
+		singular: 'blockhead quilibrium account state timestamp',
+		plural: 'blockhead quilibrium account state observations',
+	},
 })({
 	$accountState: {
 		label: 'account state',

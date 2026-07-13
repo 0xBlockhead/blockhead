@@ -9,8 +9,10 @@ export enum DydxChainMarket_TimestampSelector {
 }
 export const DydxChainMarket_Timestamp = entity({
 	entityType: EntityType.DydxChainMarket_Timestamp,
-	label: 'dydx chain market timestamp',
-	labelPlural: 'dydx chain market observations',
+	labels: {
+		singular: 'dydx chain market timestamp',
+		plural: 'dydx chain market observations',
+	},
 })({
 	$market: {
 		label: 'market',

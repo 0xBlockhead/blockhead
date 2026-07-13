@@ -9,8 +9,10 @@ export enum PolkadotPalletSelector {
 }
 export const PolkadotPallet = entity({
 	entityType: EntityType.PolkadotPallet,
-	label: 'Polkadot pallet',
-	labelPlural: 'Polkadot pallets',
+	labels: {
+		singular: 'Polkadot pallet',
+		plural: 'Polkadot pallets',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -10,8 +10,10 @@ export enum NearAccount_TimestampSelector {
 }
 export const NearAccount_Timestamp = entity({
 	entityType: EntityType.NearAccount_Timestamp,
-	label: 'near account timestamp',
-	labelPlural: 'near account observations',
+	labels: {
+		singular: 'near account timestamp',
+		plural: 'near account observations',
+	},
 })({
 	$account: {
 		label: 'Account',

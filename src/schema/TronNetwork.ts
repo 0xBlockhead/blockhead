@@ -10,8 +10,10 @@ export enum TronNetworkSelector {
 }
 export const TronNetwork = entity({
 	entityType: EntityType.TronNetwork,
-	label: 'tron network',
-	labelPlural: 'tron networks',
+	labels: {
+		singular: 'tron network',
+		plural: 'tron networks',
+	},
 })({
 	$network: {
 		label: 'Network',

@@ -53,7 +53,7 @@
 			lastScannedHeight: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash viewing key timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash viewing key timestamp')
 	const viewDomId = $derived('blockhead-zcash-viewing-key-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadZcashViewingKeyTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -97,7 +97,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZcashViewingKeyTimestamp}>
 			{#snippet Pending()}
-				{@const lastScannedHeight0 = prefetched.lastScannedHeight}
+				{@const lastScannedHeight0 = pendingEntity.lastScannedHeight}
 				{#if lastScannedHeight0 !== undefined && lastScannedHeight0 !== null}
 					<NumberValue value={Number(lastScannedHeight0)} />
 				{/if}
@@ -116,7 +116,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZcashViewingKeyTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -221,7 +221,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastScannedHeight = prefetched.lastScannedHeight}
+					{@const lastScannedHeight = pendingEntity.lastScannedHeight}
 					{#if lastScannedHeight !== undefined && lastScannedHeight !== null}
 						<div>
 							<dt>last scanned height</dt>
@@ -256,7 +256,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastScannedAt = prefetched.lastScannedAt}
+					{@const lastScannedAt = pendingEntity.lastScannedAt}
 					{#if lastScannedAt !== undefined && lastScannedAt !== null}
 						<div>
 							<dt>last scanned AT</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const notesDiscovered = prefetched.notesDiscovered}
+					{@const notesDiscovered = pendingEntity.notesDiscovered}
 					{#if notesDiscovered !== undefined && notesDiscovered !== null}
 						<div>
 							<dt>notes discovered</dt>
@@ -326,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nullifiersMatched = prefetched.nullifiersMatched}
+					{@const nullifiersMatched = pendingEntity.nullifiersMatched}
 					{#if nullifiersMatched !== undefined && nullifiersMatched !== null}
 						<div>
 							<dt>nullifiers matched</dt>

@@ -9,8 +9,10 @@ export enum BlockheadCashuMeltQuoteSelector {
 }
 export const BlockheadCashuMeltQuote = entity({
 	entityType: EntityType.BlockheadCashuMeltQuote,
-	label: 'blockhead Cashu melt quote',
-	labelPlural: 'blockhead Cashu melt quotes',
+	labels: {
+		singular: 'blockhead Cashu melt quote',
+		plural: 'blockhead Cashu melt quotes',
+	},
 })({
 	$mint: {
 		label: 'mint',

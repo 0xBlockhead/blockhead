@@ -9,8 +9,10 @@ export enum TezosInternalOperationSelector {
 }
 export const TezosInternalOperation = entity({
 	entityType: EntityType.TezosInternalOperation,
-	label: 'tezos internal operation',
-	labelPlural: 'tezos internal operations',
+	labels: {
+		singular: 'tezos internal operation',
+		plural: 'tezos internal operations',
+	},
 })({
 	$parentOperation: {
 		label: 'parent operation',

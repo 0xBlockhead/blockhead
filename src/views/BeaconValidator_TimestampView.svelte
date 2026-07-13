@@ -47,7 +47,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((String((selection.entitySelector.slot ?? prefetched.slot) ?? '') ? 'Slot #' + String((selection.entitySelector.slot ?? prefetched.slot) ?? '') : '') || 'beacon validator timestamp')
+	const titleFallback = $derived((String((pendingEntity.slot) ?? '') ? 'Slot #' + String((pendingEntity.slot) ?? '') : '') || 'beacon validator timestamp')
 	const viewDomId = $derived('beacon-validator-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -65,11 +65,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.slot ?? prefetched.slot ?? '')}
+	idDragPlainText={String(pendingEntity.slot ?? '')}
 	href={
-		href ?? (pendingEntity.$validator !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.caip2 !== undefined && pendingEntity.$validator.$network.caip2.namespace !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.caip2 !== undefined && pendingEntity.$validator.$network.caip2.reference !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.indexInNetwork !== undefined && pendingEntity.slot !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]/observations/[slot=nonNegativeInteger]/[source]', {
-			caip2: `${String(pendingEntity.$validator.$network.caip2.namespace ?? '')}:${String(pendingEntity.$validator.$network.caip2.reference ?? '')}`,
-			validatorIndex: String(pendingEntity.$validator.indexInNetwork ?? ''),
+		href ?? (pendingEntity.$validator !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.slug !== undefined && pendingEntity.$validator.indexInNetwork !== undefined && pendingEntity.slot !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
+			network: String(pendingEntity.$validator.$network.slug ?? ''),
+			validatorId: String(pendingEntity.$validator.indexInNetwork ?? ''),
 			slot: String(pendingEntity.slot ?? ''),
 			source: String(pendingEntity.source ?? ''),
 		}) : undefined)
@@ -79,7 +79,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = selection.entitySelector.slot ?? prefetched.slot}
+		{@const serialValue = pendingEntity.slot}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Slot </span>
@@ -91,7 +91,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = selection.entitySelector.slot ?? prefetched.slot}
+		{@const serialValue = pendingEntity.slot}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={beaconValidatorTimestamp}>
 			{#snippet Pending()}
-				{@const status0 = prefetched.status}
+				{@const status0 = pendingEntity.status}
 				{#if status0 !== undefined && status0 !== null}
 					<span data-text="muted">
 						{String((status0) ?? '')}
@@ -137,7 +137,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const slot = selection.entitySelector.slot ?? prefetched.slot}
+							{@const slot = pendingEntity.slot}
 							{#if slot !== undefined && slot !== null}
 								<NumberValue value={Number(slot)} />
 							{/if}
@@ -167,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceGwei = prefetched.balanceGwei}
+					{@const balanceGwei = pendingEntity.balanceGwei}
 					{#if balanceGwei !== undefined && balanceGwei !== null}
 						<div>
 							<dt>Balance</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const effectiveBalanceGwei = prefetched.effectiveBalanceGwei}
+					{@const effectiveBalanceGwei = pendingEntity.effectiveBalanceGwei}
 					{#if effectiveBalanceGwei !== undefined && effectiveBalanceGwei !== null}
 						<div>
 							<dt>Effective balance</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slashed = prefetched.slashed}
+					{@const slashed = pendingEntity.slashed}
 					{#if slashed !== undefined && slashed !== null}
 						<div>
 							<dt>Slashed</dt>
@@ -336,7 +336,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activationEligibilityEpoch = prefetched.activationEligibilityEpoch}
+					{@const activationEligibilityEpoch = pendingEntity.activationEligibilityEpoch}
 					{#if activationEligibilityEpoch !== undefined && activationEligibilityEpoch !== null}
 						<div>
 							<dt>Activation eligibility epoch</dt>
@@ -371,7 +371,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activationEpoch = prefetched.activationEpoch}
+					{@const activationEpoch = pendingEntity.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -406,7 +406,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const exitEpoch = prefetched.exitEpoch}
+					{@const exitEpoch = pendingEntity.exitEpoch}
 					{#if exitEpoch !== undefined && exitEpoch !== null}
 						<div>
 							<dt>Exit epoch</dt>
@@ -441,7 +441,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const withdrawableEpoch = prefetched.withdrawableEpoch}
+					{@const withdrawableEpoch = pendingEntity.withdrawableEpoch}
 					{#if withdrawableEpoch !== undefined && withdrawableEpoch !== null}
 						<div>
 							<dt>Withdrawable epoch</dt>
@@ -476,7 +476,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const withdrawalCredentials = prefetched.withdrawalCredentials}
+					{@const withdrawalCredentials = pendingEntity.withdrawalCredentials}
 					{#if withdrawalCredentials !== undefined && withdrawalCredentials !== null}
 						<div>
 							<dt>Withdrawal credentials</dt>
@@ -511,7 +511,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const finalized = prefetched.finalized}
+					{@const finalized = pendingEntity.finalized}
 					{#if finalized !== undefined && finalized !== null}
 						<div>
 							<dt>Finalized</dt>
@@ -546,7 +546,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const executionOptimistic = prefetched.executionOptimistic}
+					{@const executionOptimistic = pendingEntity.executionOptimistic}
 					{#if executionOptimistic !== undefined && executionOptimistic !== null}
 						<div>
 							<dt>Execution optimistic</dt>
@@ -581,7 +581,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -612,9 +612,9 @@
 					<BeaconValidatorView
 						selection={select(EntityType.BeaconValidator, selection.entitySelector.$validator, {})}
 						href={
-							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.namespace !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.reference !== undefined && selection.entitySelector.$validator.indexInNetwork !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
-								caip2: `${String(selection.entitySelector.$validator.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$validator.$network.caip2.reference ?? '')}`,
-								validatorIndex: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
+							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.slug !== undefined && selection.entitySelector.$validator.indexInNetwork !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+								network: String(selection.entitySelector.$validator.$network.slug ?? ''),
+								validatorId: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

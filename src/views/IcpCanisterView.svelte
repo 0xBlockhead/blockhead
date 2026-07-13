@@ -47,8 +47,16 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpNetworkView from '$/views/IcpNetworkView.svelte'
+	import IcpCanisterMethodsView from '$/views/IcpCanisterMethodsView.svelte'
+	import IcpCanisterMetadataEntriesView from '$/views/IcpCanisterMetadataEntriesView.svelte'
+	import IcpCanisterLog_TimestampsView from '$/views/IcpCanisterLog_TimestampsView.svelte'
+	import IcpCertifiedStatesView from '$/views/IcpCertifiedStatesView.svelte'
+	import IcpRequestStatusesView from '$/views/IcpRequestStatusesView.svelte'
+	import IcpCanister_TimestampsView from '$/views/IcpCanister_TimestampsView.svelte'
 </script>
 
 
@@ -101,7 +109,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const canisterId = selection.entitySelector.canisterId ?? prefetched.canisterId}
+							{@const canisterId = pendingEntity.canisterId}
 							{#if canisterId !== undefined && canisterId !== null}
 								{String((canisterId) ?? '')}
 							{/if}
@@ -118,5 +126,162 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-icp-canister-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'icp-canister-methods',
+							label: 'Methods',
+						},
+						{
+							id: 'icp-canister-metadata',
+							label: 'Metadata',
+						},
+						{
+							id: 'icp-canister-logs',
+							label: 'Logs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionIcpCanisterMethods({ id, label, open })}
+					<IcpCanisterMethodsView
+						selection={selection.$$methods}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No methods.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionIcpCanisterMetadata({ id, label, open })}
+					<IcpCanisterMetadataEntriesView
+						selection={selection.$$metadata}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No metadata.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionIcpCanisterLogs({ id, label, open })}
+					<IcpCanisterLog_TimestampsView
+						selection={selection.$$logs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No logs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-icp-canister-related'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'icp-canister-certified-states',
+							label: 'Certified States',
+						},
+						{
+							id: 'icp-canister-request-statuses',
+							label: 'Request Statuses',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-related'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Related</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionIcpCanisterCertifiedStates({ id, label, open })}
+					<IcpCertifiedStatesView
+						selection={selection.$$certifiedStates}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No certified states.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionIcpCanisterRequestStatuses({ id, label, open })}
+					<IcpRequestStatusesView
+						selection={selection.$$requestStatuses}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No request statuses.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-icp-canister-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'icp-canister-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionIcpCanisterTimestamps({ id, label, open })}
+					<IcpCanister_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

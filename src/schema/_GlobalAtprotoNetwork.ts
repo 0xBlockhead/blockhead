@@ -11,8 +11,10 @@ export enum _GlobalAtprotoNetworkSelector {
 }
 export const _GlobalAtprotoNetwork = entity({
 	entityType: EntityType._GlobalAtprotoNetwork,
-	label: 'AT Protocol',
-	labelPlural: 'AT Protocol',
+	labels: {
+		singular: 'AT Protocol',
+		plural: 'AT Protocol',
+	},
 	description: 'AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from declared Bluesky-compatible appview sources, not a claim about every repository on the network.',
 })({
 	scope: {

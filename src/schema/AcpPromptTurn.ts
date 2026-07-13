@@ -10,8 +10,10 @@ export enum AcpPromptTurnSelector {
 }
 export const AcpPromptTurn = entity({
 	entityType: EntityType.AcpPromptTurn,
-	label: 'acp prompt turn',
-	labelPlural: 'acp prompt turns',
+	labels: {
+		singular: 'acp prompt turn',
+		plural: 'acp prompt turns',
+	},
 })({
 	$session: {
 		label: 'session',

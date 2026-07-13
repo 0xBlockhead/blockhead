@@ -49,11 +49,8 @@
 			Source.ZeroGStorageNode_JsonRpc,
 			Source.ZeroGStorageScan_Rest,
 		],
-		fields: {
-			$requester: true,
-		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.requestId ?? prefetched.requestId) ?? '')].filter(Boolean).join(' ') || 'zero g service request')
+	const titleFallback = $derived([String((pendingEntity.requestId) ?? '')].filter(Boolean).join(' ') || 'zero g service request')
 	const viewDomId = $derived('zero-gservice-request-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={zeroGServiceRequest}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.requestId ?? prefetched.requestId) ?? '')].filter(Boolean).join(' ') || title || 'zero g service request'}
+				{[String((pendingEntity.requestId) ?? '')].filter(Boolean).join(' ') || title || 'zero g service request'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -123,7 +120,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -148,7 +145,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -189,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestId = selection.entitySelector.requestId ?? prefetched.requestId}
+							{@const requestId = pendingEntity.requestId}
 							{#if requestId !== undefined && requestId !== null}
 								{String((requestId) ?? '')}
 							{/if}
@@ -209,6 +206,8 @@
 			<ResourceBoundary
 				resource={selection.$requester}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -218,7 +217,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -241,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestHash = prefetched.requestHash}
+					{@const requestHash = pendingEntity.requestHash}
 					{#if requestHash !== undefined && requestHash !== null}
 						<div>
 							<dt>request hash</dt>
@@ -276,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const responseHash = prefetched.responseHash}
+					{@const responseHash = pendingEntity.responseHash}
 					{#if responseHash !== undefined && responseHash !== null}
 						<div>
 							<dt>response hash</dt>
@@ -304,6 +303,8 @@
 			<ResourceBoundary
 				resource={selection.$settlementTrace}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(zeroGSettlementTrace)}
 					{#if zeroGSettlementTrace != null && zeroGSettlementTrace[EntityMetaKey.Selector] != null}
 						<div>

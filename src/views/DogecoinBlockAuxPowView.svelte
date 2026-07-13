@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -48,9 +47,6 @@
 		sources: [
 			Source.DogecoinCore_JsonRpc,
 		],
-		fields: {
-			$parentBlockHeader: true,
-		},
 	}))
 	const titleFallback = $derived('dogecoin block aux pow')
 	const viewDomId = $derived('dogecoin-block-aux-pow-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
@@ -80,9 +76,9 @@
 				<UtxoBlockView
 					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 					href={
-						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$block.$network.caip2.namespace) + ':' + String(selection.entitySelector.$block.$network.caip2.reference))].slug ?? ''),
-							height: String(selection.entitySelector.$block.height ?? ''),
+						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+							network: String(selection.entitySelector.$block.$network.slug ?? ''),
+							blockNumber: String(selection.entitySelector.$block.height ?? ''),
 							hash: String(selection.entitySelector.$block.hash ?? ''),
 						}) : undefined)
 					}
@@ -96,9 +92,9 @@
 				<UtxoBlockView
 					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 					href={
-						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$block.$network.caip2.namespace) + ':' + String(selection.entitySelector.$block.$network.caip2.reference))].slug ?? ''),
-							height: String(selection.entitySelector.$block.height ?? ''),
+						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+							network: String(selection.entitySelector.$block.$network.slug ?? ''),
+							blockNumber: String(selection.entitySelector.$block.height ?? ''),
 							hash: String(selection.entitySelector.$block.hash ?? ''),
 						}) : undefined)
 					}
@@ -156,9 +152,9 @@
 					<UtxoBlockView
 						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block, {})}
 						href={
-							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$block.$network.caip2.namespace) + ':' + String(selection.entitySelector.$block.$network.caip2.reference))].slug ?? ''),
-								height: String(selection.entitySelector.$block.height ?? ''),
+							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								network: String(selection.entitySelector.$block.$network.slug ?? ''),
+								blockNumber: String(selection.entitySelector.$block.height ?? ''),
 								hash: String(selection.entitySelector.$block.hash ?? ''),
 							}) : undefined)
 						}
@@ -171,6 +167,8 @@
 			<ResourceBoundary
 				resource={selection.$parentBlockHeader}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(dogecoinAuxPowParentBlockHeader)}
 					{#if dogecoinAuxPowParentBlockHeader != null && dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector] != null}
 						<div>
@@ -191,6 +189,8 @@
 			<ResourceBoundary
 				resource={selection.$coinbaseBranch}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(dogecoinAuxPowMerkleBranch)}
 					{#if dogecoinAuxPowMerkleBranch != null && dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector] != null}
 						<div>
@@ -211,6 +211,8 @@
 			<ResourceBoundary
 				resource={selection.$chainBranch}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(dogecoinAuxPowMerkleBranch)}
 					{#if dogecoinAuxPowMerkleBranch != null && dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector] != null}
 						<div>

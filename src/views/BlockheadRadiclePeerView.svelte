@@ -51,7 +51,7 @@
 			remoteAlias: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.peerNodeId ?? prefetched.peerNodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle peer')
+	const titleFallback = $derived([String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle peer')
 	const viewDomId = $derived('blockhead-radicle-peer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadRadiclePeer}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.peerNodeId ?? prefetched.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle peer'}
+				{[String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle peer'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadiclePeer}>
 			{#snippet Pending()}
-				{[String((prefetched.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.peerNodeId ?? prefetched.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle peer'}
+				{[String((pendingEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle peer'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadRadiclePeer}>
 			{#snippet Pending()}
-				{@const remoteAlias0 = prefetched.remoteAlias}
+				{@const remoteAlias0 = pendingEntity.remoteAlias}
 				{#if remoteAlias0 !== undefined && remoteAlias0 !== null}
 					<span data-text="muted">
 						{String((remoteAlias0) ?? '')}
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const peerNodeId = selection.entitySelector.peerNodeId ?? prefetched.peerNodeId}
+							{@const peerNodeId = pendingEntity.peerNodeId}
 							{#if peerNodeId !== undefined && peerNodeId !== null}
 								{String((peerNodeId) ?? '')}
 							{/if}
@@ -175,7 +175,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const connectionKind = prefetched.connectionKind}
+					{@const connectionKind = pendingEntity.connectionKind}
 					{#if connectionKind !== undefined && connectionKind !== null}
 						<div>
 							<dt>connection kind</dt>
@@ -213,7 +213,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const addresses = prefetched.addresses}
+							{@const addresses = pendingEntity.addresses}
 							{#if addresses !== undefined && addresses !== null}
 								<TruncatedValue value={addresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -240,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSeenMs = prefetched.lastSeenMs}
+					{@const lastSeenMs = pendingEntity.lastSeenMs}
 					{#if lastSeenMs !== undefined && lastSeenMs !== null}
 						<div>
 							<dt>last seen ms</dt>
@@ -275,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const remoteAlias = prefetched.remoteAlias}
+					{@const remoteAlias = pendingEntity.remoteAlias}
 					{#if remoteAlias !== undefined && remoteAlias !== null}
 						<div>
 							<dt>remote alias</dt>
@@ -310,7 +310,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const remoteDid = prefetched.remoteDid}
+					{@const remoteDid = pendingEntity.remoteDid}
 					{#if remoteDid !== undefined && remoteDid !== null}
 						<div>
 							<dt>remote DID</dt>

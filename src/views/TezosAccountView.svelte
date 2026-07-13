@@ -47,9 +47,15 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TezosNetworkView from '$/views/TezosNetworkView.svelte'
+	import TezosOperationsView from '$/views/TezosOperationsView.svelte'
+	import TezosTokenTransfersView from '$/views/TezosTokenTransfersView.svelte'
+	import TezosTokenBalance_TimestampsView from '$/views/TezosTokenBalance_TimestampsView.svelte'
+	import TezosAccount_TimestampsView from '$/views/TezosAccount_TimestampsView.svelte'
 </script>
 
 
@@ -102,7 +108,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -132,7 +138,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const accountKind = prefetched.accountKind}
+							{@const accountKind = pendingEntity.accountKind}
 							{#if accountKind !== undefined && accountKind !== null}
 								<TruncatedValue value={String((accountKind) ?? '')} />
 							{/if}
@@ -149,5 +155,111 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tezos-account-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tezos-account-operations',
+							label: 'Operations',
+						},
+						{
+							id: 'tezos-account-token-transfers',
+							label: 'Token Transfers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTezosAccountOperations({ id, label, open })}
+					<TezosOperationsView
+						selection={selection.$$operations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No operations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTezosAccountTokenTransfers({ id, label, open })}
+					<TezosTokenTransfersView
+						selection={selection.$$tokenTransfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No token transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-tezos-account-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'tezos-account-token-balance-timestamps',
+							label: 'Token Balance Timestamps',
+						},
+						{
+							id: 'tezos-account-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionTezosAccountTokenBalanceTimestamps({ id, label, open })}
+					<TezosTokenBalance_TimestampsView
+						selection={selection.$$tokenBalanceTimestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No token balance timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionTezosAccountTimestamps({ id, label, open })}
+					<TezosAccount_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

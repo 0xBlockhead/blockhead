@@ -208,6 +208,7 @@ const evmLogEntityFromIdAndWire = (
 				hex,
 			},
 		} satisfies Entity<typeof schema, EntityType.EvmTopic>)),
+		...(topics.at(0) != null && { topic0: topics.at(0) }),
 		...(data != null && { data }),
 		...(log.removed != null && { removed: log.removed }),
 		...(address != null && {
@@ -842,9 +843,9 @@ const catalogCoinCurrencyMarketMatchesMarket = (
 	market.marketKind === catalogMarket.marketKind
 	&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
 	&& market.$base.kind === MarketAssetKind.Coin
-	&& market.$base.$coin.coinId === catalogMarket.baseCoinId
+	&& market.$base.assetKey === catalogMarket.baseCoinId
 	&& market.$quote.kind === MarketAssetKind.Currency
-	&& market.$quote.$currency.iso4217 === catalogMarket.quoteIso4217
+	&& market.$quote.assetKey === catalogMarket.quoteIso4217
 )
 
 export default {
@@ -1321,8 +1322,10 @@ export default {
 				gasUsed: (transaction) => transaction.gasUsed,
 				cumulativeGasUsed: (transaction) => transaction.cumulativeGasUsed,
 				effectiveGasPrice: (transaction) => transaction.effectiveGasPrice,
-				maxFeePerGas: (transaction) => transaction.maxFeePerGas,
-				maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
+				FeeMarket: {
+					maxFeePerGas: (transaction) => transaction.maxFeePerGas,
+					maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
+				},
 				$$logs: (transaction) => transaction.$$logs,
 				traceUnavailable: (transaction) => transaction.traceUnavailable,
 			}),
@@ -1356,6 +1359,11 @@ export default {
 				data: (log) => log.data,
 				removed: (log) => log.removed,
 				$emitter: (log) => log.$emitter,
+				Event: {
+					Erc20Transfer: {
+						$$tokenTransfers: (log) => log.$$tokenTransfers,
+					},
+				},
 			}),
 
 		defineResolver(Source.Blockscout_Rest, {
@@ -1398,10 +1406,12 @@ export default {
 				$tokenContract: (transfer) => transfer.$tokenContract,
 				$coinInstance: (transfer) => transfer.$coinInstance,
 				amount: (transfer) => transfer.amount,
-				tokenId: (transfer) => transfer.tokenId,
 				tokenSymbol: (transfer) => transfer.tokenSymbol,
 				tokenName: (transfer) => transfer.tokenName,
 				tokenDecimals: (transfer) => transfer.tokenDecimals,
+				Nft: {
+					tokenId: (transfer) => transfer.tokenId,
+				},
 			}),
 
 		defineResolver(Source.Blockscout_Rest, {
@@ -1787,7 +1797,7 @@ export default {
 						throw new Error('Blockscout_Rest: Market_Timestamp is spot-only')
 					const coinId = (
 						$market.$base.kind === MarketAssetKind.Coin ?
-							$market.$base.$coin.coinId
+							$market.$base.assetKey
 						:
 							undefined
 					)
@@ -2667,7 +2677,7 @@ export default {
 						return []
 					const coinId = (
 						$market.$base.kind === MarketAssetKind.Coin ?
-							$market.$base.$coin.coinId
+							$market.$base.assetKey
 						:
 							undefined
 					)

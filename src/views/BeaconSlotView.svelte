@@ -42,24 +42,22 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconSlot = $derived(selection({
-		fields: {
-			$epoch: true,
-		},
-	}))
-	const titleFallback = $derived((String((selection.entitySelector.slot ?? prefetched.slot) ?? '') ? 'Slot #' + String((selection.entitySelector.slot ?? prefetched.slot) ?? '') : '') || 'beacon slot')
+	const beaconSlot = $derived(selection({}))
+	const titleFallback = $derived((String((pendingEntity.slot) ?? '') ? 'Slot #' + String((pendingEntity.slot) ?? '') : '') || 'beacon slot')
 	const viewDomId = $derived('beacon-slot-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 	import BeaconCommitteesView from '$/views/BeaconCommitteesView.svelte'
 	import BeaconAttestationsView from '$/views/BeaconAttestationsView.svelte'
 	import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
 	import BeaconSlashingsView from '$/views/BeaconSlashingsView.svelte'
-	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 </script>
 
 
@@ -68,10 +66,10 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.slot ?? prefetched.slot ?? '')}
+	idDragPlainText={String(pendingEntity.slot ?? '')}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.slot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]', {
-			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.slot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			slot: String(pendingEntity.slot ?? ''),
 		}) : undefined)
 	}
@@ -80,7 +78,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = selection.entitySelector.slot ?? prefetched.slot}
+		{@const serialValue = pendingEntity.slot}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Slot </span>
@@ -92,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = selection.entitySelector.slot ?? prefetched.slot}
+		{@const serialValue = pendingEntity.slot}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -112,8 +110,8 @@
 								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 								prefetched={beaconEpoch}
 								href={
-									(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-										caip2: `${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+									(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+										network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
 										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
 									}) : undefined)
 								}
@@ -136,8 +134,8 @@
 								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 								prefetched={beaconEpoch}
 								href={
-									(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-										caip2: `${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+									(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+										network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
 										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
 									}) : undefined)
 								}
@@ -163,7 +161,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proposerIndex = prefetched.proposerIndex}
+					{@const proposerIndex = pendingEntity.proposerIndex}
 					{#if proposerIndex !== undefined && proposerIndex !== null}
 						<div>
 							<dt>Proposer index</dt>
@@ -195,13 +193,13 @@
 						resource={selection.$epoch}
 					>
 						{#snippet children(beaconEpoch)}
-							{#if beaconEpoch[EntityMetaKey.Selector] != null}
+							{#if beaconEpoch != null && beaconEpoch[EntityMetaKey.Selector] != null}
 								<BeaconEpochView
 									selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 									prefetched={beaconEpoch}
 									href={
-										(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-											caip2: `${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+											network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
 											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
 										}) : undefined)
 									}
@@ -225,7 +223,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const root = prefetched.root}
+						{@const root = pendingEntity.root}
 						{#if root !== undefined && root !== null}
 							<div>
 								<dt>Block root</dt>
@@ -262,7 +260,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const canonical = prefetched.canonical}
+						{@const canonical = pendingEntity.canonical}
 						{#if canonical !== undefined && canonical !== null}
 							<div>
 								<dt>Canonical</dt>
@@ -299,7 +297,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const parentRoot = prefetched.parentRoot}
+						{@const parentRoot = pendingEntity.parentRoot}
 						{#if parentRoot !== undefined && parentRoot !== null}
 							<div>
 								<dt>Parent root</dt>
@@ -336,7 +334,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const stateRoot = prefetched.stateRoot}
+						{@const stateRoot = pendingEntity.stateRoot}
 						{#if stateRoot !== undefined && stateRoot !== null}
 							<div>
 								<dt>State root</dt>
@@ -373,7 +371,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const bodyRoot = prefetched.bodyRoot}
+						{@const bodyRoot = pendingEntity.bodyRoot}
 						{#if bodyRoot !== undefined && bodyRoot !== null}
 							<div>
 								<dt>Body root</dt>
@@ -410,7 +408,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const signature = prefetched.signature}
+						{@const signature = pendingEntity.signature}
 						{#if signature !== undefined && signature !== null}
 							<div>
 								<dt>Signature</dt>
@@ -440,29 +438,103 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BeaconCommitteesView
-				selection={selection.$$beaconCommittees}
-				title='Beacon committees'
-				id='BeaconCommitteesView-beacon-committees'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-beacon-slot-consensus'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'beacon-slot-committees',
+							label: 'Committees',
+						},
+						{
+							id: 'beacon-slot-attestations',
+							label: 'Attestations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-consensus'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Consensus</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BeaconAttestationsView
-				selection={selection.$$beaconAttestations}
-				title='Beacon attestations'
-				id='BeaconAttestationsView-beacon-attestations'
-			/>
+				{#snippet SectionBeaconSlotCommittees({ id, label, open })}
+					<BeaconCommitteesView
+						selection={selection.$$beaconCommittees}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BeaconWithdrawalsView
-				selection={selection.$$beaconWithdrawals}
-				title='Beacon withdrawals'
-				id='BeaconWithdrawalsView-beacon-withdrawals'
-			/>
+				{#snippet SectionBeaconSlotAttestations({ id, label, open })}
+					<BeaconAttestationsView
+						selection={selection.$$beaconAttestations}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BeaconSlashingsView
-				selection={selection.$$beaconSlashings}
-				title='Beacon slashings'
-				id='BeaconSlashingsView-beacon-slashings'
-			/>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-beacon-slot-exits'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'beacon-slot-withdrawals',
+							label: 'Withdrawals',
+						},
+						{
+							id: 'beacon-slot-slashings',
+							label: 'Slashings',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-exits'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Withdrawals and slashings</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionBeaconSlotWithdrawals({ id, label, open })}
+					<BeaconWithdrawalsView
+						selection={selection.$$beaconWithdrawals}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionBeaconSlotSlashings({ id, label, open })}
+					<BeaconSlashingsView
+						selection={selection.$$beaconSlashings}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

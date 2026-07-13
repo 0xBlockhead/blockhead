@@ -47,7 +47,7 @@
 			listingStage: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.listingStage) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp')
+	const titleFallback = $derived([String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp')
 	const viewDomId = $derived('evm-rollup-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -64,8 +64,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$rollup !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.caip2 !== undefined && pendingEntity.$rollup.$network.caip2.namespace !== undefined && pendingEntity.$rollup !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.caip2 !== undefined && pendingEntity.$rollup.$network.caip2.reference !== undefined && pendingEntity.$rollup !== undefined && pendingEntity.$rollup.projectId !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(pendingEntity.$rollup.$network.caip2.namespace ?? '')}:${String(pendingEntity.$rollup.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$rollup !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.slug !== undefined && pendingEntity.$rollup.projectId !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			network: String(pendingEntity.$rollup.$network.slug ?? ''),
 			projectId: String(pendingEntity.$rollup.projectId ?? ''),
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmRollupTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.listingStage) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
+				{[String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmRollupTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.listingStage) ?? '')].filter(Boolean).join(' ') || [String((prefetched.listingStage) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
+				{[String((pendingEntity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.listingStage) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,8 +108,8 @@
 					<EvmRollupView
 						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
 						href={
-							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.namespace !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.reference !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-								caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$rollup.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
 								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
 							}) : undefined)
 						}
@@ -125,8 +125,8 @@
 					<EvmRollupView
 						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
 						href={
-							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.namespace !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.reference !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-								caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$rollup.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
 								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
 							}) : undefined)
 						}
@@ -150,7 +150,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const listingStage = prefetched.listingStage}
+					{@const listingStage = pendingEntity.listingStage}
 					{#if listingStage !== undefined && listingStage !== null}
 						<div>
 							<dt>Listing stage</dt>
@@ -185,7 +185,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isArchived = prefetched.isArchived}
+					{@const isArchived = pendingEntity.isArchived}
 					{#if isArchived !== undefined && isArchived !== null}
 						<div>
 							<dt>Archived</dt>
@@ -220,7 +220,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isUpcoming = prefetched.isUpcoming}
+					{@const isUpcoming = pendingEntity.isUpcoming}
 					{#if isUpcoming !== undefined && isUpcoming !== null}
 						<div>
 							<dt>Upcoming</dt>
@@ -255,7 +255,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isUnderReview = prefetched.isUnderReview}
+					{@const isUnderReview = pendingEntity.isUnderReview}
 					{#if isUnderReview !== undefined && isUnderReview !== null}
 						<div>
 							<dt>Under review</dt>
@@ -295,7 +295,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -322,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceUpdatedAt = prefetched.sourceUpdatedAt}
+					{@const sourceUpdatedAt = pendingEntity.sourceUpdatedAt}
 					{#if sourceUpdatedAt !== undefined && sourceUpdatedAt !== null}
 						<div>
 							<dt>Source updated at</dt>
@@ -360,7 +360,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -385,8 +385,8 @@
 					<EvmRollupView
 						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup, {})}
 						href={
-							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.namespace !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.reference !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-								caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$rollup.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
 								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
 							}) : undefined)
 						}

@@ -338,4 +338,40 @@ describe('ResolverSubset parser', () => {
 			],
 		})
 	})
+
+	it('canonicalizes equivalent field query identities and separates loaded dimensions', () => {
+		const equivalentFirst = new BaseQueryBuilder()
+			.from({ row: rows })
+			.where(({ row }) => and(
+				inArray(row[EntityMetaKey.Source], ['SourceB', 'SourceA']),
+				eq(row.category, 'public')
+			))
+			.orderBy(({ row }) => row.rank, 'desc')
+		const equivalentSecond = new BaseQueryBuilder()
+			.from({ row: rows })
+			.where(({ row }) => and(
+				eq(row.category, 'public'),
+				inArray(row[EntityMetaKey.Source], ['SourceA', 'SourceB'])
+			))
+			.orderBy(({ row }) => row.rank, 'desc')
+		const baseRequest = subsetOptions(equivalentFirst, { limit: 5 })
+		const baseKey = stringify(fieldLoadedSubsetKey(baseRequest))
+
+		expect(stringify(fieldLoadedSubsetKey(subsetOptions(equivalentSecond, { limit: 5 })))).toBe(baseKey)
+		for (const changedRequest of [
+			subsetOptions(equivalentFirst, { limit: 6 }),
+			subsetOptions(equivalentFirst, { limit: 5, offset: 1 }),
+			subsetOptions(equivalentFirst, { limit: 5, cursor: { lastKey: 'cursor-key' } }),
+		])
+			expect(stringify(fieldLoadedSubsetKey(changedRequest))).not.toBe(baseKey)
+
+		const changedFilter = new BaseQueryBuilder()
+			.from({ row: rows })
+			.where(({ row }) => and(
+				eq(row.category, 'public'),
+				eq(row[EntityMetaKey.Source], 'SourceA')
+			))
+			.orderBy(({ row }) => row.rank, 'desc')
+		expect(stringify(fieldLoadedSubsetKey(subsetOptions(changedFilter, { limit: 5 })))).not.toBe(baseKey)
+	})
 })

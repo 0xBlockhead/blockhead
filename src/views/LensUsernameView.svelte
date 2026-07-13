@@ -44,7 +44,7 @@
 			timestamp: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.value) ?? ''), String((prefetched.localName) ?? '')].filter(Boolean).join(' ') || 'Lens username')
+	const titleFallback = $derived([String((pendingEntity.value) ?? ''), String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || 'Lens username')
 	const viewDomId = $derived('lens-username-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,7 +68,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensUsername}>
 			{#snippet Pending()}
-				{[String((prefetched.value) ?? ''), String((prefetched.localName) ?? '')].filter(Boolean).join(' ') || title || 'Lens username'}
+				{[String((pendingEntity.value) ?? ''), String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || title || 'Lens username'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -81,7 +81,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensUsername}>
 			{#snippet Pending()}
-				{[String((prefetched.localName) ?? '')].filter(Boolean).join(' ') || [String((prefetched.value) ?? ''), String((prefetched.localName) ?? '')].filter(Boolean).join(' ') || title || 'Lens username'}
+				{[String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.value) ?? ''), String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || title || 'Lens username'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +94,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensUsername}>
 			{#snippet Pending()}
-				{@const timestamp0 = prefetched.timestamp}
+				{@const timestamp0 = pendingEntity.timestamp}
 				{#if timestamp0 !== undefined && timestamp0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestamp0)} />
@@ -129,7 +129,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const localName = prefetched.localName}
+							{@const localName = pendingEntity.localName}
 							{#if localName !== undefined && localName !== null}
 								{String((localName) ?? '')}
 							{/if}
@@ -156,7 +156,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const value = prefetched.value}
+					{@const value = pendingEntity.value}
 					{#if value !== undefined && value !== null}
 						<div>
 							<dt>Value</dt>
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const id = prefetched.id}
+					{@const id = pendingEntity.id}
 					{#if id !== undefined && id !== null}
 						<div>
 							<dt>ID</dt>
@@ -226,7 +226,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestamp = prefetched.timestamp}
+					{@const timestamp = pendingEntity.timestamp}
 					{#if timestamp !== undefined && timestamp !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -266,7 +266,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const namespace = prefetched.namespace}
+							{@const namespace = pendingEntity.namespace}
 							{#if namespace !== undefined && namespace !== null}
 								<TruncatedValue value={String((namespace) ?? '')} />
 							{/if}
@@ -296,7 +296,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ownedBy = prefetched.ownedBy}
+							{@const ownedBy = pendingEntity.ownedBy}
 							{#if ownedBy !== undefined && ownedBy !== null}
 								<TruncatedValue value={String((ownedBy) ?? '')} />
 							{/if}
@@ -323,7 +323,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const linkedTo = prefetched.linkedTo}
+					{@const linkedTo = pendingEntity.linkedTo}
 					{#if linkedTo !== undefined && linkedTo !== null}
 						<div>
 							<dt>Linked to</dt>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const interfaceKind = prefetched.interfaceKind}
+					{@const interfaceKind = pendingEntity.interfaceKind}
 					{#if interfaceKind !== undefined && interfaceKind !== null}
 						<div>
 							<dt>interface kind</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const walletVersion = prefetched.walletVersion}
+					{@const walletVersion = pendingEntity.walletVersion}
 					{#if walletVersion !== undefined && walletVersion !== null}
 						<div>
 							<dt>wallet version</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const codeHash = prefetched.codeHash}
+					{@const codeHash = pendingEntity.codeHash}
 					{#if codeHash !== undefined && codeHash !== null}
 						<div>
 							<dt>code hash</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedSourceUrl = prefetched.verifiedSourceUrl}
+					{@const verifiedSourceUrl = pendingEntity.verifiedSourceUrl}
 					{#if verifiedSourceUrl !== undefined && verifiedSourceUrl !== null}
 						<div>
 							<dt>verified source URL</dt>
@@ -313,7 +313,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedAtMs = prefetched.verifiedAtMs}
+					{@const verifiedAtMs = pendingEntity.verifiedAtMs}
 					{#if verifiedAtMs !== undefined && verifiedAtMs !== null}
 						<div>
 							<dt>verified AT ms</dt>
@@ -348,7 +348,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verification = prefetched.verification}
+					{@const verification = pendingEntity.verification}
 					{#if verification !== undefined && verification !== null}
 						<div>
 							<dt>verification</dt>

@@ -43,7 +43,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const youtubeChannelTimestamp = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube channel observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'YouTube channel observation')
 	const viewDomId = $derived('youtube-channel-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -60,9 +60,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$channel !== undefined && pendingEntity.$channel.channelId !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(youtube)/youtube/channel/[channelId]/observations/[timestampMs]', {
-			channelId: String(pendingEntity.$channel.channelId ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$channel !== undefined && pendingEntity.$channel.channelId !== undefined ? resolve('/youtube/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			channelId: String(pendingEntity.$channel.channelId ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -77,7 +77,7 @@
 					layout={EntityLayout.Title}
 					open={false}
 				/>
-				{@const timestampMs1 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs1 = pendingEntity.timestampMs}
 				{#if timestampMs1 !== undefined && timestampMs1 !== null}
 					<Timestamp timestamp={Number(timestampMs1)} />
 				{/if}
@@ -113,7 +113,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}

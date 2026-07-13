@@ -9,8 +9,10 @@ export enum FedimintGatewaySelector {
 }
 export const FedimintGateway = entity({
 	entityType: EntityType.FedimintGateway,
-	label: 'Fedimint gateway',
-	labelPlural: 'Fedimint gateways',
+	labels: {
+		singular: 'Fedimint gateway',
+		plural: 'Fedimint gateways',
+	},
 })({
 	gatewayId: {
 		label: 'gateway ID',

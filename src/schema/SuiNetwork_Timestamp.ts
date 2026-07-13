@@ -9,8 +9,10 @@ export enum SuiNetwork_TimestampSelector {
 }
 export const SuiNetwork_Timestamp = entity({
 	entityType: EntityType.SuiNetwork_Timestamp,
-	label: 'sui network timestamp',
-	labelPlural: 'sui network observations',
+	labels: {
+		singular: 'sui network timestamp',
+		plural: 'sui network observations',
+	},
 })({
 	$network: {
 		label: 'network',

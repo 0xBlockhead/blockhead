@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const coinType = selection.entitySelector.coinType ?? prefetched.coinType}
+							{@const coinType = pendingEntity.coinType}
 							{#if coinType !== undefined && coinType !== null}
 								{String((coinType) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -189,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalBalance = prefetched.totalBalance}
+					{@const totalBalance = pendingEntity.totalBalance}
 					{#if totalBalance !== undefined && totalBalance !== null}
 						<div>
 							<dt>total balance</dt>
@@ -224,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const coinObjectCount = prefetched.coinObjectCount}
+					{@const coinObjectCount = pendingEntity.coinObjectCount}
 					{#if coinObjectCount !== undefined && coinObjectCount !== null}
 						<div>
 							<dt>coin object count</dt>

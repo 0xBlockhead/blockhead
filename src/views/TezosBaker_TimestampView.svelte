@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const level = selection.entitySelector.level ?? prefetched.level}
+							{@const level = pendingEntity.level}
 							{#if level !== undefined && level !== null}
 								{String((level) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusKey = prefetched.consensusKey}
+					{@const consensusKey = pendingEntity.consensusKey}
 					{#if consensusKey !== undefined && consensusKey !== null}
 						<div>
 							<dt>consensus key</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakingBalanceMutez = prefetched.stakingBalanceMutez}
+					{@const stakingBalanceMutez = pendingEntity.stakingBalanceMutez}
 					{#if stakingBalanceMutez !== undefined && stakingBalanceMutez !== null}
 						<div>
 							<dt>staking balance mutez</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatedBalanceMutez = prefetched.delegatedBalanceMutez}
+					{@const delegatedBalanceMutez = pendingEntity.delegatedBalanceMutez}
 					{#if delegatedBalanceMutez !== undefined && delegatedBalanceMutez !== null}
 						<div>
 							<dt>delegated balance mutez</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownDelegatedBalanceMutez = prefetched.ownDelegatedBalanceMutez}
+					{@const ownDelegatedBalanceMutez = pendingEntity.ownDelegatedBalanceMutez}
 					{#if ownDelegatedBalanceMutez !== undefined && ownDelegatedBalanceMutez !== null}
 						<div>
 							<dt>own delegated balance mutez</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const votingPower = prefetched.votingPower}
+					{@const votingPower = pendingEntity.votingPower}
 					{#if votingPower !== undefined && votingPower !== null}
 						<div>
 							<dt>voting power</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>active</dt>

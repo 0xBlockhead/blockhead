@@ -9,8 +9,10 @@ export enum BlockheadWalletTransportSessionSelector {
 }
 export const BlockheadWalletTransportSession = entity({
 	entityType: EntityType.BlockheadWalletTransportSession,
-	label: 'blockhead wallet transport session',
-	labelPlural: 'blockhead wallet transport sessions',
+	labels: {
+		singular: 'blockhead wallet transport session',
+		plural: 'blockhead wallet transport sessions',
+	},
 })({
 	connectionKey: {
 		label: 'connection key',

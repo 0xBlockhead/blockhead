@@ -9,8 +9,10 @@ export enum BlockheadWalletAccountSelector {
 }
 export const BlockheadWalletAccount = entity({
 	entityType: EntityType.BlockheadWalletAccount,
-	label: 'blockhead wallet account',
-	labelPlural: 'blockhead wallet accounts',
+	labels: {
+		singular: 'blockhead wallet account',
+		plural: 'blockhead wallet accounts',
+	},
 })({
 	caip10: {
 		label: 'CAIP-10',

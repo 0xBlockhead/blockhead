@@ -9,8 +9,10 @@ export enum HyperliquidSpotAssetSelector {
 }
 export const HyperliquidSpotAsset = entity({
 	entityType: EntityType.HyperliquidSpotAsset,
-	label: 'hyperliquid spot asset',
-	labelPlural: 'hyperliquid spot assets',
+	labels: {
+		singular: 'hyperliquid spot asset',
+		plural: 'hyperliquid spot assets',
+	},
 })({
 	$network: {
 		label: 'network',

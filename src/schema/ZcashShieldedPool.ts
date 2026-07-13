@@ -13,8 +13,10 @@ export enum ZcashShieldedPoolSelector {
 }
 export const ZcashShieldedPool = entity({
 	entityType: EntityType.ZcashShieldedPool,
-	label: 'Zcash shielded pool',
-	labelPlural: 'Zcash shielded pools',
+	labels: {
+		singular: 'Zcash shielded pool',
+		plural: 'Zcash shielded pools',
+	},
 })({
 	$network: {
 		label: 'Network',

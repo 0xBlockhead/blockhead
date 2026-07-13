@@ -9,8 +9,10 @@ export enum NetworkEndpointObservation_TimestampSelector {
 }
 export const NetworkEndpointObservation_Timestamp = entity({
 	entityType: EntityType.NetworkEndpointObservation_Timestamp,
-	label: 'network endpoint observation timestamp',
-	labelPlural: 'network endpoint observations',
+	labels: {
+		singular: 'network endpoint observation timestamp',
+		plural: 'network endpoint observations',
+	},
 })({
 	$network: {
 		label: 'network',

@@ -24,7 +24,7 @@
 
 <Page>
 	<Market_TimeInterval_TimestampsView
-		href={resolve('/(assets)/coins/candles')}
+		href={resolve('/coins/candles')}
 		title='All OHLC candles'
 		selection={
 			select(EntityType._Global, {

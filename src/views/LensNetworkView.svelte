@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -50,13 +51,19 @@
 			registryName: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'Lens')
+	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'Lens')
 	const viewDomId = $derived('lens-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import LensAccountsView from '$/views/LensAccountsView.svelte'
+	import LensFeedsView from '$/views/LensFeedsView.svelte'
+	import LensUsernameNamespacesView from '$/views/LensUsernameNamespacesView.svelte'
+	import LensPostsView from '$/views/LensPostsView.svelte'
 </script>
 
 
@@ -73,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'Lens'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'Lens'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'Lens'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'Lens'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -117,7 +124,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolName = prefetched.protocolName}
+							{@const protocolName = pendingEntity.protocolName}
 							{#if protocolName !== undefined && protocolName !== null}
 								{String((protocolName) ?? '')}
 							{/if}
@@ -146,7 +153,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const relationshipModel = prefetched.relationshipModel}
+					{@const relationshipModel = pendingEntity.relationshipModel}
 					{#if relationshipModel !== undefined && relationshipModel !== null}
 						<div>
 							<dt>Connection model</dt>
@@ -183,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registryName = prefetched.registryName}
+					{@const registryName = pendingEntity.registryName}
 					{#if registryName !== undefined && registryName !== null}
 						<div>
 							<dt>Registry name</dt>
@@ -223,7 +230,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const homeUrl = prefetched.homeUrl}
+							{@const homeUrl = pendingEntity.homeUrl}
 							{#if homeUrl !== undefined && homeUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -266,7 +273,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const docsUrl = prefetched.docsUrl}
+					{@const docsUrl = pendingEntity.docsUrl}
 					{#if docsUrl !== undefined && docsUrl !== null}
 						<div>
 							<dt>Docs URL</dt>
@@ -305,5 +312,126 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-lens-network-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'lens-network-accounts',
+							label: 'Accounts',
+						},
+						{
+							id: 'lens-network-feeds',
+							label: 'Feeds',
+						},
+						{
+							id: 'lens-network-username-namespaces',
+							label: 'Username namespaces',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Directory</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionLensNetworkAccounts({ id, label, open })}
+					<LensAccountsView
+						selection={
+							selection.$$lensAccounts({
+								sources: [
+									Source.Constants_Internal,
+									Source.Lens_Graphql,
+								],
+							})
+						}
+						href={resolve('/lens/observations/accounts')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Lens accounts in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionLensNetworkFeeds({ id, label, open })}
+					<LensFeedsView
+						selection={selection.$$lensFeeds}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Lens feeds in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionLensNetworkUsernameNamespaces({ id, label, open })}
+					<LensUsernameNamespacesView
+						selection={selection.$$lensUsernameNamespaces}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Lens username namespaces in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-lens-network-posts'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'lens-network-post-list',
+							label: 'Posts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-posts'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Posts</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionLensNetworkPostList({ id, label, open })}
+					<LensPostsView
+						selection={
+							selection.$$lensPosts({
+								sources: [
+									Source.Lens_Graphql,
+								],
+							})
+						}
+						href={resolve('/lens/observations/posts')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Lens posts in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

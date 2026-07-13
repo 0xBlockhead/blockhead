@@ -46,7 +46,7 @@
 			changeKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.changeKind) ?? '')].filter(Boolean).join(' ') || 'aptos state change')
+	const titleFallback = $derived([String((pendingEntity.changeKind) ?? '')].filter(Boolean).join(' ') || 'aptos state change')
 	const viewDomId = $derived('aptos-state-change-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosStateChange}>
 			{#snippet Pending()}
-				{[String((prefetched.changeKind) ?? '')].filter(Boolean).join(' ') || title || 'aptos state change'}
+				{[String((pendingEntity.changeKind) ?? '')].filter(Boolean).join(' ') || title || 'aptos state change'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosStateChange}>
 			{#snippet Pending()}
-				{@const changeIndex0 = selection.entitySelector.changeIndex ?? prefetched.changeIndex}
+				{@const changeIndex0 = pendingEntity.changeIndex}
 				{#if changeIndex0 !== undefined && changeIndex0 !== null}
 					<NumberValue value={Number(changeIndex0)} />
 				{/if}
@@ -153,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const changeIndex = selection.entitySelector.changeIndex ?? prefetched.changeIndex}
+							{@const changeIndex = pendingEntity.changeIndex}
 							{#if changeIndex !== undefined && changeIndex !== null}
 								<NumberValue value={Number(changeIndex)} />
 							{/if}
@@ -183,7 +183,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const changeKind = prefetched.changeKind}
+							{@const changeKind = pendingEntity.changeKind}
 							{#if changeKind !== undefined && changeKind !== null}
 								{String((changeKind) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const address = prefetched.address}
+					{@const address = pendingEntity.address}
 					{#if address !== undefined && address !== null}
 						<div>
 							<dt>Address</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stateKeyHash = prefetched.stateKeyHash}
+					{@const stateKeyHash = pendingEntity.stateKeyHash}
 					{#if stateKeyHash !== undefined && stateKeyHash !== null}
 						<div>
 							<dt>state key hash</dt>
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resourceType = prefetched.resourceType}
+					{@const resourceType = pendingEntity.resourceType}
 					{#if resourceType !== undefined && resourceType !== null}
 						<div>
 							<dt>resource type</dt>
@@ -310,6 +310,8 @@
 			<ResourceBoundary
 				resource={selection.$resource}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aptosAccountResource)}
 					{#if aptosAccountResource != null && aptosAccountResource[EntityMetaKey.Selector] != null}
 						<div>
@@ -339,7 +341,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleAddress = prefetched.moduleAddress}
+					{@const moduleAddress = pendingEntity.moduleAddress}
 					{#if moduleAddress !== undefined && moduleAddress !== null}
 						<div>
 							<dt>module address</dt>
@@ -374,7 +376,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moduleName = prefetched.moduleName}
+					{@const moduleName = pendingEntity.moduleName}
 					{#if moduleName !== undefined && moduleName !== null}
 						<div>
 							<dt>module name</dt>
@@ -402,6 +404,8 @@
 			<ResourceBoundary
 				resource={selection.$module}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(moveModule)}
 					{#if moveModule != null && moveModule[EntityMetaKey.Selector] != null}
 						<div>

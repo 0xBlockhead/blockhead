@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseAssetId = prefetched.baseAssetId}
+					{@const baseAssetId = pendingEntity.baseAssetId}
 					{#if baseAssetId !== undefined && baseAssetId !== null}
 						<div>
 							<dt>base asset ID</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quoteAssetId = prefetched.quoteAssetId}
+					{@const quoteAssetId = pendingEntity.quoteAssetId}
 					{#if quoteAssetId !== undefined && quoteAssetId !== null}
 						<div>
 							<dt>quote asset ID</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isCanonical = prefetched.isCanonical}
+					{@const isCanonical = pendingEntity.isCanonical}
 					{#if isCanonical !== undefined && isCanonical !== null}
 						<div>
 							<dt>is canonical</dt>

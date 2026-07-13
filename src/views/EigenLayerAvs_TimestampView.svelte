@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerAvsTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -119,7 +119,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eigenLayerAvsTimestamp}>
 			{#snippet Pending()}
-				{@const operatorCount0 = prefetched.operatorCount}
+				{@const operatorCount0 = pendingEntity.operatorCount}
 				{#if operatorCount0 !== undefined && operatorCount0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(operatorCount0)} />
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -195,7 +195,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -222,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -257,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const operatorCount = prefetched.operatorCount}
+					{@const operatorCount = pendingEntity.operatorCount}
 					{#if operatorCount !== undefined && operatorCount !== null}
 						<div>
 							<dt>operator count</dt>
@@ -292,7 +292,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const strategyCount = prefetched.strategyCount}
+					{@const strategyCount = pendingEntity.strategyCount}
 					{#if strategyCount !== undefined && strategyCount !== null}
 						<div>
 							<dt>strategy count</dt>
@@ -327,7 +327,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registrationStatus = prefetched.registrationStatus}
+					{@const registrationStatus = pendingEntity.registrationStatus}
 					{#if registrationStatus !== undefined && registrationStatus !== null}
 						<div>
 							<dt>registration status</dt>

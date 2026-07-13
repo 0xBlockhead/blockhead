@@ -10,8 +10,10 @@ export enum McpResourceSelector {
 }
 export const McpResource = entity({
 	entityType: EntityType.McpResource,
-	label: 'mcp resource',
-	labelPlural: 'mcp resources',
+	labels: {
+		singular: 'mcp resource',
+		plural: 'mcp resources',
+	},
 })({
 	$server: {
 		label: 'server',

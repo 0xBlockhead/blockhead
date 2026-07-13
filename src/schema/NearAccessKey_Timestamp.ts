@@ -10,8 +10,10 @@ export enum NearAccessKey_TimestampSelector {
 }
 export const NearAccessKey_Timestamp = entity({
 	entityType: EntityType.NearAccessKey_Timestamp,
-	label: 'near access key timestamp',
-	labelPlural: 'near access key observations',
+	labels: {
+		singular: 'near access key timestamp',
+		plural: 'near access key observations',
+	},
 })({
 	$accessKey: {
 		label: 'Access key',

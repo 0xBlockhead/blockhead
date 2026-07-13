@@ -47,7 +47,7 @@
 			observedNoteCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global Nostr network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global Nostr network timestamp')
 	const viewDomId = $derived('-global-nostr-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={globalNostrNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalNostrNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? ''), String((prefetched.reachable) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global Nostr network timestamp'}
+				{[String((pendingEntity.source) ?? ''), String((pendingEntity.reachable) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global Nostr network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalNostrNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const observedNoteCount0 = prefetched.observedNoteCount}
+				{@const observedNoteCount0 = pendingEntity.observedNoteCount}
 				{#if observedNoteCount0 !== undefined && observedNoteCount0 !== null}
 					<span data-text="muted">
 						{String((observedNoteCount0) ?? '')}
@@ -138,7 +138,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -168,7 +168,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -195,7 +195,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>
@@ -230,7 +230,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const filterKind = prefetched.filterKind}
+					{@const filterKind = pendingEntity.filterKind}
 					{#if filterKind !== undefined && filterKind !== null}
 						<div>
 							<dt>Filter kind</dt>
@@ -267,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const declaredRelayCount = prefetched.declaredRelayCount}
+					{@const declaredRelayCount = pendingEntity.declaredRelayCount}
 					{#if declaredRelayCount !== undefined && declaredRelayCount !== null}
 						<div>
 							<dt>Declared relay count</dt>
@@ -302,7 +302,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachableRelayCount = prefetched.reachableRelayCount}
+					{@const reachableRelayCount = pendingEntity.reachableRelayCount}
 					{#if reachableRelayCount !== undefined && reachableRelayCount !== null}
 						<div>
 							<dt>Reachable relay count</dt>
@@ -337,7 +337,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededRelayCount = prefetched.seededRelayCount}
+					{@const seededRelayCount = pendingEntity.seededRelayCount}
 					{#if seededRelayCount !== undefined && seededRelayCount !== null}
 						<div>
 							<dt>Seeded relay count</dt>
@@ -374,7 +374,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedProfileCount = prefetched.observedProfileCount}
+					{@const observedProfileCount = pendingEntity.observedProfileCount}
 					{#if observedProfileCount !== undefined && observedProfileCount !== null}
 						<div>
 							<dt>Observed profile count</dt>
@@ -409,7 +409,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedNoteCount = prefetched.observedNoteCount}
+					{@const observedNoteCount = pendingEntity.observedNoteCount}
 					{#if observedNoteCount !== undefined && observedNoteCount !== null}
 						<div>
 							<dt>Observed note count</dt>
@@ -444,7 +444,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedRelayCount = prefetched.observedRelayCount}
+					{@const observedRelayCount = pendingEntity.observedRelayCount}
 					{#if observedRelayCount !== undefined && observedRelayCount !== null}
 						<div>
 							<dt>Observed relay count</dt>
@@ -479,7 +479,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedRepostCount = prefetched.observedRepostCount}
+					{@const observedRepostCount = pendingEntity.observedRepostCount}
 					{#if observedRepostCount !== undefined && observedRepostCount !== null}
 						<div>
 							<dt>Observed repost count</dt>
@@ -514,7 +514,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedArticleCount = prefetched.observedArticleCount}
+					{@const observedArticleCount = pendingEntity.observedArticleCount}
 					{#if observedArticleCount !== undefined && observedArticleCount !== null}
 						<div>
 							<dt>Observed article count</dt>

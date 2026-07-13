@@ -46,7 +46,7 @@
 			length: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.pieceIndex ?? prefetched.pieceIndex) ?? '')].filter(Boolean).join(' ') || 'bit torrent piece')
+	const titleFallback = $derived([String((pendingEntity.pieceIndex) ?? '')].filter(Boolean).join(' ') || 'bit torrent piece')
 	const viewDomId = $derived('bit-torrent-piece-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bitTorrentPiece}>
 			{#snippet Pending()}
-				{@const pieceIndex0 = selection.entitySelector.pieceIndex ?? prefetched.pieceIndex}
+				{@const pieceIndex0 = pendingEntity.pieceIndex}
 				{#if pieceIndex0 !== undefined && pieceIndex0 !== null}
 					<NumberValue value={Number(pieceIndex0)} />
 				{/if}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentPiece}>
 			{#snippet Pending()}
-				{@const length0 = prefetched.length}
+				{@const length0 = pendingEntity.length}
 				{#if length0 !== undefined && length0 !== null}
 					<NumberValue value={Number(length0)} />
 				{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const pieceIndex = selection.entitySelector.pieceIndex ?? prefetched.pieceIndex}
+							{@const pieceIndex = pendingEntity.pieceIndex}
 							{#if pieceIndex !== undefined && pieceIndex !== null}
 								<NumberValue value={Number(pieceIndex)} />
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pieceHashV1 = prefetched.pieceHashV1}
+					{@const pieceHashV1 = pendingEntity.pieceHashV1}
 					{#if pieceHashV1 !== undefined && pieceHashV1 !== null}
 						<div>
 							<dt>piece hash v1</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pieceRootV2 = prefetched.pieceRootV2}
+					{@const pieceRootV2 = pendingEntity.pieceRootV2}
 					{#if pieceRootV2 !== undefined && pieceRootV2 !== null}
 						<div>
 							<dt>piece root v2</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pieceLayerHash = prefetched.pieceLayerHash}
+					{@const pieceLayerHash = pendingEntity.pieceLayerHash}
 					{#if pieceLayerHash !== undefined && pieceLayerHash !== null}
 						<div>
 							<dt>piece layer hash</dt>
@@ -266,7 +266,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const length = prefetched.length}
+					{@const length = pendingEntity.length}
 					{#if length !== undefined && length !== null}
 						<div>
 							<dt>length</dt>
@@ -301,7 +301,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const offset = prefetched.offset}
+					{@const offset = pendingEntity.offset}
 					{#if offset !== undefined && offset !== null}
 						<div>
 							<dt>offset</dt>

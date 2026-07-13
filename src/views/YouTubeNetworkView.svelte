@@ -48,7 +48,7 @@
 			protocolName: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API')
+	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API')
 	const viewDomId = $derived('youtube-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -63,7 +63,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(social)/(youtube)/youtube/api')}
+	href={href ?? resolve('/youtube/api')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={youtubeNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'YouTube Data API'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'YouTube Data API'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +96,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolName = prefetched.protocolName}
+							{@const protocolName = pendingEntity.protocolName}
 							{#if protocolName !== undefined && protocolName !== null}
 								{String((protocolName) ?? '')}
 							{/if}
@@ -127,7 +127,7 @@
 							}
 						>
 							{#snippet Pending()}
-								{@const homeUrl = prefetched.homeUrl}
+								{@const homeUrl = pendingEntity.homeUrl}
 								{#if homeUrl !== undefined && homeUrl !== null}
 									<svelte:element
 										this={'a'}
@@ -170,7 +170,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const docsUrl = prefetched.docsUrl}
+						{@const docsUrl = pendingEntity.docsUrl}
 						{#if docsUrl !== undefined && docsUrl !== null}
 							<div>
 								<dt>Documentation</dt>

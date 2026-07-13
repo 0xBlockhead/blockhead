@@ -59,7 +59,7 @@
 			$parentComment: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.text) ?? '')].filter(Boolean).join(' ') || 'YouTube comment')
+	const titleFallback = $derived([String((pendingEntity.text) ?? '')].filter(Boolean).join(' ') || 'YouTube comment')
 	const viewDomId = $derived('youtube-comment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -119,7 +119,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={youtubeComment}>
 			{#snippet Pending()}
-				{@const publishedAtMs0 = prefetched.publishedAtMs}
+				{@const publishedAtMs0 = pendingEntity.publishedAtMs}
 				{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(publishedAtMs0)} />
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const commentId = selection.entitySelector.commentId ?? prefetched.commentId}
+							{@const commentId = pendingEntity.commentId}
 							{#if commentId !== undefined && commentId !== null}
 								<TruncatedValue value={String((commentId) ?? '')} />
 							{/if}
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorDisplayName = prefetched.authorDisplayName}
+					{@const authorDisplayName = pendingEntity.authorDisplayName}
 					{#if authorDisplayName !== undefined && authorDisplayName !== null}
 						<div>
 							<dt>Author</dt>
@@ -227,7 +227,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const publishedAtMs = prefetched.publishedAtMs}
+						{@const publishedAtMs = pendingEntity.publishedAtMs}
 						{#if publishedAtMs !== undefined && publishedAtMs !== null}
 							<div>
 								<dt>Published</dt>
@@ -257,6 +257,8 @@
 				<ResourceBoundary
 					resource={selection.$author}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(youtubeChannel)}
 						{#if youtubeChannel != null && youtubeChannel[EntityMetaKey.Selector] != null}
 							<div>
@@ -279,6 +281,8 @@
 				<ResourceBoundary
 					resource={selection.$video}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(youtubeVideo)}
 						{#if youtubeVideo != null && youtubeVideo[EntityMetaKey.Selector] != null}
 							<div>
@@ -288,8 +292,8 @@
 										selection={select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector])}
 										prefetched={youtubeVideo}
 										href={
-											(youtubeVideo[EntityMetaKey.Selector].videoId !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-												videoId: encodeURIComponent(String(youtubeVideo[EntityMetaKey.Selector].videoId ?? '')),
+											(youtubeVideo[EntityMetaKey.Selector].videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
+												videoId: String(youtubeVideo[EntityMetaKey.Selector].videoId ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}
@@ -306,6 +310,8 @@
 				<ResourceBoundary
 					resource={selection.$parentComment}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(youtubeComment)}
 						{#if youtubeComment != null && youtubeComment[EntityMetaKey.Selector] != null}
 							<div>

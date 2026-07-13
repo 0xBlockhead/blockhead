@@ -51,7 +51,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'blockhead action readiness check timestamp')
+	const titleFallback = $derived([String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || 'blockhead action readiness check timestamp')
 	const viewDomId = $derived('blockhead-action-readiness-check-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadActionReadinessCheckTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action readiness check timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action readiness check timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadActionReadinessCheckTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadActionReadinessCheckTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -244,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedAmount = prefetched.observedAmount}
+					{@const observedAmount = pendingEntity.observedAmount}
 					{#if observedAmount !== undefined && observedAmount !== null}
 						<div>
 							<dt>observed amount</dt>
@@ -279,7 +279,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requiredAmount = prefetched.requiredAmount}
+					{@const requiredAmount = pendingEntity.requiredAmount}
 					{#if requiredAmount !== undefined && requiredAmount !== null}
 						<div>
 							<dt>required amount</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deficitAmount = prefetched.deficitAmount}
+					{@const deficitAmount = pendingEntity.deficitAmount}
 					{#if deficitAmount !== undefined && deficitAmount !== null}
 						<div>
 							<dt>deficit amount</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedCapabilityStatus = prefetched.observedCapabilityStatus}
+					{@const observedCapabilityStatus = pendingEntity.observedCapabilityStatus}
 					{#if observedCapabilityStatus !== undefined && observedCapabilityStatus !== null}
 						<div>
 							<dt>observed capability status</dt>
@@ -384,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourcePayloadHash = prefetched.sourcePayloadHash}
+					{@const sourcePayloadHash = pendingEntity.sourcePayloadHash}
 					{#if sourcePayloadHash !== undefined && sourcePayloadHash !== null}
 						<div>
 							<dt>source payload hash</dt>
@@ -419,7 +419,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

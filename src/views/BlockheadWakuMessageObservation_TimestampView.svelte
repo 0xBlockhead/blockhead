@@ -51,7 +51,7 @@
 			contentTopic: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.messageHash ?? prefetched.messageHash) ?? '')].filter(Boolean).join(' ') || 'blockhead waku message observation timestamp')
+	const titleFallback = $derived([String((pendingEntity.messageHash) ?? '')].filter(Boolean).join(' ') || 'blockhead waku message observation timestamp')
 	const viewDomId = $derived('blockhead-waku-message-observation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.messageHash ?? prefetched.messageHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead waku message observation timestamp'}
+				{[String((pendingEntity.messageHash) ?? '')].filter(Boolean).join(' ') || title || 'blockhead waku message observation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
 			{#snippet Pending()}
-				{@const contentTopic0 = prefetched.contentTopic}
+				{@const contentTopic0 = pendingEntity.contentTopic}
 				{#if contentTopic0 !== undefined && contentTopic0 !== null}
 					<span data-text="muted">
 						{String((contentTopic0) ?? '')}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const messageHash = selection.entitySelector.messageHash ?? prefetched.messageHash}
+							{@const messageHash = pendingEntity.messageHash}
 							{#if messageHash !== undefined && messageHash !== null}
 								<TruncatedValue value={String((messageHash) ?? '')} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -215,7 +215,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -242,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pubsubTopic = prefetched.pubsubTopic}
+					{@const pubsubTopic = pendingEntity.pubsubTopic}
 					{#if pubsubTopic !== undefined && pubsubTopic !== null}
 						<div>
 							<dt>pubsub topic</dt>
@@ -277,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentTopic = prefetched.contentTopic}
+					{@const contentTopic = pendingEntity.contentTopic}
 					{#if contentTopic !== undefined && contentTopic !== null}
 						<div>
 							<dt>content topic</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadHash = prefetched.payloadHash}
+					{@const payloadHash = pendingEntity.payloadHash}
 					{#if payloadHash !== undefined && payloadHash !== null}
 						<div>
 							<dt>payload hash</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadSizeBytes = prefetched.payloadSizeBytes}
+					{@const payloadSizeBytes = pendingEntity.payloadSizeBytes}
 					{#if payloadSizeBytes !== undefined && payloadSizeBytes !== null}
 						<div>
 							<dt>payload size bytes</dt>
@@ -384,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -419,7 +419,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ephemeral = prefetched.ephemeral}
+					{@const ephemeral = pendingEntity.ephemeral}
 					{#if ephemeral !== undefined && ephemeral !== null}
 						<div>
 							<dt>ephemeral</dt>
@@ -454,7 +454,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const senderPeerId = prefetched.senderPeerId}
+					{@const senderPeerId = pendingEntity.senderPeerId}
 					{#if senderPeerId !== undefined && senderPeerId !== null}
 						<div>
 							<dt>sender peer ID</dt>
@@ -489,7 +489,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolPath = prefetched.protocolPath}
+					{@const protocolPath = pendingEntity.protocolPath}
 					{#if protocolPath !== undefined && protocolPath !== null}
 						<div>
 							<dt>protocol path</dt>

@@ -48,7 +48,7 @@
 			description: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.mintUrl ?? prefetched.mintUrl) ?? '')].filter(Boolean).join(' ') || 'Cashu mint')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.mintUrl) ?? '')].filter(Boolean).join(' ') || 'Cashu mint')
 	const viewDomId = $derived('cashu-mint-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cashuMint}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.mintUrl ?? prefetched.mintUrl) ?? '')].filter(Boolean).join(' ') || 'Cashu mint'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.mintUrl) ?? '')].filter(Boolean).join(' ') || 'Cashu mint'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cashuMint}>
 			{#snippet Pending()}
-				{[String((prefetched.version) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.mintUrl ?? prefetched.mintUrl) ?? '')].filter(Boolean).join(' ') || 'Cashu mint'}
+				{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.mintUrl) ?? '')].filter(Boolean).join(' ') || 'Cashu mint'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +111,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const mintUrl = selection.entitySelector.mintUrl ?? prefetched.mintUrl}
+							{@const mintUrl = pendingEntity.mintUrl}
 							{#if mintUrl !== undefined && mintUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -155,7 +155,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -233,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pubkey = prefetched.pubkey}
+					{@const pubkey = pendingEntity.pubkey}
 					{#if pubkey !== undefined && pubkey !== null}
 						<div>
 							<dt>public key</dt>
@@ -271,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const motd = prefetched.motd}
+					{@const motd = pendingEntity.motd}
 					{#if motd !== undefined && motd !== null}
 						<div>
 							<dt>motd</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const iconUrl = prefetched.iconUrl}
+					{@const iconUrl = pendingEntity.iconUrl}
 					{#if iconUrl !== undefined && iconUrl !== null}
 						<div>
 							<dt>icon URL</dt>
@@ -401,7 +401,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tosUrl = prefetched.tosUrl}
+					{@const tosUrl = pendingEntity.tosUrl}
 					{#if tosUrl !== undefined && tosUrl !== null}
 						<div>
 							<dt>tos URL</dt>
@@ -453,7 +453,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timeMs = prefetched.timeMs}
+					{@const timeMs = pendingEntity.timeMs}
 					{#if timeMs !== undefined && timeMs !== null}
 						<div>
 							<dt>time ms</dt>

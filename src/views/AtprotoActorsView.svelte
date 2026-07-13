@@ -120,8 +120,8 @@
 						selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoActorFields}
 						href={
-							(atprotoActorHrefFields.did !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]', {
-								did: encodeURIComponent(String(atprotoActorHrefFields.did ?? '')),
+							(atprotoActorHrefFields.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
+								did: String(atprotoActorHrefFields.did ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

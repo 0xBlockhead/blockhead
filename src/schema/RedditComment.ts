@@ -10,8 +10,10 @@ export enum RedditCommentSelector {
 }
 export const RedditComment = entity({
 	entityType: EntityType.RedditComment,
-	label: 'Reddit comment',
-	labelPlural: 'Reddit comments',
+	labels: {
+		singular: 'Reddit comment',
+		plural: 'Reddit comments',
+	},
 })({
 	fullname: {
 		label: 'Fullname',

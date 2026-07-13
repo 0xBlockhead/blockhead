@@ -117,7 +117,7 @@
 						selection={select(EntityType.Media, media[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mediaFields}
 						href={
-							(mediaHrefFields.url !== undefined ? resolve('/(explore)/media/[url]', {
+							(mediaHrefFields.url !== undefined ? resolve('/media/[url=absoluteUrl]', {
 								url: String(mediaHrefFields.url ?? ''),
 							}) : undefined)
 						}

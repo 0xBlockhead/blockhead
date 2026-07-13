@@ -9,8 +9,10 @@ export enum MevRelay_TimestampSelector {
 }
 export const MevRelay_Timestamp = entity({
 	entityType: EntityType.MevRelay_Timestamp,
-	label: 'MEV relay timestamp',
-	labelPlural: 'MEV relay observations',
+	labels: {
+		singular: 'MEV relay timestamp',
+		plural: 'MEV relay observations',
+	},
 })({
 	$relay: {
 		label: 'Relay',
@@ -22,7 +24,7 @@ export const MevRelay_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

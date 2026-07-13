@@ -37,25 +37,8 @@ export type PersistenceTraceEvent = {
 	error?: string
 }
 
-export type ClientProbeCollectionSyncEvent = {
-	collection:
-		| {
-			kind: 'Entity'
-			entityType: string
-			id: string
-		}
-		| {
-			kind: 'Field' | 'Count'
-			entityType: string
-			fieldName: string
-			id: string
-		}
-	key: string
-}
-
 export type ClientProbe = {
 	events: {
-		collectionSync: ClientProbeCollectionSyncEvent[]
 		collectionLoads: ClientEvent[]
 	}
 	collectionSizes: () => {
@@ -123,21 +106,24 @@ export const openBlockheadBrowserDatabase = (
 			let queue = Promise.resolve()
 			let transactionComplete: Promise<void> | undefined
 			let resolveTransactionComplete: (() => void) | undefined
-			const execute: BrowserWASQLiteDatabase['execute'] = (sql, params) => {
+			const execute: BrowserWASQLiteDatabase['execute'] = <_Row = Record<string, null | number | string>>(
+				sql: string,
+				params?: Parameters<BrowserWASQLiteDatabase['execute']>[1]
+			) => {
 				const normalizedSql = sql.trim().toUpperCase()
 				const result = queue.then(async () => {
 					if (normalizedSql.startsWith('BEGIN')) {
 						while (transactionComplete != null)
 							await transactionComplete
 
-						const rows = await database.execute(sql, params)
+						const rows = await database.execute<_Row>(sql, params)
 						transactionComplete = new Promise((resolve) => {
 							resolveTransactionComplete = resolve
 						})
 						return rows
 					}
 
-					const rows = await database.execute(sql, params)
+					const rows = await database.execute<_Row>(sql, params)
 					if (normalizedSql.startsWith('COMMIT') || normalizedSql.startsWith('ROLLBACK')) {
 						resolveTransactionComplete?.()
 						transactionComplete = undefined
@@ -155,6 +141,7 @@ export const openBlockheadBrowserDatabase = (
 				execute,
 				close: async () => {
 					await queue
+					await transactionComplete
 					await database.close?.()
 				},
 			} satisfies BrowserWASQLiteDatabase
@@ -345,7 +332,6 @@ export const installAppClientProbe = <
 	Object.defineProperty(window, '__blockheadClientProbe', {
 		value: {
 			events: {
-				collectionSync: [],
 				collectionLoads: appClient.events,
 			},
 			collectionSizes: () => ({

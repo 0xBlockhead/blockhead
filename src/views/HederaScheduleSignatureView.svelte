@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const publicKeyPrefix = selection.entitySelector.publicKeyPrefix ?? prefetched.publicKeyPrefix}
+							{@const publicKeyPrefix = pendingEntity.publicKeyPrefix}
 							{#if publicKeyPrefix !== undefined && publicKeyPrefix !== null}
 								{String((publicKeyPrefix) ?? '')}
 							{/if}
@@ -130,7 +130,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusTimestamp = prefetched.consensusTimestamp}
+					{@const consensusTimestamp = pendingEntity.consensusTimestamp}
 					{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
 						<div>
 							<dt>consensus timestamp</dt>
@@ -165,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signature = prefetched.signature}
+					{@const signature = pendingEntity.signature}
 					{#if signature !== undefined && signature !== null}
 						<div>
 							<dt>signature</dt>
@@ -193,6 +193,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>

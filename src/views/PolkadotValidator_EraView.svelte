@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -48,7 +47,7 @@
 			active: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.eraIndex ?? prefetched.eraIndex) ?? '')].filter(Boolean).join(' ') || 'polkadot validator era')
+	const titleFallback = $derived([String((pendingEntity.eraIndex) ?? '')].filter(Boolean).join(' ') || 'polkadot validator era')
 	const viewDomId = $derived('polkadot-validator-era-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={polkadotValidatorEra}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.eraIndex ?? prefetched.eraIndex) ?? '')].filter(Boolean).join(' ') || title || 'polkadot validator era'}
+				{[String((pendingEntity.eraIndex) ?? '')].filter(Boolean).join(' ') || title || 'polkadot validator era'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotValidatorEra}>
 			{#snippet Pending()}
-				{[String((prefetched.active) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.eraIndex ?? prefetched.eraIndex) ?? '')].filter(Boolean).join(' ') || title || 'polkadot validator era'}
+				{[String((pendingEntity.active) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eraIndex) ?? '')].filter(Boolean).join(' ') || title || 'polkadot validator era'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -98,7 +97,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={polkadotValidatorEra}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -144,7 +143,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eraIndex = selection.entitySelector.eraIndex ?? prefetched.eraIndex}
+							{@const eraIndex = pendingEntity.eraIndex}
 							{#if eraIndex !== undefined && eraIndex !== null}
 								{String((eraIndex) ?? '')}
 							{/if}
@@ -174,7 +173,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -194,6 +193,8 @@
 			<ResourceBoundary
 				resource={selection.$controller}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(polkadotAccount)}
 					{#if polkadotAccount != null && polkadotAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -203,8 +204,8 @@
 									selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
 									prefetched={polkadotAccount}
 									href={
-										(polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2.reference !== undefined && polkadotAccount[EntityMetaKey.Selector].accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
-											networkSlug: String(networkByCaip2[String(String(polkadotAccount[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(polkadotAccount[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+										(polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.slug !== undefined && polkadotAccount[EntityMetaKey.Selector].accountId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
+											network: String(polkadotAccount[EntityMetaKey.Selector].$network.slug ?? ''),
 											accountId: String(polkadotAccount[EntityMetaKey.Selector].accountId ?? ''),
 										}) : undefined)
 									}
@@ -227,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>active</dt>
@@ -262,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slashed = prefetched.slashed}
+					{@const slashed = pendingEntity.slashed}
 					{#if slashed !== undefined && slashed !== null}
 						<div>
 							<dt>slashed</dt>
@@ -299,7 +300,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commissionPerBillion = prefetched.commissionPerBillion}
+					{@const commissionPerBillion = pendingEntity.commissionPerBillion}
 					{#if commissionPerBillion !== undefined && commissionPerBillion !== null}
 						<div>
 							<dt>commission per billion</dt>
@@ -334,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalStakePlancks = prefetched.totalStakePlancks}
+					{@const totalStakePlancks = pendingEntity.totalStakePlancks}
 					{#if totalStakePlancks !== undefined && totalStakePlancks !== null}
 						<div>
 							<dt>total stake plancks</dt>
@@ -369,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownStakePlancks = prefetched.ownStakePlancks}
+					{@const ownStakePlancks = pendingEntity.ownStakePlancks}
 					{#if ownStakePlancks !== undefined && ownStakePlancks !== null}
 						<div>
 							<dt>own stake plancks</dt>
@@ -404,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nominatorStakePlancks = prefetched.nominatorStakePlancks}
+					{@const nominatorStakePlancks = pendingEntity.nominatorStakePlancks}
 					{#if nominatorStakePlancks !== undefined && nominatorStakePlancks !== null}
 						<div>
 							<dt>nominator stake plancks</dt>
@@ -439,7 +440,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nominatorCount = prefetched.nominatorCount}
+					{@const nominatorCount = pendingEntity.nominatorCount}
 					{#if nominatorCount !== undefined && nominatorCount !== null}
 						<div>
 							<dt>nominator count</dt>
@@ -474,7 +475,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardPoints = prefetched.rewardPoints}
+					{@const rewardPoints = pendingEntity.rewardPoints}
 					{#if rewardPoints !== undefined && rewardPoints !== null}
 						<div>
 							<dt>reward points</dt>

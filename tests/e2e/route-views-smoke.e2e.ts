@@ -1,6 +1,7 @@
 import { test } from '@playwright/test'
 
 import {
+	assertCanonicalRouteUrl,
 	expectMainVisible,
 } from '../_e2eBrowserHelpers.ts'
 
@@ -37,6 +38,7 @@ test.describe('route views smoke (#main, no page error)', () => {
 					timeout: routeViewSmokeTimeoutsMs.goto,
 				}))
 				await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
+				await step(assertCanonicalRouteUrl(page, path))
 			}
 			catch (e) {
 				await flushArtifacts(testInfo)

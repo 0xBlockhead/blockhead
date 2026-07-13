@@ -46,7 +46,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.blockNumber) ?? '')].filter(Boolean).join(' ') || [String((prefetched.blockHash) ?? '')].filter(Boolean).join(' ') || 'avail block')
+	const titleFallback = $derived([String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.blockHash) ?? '')].filter(Boolean).join(' ') || 'avail block')
 	const viewDomId = $derived('avail-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={availBlock}>
 			{#snippet Pending()}
-				{@const blockNumber0 = prefetched.blockNumber}
+				{@const blockNumber0 = pendingEntity.blockNumber}
 				{#if blockNumber0 !== undefined && blockNumber0 !== null}
 					<NumberValue value={Number(blockNumber0)} />
 				{/if}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={availBlock}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockNumber = prefetched.blockNumber}
+							{@const blockNumber = pendingEntity.blockNumber}
 							{#if blockNumber !== undefined && blockNumber !== null}
 								<NumberValue value={Number(blockNumber)} />
 							{/if}
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockHash = prefetched.blockHash}
+							{@const blockHash = pendingEntity.blockHash}
 							{#if blockHash !== undefined && blockHash !== null}
 								<TruncatedValue value={String((blockHash) ?? '')} />
 							{/if}
@@ -192,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const parentHash = prefetched.parentHash}
+					{@const parentHash = pendingEntity.parentHash}
 					{#if parentHash !== undefined && parentHash !== null}
 						<div>
 							<dt>parent hash</dt>
@@ -220,6 +220,8 @@
 			<ResourceBoundary
 				resource={selection.$parent}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(availBlock)}
 					{#if availBlock != null && availBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -249,7 +251,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -284,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stateRoot = prefetched.stateRoot}
+					{@const stateRoot = pendingEntity.stateRoot}
 					{#if stateRoot !== undefined && stateRoot !== null}
 						<div>
 							<dt>state root</dt>
@@ -319,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const extrinsicsRoot = prefetched.extrinsicsRoot}
+					{@const extrinsicsRoot = pendingEntity.extrinsicsRoot}
 					{#if extrinsicsRoot !== undefined && extrinsicsRoot !== null}
 						<div>
 							<dt>extrinsics root</dt>
@@ -356,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const extrinsicCount = prefetched.extrinsicCount}
+					{@const extrinsicCount = pendingEntity.extrinsicCount}
 					{#if extrinsicCount !== undefined && extrinsicCount !== null}
 						<div>
 							<dt>extrinsic count</dt>
@@ -391,7 +393,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataSubmissionCount = prefetched.dataSubmissionCount}
+					{@const dataSubmissionCount = pendingEntity.dataSubmissionCount}
 					{#if dataSubmissionCount !== undefined && dataSubmissionCount !== null}
 						<div>
 							<dt>data submission count</dt>
@@ -426,7 +428,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const appIdCount = prefetched.appIdCount}
+					{@const appIdCount = pendingEntity.appIdCount}
 					{#if appIdCount !== undefined && appIdCount !== null}
 						<div>
 							<dt>app ID count</dt>

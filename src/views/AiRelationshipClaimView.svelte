@@ -50,7 +50,7 @@
 			Source.Ipfs_Rest,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.relationshipKind ?? prefetched.relationshipKind) ?? '')].filter(Boolean).join(' ') || 'AI relationship claim')
+	const titleFallback = $derived([String((pendingEntity.relationshipKind) ?? '')].filter(Boolean).join(' ') || 'AI relationship claim')
 	const viewDomId = $derived('ai-relationship-claim-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiRelationshipClaim}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.relationshipKind ?? prefetched.relationshipKind) ?? '')].filter(Boolean).join(' ') || title || 'AI relationship claim'}
+				{[String((pendingEntity.relationshipKind) ?? '')].filter(Boolean).join(' ') || title || 'AI relationship claim'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiRelationshipClaim}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.subjectKind ?? prefetched.subjectKind) ?? ''), String((selection.entitySelector.objectKind ?? prefetched.objectKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.relationshipKind ?? prefetched.relationshipKind) ?? '')].filter(Boolean).join(' ') || title || 'AI relationship claim'}
+				{[String((pendingEntity.subjectKind) ?? ''), String((pendingEntity.objectKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.relationshipKind) ?? '')].filter(Boolean).join(' ') || title || 'AI relationship claim'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiRelationshipClaim}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -138,7 +138,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subjectKind = selection.entitySelector.subjectKind ?? prefetched.subjectKind}
+							{@const subjectKind = pendingEntity.subjectKind}
 							{#if subjectKind !== undefined && subjectKind !== null}
 								{String((subjectKind) ?? '')}
 							{/if}
@@ -168,7 +168,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const relationshipKind = selection.entitySelector.relationshipKind ?? prefetched.relationshipKind}
+							{@const relationshipKind = pendingEntity.relationshipKind}
 							{#if relationshipKind !== undefined && relationshipKind !== null}
 								{String((relationshipKind) ?? '')}
 							{/if}
@@ -198,7 +198,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectKind = selection.entitySelector.objectKind ?? prefetched.objectKind}
+							{@const objectKind = pendingEntity.objectKind}
 							{#if objectKind !== undefined && objectKind !== null}
 								{String((objectKind) ?? '')}
 							{/if}
@@ -230,7 +230,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -260,7 +260,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -287,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const confidence = prefetched.confidence}
+					{@const confidence = pendingEntity.confidence}
 					{#if confidence !== undefined && confidence !== null}
 						<div>
 							<dt>confidence</dt>
@@ -315,6 +315,8 @@
 			<ResourceBoundary
 				resource={selection.$document}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiDocument)}
 					{#if aiDocument != null && aiDocument[EntityMetaKey.Selector] != null}
 						<div>
@@ -335,6 +337,8 @@
 			<ResourceBoundary
 				resource={selection.$documentClaim}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiDocumentClaim)}
 					{#if aiDocumentClaim != null && aiDocumentClaim[EntityMetaKey.Selector] != null}
 						<div>
@@ -364,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evidenceUri = prefetched.evidenceUri}
+					{@const evidenceUri = pendingEntity.evidenceUri}
 					{#if evidenceUri !== undefined && evidenceUri !== null}
 						<div>
 							<dt>evidence URI</dt>
@@ -413,7 +417,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evidenceHashAlgorithm = prefetched.evidenceHashAlgorithm}
+					{@const evidenceHashAlgorithm = pendingEntity.evidenceHashAlgorithm}
 					{#if evidenceHashAlgorithm !== undefined && evidenceHashAlgorithm !== null}
 						<div>
 							<dt>evidence hash algorithm</dt>
@@ -448,7 +452,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evidenceHash = prefetched.evidenceHash}
+					{@const evidenceHash = pendingEntity.evidenceHash}
 					{#if evidenceHash !== undefined && evidenceHash !== null}
 						<div>
 							<dt>evidence hash</dt>

@@ -10,8 +10,10 @@ export enum BlockheadWakuNodeStateSelector {
 }
 export const BlockheadWakuNodeState = entity({
 	entityType: EntityType.BlockheadWakuNodeState,
-	label: 'blockhead waku node state',
-	labelPlural: 'blockhead waku node states',
+	labels: {
+		singular: 'blockhead waku node state',
+		plural: 'blockhead waku node states',
+	},
 })({
 	connectionId: {
 		label: 'connection ID',

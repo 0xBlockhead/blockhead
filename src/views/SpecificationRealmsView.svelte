@@ -124,7 +124,7 @@
 						selection={select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={specificationRealmFields}
 						href={
-							(specificationRealmHrefFields.realm !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+							(specificationRealmHrefFields.realm !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
 								specificationRealmSlug: String(specificationRealmById[String(specificationRealmHrefFields.realm)].slug ?? ''),
 							}) : undefined)
 						}
@@ -212,7 +212,7 @@
 										EntityType.SpecificationRealm,
 										{ realm: realm.entitySelector.realm }
 									)}
-									href={resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+												href={resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
 										specificationRealmSlug: String(specificationRealmById[String(realm.entitySelector.realm)].slug),
 									})}
 									layout={EntityLayout.Title}

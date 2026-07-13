@@ -9,8 +9,10 @@ export enum _GlobalAtprotoNetwork_TimestampSelector {
 }
 export const _GlobalAtprotoNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalAtprotoNetwork_Timestamp,
-	label: 'AT Protocol hub observation',
-	labelPlural: 'AT Protocol hub observations',
+	labels: {
+		singular: 'AT Protocol hub observation',
+		plural: 'AT Protocol hub observations',
+	},
 })({
 	$hub: {
 		label: 'Hub',

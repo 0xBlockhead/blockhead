@@ -123,10 +123,10 @@
 						selection={select(EntityType.EvmError_Timestamp, evmErrorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmErrorTimestampFields}
 						href={
-							(evmErrorTimestampHrefFields.$error !== undefined && evmErrorTimestampHrefFields.$error.hex !== undefined && evmErrorTimestampHrefFields.timestampMs !== undefined && evmErrorTimestampHrefFields.source !== undefined ? resolve('/(explore)/(evm)/evm/(errors)/error/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								hex: String(evmErrorTimestampHrefFields.$error.hex ?? ''),
+							(evmErrorTimestampHrefFields.timestampMs !== undefined && evmErrorTimestampHrefFields.source !== undefined && evmErrorTimestampHrefFields.$error !== undefined && evmErrorTimestampHrefFields.$error.hex !== undefined ? resolve('/evm/error/[hex=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(evmErrorTimestampHrefFields.timestampMs ?? ''),
 								source: String(evmErrorTimestampHrefFields.source ?? ''),
+								hex: String(evmErrorTimestampHrefFields.$error.hex ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

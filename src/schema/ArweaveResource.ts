@@ -9,8 +9,10 @@ export enum ArweaveResourceSelector {
 }
 export const ArweaveResource = entity({
 	entityType: EntityType.ArweaveResource,
-	label: 'arweave resource',
-	labelPlural: 'arweave resources',
+	labels: {
+		singular: 'arweave resource',
+		plural: 'arweave resources',
+	},
 })({
 	transactionId: {
 		label: 'transaction ID',

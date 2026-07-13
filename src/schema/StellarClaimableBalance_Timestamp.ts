@@ -9,8 +9,10 @@ export enum StellarClaimableBalance_TimestampSelector {
 }
 export const StellarClaimableBalance_Timestamp = entity({
 	entityType: EntityType.StellarClaimableBalance_Timestamp,
-	label: 'stellar claimable balance timestamp',
-	labelPlural: 'stellar claimable balance observations',
+	labels: {
+		singular: 'stellar claimable balance timestamp',
+		plural: 'stellar claimable balance observations',
+	},
 })({
 	$claimableBalance: {
 		label: 'claimable balance',

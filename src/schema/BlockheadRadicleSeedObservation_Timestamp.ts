@@ -9,8 +9,10 @@ export enum BlockheadRadicleSeedObservation_TimestampSelector {
 }
 export const BlockheadRadicleSeedObservation_Timestamp = entity({
 	entityType: EntityType.BlockheadRadicleSeedObservation_Timestamp,
-	label: 'blockhead radicle seed observation timestamp',
-	labelPlural: 'blockhead radicle seed observation observations',
+	labels: {
+		singular: 'blockhead radicle seed observation timestamp',
+		plural: 'blockhead radicle seed observation observations',
+	},
 })({
 	$repository: {
 		label: 'repository',

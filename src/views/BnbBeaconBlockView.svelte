@@ -46,7 +46,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.height) ?? '')].filter(Boolean).join(' ') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'bnb beacon block')
+	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'bnb beacon block')
 	const viewDomId = $derived('bnb-beacon-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bnbBeaconBlock}>
 			{#snippet Pending()}
-				{@const height0 = prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<NumberValue value={Number(height0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconBlock}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const height = prefetched.height}
+							{@const height = pendingEntity.height}
 							{#if height !== undefined && height !== null}
 								<NumberValue value={Number(height)} />
 							{/if}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hash = prefetched.hash}
+							{@const hash = pendingEntity.hash}
 							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
 							{/if}
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proposerAddress = prefetched.proposerAddress}
+					{@const proposerAddress = pendingEntity.proposerAddress}
 					{#if proposerAddress !== undefined && proposerAddress !== null}
 						<div>
 							<dt>proposer address</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const appHash = prefetched.appHash}
+					{@const appHash = pendingEntity.appHash}
 					{#if appHash !== undefined && appHash !== null}
 						<div>
 							<dt>app hash</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataHash = prefetched.dataHash}
+					{@const dataHash = pendingEntity.dataHash}
 					{#if dataHash !== undefined && dataHash !== null}
 						<div>
 							<dt>data hash</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validatorsHash = prefetched.validatorsHash}
+					{@const validatorsHash = pendingEntity.validatorsHash}
 					{#if validatorsHash !== undefined && validatorsHash !== null}
 						<div>
 							<dt>validators hash</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nextValidatorsHash = prefetched.nextValidatorsHash}
+					{@const nextValidatorsHash = pendingEntity.nextValidatorsHash}
 					{#if nextValidatorsHash !== undefined && nextValidatorsHash !== null}
 						<div>
 							<dt>next validators hash</dt>
@@ -405,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusHash = prefetched.consensusHash}
+					{@const consensusHash = pendingEntity.consensusHash}
 					{#if consensusHash !== undefined && consensusHash !== null}
 						<div>
 							<dt>consensus hash</dt>
@@ -440,7 +440,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evidenceHash = prefetched.evidenceHash}
+					{@const evidenceHash = pendingEntity.evidenceHash}
 					{#if evidenceHash !== undefined && evidenceHash !== null}
 						<div>
 							<dt>evidence hash</dt>
@@ -475,7 +475,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount}
+					{@const transactionCount = pendingEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>transaction count</dt>

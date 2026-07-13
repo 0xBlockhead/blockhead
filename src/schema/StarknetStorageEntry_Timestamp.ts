@@ -9,8 +9,10 @@ export enum StarknetStorageEntry_TimestampSelector {
 }
 export const StarknetStorageEntry_Timestamp = entity({
 	entityType: EntityType.StarknetStorageEntry_Timestamp,
-	label: 'starknet storage entry timestamp',
-	labelPlural: 'starknet storage entry observations',
+	labels: {
+		singular: 'starknet storage entry timestamp',
+		plural: 'starknet storage entry observations',
+	},
 })({
 	$entry: {
 		label: 'entry',

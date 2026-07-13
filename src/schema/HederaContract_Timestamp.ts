@@ -9,8 +9,10 @@ export enum HederaContract_TimestampSelector {
 }
 export const HederaContract_Timestamp = entity({
 	entityType: EntityType.HederaContract_Timestamp,
-	label: 'hedera contract timestamp',
-	labelPlural: 'hedera contract observations',
+	labels: {
+		singular: 'hedera contract timestamp',
+		plural: 'hedera contract observations',
+	},
 })({
 	$contract: {
 		label: 'contract',

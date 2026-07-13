@@ -67,10 +67,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$coin !== undefined && pendingEntity.$coin.coinId !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			coinId: String(pendingEntity.$coin.coinId ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$coin !== undefined && pendingEntity.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			coinId: String(pendingEntity.$coin.coinId ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -83,7 +83,7 @@
 				<CoinView
 					selection={select(EntityType.Coin, selection.entitySelector.$coin)}
 					href={
-						(selection.entitySelector.$coin.coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
+						(selection.entitySelector.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
 							coinId: String(selection.entitySelector.$coin.coinId ?? ''),
 						}) : undefined)
 					}
@@ -97,7 +97,7 @@
 				<CoinView
 					selection={select(EntityType.Coin, selection.entitySelector.$coin)}
 					href={
-						(selection.entitySelector.$coin.coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
+						(selection.entitySelector.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
 							coinId: String(selection.entitySelector.$coin.coinId ?? ''),
 						}) : undefined)
 					}
@@ -111,7 +111,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={coinTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.marketCap) ?? ''), String((prefetched.marketCapUsd) ?? '')].filter(Boolean).join(' ') || title || 'coin timestamp'}
+				{[String((pendingEntity.marketCap) ?? ''), String((pendingEntity.marketCapUsd) ?? '')].filter(Boolean).join(' ') || title || 'coin timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -124,7 +124,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={coinTimestamp}>
 			{#snippet Pending()}
-				{@const change24hPercent0 = prefetched.change24hPercent}
+				{@const change24hPercent0 = pendingEntity.change24hPercent}
 				{#if change24hPercent0 !== undefined && change24hPercent0 !== null}
 					<span data-text="muted">
 						{String((change24hPercent0) ?? '')}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const marketCapRank = prefetched.marketCapRank}
+					{@const marketCapRank = pendingEntity.marketCapRank}
 					{#if marketCapRank !== undefined && marketCapRank !== null}
 						<div>
 							<dt>Market cap rank</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const marketCap = prefetched.marketCap}
+					{@const marketCap = pendingEntity.marketCap}
 					{#if marketCap !== undefined && marketCap !== null}
 						<div>
 							<dt>Market cap</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const marketCapUsd = prefetched.marketCapUsd}
+					{@const marketCapUsd = pendingEntity.marketCapUsd}
 					{#if marketCapUsd !== undefined && marketCapUsd !== null}
 						<div>
 							<dt>Market cap USD</dt>
@@ -275,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const change24hPercent = prefetched.change24hPercent}
+					{@const change24hPercent = pendingEntity.change24hPercent}
 					{#if change24hPercent !== undefined && change24hPercent !== null}
 						<div>
 							<dt>24h change</dt>
@@ -314,7 +314,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalSupply = prefetched.totalSupply}
+					{@const totalSupply = pendingEntity.totalSupply}
 					{#if totalSupply !== undefined && totalSupply !== null}
 						<div>
 							<dt>Total supply</dt>
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transport = prefetched.transport}
+					{@const transport = pendingEntity.transport}
 					{#if transport !== undefined && transport !== null}
 						<div>
 							<dt>Transport</dt>
@@ -384,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerAssetId = prefetched.providerAssetId}
+					{@const providerAssetId = pendingEntity.providerAssetId}
 					{#if providerAssetId !== undefined && providerAssetId !== null}
 						<div>
 							<dt>Provider asset ID</dt>
@@ -422,7 +422,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -452,7 +452,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -475,7 +475,7 @@
 					<CoinView
 						selection={select(EntityType.Coin, selection.entitySelector.$coin, {})}
 						href={
-							(selection.entitySelector.$coin.coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
+							(selection.entitySelector.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
 								coinId: String(selection.entitySelector.$coin.coinId ?? ''),
 							}) : undefined)
 						}

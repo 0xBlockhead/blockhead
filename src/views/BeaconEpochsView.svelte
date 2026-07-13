@@ -118,8 +118,8 @@
 						selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconEpochFields}
 						href={
-							(beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.caip2 !== undefined && beaconEpochHrefFields.$network.caip2.namespace !== undefined && beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.caip2 !== undefined && beaconEpochHrefFields.$network.caip2.reference !== undefined && beaconEpochHrefFields.epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-								caip2: `${String(beaconEpochHrefFields.$network.caip2.namespace ?? '')}:${String(beaconEpochHrefFields.$network.caip2.reference ?? '')}`,
+							(beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.slug !== undefined && beaconEpochHrefFields.epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+								network: String(beaconEpochHrefFields.$network.slug ?? ''),
 								epoch: String(beaconEpochHrefFields.epoch ?? ''),
 							}) : undefined)
 						}

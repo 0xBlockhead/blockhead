@@ -118,7 +118,7 @@
 						selection={select(EntityType.BlockheadStateChannel, blockheadStateChannel[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadStateChannelFields}
 						href={
-							(blockheadStateChannelHrefFields.id !== undefined ? resolve('/channel/[channelId]', {
+							(blockheadStateChannelHrefFields.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
 								channelId: String(blockheadStateChannelHrefFields.id ?? ''),
 							}) : undefined)
 						}

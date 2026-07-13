@@ -49,7 +49,7 @@
 			Source.Starknet_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.storageKey ?? prefetched.storageKey) ?? '')].filter(Boolean).join(' ') || 'starknet storage entry')
+	const titleFallback = $derived([String((pendingEntity.storageKey) ?? '')].filter(Boolean).join(' ') || 'starknet storage entry')
 	const viewDomId = $derived('starknet-storage-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={starknetStorageEntry}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.storageKey ?? prefetched.storageKey) ?? '')].filter(Boolean).join(' ') || title || 'starknet storage entry'}
+				{[String((pendingEntity.storageKey) ?? '')].filter(Boolean).join(' ') || title || 'starknet storage entry'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -130,7 +130,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const storageKey = selection.entitySelector.storageKey ?? prefetched.storageKey}
+							{@const storageKey = pendingEntity.storageKey}
 							{#if storageKey !== undefined && storageKey !== null}
 								{String((storageKey) ?? '')}
 							{/if}

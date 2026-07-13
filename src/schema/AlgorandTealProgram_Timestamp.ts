@@ -10,8 +10,10 @@ export enum AlgorandTealProgram_TimestampSelector {
 }
 export const AlgorandTealProgram_Timestamp = entity({
 	entityType: EntityType.AlgorandTealProgram_Timestamp,
-	label: 'algorand teal program timestamp',
-	labelPlural: 'algorand teal program observations',
+	labels: {
+		singular: 'algorand teal program timestamp',
+		plural: 'algorand teal program observations',
+	},
 })({
 	$program: {
 		label: 'program',

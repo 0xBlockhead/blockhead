@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -123,9 +122,9 @@
 						selection={select(EntityType.ZcashShieldedAction, zcashShieldedAction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zcashShieldedActionFields}
 						href={
-							(zcashShieldedActionHrefFields.$transaction !== undefined && zcashShieldedActionHrefFields.$transaction.$network !== undefined && zcashShieldedActionHrefFields.$transaction.$network.caip2 !== undefined && zcashShieldedActionHrefFields.$transaction.$network.caip2.namespace !== undefined && zcashShieldedActionHrefFields.$transaction !== undefined && zcashShieldedActionHrefFields.$transaction.$network !== undefined && zcashShieldedActionHrefFields.$transaction.$network.caip2 !== undefined && zcashShieldedActionHrefFields.$transaction.$network.caip2.reference !== undefined && zcashShieldedActionHrefFields.$transaction !== undefined && zcashShieldedActionHrefFields.$transaction.txId !== undefined && zcashShieldedActionHrefFields.pool !== undefined && zcashShieldedActionHrefFields.actionKind !== undefined && zcashShieldedActionHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/shielded-action/[pool]/[actionKind]/[actionIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(String(zcashShieldedActionHrefFields.$transaction.$network.caip2.namespace) + ':' + String(zcashShieldedActionHrefFields.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(zcashShieldedActionHrefFields.$transaction.txId ?? ''),
+							(zcashShieldedActionHrefFields.$transaction !== undefined && zcashShieldedActionHrefFields.$transaction.$network !== undefined && zcashShieldedActionHrefFields.$transaction.$network.slug !== undefined && zcashShieldedActionHrefFields.$transaction.txId !== undefined && zcashShieldedActionHrefFields.pool !== undefined && zcashShieldedActionHrefFields.actionKind !== undefined && zcashShieldedActionHrefFields.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
+								network: String(zcashShieldedActionHrefFields.$transaction.$network.slug ?? ''),
+								transactionId: String(zcashShieldedActionHrefFields.$transaction.txId ?? ''),
 								pool: String(zcashShieldedActionHrefFields.pool ?? ''),
 								actionKind: String(zcashShieldedActionHrefFields.actionKind ?? ''),
 								actionIndex: String(zcashShieldedActionHrefFields.indexInTransaction ?? ''),

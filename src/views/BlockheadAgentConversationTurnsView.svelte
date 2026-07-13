@@ -124,9 +124,9 @@
 						selection={select(EntityType.BlockheadAgentConversationTurn, blockheadAgentConversationTurn[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAgentConversationTurnFields}
 						href={
-							(blockheadAgentConversationTurnHrefFields.$conversation !== undefined && blockheadAgentConversationTurnHrefFields.$conversation.id !== undefined && blockheadAgentConversationTurnHrefFields.id !== undefined ? resolve('/~/agents/conversation/[conversationId]/turn/[turnId]', {
-								conversationId: String(blockheadAgentConversationTurnHrefFields.$conversation.id ?? ''),
+							(blockheadAgentConversationTurnHrefFields.id !== undefined && blockheadAgentConversationTurnHrefFields.$conversation !== undefined && blockheadAgentConversationTurnHrefFields.$conversation.id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {
 								turnId: String(blockheadAgentConversationTurnHrefFields.id ?? ''),
+								conversationId: String(blockheadAgentConversationTurnHrefFields.$conversation.id ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

@@ -86,8 +86,8 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
 						href={
-							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)
@@ -111,7 +111,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const restrictionKey = selection.entitySelector.restrictionKey ?? prefetched.restrictionKey}
+							{@const restrictionKey = pendingEntity.restrictionKey}
 							{#if restrictionKey !== undefined && restrictionKey !== null}
 								{String((restrictionKey) ?? '')}
 							{/if}
@@ -141,7 +141,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -171,7 +171,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const restrictionKind = prefetched.restrictionKind}
+							{@const restrictionKind = pendingEntity.restrictionKind}
 							{#if restrictionKind !== undefined && restrictionKind !== null}
 								{String((restrictionKind) ?? '')}
 							{/if}
@@ -193,6 +193,8 @@
 			<ResourceBoundary
 				resource={selection.$profile}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(regulatedAssetProfile)}
 					{#if regulatedAssetProfile != null && regulatedAssetProfile[EntityMetaKey.Selector] != null}
 						<div>
@@ -220,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const message = prefetched.message}
+					{@const message = pendingEntity.message}
 					{#if message !== undefined && message !== null}
 						<div>
 							<dt>message</dt>

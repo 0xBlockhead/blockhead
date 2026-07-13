@@ -48,7 +48,7 @@
 			targetKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.tagName) ?? ''), String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || 'Git tag')
+	const titleFallback = $derived([String((pendingEntity.tagName) ?? ''), String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git tag')
 	const viewDomId = $derived('git-tag-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitTag}>
 			{#snippet Pending()}
-				{[String((prefetched.tagName) ?? ''), String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git tag'}
+				{[String((pendingEntity.tagName) ?? ''), String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git tag'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitTag}>
 			{#snippet Pending()}
-				{[String((prefetched.targetKind) ?? '')].filter(Boolean).join(' ') || [String((prefetched.tagName) ?? ''), String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git tag'}
+				{[String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.tagName) ?? ''), String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git tag'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -112,7 +112,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectId = selection.entitySelector.objectId ?? prefetched.objectId}
+							{@const objectId = pendingEntity.objectId}
 							{#if objectId !== undefined && objectId !== null}
 								<TruncatedValue value={String((objectId) ?? '')} />
 							{/if}
@@ -142,7 +142,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectFormat = selection.entitySelector.objectFormat ?? prefetched.objectFormat}
+							{@const objectFormat = pendingEntity.objectFormat}
 							{#if objectFormat !== undefined && objectFormat !== null}
 								{String((objectFormat) ?? '')}
 							{/if}
@@ -166,7 +166,7 @@
 						resource={selection.$object}
 					>
 						{#snippet children(gitObject)}
-							{#if gitObject[EntityMetaKey.Selector] != null}
+							{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 								<GitObjectView
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const targetObjectId = prefetched.targetObjectId}
+							{@const targetObjectId = pendingEntity.targetObjectId}
 							{#if targetObjectId !== undefined && targetObjectId !== null}
 								<TruncatedValue value={String((targetObjectId) ?? '')} />
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetKind = prefetched.targetKind}
+					{@const targetKind = pendingEntity.targetKind}
 					{#if targetKind !== undefined && targetKind !== null}
 						<div>
 							<dt>target kind</dt>
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tagName = prefetched.tagName}
+					{@const tagName = pendingEntity.tagName}
 					{#if tagName !== undefined && tagName !== null}
 						<div>
 							<dt>tag name</dt>
@@ -289,7 +289,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const taggerTimestampMs = prefetched.taggerTimestampMs}
+					{@const taggerTimestampMs = pendingEntity.taggerTimestampMs}
 					{#if taggerTimestampMs !== undefined && taggerTimestampMs !== null}
 						<div>
 							<dt>tagger timestamp ms</dt>

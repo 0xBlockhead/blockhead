@@ -9,8 +9,10 @@ export enum XrplLedgerEntrySelector {
 }
 export const XrplLedgerEntry = entity({
 	entityType: EntityType.XrplLedgerEntry,
-	label: 'xrpl ledger entry',
-	labelPlural: 'xrpl ledger entries',
+	labels: {
+		singular: 'xrpl ledger entry',
+		plural: 'xrpl ledger entries',
+	},
 })({
 	$ledger: {
 		label: 'ledger',

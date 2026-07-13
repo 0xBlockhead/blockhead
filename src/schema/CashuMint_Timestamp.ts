@@ -9,8 +9,10 @@ export enum CashuMint_TimestampSelector {
 }
 export const CashuMint_Timestamp = entity({
 	entityType: EntityType.CashuMint_Timestamp,
-	label: 'Cashu mint timestamp',
-	labelPlural: 'Cashu mint observations',
+	labels: {
+		singular: 'Cashu mint timestamp',
+		plural: 'Cashu mint observations',
+	},
 })({
 	$mint: {
 		label: 'mint',

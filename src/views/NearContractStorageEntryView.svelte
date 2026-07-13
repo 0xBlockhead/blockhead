@@ -50,7 +50,7 @@
 			valueHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.keyBase64 ?? prefetched.keyBase64) ?? '')].filter(Boolean).join(' ') || 'near contract storage entry')
+	const titleFallback = $derived([String((pendingEntity.keyBase64) ?? '')].filter(Boolean).join(' ') || 'near contract storage entry')
 	const viewDomId = $derived('near-contract-storage-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearContractStorageEntry}>
 			{#snippet Pending()}
-				{@const keyBase640 = selection.entitySelector.keyBase64 ?? prefetched.keyBase64}
+				{@const keyBase640 = pendingEntity.keyBase64}
 				{#if keyBase640 !== undefined && keyBase640 !== null}
 					<TruncatedValue value={String((keyBase640) ?? '')} />
 				{/if}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearContractStorageEntry}>
 			{#snippet Pending()}
-				{@const valueHash0 = prefetched.valueHash}
+				{@const valueHash0 = pendingEntity.valueHash}
 				{#if valueHash0 !== undefined && valueHash0 !== null}
 					<TruncatedValue value={String((valueHash0) ?? '')} />
 				{/if}
@@ -113,7 +113,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearContractStorageEntry}>
 			{#snippet Pending()}
-				{@const blockHeight0 = selection.entitySelector.blockHeight ?? prefetched.blockHeight}
+				{@const blockHeight0 = pendingEntity.blockHeight}
 				{#if blockHeight0 !== undefined && blockHeight0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(blockHeight0)} />
@@ -159,7 +159,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const keyBase64 = selection.entitySelector.keyBase64 ?? prefetched.keyBase64}
+							{@const keyBase64 = pendingEntity.keyBase64}
 							{#if keyBase64 !== undefined && keyBase64 !== null}
 								<TruncatedValue value={String((keyBase64) ?? '')} />
 							{/if}
@@ -189,7 +189,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockHeight = selection.entitySelector.blockHeight ?? prefetched.blockHeight}
+							{@const blockHeight = pendingEntity.blockHeight}
 							{#if blockHeight !== undefined && blockHeight !== null}
 								<NumberValue value={Number(blockHeight)} />
 							{/if}
@@ -219,7 +219,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -281,7 +281,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueBase64 = prefetched.valueBase64}
+					{@const valueBase64 = pendingEntity.valueBase64}
 					{#if valueBase64 !== undefined && valueBase64 !== null}
 						<div>
 							<dt>Value base64</dt>
@@ -316,7 +316,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueHash = prefetched.valueHash}
+					{@const valueHash = pendingEntity.valueHash}
 					{#if valueHash !== undefined && valueHash !== null}
 						<div>
 							<dt>Value hash</dt>
@@ -351,7 +351,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const prefixBase64 = prefetched.prefixBase64}
+					{@const prefixBase64 = pendingEntity.prefixBase64}
 					{#if prefixBase64 !== undefined && prefixBase64 !== null}
 						<div>
 							<dt>Prefix base64</dt>
@@ -386,7 +386,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>Deleted</dt>

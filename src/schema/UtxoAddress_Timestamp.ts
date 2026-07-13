@@ -9,8 +9,10 @@ export enum UtxoAddress_TimestampSelector {
 }
 export const UtxoAddress_Timestamp = entity({
 	entityType: EntityType.UtxoAddress_Timestamp,
-	label: 'UTXO address timestamp',
-	labelPlural: 'UTXO address observations',
+	labels: {
+		singular: 'UTXO address timestamp',
+		plural: 'UTXO address observations',
+	},
 })({
 	$address: {
 		label: 'Address',
@@ -23,7 +25,7 @@ export const UtxoAddress_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

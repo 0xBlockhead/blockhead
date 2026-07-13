@@ -10,8 +10,10 @@ export enum _GlobalRedditNetworkSelector {
 }
 export const _GlobalRedditNetwork = entity({
 	entityType: EntityType._GlobalRedditNetwork,
-	label: 'Reddit',
-	labelPlural: 'Reddit',
+	labels: {
+		singular: 'Reddit',
+		plural: 'Reddit',
+	},
 })({
 	scope: {
 		label: 'Scope',

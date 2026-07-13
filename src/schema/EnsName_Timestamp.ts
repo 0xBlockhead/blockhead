@@ -9,8 +9,10 @@ export enum EnsName_TimestampSelector {
 }
 export const EnsName_Timestamp = entity({
 	entityType: EntityType.EnsName_Timestamp,
-	label: 'ENS name observation',
-	labelPlural: 'ENS name observations',
+	labels: {
+		singular: 'ENS name observation',
+		plural: 'ENS name observations',
+	},
 })({
 	$name: {
 		label: 'Name',
@@ -21,7 +23,7 @@ export const EnsName_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

@@ -13,6 +13,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EvmContractsView from '$/views/EvmContractsView.svelte'
 </script>
 
@@ -23,22 +24,30 @@
 
 
 <Page>
-	<EvmContractsView
-		href={resolve('/(explore)/contracts')}
-		title='Contracts'
-		selection={
+	<ProjectionBoundary
+		resource={
 			select(EntityType.Network, {
 				caip2: {
 					namespace: 'eip155',
 					reference: '1',
 				},
-			}).Evm.$$contracts({
-				sources: [
-					Source.Blockscout_Rest,
-				],
-				limit: 16,
-			})
+			}).Evm
 		}
-		id='contracts'
-	/>
+	>
+		{#snippet Applicable(projection)}
+			<EvmContractsView
+				href={resolve('/contracts')}
+				title='Contracts'
+				selection={
+					projection.$$contracts({
+						sources: [
+							Source.Blockscout_Rest,
+						],
+						limit: 16,
+					})
+				}
+				id='contracts'
+			/>
+		{/snippet}
+	</ProjectionBoundary>
 </Page>

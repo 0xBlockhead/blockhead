@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
 import {
+	assertCanonicalRouteUrl,
 	expectMainVisible,
 	formatBoundaryReportSummary,
 	getBoundaryProbeEvents,
@@ -46,6 +47,7 @@ const collectRouteBoundaryReport = async (
 	}))
 	const main = page.locator('#main')
 	await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
+	await diagnostics.step(assertCanonicalRouteUrl(page, pathname))
 	await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {})
 	const mainVisible = await main.isVisible().catch(() => false)
 	const snapshot = await waitForBoundarySettle(page, {

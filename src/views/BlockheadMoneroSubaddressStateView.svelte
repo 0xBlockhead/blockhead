@@ -52,7 +52,7 @@
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.address) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead monero subaddress state')
+	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead monero subaddress state')
 	const viewDomId = $derived('blockhead-monero-subaddress-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadMoneroSubaddressState}>
 			{#snippet Pending()}
-				{[String((prefetched.address) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead monero subaddress state'}
+				{[String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead monero subaddress state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroSubaddressState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.accountIndex ?? prefetched.accountIndex) ?? ''), String((selection.entitySelector.addressIndex ?? prefetched.addressIndex) ?? '')].filter(Boolean).join(' ') || [String((prefetched.address) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead monero subaddress state'}
+				{[String((pendingEntity.accountIndex) ?? ''), String((pendingEntity.addressIndex) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead monero subaddress state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadMoneroSubaddressState}>
 			{#snippet Pending()}
-				{@const label0 = prefetched.label}
+				{@const label0 = pendingEntity.label}
 				{#if label0 !== undefined && label0 !== null}
 					<span data-text="muted">
 						{String((label0) ?? '')}
@@ -140,7 +140,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const walletId = selection.entitySelector.walletId ?? prefetched.walletId}
+							{@const walletId = pendingEntity.walletId}
 							{#if walletId !== undefined && walletId !== null}
 								{String((walletId) ?? '')}
 							{/if}
@@ -160,6 +160,8 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -184,7 +186,7 @@
 						resource={selection.$network}
 					>
 						{#snippet children(moneroNetwork)}
-							{#if moneroNetwork[EntityMetaKey.Selector] != null}
+							{#if moneroNetwork != null && moneroNetwork[EntityMetaKey.Selector] != null}
 								<MoneroNetworkView
 									selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 									prefetched={moneroNetwork}
@@ -210,7 +212,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const accountIndex = selection.entitySelector.accountIndex ?? prefetched.accountIndex}
+							{@const accountIndex = pendingEntity.accountIndex}
 							{#if accountIndex !== undefined && accountIndex !== null}
 								<NumberValue value={Number(accountIndex)} />
 							{/if}
@@ -240,7 +242,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const addressIndex = selection.entitySelector.addressIndex ?? prefetched.addressIndex}
+							{@const addressIndex = pendingEntity.addressIndex}
 							{#if addressIndex !== undefined && addressIndex !== null}
 								<NumberValue value={Number(addressIndex)} />
 							{/if}
@@ -267,7 +269,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const address = prefetched.address}
+					{@const address = pendingEntity.address}
 					{#if address !== undefined && address !== null}
 						<div>
 							<dt>Address</dt>
@@ -302,7 +304,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>

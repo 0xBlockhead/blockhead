@@ -120,9 +120,9 @@
 						selection={select(EntityType.BeaconValidator_Timestamp, beaconValidatorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconValidatorTimestampFields}
 						href={
-							(beaconValidatorTimestampHrefFields.$validator !== undefined && beaconValidatorTimestampHrefFields.$validator.$network !== undefined && beaconValidatorTimestampHrefFields.$validator.$network.caip2 !== undefined && beaconValidatorTimestampHrefFields.$validator.$network.caip2.namespace !== undefined && beaconValidatorTimestampHrefFields.$validator !== undefined && beaconValidatorTimestampHrefFields.$validator.$network !== undefined && beaconValidatorTimestampHrefFields.$validator.$network.caip2 !== undefined && beaconValidatorTimestampHrefFields.$validator.$network.caip2.reference !== undefined && beaconValidatorTimestampHrefFields.$validator !== undefined && beaconValidatorTimestampHrefFields.$validator.indexInNetwork !== undefined && beaconValidatorTimestampHrefFields.slot !== undefined && beaconValidatorTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]/observations/[slot=nonNegativeInteger]/[source]', {
-								caip2: `${String(beaconValidatorTimestampHrefFields.$validator.$network.caip2.namespace ?? '')}:${String(beaconValidatorTimestampHrefFields.$validator.$network.caip2.reference ?? '')}`,
-								validatorIndex: String(beaconValidatorTimestampHrefFields.$validator.indexInNetwork ?? ''),
+							(beaconValidatorTimestampHrefFields.$validator !== undefined && beaconValidatorTimestampHrefFields.$validator.$network !== undefined && beaconValidatorTimestampHrefFields.$validator.$network.slug !== undefined && beaconValidatorTimestampHrefFields.$validator.indexInNetwork !== undefined && beaconValidatorTimestampHrefFields.slot !== undefined && beaconValidatorTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
+								network: String(beaconValidatorTimestampHrefFields.$validator.$network.slug ?? ''),
+								validatorId: String(beaconValidatorTimestampHrefFields.$validator.indexInNetwork ?? ''),
 								slot: String(beaconValidatorTimestampHrefFields.slot ?? ''),
 								source: String(beaconValidatorTimestampHrefFields.source ?? ''),
 							}) : undefined)

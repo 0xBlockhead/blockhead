@@ -50,6 +50,8 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ArweaveNetworksView from '$/views/ArweaveNetworksView.svelte'
 	import ArweaveBlocksView from '$/views/ArweaveBlocksView.svelte'
@@ -85,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalArweaveNetwork}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.scope ?? prefetched.scope) ?? '')].filter(Boolean).join(' ') || title || 'global Arweave network'}
+				{[String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || title || 'global Arweave network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +112,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const scope = selection.entitySelector.scope ?? prefetched.scope}
+							{@const scope = pendingEntity.scope}
 							{#if scope !== undefined && scope !== null}
 								{String((scope) ?? '')}
 							{/if}
@@ -131,40 +133,143 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<ArweaveNetworksView
-				selection={selection.$$observedNetworks}
-				title='Observed networks'
-				emptyText='No Arweave networks in this observed.'
-				id='ArweaveNetworksView-observed-networks'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-arweave-chain-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'arweave-networks',
+							label: 'Networks',
+						},
+						{
+							id: 'arweave-blocks',
+							label: 'Blocks',
+						},
+						{
+							id: 'arweave-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-chain-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Chain activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<ArweaveBlocksView
-				selection={selection.$$observedBlocks}
-				title='Observed blocks'
-				emptyText='No Arweave blocks in this observed.'
-				id='ArweaveBlocksView-observed-blocks'
-			/>
+				{#snippet SectionArweaveNetworks({ id, label, open })}
+					<ArweaveNetworksView
+						selection={selection.$$observedNetworks}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Arweave networks in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<ArweaveTransactionsView
-				selection={selection.$$observedTransactions}
-				title='Observed transactions'
-				emptyText='No Arweave transactions in this observed.'
-				id='ArweaveTransactionsView-observed-transactions'
-			/>
+				{#snippet SectionArweaveBlocks({ id, label, open })}
+					<ArweaveBlocksView
+						selection={selection.$$observedBlocks}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Arweave blocks in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<ArweaveResourcesView
-				selection={selection.$$observedResources}
-				title='Observed resources'
-				emptyText='No Arweave resources in this observed.'
-				id='ArweaveResourcesView-observed-resources'
-			/>
+				{#snippet SectionArweaveTransactions({ id, label, open })}
+					<ArweaveTransactionsView
+						selection={selection.$$observedTransactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Arweave transactions in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<GlobalArweaveNetwork_TimestampsView
-				selection={selection.$$timestamps}
-				title='Timestamps'
-				emptyText='No Arweave hub observations yet.'
-				id='_GlobalArweaveNetwork_TimestampsView-timestamps'
-			/>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-arweave-resources'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'arweave-resource-list',
+							label: 'Resources',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-resources'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Resources</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionArweaveResourceList({ id, label, open })}
+					<ArweaveResourcesView
+						selection={selection.$$observedResources}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Arweave resources in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-arweave-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'arweave-hub-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionArweaveHubObservations({ id, label, open })}
+					<GlobalArweaveNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Arweave hub observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

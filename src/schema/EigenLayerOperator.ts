@@ -11,8 +11,10 @@ export enum EigenLayerOperatorSelector {
 }
 export const EigenLayerOperator = entity({
 	entityType: EntityType.EigenLayerOperator,
-	label: 'eigen layer operator',
-	labelPlural: 'eigen layer operators',
+	labels: {
+		singular: 'eigen layer operator',
+		plural: 'eigen layer operators',
+	},
 })({
 	$network: {
 		label: 'network',

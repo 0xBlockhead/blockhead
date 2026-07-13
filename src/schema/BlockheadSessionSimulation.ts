@@ -11,8 +11,10 @@ export enum BlockheadSessionSimulationSelector {
 }
 export const BlockheadSessionSimulation = entity({
 	entityType: EntityType.BlockheadSessionSimulation,
-	label: 'blockhead session simulation',
-	labelPlural: 'blockhead session simulations',
+	labels: {
+		singular: 'blockhead session simulation',
+		plural: 'blockhead session simulations',
+	},
 })({
 	id: {
 		label: 'ID',

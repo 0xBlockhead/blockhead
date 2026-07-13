@@ -53,7 +53,7 @@
 			localBalanceSats: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning channel state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning channel state timestamp')
 	const viewDomId = $derived('blockhead-lightning-channel-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLightningChannelStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -97,7 +97,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLightningChannelStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.active) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Lightning channel state timestamp'}
+				{[String((pendingEntity.active) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Lightning channel state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLightningChannelStateTimestamp}>
 			{#snippet Pending()}
-				{@const localBalanceSats0 = prefetched.localBalanceSats}
+				{@const localBalanceSats0 = pendingEntity.localBalanceSats}
 				{#if localBalanceSats0 !== undefined && localBalanceSats0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(localBalanceSats0)} />
@@ -156,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -186,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -213,7 +213,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>active</dt>
@@ -250,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const localBalanceSats = prefetched.localBalanceSats}
+					{@const localBalanceSats = pendingEntity.localBalanceSats}
 					{#if localBalanceSats !== undefined && localBalanceSats !== null}
 						<div>
 							<dt>local balance sats</dt>
@@ -285,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const remoteBalanceSats = prefetched.remoteBalanceSats}
+					{@const remoteBalanceSats = pendingEntity.remoteBalanceSats}
 					{#if remoteBalanceSats !== undefined && remoteBalanceSats !== null}
 						<div>
 							<dt>remote balance sats</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unsettledBalanceSats = prefetched.unsettledBalanceSats}
+					{@const unsettledBalanceSats = pendingEntity.unsettledBalanceSats}
 					{#if unsettledBalanceSats !== undefined && unsettledBalanceSats !== null}
 						<div>
 							<dt>unsettled balance sats</dt>
@@ -357,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commitFeeSats = prefetched.commitFeeSats}
+					{@const commitFeeSats = pendingEntity.commitFeeSats}
 					{#if commitFeeSats !== undefined && commitFeeSats !== null}
 						<div>
 							<dt>commit fee sats</dt>
@@ -392,7 +392,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commitWeight = prefetched.commitWeight}
+					{@const commitWeight = pendingEntity.commitWeight}
 					{#if commitWeight !== undefined && commitWeight !== null}
 						<div>
 							<dt>commit weight</dt>
@@ -427,7 +427,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feePerKw = prefetched.feePerKw}
+					{@const feePerKw = pendingEntity.feePerKw}
 					{#if feePerKw !== undefined && feePerKw !== null}
 						<div>
 							<dt>fee per kw</dt>
@@ -462,7 +462,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const numUpdates = prefetched.numUpdates}
+					{@const numUpdates = pendingEntity.numUpdates}
 					{#if numUpdates !== undefined && numUpdates !== null}
 						<div>
 							<dt>num updates</dt>
@@ -499,7 +499,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>

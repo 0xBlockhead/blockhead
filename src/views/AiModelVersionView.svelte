@@ -46,7 +46,7 @@
 			quantization: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.versionId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.revision) ?? '')].filter(Boolean).join(' ') || 'AI model version')
+	const titleFallback = $derived([String((pendingEntity.versionId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.revision) ?? '')].filter(Boolean).join(' ') || 'AI model version')
 	const viewDomId = $derived('ai-model-version-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiModelVersion}>
 			{#snippet Pending()}
-				{[String((prefetched.versionId) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.revision) ?? '')].filter(Boolean).join(' ') || 'AI model version'}
+				{[String((pendingEntity.versionId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.revision) ?? '')].filter(Boolean).join(' ') || 'AI model version'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -124,7 +124,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiModelVersion}>
 			{#snippet Pending()}
-				{@const quantization0 = prefetched.quantization}
+				{@const quantization0 = pendingEntity.quantization}
 				{#if quantization0 !== undefined && quantization0 !== null}
 					<span data-text="muted">
 						{String((quantization0) ?? '')}
@@ -149,6 +149,8 @@
 			<ResourceBoundary
 				resource={selection.$model}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiModel)}
 					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
 						<div>
@@ -176,7 +178,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const versionId = prefetched.versionId}
+					{@const versionId = pendingEntity.versionId}
 					{#if versionId !== undefined && versionId !== null}
 						<div>
 							<dt>version ID</dt>
@@ -204,6 +206,8 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -231,7 +235,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const huggingFaceRepo = prefetched.huggingFaceRepo}
+					{@const huggingFaceRepo = pendingEntity.huggingFaceRepo}
 					{#if huggingFaceRepo !== undefined && huggingFaceRepo !== null}
 						<div>
 							<dt>hugging face repo</dt>
@@ -266,7 +270,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const revision = prefetched.revision}
+					{@const revision = pendingEntity.revision}
 					{#if revision !== undefined && revision !== null}
 						<div>
 							<dt>revision</dt>
@@ -303,7 +307,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mlflowRegisteredModelName = prefetched.mlflowRegisteredModelName}
+					{@const mlflowRegisteredModelName = pendingEntity.mlflowRegisteredModelName}
 					{#if mlflowRegisteredModelName !== undefined && mlflowRegisteredModelName !== null}
 						<div>
 							<dt>mlflow registered model name</dt>
@@ -338,7 +342,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mlflowModelVersion = prefetched.mlflowModelVersion}
+					{@const mlflowModelVersion = pendingEntity.mlflowModelVersion}
 					{#if mlflowModelVersion !== undefined && mlflowModelVersion !== null}
 						<div>
 							<dt>mlflow model version</dt>
@@ -373,7 +377,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const onnxIrVersion = prefetched.onnxIrVersion}
+					{@const onnxIrVersion = pendingEntity.onnxIrVersion}
 					{#if onnxIrVersion !== undefined && onnxIrVersion !== null}
 						<div>
 							<dt>onnx ir version</dt>
@@ -410,7 +414,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -445,7 +449,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const trainingCutoff = prefetched.trainingCutoff}
+					{@const trainingCutoff = pendingEntity.trainingCutoff}
 					{#if trainingCutoff !== undefined && trainingCutoff !== null}
 						<div>
 							<dt>training cutoff</dt>
@@ -480,7 +484,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quantization = prefetched.quantization}
+					{@const quantization = pendingEntity.quantization}
 					{#if quantization !== undefined && quantization !== null}
 						<div>
 							<dt>quantization</dt>
@@ -515,7 +519,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fineTuneKind = prefetched.fineTuneKind}
+					{@const fineTuneKind = pendingEntity.fineTuneKind}
 					{#if fineTuneKind !== undefined && fineTuneKind !== null}
 						<div>
 							<dt>fine tune kind</dt>

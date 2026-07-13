@@ -44,16 +44,18 @@
 			organizationKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((prefetched.providerId) ?? ''), String((prefetched.domain) ?? '')].filter(Boolean).join(' ') || 'AI model provider')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerId) ?? ''), String((pendingEntity.domain) ?? '')].filter(Boolean).join(' ') || 'AI model provider')
 	const viewDomId = $derived('ai-model-provider-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AiProviderCatalogEntriesView from '$/views/AiProviderCatalogEntriesView.svelte'
-	import AiProviderApiOperationsView from '$/views/AiProviderApiOperationsView.svelte'
 	import AiModelsView from '$/views/AiModelsView.svelte'
+	import AiProviderApiOperationsView from '$/views/AiProviderApiOperationsView.svelte'
 </script>
 
 
@@ -70,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiModelProvider}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.providerId) ?? ''), String((prefetched.domain) ?? '')].filter(Boolean).join(' ') || 'AI model provider'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerId) ?? ''), String((pendingEntity.domain) ?? '')].filter(Boolean).join(' ') || 'AI model provider'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -83,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiModelProvider}>
 			{#snippet Pending()}
-				{[String((prefetched.organizationKind) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.providerId) ?? ''), String((prefetched.domain) ?? '')].filter(Boolean).join(' ') || 'AI model provider'}
+				{[String((pendingEntity.organizationKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerId) ?? ''), String((pendingEntity.domain) ?? '')].filter(Boolean).join(' ') || 'AI model provider'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +107,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerId = prefetched.providerId}
+					{@const providerId = pendingEntity.providerId}
 					{#if providerId !== undefined && providerId !== null}
 						<div>
 							<dt>provider ID</dt>
@@ -140,7 +142,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const domain = prefetched.domain}
+					{@const domain = pendingEntity.domain}
 					{#if domain !== undefined && domain !== null}
 						<div>
 							<dt>domain</dt>
@@ -175,7 +177,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -210,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const organizationKind = prefetched.organizationKind}
+					{@const organizationKind = pendingEntity.organizationKind}
 					{#if organizationKind !== undefined && organizationKind !== null}
 						<div>
 							<dt>organization kind</dt>
@@ -247,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const homepageUrl = prefetched.homepageUrl}
+					{@const homepageUrl = pendingEntity.homepageUrl}
 					{#if homepageUrl !== undefined && homepageUrl !== null}
 						<div>
 							<dt>homepage URL</dt>
@@ -296,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const docsUrl = prefetched.docsUrl}
+					{@const docsUrl = pendingEntity.docsUrl}
 					{#if docsUrl !== undefined && docsUrl !== null}
 						<div>
 							<dt>docs URL</dt>
@@ -339,26 +341,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AiProviderCatalogEntriesView
-				selection={selection.$$catalogEntries}
-				title='catalog entries'
-				emptyText='No AI provider catalog entries.'
-				id='AiProviderCatalogEntriesView-catalog-entries'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ai-provider-catalog'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ai-provider-catalog-entries',
+							label: 'Catalog entries',
+						},
+						{
+							id: 'ai-provider-models',
+							label: 'Models',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-catalog'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Catalog and models</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AiProviderApiOperationsView
-				selection={selection.$$apiOperations}
-				title='API operations'
-				emptyText='No AI provider API operations.'
-				id='AiProviderApiOperationsView-api-operations'
-			/>
+				{#snippet SectionAiProviderCatalogEntries({ id, label, open })}
+					<AiProviderCatalogEntriesView
+						selection={selection.$$catalogEntries}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI provider catalog entries.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AiModelsView
-				selection={selection.$$models}
-				title='models'
-				emptyText='No AI models.'
-				id='AiModelsView-models'
-			/>
+				{#snippet SectionAiProviderModels({ id, label, open })}
+					<AiModelsView
+						selection={selection.$$models}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI models.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ai-provider-api'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ai-provider-api-operations',
+							label: 'API operations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-api'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>API operations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAiProviderApiOperations({ id, label, open })}
+					<AiProviderApiOperationsView
+						selection={selection.$$apiOperations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI provider API operations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

@@ -9,8 +9,10 @@ export enum EigenLayerStrategy_TimestampSelector {
 }
 export const EigenLayerStrategy_Timestamp = entity({
 	entityType: EntityType.EigenLayerStrategy_Timestamp,
-	label: 'eigen layer strategy timestamp',
-	labelPlural: 'eigen layer strategy observations',
+	labels: {
+		singular: 'eigen layer strategy timestamp',
+		plural: 'eigen layer strategy observations',
+	},
 })({
 	$strategy: {
 		label: 'strategy',

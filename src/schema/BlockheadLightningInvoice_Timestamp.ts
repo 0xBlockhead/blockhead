@@ -10,8 +10,10 @@ export enum BlockheadLightningInvoice_TimestampSelector {
 }
 export const BlockheadLightningInvoice_Timestamp = entity({
 	entityType: EntityType.BlockheadLightningInvoice_Timestamp,
-	label: 'Lightning invoice timestamp',
-	labelPlural: 'Lightning invoice observations',
+	labels: {
+		singular: 'Lightning invoice timestamp',
+		plural: 'Lightning invoice observations',
+	},
 })({
 	$invoice: {
 		label: 'Invoice',

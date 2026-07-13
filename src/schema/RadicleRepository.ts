@@ -9,8 +9,10 @@ export enum RadicleRepositorySelector {
 }
 export const RadicleRepository = entity({
 	entityType: EntityType.RadicleRepository,
-	label: 'radicle repository',
-	labelPlural: 'radicle repositories',
+	labels: {
+		singular: 'radicle repository',
+		plural: 'radicle repositories',
+	},
 })({
 	rid: {
 		label: 'rid',

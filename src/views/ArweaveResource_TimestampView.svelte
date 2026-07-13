@@ -49,7 +49,7 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'arweave resource timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'arweave resource timestamp')
 	const viewDomId = $derived('arweave-resource-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={arweaveResourceTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveResourceTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.contentType) ?? ''), String((prefetched.displayType) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'arweave resource timestamp'}
+				{[String((pendingEntity.contentType) ?? ''), String((pendingEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'arweave resource timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={arweaveResourceTimestamp}>
 			{#snippet Pending()}
-				{@const reachable0 = prefetched.reachable}
+				{@const reachable0 = pendingEntity.reachable}
 				{#if reachable0 !== undefined && reachable0 !== null}
 					<span data-text="muted">
 						{reachable0 ? 'Yes' : 'No'}
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const gatewayOrigin = prefetched.gatewayOrigin}
+							{@const gatewayOrigin = pendingEntity.gatewayOrigin}
 							{#if gatewayOrigin !== undefined && gatewayOrigin !== null}
 								{String((gatewayOrigin) ?? '')}
 							{/if}
@@ -244,7 +244,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const gatewayUrl = prefetched.gatewayUrl}
+							{@const gatewayUrl = pendingEntity.gatewayUrl}
 							{#if gatewayUrl !== undefined && gatewayUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -287,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>
@@ -322,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fileName = prefetched.fileName}
+					{@const fileName = pendingEntity.fileName}
 					{#if fileName !== undefined && fileName !== null}
 						<div>
 							<dt>file name</dt>
@@ -357,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const extension = prefetched.extension}
+					{@const extension = pendingEntity.extension}
 					{#if extension !== undefined && extension !== null}
 						<div>
 							<dt>extension</dt>
@@ -392,7 +392,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentType = prefetched.contentType}
+					{@const contentType = pendingEntity.contentType}
 					{#if contentType !== undefined && contentType !== null}
 						<div>
 							<dt>content type</dt>
@@ -427,7 +427,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contentLength = prefetched.contentLength}
+					{@const contentLength = pendingEntity.contentLength}
 					{#if contentLength !== undefined && contentLength !== null}
 						<div>
 							<dt>content length</dt>
@@ -464,7 +464,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const displayType = prefetched.displayType}
+					{@const displayType = pendingEntity.displayType}
 					{#if displayType !== undefined && displayType !== null}
 						<div>
 							<dt>display type</dt>
@@ -499,7 +499,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isContentTypeInferred = prefetched.isContentTypeInferred}
+					{@const isContentTypeInferred = pendingEntity.isContentTypeInferred}
 					{#if isContentTypeInferred !== undefined && isContentTypeInferred !== null}
 						<div>
 							<dt>is content type inferred</dt>
@@ -534,7 +534,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const text = prefetched.text}
+					{@const text = pendingEntity.text}
 					{#if text !== undefined && text !== null}
 						<div>
 							<dt>text</dt>
@@ -562,6 +562,8 @@
 			<ResourceBoundary
 				resource={selection.$media}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(media)}
 					{#if media != null && media[EntityMetaKey.Selector] != null}
 						<div>
@@ -571,7 +573,7 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/(explore)/media/[url]', {
+										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
 											url: String(media[EntityMetaKey.Selector].url ?? ''),
 										}) : undefined)
 									}

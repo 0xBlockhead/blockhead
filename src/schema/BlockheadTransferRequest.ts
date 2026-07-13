@@ -9,8 +9,10 @@ export enum BlockheadTransferRequestSelector {
 }
 export const BlockheadTransferRequest = entity({
 	entityType: EntityType.BlockheadTransferRequest,
-	label: 'blockhead transfer request',
-	labelPlural: 'blockhead transfer requests',
+	labels: {
+		singular: 'blockhead transfer request',
+		plural: 'blockhead transfer requests',
+	},
 })({
 	id: {
 		label: 'ID',

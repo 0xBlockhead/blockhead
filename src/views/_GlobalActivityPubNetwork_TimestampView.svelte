@@ -53,7 +53,7 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.instanceTitle) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global ActivityPub network timestamp')
+	const titleFallback = $derived([String((pendingEntity.instanceTitle) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global ActivityPub network timestamp')
 	const viewDomId = $derived('-global-activity-pub-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={globalActivityPubNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.instanceTitle) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global ActivityPub network timestamp'}
+				{[String((pendingEntity.instanceTitle) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global ActivityPub network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalActivityPubNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.instanceOrigin) ?? ''), String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || [String((prefetched.instanceTitle) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global ActivityPub network timestamp'}
+				{[String((pendingEntity.instanceOrigin) ?? ''), String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.instanceTitle) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'global ActivityPub network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalActivityPubNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const reachable0 = prefetched.reachable}
+				{@const reachable0 = pendingEntity.reachable}
 				{#if reachable0 !== undefined && reachable0 !== null}
 					<span data-text="muted">
 						{reachable0 ? 'Yes' : 'No'}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const instanceOrigin = prefetched.instanceOrigin}
+					{@const instanceOrigin = pendingEntity.instanceOrigin}
 					{#if instanceOrigin !== undefined && instanceOrigin !== null}
 						<div>
 							<dt>Instance origin</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const instanceTitle = prefetched.instanceTitle}
+					{@const instanceTitle = pendingEntity.instanceTitle}
 					{#if instanceTitle !== undefined && instanceTitle !== null}
 						<div>
 							<dt>Instance title</dt>
@@ -294,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const instanceDescription = prefetched.instanceDescription}
+					{@const instanceDescription = pendingEntity.instanceDescription}
 					{#if instanceDescription !== undefined && instanceDescription !== null}
 						<div>
 							<dt>Instance description</dt>
@@ -329,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const instanceVersion = prefetched.instanceVersion}
+					{@const instanceVersion = pendingEntity.instanceVersion}
 					{#if instanceVersion !== undefined && instanceVersion !== null}
 						<div>
 							<dt>Instance version</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>
@@ -401,7 +401,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activeUserCount = prefetched.activeUserCount}
+					{@const activeUserCount = pendingEntity.activeUserCount}
 					{#if activeUserCount !== undefined && activeUserCount !== null}
 						<div>
 							<dt>Active users</dt>
@@ -436,7 +436,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedActorCount = prefetched.observedActorCount}
+					{@const observedActorCount = pendingEntity.observedActorCount}
 					{#if observedActorCount !== undefined && observedActorCount !== null}
 						<div>
 							<dt>Observed actors</dt>
@@ -471,7 +471,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedNoteCount = prefetched.observedNoteCount}
+					{@const observedNoteCount = pendingEntity.observedNoteCount}
 					{#if observedNoteCount !== undefined && observedNoteCount !== null}
 						<div>
 							<dt>Observed notes</dt>
@@ -506,7 +506,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededInstanceCount = prefetched.seededInstanceCount}
+					{@const seededInstanceCount = pendingEntity.seededInstanceCount}
 					{#if seededInstanceCount !== undefined && seededInstanceCount !== null}
 						<div>
 							<dt>Seeded instances</dt>
@@ -543,7 +543,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const knownPeerDomainCount = prefetched.knownPeerDomainCount}
+					{@const knownPeerDomainCount = pendingEntity.knownPeerDomainCount}
 					{#if knownPeerDomainCount !== undefined && knownPeerDomainCount !== null}
 						<div>
 							<dt>Known peer domains</dt>
@@ -578,7 +578,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const moderatedDomainCount = prefetched.moderatedDomainCount}
+					{@const moderatedDomainCount = pendingEntity.moderatedDomainCount}
 					{#if moderatedDomainCount !== undefined && moderatedDomainCount !== null}
 						<div>
 							<dt>Moderated domains</dt>

@@ -47,7 +47,7 @@
 			ohttpKeyConfig: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.directoryUrl ?? prefetched.directoryUrl) ?? '')].filter(Boolean).join(' ') || 'payjoin directory')
+	const titleFallback = $derived([String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || 'payjoin directory')
 	const viewDomId = $derived('payjoin-directory-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={payjoinDirectory}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.directoryUrl ?? prefetched.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin directory'}
+				{[String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin directory'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={payjoinDirectory}>
 			{#snippet Pending()}
-				{[String((prefetched.ohttpGatewayUrl) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.directoryUrl ?? prefetched.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin directory'}
+				{[String((pendingEntity.ohttpGatewayUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin directory'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const directoryUrl = selection.entitySelector.directoryUrl ?? prefetched.directoryUrl}
+							{@const directoryUrl = pendingEntity.directoryUrl}
 							{#if directoryUrl !== undefined && directoryUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -154,7 +154,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ohttpGatewayUrl = prefetched.ohttpGatewayUrl}
+					{@const ohttpGatewayUrl = pendingEntity.ohttpGatewayUrl}
 					{#if ohttpGatewayUrl !== undefined && ohttpGatewayUrl !== null}
 						<div>
 							<dt>ohttp gateway URL</dt>
@@ -203,7 +203,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxPayloadBytes = prefetched.maxPayloadBytes}
+					{@const maxPayloadBytes = pendingEntity.maxPayloadBytes}
 					{#if maxPayloadBytes !== undefined && maxPayloadBytes !== null}
 						<div>
 							<dt>max payload bytes</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ohttpKeyConfig = prefetched.ohttpKeyConfig}
+					{@const ohttpKeyConfig = pendingEntity.ohttpKeyConfig}
 					{#if ohttpKeyConfig !== undefined && ohttpKeyConfig !== null}
 						<div>
 							<dt>ohttp key config</dt>

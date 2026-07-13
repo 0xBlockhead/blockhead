@@ -101,7 +101,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -120,7 +120,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={starknetNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const latestBlockNumber0 = prefetched.latestBlockNumber}
+				{@const latestBlockNumber0 = pendingEntity.latestBlockNumber}
 				{#if latestBlockNumber0 !== undefined && latestBlockNumber0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(latestBlockNumber0)} />
@@ -166,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -196,7 +196,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -223,7 +223,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestBlockNumber = prefetched.latestBlockNumber}
+					{@const latestBlockNumber = pendingEntity.latestBlockNumber}
 					{#if latestBlockNumber !== undefined && latestBlockNumber !== null}
 						<div>
 							<dt>latest block number</dt>
@@ -258,7 +258,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestBlockHash = prefetched.latestBlockHash}
+					{@const latestBlockHash = pendingEntity.latestBlockHash}
 					{#if latestBlockHash !== undefined && latestBlockHash !== null}
 						<div>
 							<dt>latest block hash</dt>
@@ -295,7 +295,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const syncing = prefetched.syncing}
+					{@const syncing = pendingEntity.syncing}
 					{#if syncing !== undefined && syncing !== null}
 						<div>
 							<dt>syncing</dt>
@@ -330,7 +330,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>
@@ -365,7 +365,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingBlockHash = prefetched.pendingBlockHash}
+					{@const pendingBlockHash = pendingEntity.pendingBlockHash}
 					{#if pendingBlockHash !== undefined && pendingBlockHash !== null}
 						<div>
 							<dt>pending block hash</dt>

@@ -10,8 +10,10 @@ export enum NostrNoteSelector {
 }
 export const NostrNote = entity({
 	entityType: EntityType.NostrNote,
-	label: 'Nostr note',
-	labelPlural: 'Nostr notes',
+	labels: {
+		singular: 'Nostr note',
+		plural: 'Nostr notes',
+	},
 	description: 'A Nostr text note is a kind-1 event addressed by event id; author, reply, root, reaction, and relay facets remain separate fields.',
 })({
 	eventId: {

@@ -48,7 +48,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.refName ?? prefetched.refName) ?? '')].filter(Boolean).join(' ') || 'Git ref update')
+	const titleFallback = $derived([String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || 'Git ref update')
 	const viewDomId = $derived('git-ref-update-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitRefUpdate}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.refName ?? prefetched.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref update'}
+				{[String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref update'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRefUpdate}>
 			{#snippet Pending()}
-				{[String((prefetched.updateKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.refName ?? prefetched.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref update'}
+				{[String((pendingEntity.updateKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || title || 'Git ref update'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -100,7 +100,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitRefUpdate}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -146,7 +146,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const refName = selection.entitySelector.refName ?? prefetched.refName}
+							{@const refName = pendingEntity.refName}
 							{#if refName !== undefined && refName !== null}
 								{String((refName) ?? '')}
 							{/if}
@@ -176,7 +176,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const oldObjectId = selection.entitySelector.oldObjectId ?? prefetched.oldObjectId}
+							{@const oldObjectId = pendingEntity.oldObjectId}
 							{#if oldObjectId !== undefined && oldObjectId !== null}
 								<TruncatedValue value={String((oldObjectId) ?? '')} />
 							{/if}
@@ -206,7 +206,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const newObjectId = selection.entitySelector.newObjectId ?? prefetched.newObjectId}
+							{@const newObjectId = pendingEntity.newObjectId}
 							{#if newObjectId !== undefined && newObjectId !== null}
 								<TruncatedValue value={String((newObjectId) ?? '')} />
 							{/if}
@@ -236,7 +236,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const updateKind = prefetched.updateKind}
+							{@const updateKind = pendingEntity.updateKind}
 							{#if updateKind !== undefined && updateKind !== null}
 								{String((updateKind) ?? '')}
 							{/if}
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -291,6 +291,8 @@
 			<ResourceBoundary
 				resource={selection.$signature}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitSignature)}
 					{#if gitSignature != null && gitSignature[EntityMetaKey.Selector] != null}
 						<div>
@@ -318,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const source = prefetched.source}
+					{@const source = pendingEntity.source}
 					{#if source !== undefined && source !== null}
 						<div>
 							<dt>Source</dt>

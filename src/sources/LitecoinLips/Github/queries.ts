@@ -13,7 +13,7 @@ export const getContents = (): Promise<LitecoinLipsGithubContents> => (
 	getGithubContents({
 		endpoints: litecoinLipsBindings[0].endpoints,
 		target: litecoinLipsGithubRepo,
-	}) as Promise<LitecoinLipsGithubContents>
+	})
 )
 
 export const getMediaWikiText = ({ number }: { number: number }) => (

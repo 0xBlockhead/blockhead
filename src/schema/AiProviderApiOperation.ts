@@ -10,8 +10,10 @@ export enum AiProviderApiOperationSelector {
 }
 export const AiProviderApiOperation = entity({
 	entityType: EntityType.AiProviderApiOperation,
-	label: 'AI provider API operation',
-	labelPlural: 'AI provider API operations',
+	labels: {
+		singular: 'AI provider API operation',
+		plural: 'AI provider API operations',
+	},
 })({
 	$provider: {
 		label: 'provider',

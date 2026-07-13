@@ -48,7 +48,7 @@
 			channelCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning network timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning network timestamp')
 	const viewDomId = $derived('lightning-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lightningNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lightningNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.nodeCount) ?? ''), String((prefetched.channelCount) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Lightning network timestamp'}
+				{[String((pendingEntity.nodeCount) ?? ''), String((pendingEntity.channelCount) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Lightning network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -128,7 +128,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalCapacitySats = prefetched.totalCapacitySats}
+					{@const totalCapacitySats = pendingEntity.totalCapacitySats}
 					{#if totalCapacitySats !== undefined && totalCapacitySats !== null}
 						<div>
 							<dt>Total capacity sats</dt>
@@ -196,7 +196,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const torNodeCount = prefetched.torNodeCount}
+					{@const torNodeCount = pendingEntity.torNodeCount}
 					{#if torNodeCount !== undefined && torNodeCount !== null}
 						<div>
 							<dt>Tor nodes</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clearnetNodeCount = prefetched.clearnetNodeCount}
+					{@const clearnetNodeCount = pendingEntity.clearnetNodeCount}
 					{#if clearnetNodeCount !== undefined && clearnetNodeCount !== null}
 						<div>
 							<dt>Clearnet nodes</dt>
@@ -272,7 +272,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unannouncedNodeCount = prefetched.unannouncedNodeCount}
+					{@const unannouncedNodeCount = pendingEntity.unannouncedNodeCount}
 					{#if unannouncedNodeCount !== undefined && unannouncedNodeCount !== null}
 						<div>
 							<dt>Unannounced nodes</dt>
@@ -310,7 +310,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const averageCapacitySats = prefetched.averageCapacitySats}
+					{@const averageCapacitySats = pendingEntity.averageCapacitySats}
 					{#if averageCapacitySats !== undefined && averageCapacitySats !== null}
 						<div>
 							<dt>Average capacity sats</dt>
@@ -348,7 +348,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const medianCapacitySats = prefetched.medianCapacitySats}
+					{@const medianCapacitySats = pendingEntity.medianCapacitySats}
 					{#if medianCapacitySats !== undefined && medianCapacitySats !== null}
 						<div>
 							<dt>Median capacity sats</dt>
@@ -386,7 +386,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const averageFeeRatePpm = prefetched.averageFeeRatePpm}
+					{@const averageFeeRatePpm = pendingEntity.averageFeeRatePpm}
 					{#if averageFeeRatePpm !== undefined && averageFeeRatePpm !== null}
 						<div>
 							<dt>Average fee rate ppm</dt>
@@ -424,7 +424,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const medianFeeRatePpm = prefetched.medianFeeRatePpm}
+					{@const medianFeeRatePpm = pendingEntity.medianFeeRatePpm}
 					{#if medianFeeRatePpm !== undefined && medianFeeRatePpm !== null}
 						<div>
 							<dt>Median fee rate ppm</dt>

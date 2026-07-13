@@ -9,8 +9,10 @@ export enum SorobanContractStorageEntry_TimestampSelector {
 }
 export const SorobanContractStorageEntry_Timestamp = entity({
 	entityType: EntityType.SorobanContractStorageEntry_Timestamp,
-	label: 'soroban contract storage entry timestamp',
-	labelPlural: 'soroban contract storage entry observations',
+	labels: {
+		singular: 'soroban contract storage entry timestamp',
+		plural: 'soroban contract storage entry observations',
+	},
 })({
 	$entry: {
 		label: 'entry',

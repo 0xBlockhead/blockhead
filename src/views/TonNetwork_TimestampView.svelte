@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const masterchainSeqno = prefetched.masterchainSeqno}
+					{@const masterchainSeqno = pendingEntity.masterchainSeqno}
 					{#if masterchainSeqno !== undefined && masterchainSeqno !== null}
 						<div>
 							<dt>masterchain seqno</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const shardCount = prefetched.shardCount}
+					{@const shardCount = pendingEntity.shardCount}
 					{#if shardCount !== undefined && shardCount !== null}
 						<div>
 							<dt>shard count</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validatorCount = prefetched.validatorCount}
+					{@const validatorCount = pendingEntity.validatorCount}
 					{#if validatorCount !== undefined && validatorCount !== null}
 						<div>
 							<dt>validator count</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestBlockUtimeMs = prefetched.latestBlockUtimeMs}
+					{@const latestBlockUtimeMs = pendingEntity.latestBlockUtimeMs}
 					{#if latestBlockUtimeMs !== undefined && latestBlockUtimeMs !== null}
 						<div>
 							<dt>latest block utime ms</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const indexerLagMs = prefetched.indexerLagMs}
+					{@const indexerLagMs = pendingEntity.indexerLagMs}
 					{#if indexerLagMs !== undefined && indexerLagMs !== null}
 						<div>
 							<dt>indexer lag ms</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const health = prefetched.health}
+					{@const health = pendingEntity.health}
 					{#if health !== undefined && health !== null}
 						<div>
 							<dt>health</dt>

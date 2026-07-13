@@ -9,8 +9,10 @@ export enum BnbBeaconNetwork_TimestampSelector {
 }
 export const BnbBeaconNetwork_Timestamp = entity({
 	entityType: EntityType.BnbBeaconNetwork_Timestamp,
-	label: 'bnb beacon network timestamp',
-	labelPlural: 'bnb beacon network observations',
+	labels: {
+		singular: 'bnb beacon network timestamp',
+		plural: 'bnb beacon network observations',
+	},
 })({
 	$network: {
 		label: 'network',

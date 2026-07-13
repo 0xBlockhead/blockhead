@@ -11,8 +11,10 @@ export enum NostrProfileSelector {
 }
 export const NostrProfile = entity({
 	entityType: EntityType.NostrProfile,
-	label: 'Nostr profile',
-	labelPlural: 'Nostr profiles',
+	labels: {
+		singular: 'Nostr profile',
+		plural: 'Nostr profiles',
+	},
 	description: 'A Nostr profile is replaceable kind-0 metadata keyed by a 64-character lowercase hex public key.',
 })({
 	pubkey: {

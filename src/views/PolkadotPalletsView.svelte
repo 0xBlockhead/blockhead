@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -120,8 +119,8 @@
 						selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotPalletFields}
 						href={
-							(polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.caip2 !== undefined && polkadotPalletHrefFields.$network.caip2.namespace !== undefined && polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.caip2 !== undefined && polkadotPalletHrefFields.$network.caip2.reference !== undefined && polkadotPalletHrefFields.palletName !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/pallet/[palletName]', {
-								networkSlug: String(networkByCaip2[String(String(polkadotPalletHrefFields.$network.caip2.namespace) + ':' + String(polkadotPalletHrefFields.$network.caip2.reference))].slug ?? ''),
+							(polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.slug !== undefined && polkadotPalletHrefFields.palletName !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
+								network: String(polkadotPalletHrefFields.$network.slug ?? ''),
 								palletName: String(polkadotPalletHrefFields.palletName ?? ''),
 							}) : undefined)
 						}

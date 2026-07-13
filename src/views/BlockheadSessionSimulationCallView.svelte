@@ -52,7 +52,7 @@
 			depth: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.callPath ?? prefetched.callPath) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation call')
+	const titleFallback = $derived([String((pendingEntity.callPath) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation call')
 	const viewDomId = $derived('blockhead-session-simulation-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadSessionSimulationCall}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.callPath ?? prefetched.callPath) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session simulation call'}
+				{[String((pendingEntity.callPath) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session simulation call'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSessionSimulationCall}>
 			{#snippet Pending()}
-				{[String((prefetched.callType) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.callPath ?? prefetched.callPath) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session simulation call'}
+				{[String((pendingEntity.callType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.callPath) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session simulation call'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadSessionSimulationCall}>
 			{#snippet Pending()}
-				{@const depth0 = prefetched.depth}
+				{@const depth0 = pendingEntity.depth}
 				{#if depth0 !== undefined && depth0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(depth0)} />
@@ -132,7 +132,7 @@
 						resource={selection.$simulation}
 					>
 						{#snippet children(blockheadSessionSimulation)}
-							{#if blockheadSessionSimulation[EntityMetaKey.Selector] != null}
+							{#if blockheadSessionSimulation != null && blockheadSessionSimulation[EntityMetaKey.Selector] != null}
 								<BlockheadSessionSimulationView
 									selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionSimulation}
@@ -158,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const callPath = selection.entitySelector.callPath ?? prefetched.callPath}
+							{@const callPath = pendingEntity.callPath}
 							{#if callPath !== undefined && callPath !== null}
 								{String((callPath) ?? '')}
 							{/if}
@@ -185,7 +185,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const parentCallPath = prefetched.parentCallPath}
+					{@const parentCallPath = pendingEntity.parentCallPath}
 					{#if parentCallPath !== undefined && parentCallPath !== null}
 						<div>
 							<dt>parent call path</dt>
@@ -223,7 +223,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const depth = prefetched.depth}
+							{@const depth = pendingEntity.depth}
 							{#if depth !== undefined && depth !== null}
 								<NumberValue value={Number(depth)} />
 							{/if}
@@ -253,7 +253,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const callIndex = prefetched.callIndex}
+							{@const callIndex = pendingEntity.callIndex}
 							{#if callIndex !== undefined && callIndex !== null}
 								<NumberValue value={Number(callIndex)} />
 							{/if}
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const callType = prefetched.callType}
+					{@const callType = pendingEntity.callType}
 					{#if callType !== undefined && callType !== null}
 						<div>
 							<dt>call type</dt>
@@ -317,7 +317,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fromAddress = prefetched.fromAddress}
+					{@const fromAddress = pendingEntity.fromAddress}
 					{#if fromAddress !== undefined && fromAddress !== null}
 						<div>
 							<dt>from address</dt>
@@ -352,7 +352,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toAddress = prefetched.toAddress}
+					{@const toAddress = pendingEntity.toAddress}
 					{#if toAddress !== undefined && toAddress !== null}
 						<div>
 							<dt>to address</dt>
@@ -387,7 +387,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const value = prefetched.value}
+					{@const value = pendingEntity.value}
 					{#if value !== undefined && value !== null}
 						<div>
 							<dt>Value</dt>
@@ -422,7 +422,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>gas used</dt>
@@ -457,7 +457,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reverted = prefetched.reverted}
+					{@const reverted = pendingEntity.reverted}
 					{#if reverted !== undefined && reverted !== null}
 						<div>
 							<dt>reverted</dt>
@@ -492,7 +492,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>
@@ -529,7 +529,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputSelector = prefetched.inputSelector}
+					{@const inputSelector = pendingEntity.inputSelector}
 					{#if inputSelector !== undefined && inputSelector !== null}
 						<div>
 							<dt>input selector</dt>
@@ -564,7 +564,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputDataHash = prefetched.inputDataHash}
+					{@const inputDataHash = pendingEntity.inputDataHash}
 					{#if inputDataHash !== undefined && inputDataHash !== null}
 						<div>
 							<dt>input data hash</dt>
@@ -599,7 +599,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outputDataHash = prefetched.outputDataHash}
+					{@const outputDataHash = pendingEntity.outputDataHash}
 					{#if outputDataHash !== undefined && outputDataHash !== null}
 						<div>
 							<dt>output data hash</dt>

@@ -3,7 +3,6 @@
 import { MarketKind } from '$/constants/Market.ts'
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { marketAsset } from '$/schema/MarketAsset.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
@@ -12,22 +11,24 @@ export enum MarketSelector {
 }
 export const Market = entity({
 	entityType: EntityType.Market,
-	label: 'Market',
-	labelPlural: 'markets',
+	labels: {
+		singular: 'Market',
+		plural: 'markets',
+	},
 })({
 	$base: {
-		type: EntityFieldType.Primitive,
-		primitiveType: (marketAsset),
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.MarketAsset,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$quote: {
-		type: EntityFieldType.Primitive,
-		primitiveType: (marketAsset),
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.MarketAsset,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$marketVenue: {
-		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'marketVenueId': type('string') }),
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.MarketVenue,
 		cardinality: EntityFieldCardinality.One,
 	},
 	marketKind: {

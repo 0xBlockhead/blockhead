@@ -42,19 +42,21 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosAccount = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || 'aptos account')
+	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'aptos account')
 	const viewDomId = $derived('aptos-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import AptosNetworkView from '$/views/AptosNetworkView.svelte'
 	import AptosAccount_TimestampsView from '$/views/AptosAccount_TimestampsView.svelte'
+	import AptosTransactionsView from '$/views/AptosTransactionsView.svelte'
 	import AptosCoinBalance_TimestampsView from '$/views/AptosCoinBalance_TimestampsView.svelte'
 	import AptosAccountResourcesView from '$/views/AptosAccountResourcesView.svelte'
 	import MoveModulesView from '$/views/MoveModulesView.svelte'
-	import AptosTransactionsView from '$/views/AptosTransactionsView.svelte'
-	import AptosNetworkView from '$/views/AptosNetworkView.svelte'
 </script>
 
 
@@ -71,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosAccount}>
 			{#snippet Pending()}
-				{@const address0 = selection.entitySelector.address ?? prefetched.address}
+				{@const address0 = pendingEntity.address}
 				{#if address0 !== undefined && address0 !== null}
 					<TruncatedValue value={String((address0) ?? '')} />
 				{/if}
@@ -134,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -155,40 +157,122 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AptosAccount_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='AptosAccount_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-aptos-account-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'aptos-account-observations',
+							label: 'Observations',
+						},
+						{
+							id: 'aptos-account-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-account-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Account activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AptosCoinBalance_TimestampsView
-				selection={selection.$$balances}
-				title='balances'
-				emptyText='No balances found.'
-				id='AptosCoinBalance_TimestampsView-balances'
-			/>
+				{#snippet SectionAptosAccountObservations({ id, label, open })}
+					<AptosAccount_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AptosAccountResourcesView
-				selection={selection.$$resources}
-				title='resources'
-				emptyText='No resources found.'
-				id='AptosAccountResourcesView-resources'
-			/>
+				{#snippet SectionAptosAccountTransactions({ id, label, open })}
+					<AptosTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transactions found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<MoveModulesView
-				selection={selection.$$modules}
-				title='modules'
-				emptyText='No modules found.'
-				id='MoveModulesView-modules'
-			/>
+			</CollapsibleTabs>
 
-			<AptosTransactionsView
-				selection={selection.$$transactions}
-				title='transactions'
-				emptyText='No transactions found.'
-				id='AptosTransactionsView-transactions'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-aptos-account-resources'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'aptos-account-balances',
+							label: 'Balances',
+						},
+						{
+							id: 'aptos-account-resource-list',
+							label: 'Resources',
+						},
+						{
+							id: 'aptos-account-modules',
+							label: 'Modules',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-resources-modules'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Resources and modules</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAptosAccountBalances({ id, label, open })}
+					<AptosCoinBalance_TimestampsView
+						selection={selection.$$balances}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No balances found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAptosAccountResourceList({ id, label, open })}
+					<AptosAccountResourcesView
+						selection={selection.$$resources}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No resources found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAptosAccountModules({ id, label, open })}
+					<MoveModulesView
+						selection={selection.$$modules}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No modules found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

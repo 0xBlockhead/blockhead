@@ -11,7 +11,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { bridgeRouteTagByTag } from '$/constants/Bridge.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -56,7 +56,7 @@
 			estimatedDurationSeconds: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.fromChainId) ?? ''), 'to', String((prefetched.toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route quote timestamp')
+	const titleFallback = $derived([String((pendingEntity.fromChainId) ?? ''), 'to', String((pendingEntity.toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route quote timestamp')
 	const viewDomId = $derived('bridge-route-quote-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -83,7 +83,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bridgeRouteQuoteTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.fromChainId) ?? ''), 'to', String((prefetched.toChainId) ?? '')].filter(Boolean).join(' ') || title || 'bridge route quote timestamp'}
+				{[String((pendingEntity.fromChainId) ?? ''), 'to', String((pendingEntity.toChainId) ?? '')].filter(Boolean).join(' ') || title || 'bridge route quote timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bridgeRouteQuoteTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -115,19 +115,19 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bridgeRouteQuoteTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
 					</span>
 				{/if}
-				{@const estimatedCostUsd1 = prefetched.estimatedCostUsd}
+				{@const estimatedCostUsd1 = pendingEntity.estimatedCostUsd}
 				{#if estimatedCostUsd1 !== undefined && estimatedCostUsd1 !== null}
 					<span data-text="muted">
 						{String((estimatedCostUsd1) ?? '')}
 					</span>
 				{/if}
-				{@const estimatedDurationSeconds2 = prefetched.estimatedDurationSeconds}
+				{@const estimatedDurationSeconds2 = pendingEntity.estimatedDurationSeconds}
 				{#if estimatedDurationSeconds2 !== undefined && estimatedDurationSeconds2 !== null}
 					<span data-text="muted">
 						{String((estimatedDurationSeconds2) ?? '')}
@@ -174,7 +174,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -204,7 +204,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -228,27 +228,15 @@
 						resource={selection.$fromNetwork}
 					>
 						{#snippet children(network)}
-							{#if network[EntityMetaKey.Selector] != null}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-											networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(network[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -267,27 +255,15 @@
 						resource={selection.$toNetwork}
 					>
 						{#snippet children(network)}
-							{#if network[EntityMetaKey.Selector] != null}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-											networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(network[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -314,7 +290,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fromToken = prefetched.fromToken}
+							{@const fromToken = pendingEntity.fromToken}
 							{#if fromToken !== undefined && fromToken !== null}
 								<TruncatedValue value={String((fromToken) ?? '')} />
 							{/if}
@@ -344,7 +320,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const toToken = prefetched.toToken}
+							{@const toToken = pendingEntity.toToken}
 							{#if toToken !== undefined && toToken !== null}
 								<TruncatedValue value={String((toToken) ?? '')} />
 							{/if}
@@ -374,7 +350,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fromAddress = prefetched.fromAddress}
+							{@const fromAddress = pendingEntity.fromAddress}
 							{#if fromAddress !== undefined && fromAddress !== null}
 								<TruncatedValue value={String(fromAddress)} />
 							{/if}
@@ -404,7 +380,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const toAddress = prefetched.toAddress}
+							{@const toAddress = pendingEntity.toAddress}
 							{#if toAddress !== undefined && toAddress !== null}
 								<TruncatedValue value={String(toAddress)} />
 							{/if}
@@ -434,7 +410,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fromAmount = prefetched.fromAmount}
+							{@const fromAmount = pendingEntity.fromAmount}
 							{#if fromAmount !== undefined && fromAmount !== null}
 								<NumberValue value={Number(fromAmount)} />
 							{/if}
@@ -461,7 +437,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toAmount = prefetched.toAmount}
+					{@const toAmount = pendingEntity.toAmount}
 					{#if toAmount !== undefined && toAmount !== null}
 						<div>
 							<dt>to amount</dt>
@@ -496,7 +472,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toAmountMin = prefetched.toAmountMin}
+					{@const toAmountMin = pendingEntity.toAmountMin}
 					{#if toAmountMin !== undefined && toAmountMin !== null}
 						<div>
 							<dt>to amount min</dt>
@@ -534,7 +510,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const slippage = prefetched.slippage}
+							{@const slippage = pendingEntity.slippage}
 							{#if slippage !== undefined && slippage !== null}
 								{String((slippage) ?? '')}
 							{/if}
@@ -561,7 +537,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const estimatedCostUsd = prefetched.estimatedCostUsd}
+					{@const estimatedCostUsd = pendingEntity.estimatedCostUsd}
 					{#if estimatedCostUsd !== undefined && estimatedCostUsd !== null}
 						<div>
 							<dt>estimated cost usd</dt>
@@ -596,7 +572,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const estimatedDurationSeconds = prefetched.estimatedDurationSeconds}
+					{@const estimatedDurationSeconds = pendingEntity.estimatedDurationSeconds}
 					{#if estimatedDurationSeconds !== undefined && estimatedDurationSeconds !== null}
 						<div>
 							<dt>estimated duration seconds</dt>
@@ -633,7 +609,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerQuoteId = prefetched.providerQuoteId}
+					{@const providerQuoteId = pendingEntity.providerQuoteId}
 					{#if providerQuoteId !== undefined && providerQuoteId !== null}
 						<div>
 							<dt>provider quote ID</dt>
@@ -671,7 +647,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const quoteRequestHash = selection.entitySelector.quoteRequestHash ?? prefetched.quoteRequestHash}
+							{@const quoteRequestHash = pendingEntity.quoteRequestHash}
 							{#if quoteRequestHash !== undefined && quoteRequestHash !== null}
 								<TruncatedValue value={String((quoteRequestHash) ?? '')} />
 							{/if}
@@ -698,7 +674,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const approvalAddress = prefetched.approvalAddress}
+					{@const approvalAddress = pendingEntity.approvalAddress}
 					{#if approvalAddress !== undefined && approvalAddress !== null}
 						<div>
 							<dt>approval address</dt>
@@ -733,7 +709,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionTo = prefetched.transactionTo}
+					{@const transactionTo = pendingEntity.transactionTo}
 					{#if transactionTo !== undefined && transactionTo !== null}
 						<div>
 							<dt>transaction to</dt>
@@ -768,7 +744,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionDataHash = prefetched.transactionDataHash}
+					{@const transactionDataHash = pendingEntity.transactionDataHash}
 					{#if transactionDataHash !== undefined && transactionDataHash !== null}
 						<div>
 							<dt>transaction data hash</dt>
@@ -806,7 +782,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tags = prefetched.tags}
+							{@const tags = pendingEntity.tags}
 							{#if tags !== undefined && tags !== null}
 								{tags == null ? '' : String(((tags).map((tag) => bridgeRouteTagByTag[tag].label).join(', ')) ?? '')}
 							{/if}

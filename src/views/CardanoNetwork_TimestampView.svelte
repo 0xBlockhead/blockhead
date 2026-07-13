@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestSlot = prefetched.latestSlot}
+					{@const latestSlot = pendingEntity.latestSlot}
 					{#if latestSlot !== undefined && latestSlot !== null}
 						<div>
 							<dt>latest slot</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestBlockNo = prefetched.latestBlockNo}
+					{@const latestBlockNo = pendingEntity.latestBlockNo}
 					{#if latestBlockNo !== undefined && latestBlockNo !== null}
 						<div>
 							<dt>latest block no</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epoch = prefetched.epoch}
+					{@const epoch = pendingEntity.epoch}
 					{#if epoch !== undefined && epoch !== null}
 						<div>
 							<dt>epoch</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const era = prefetched.era}
+					{@const era = pendingEntity.era}
 					{#if era !== undefined && era !== null}
 						<div>
 							<dt>era</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const syncProgress = prefetched.syncProgress}
+					{@const syncProgress = pendingEntity.syncProgress}
 					{#if syncProgress !== undefined && syncProgress !== null}
 						<div>
 							<dt>sync progress</dt>

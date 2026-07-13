@@ -54,7 +54,7 @@
 			requestedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.providerProtocol) ?? '')].filter(Boolean).join(' ') || 'blockhead intent quote')
+	const titleFallback = $derived([String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || 'blockhead intent quote')
 	const viewDomId = $derived('blockhead-intent-quote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadIntentQuote}>
 			{#snippet Pending()}
-				{[String((prefetched.providerProtocol) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent quote'}
+				{[String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent quote'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadIntentQuote}>
 			{#snippet Pending()}
-				{[String((prefetched.source) ?? '')].filter(Boolean).join(' ') || [String((prefetched.providerProtocol) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent quote'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent quote'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,7 +106,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadIntentQuote}>
 			{#snippet Pending()}
-				{@const requestedAt0 = prefetched.requestedAt}
+				{@const requestedAt0 = pendingEntity.requestedAt}
 				{#if requestedAt0 !== undefined && requestedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(requestedAt0)} />
@@ -141,7 +141,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
 							{/if}
@@ -171,7 +171,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -201,7 +201,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const quoteRequestHash = prefetched.quoteRequestHash}
+							{@const quoteRequestHash = pendingEntity.quoteRequestHash}
 							{#if quoteRequestHash !== undefined && quoteRequestHash !== null}
 								<TruncatedValue value={String((quoteRequestHash) ?? '')} />
 							{/if}
@@ -221,6 +221,8 @@
 			<ResourceBoundary
 				resource={selection.$sessionAction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSessionAction)}
 					{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
 						<div>
@@ -251,7 +253,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const providerProtocol = prefetched.providerProtocol}
+							{@const providerProtocol = pendingEntity.providerProtocol}
 							{#if providerProtocol !== undefined && providerProtocol !== null}
 								{String((providerProtocol) ?? '')}
 							{/if}
@@ -278,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const intentType = prefetched.intentType}
+					{@const intentType = pendingEntity.intentType}
 					{#if intentType !== undefined && intentType !== null}
 						<div>
 							<dt>intent type</dt>
@@ -315,7 +317,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const userInteropAddress = prefetched.userInteropAddress}
+					{@const userInteropAddress = pendingEntity.userInteropAddress}
 					{#if userInteropAddress !== undefined && userInteropAddress !== null}
 						<div>
 							<dt>user interop address</dt>
@@ -350,7 +352,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestPayloadHash = prefetched.requestPayloadHash}
+					{@const requestPayloadHash = pendingEntity.requestPayloadHash}
 					{#if requestPayloadHash !== undefined && requestPayloadHash !== null}
 						<div>
 							<dt>request payload hash</dt>
@@ -388,7 +390,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestedAt = prefetched.requestedAt}
+							{@const requestedAt = pendingEntity.requestedAt}
 							{#if requestedAt !== undefined && requestedAt !== null}
 								<Timestamp timestamp={Number(requestedAt)} />
 							{/if}

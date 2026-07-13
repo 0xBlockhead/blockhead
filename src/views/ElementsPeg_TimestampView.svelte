@@ -47,7 +47,7 @@
 			confirmations: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Elements peg observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Elements peg observation')
 	const viewDomId = $derived('elements-peg-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={elementsPegTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={elementsPegTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Elements peg observation'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'Elements peg observation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={elementsPegTimestamp}>
 			{#snippet Pending()}
-				{@const confirmations0 = prefetched.confirmations}
+				{@const confirmations0 = pendingEntity.confirmations}
 				{#if confirmations0 !== undefined && confirmations0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(confirmations0)} />
@@ -150,7 +150,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>
@@ -242,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const confirmations = prefetched.confirmations}
+					{@const confirmations = pendingEntity.confirmations}
 					{#if confirmations !== undefined && confirmations !== null}
 						<div>
 							<dt>Confirmations</dt>
@@ -277,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedBitcoinHeight = prefetched.observedBitcoinHeight}
+					{@const observedBitcoinHeight = pendingEntity.observedBitcoinHeight}
 					{#if observedBitcoinHeight !== undefined && observedBitcoinHeight !== null}
 						<div>
 							<dt>Observed Bitcoin height</dt>
@@ -312,7 +312,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedElementsHeight = prefetched.observedElementsHeight}
+					{@const observedElementsHeight = pendingEntity.observedElementsHeight}
 					{#if observedElementsHeight !== undefined && observedElementsHeight !== null}
 						<div>
 							<dt>Observed Elements height</dt>

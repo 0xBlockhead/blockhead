@@ -10,8 +10,10 @@ export enum BitcoinCashBcmrMetadataSelector {
 }
 export const BitcoinCashBcmrMetadata = entity({
 	entityType: EntityType.BitcoinCashBcmrMetadata,
-	label: 'Bitcoin cash bcmr metadata',
-	labelPlural: 'Bitcoin Cash BCMR metadata entries',
+	labels: {
+		singular: 'Bitcoin cash bcmr metadata',
+		plural: 'Bitcoin Cash BCMR metadata entries',
+	},
 })({
 	$network: {
 		label: 'network',

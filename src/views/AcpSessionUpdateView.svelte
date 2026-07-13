@@ -51,7 +51,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived((String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '') ? 'Update #' + String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '') : '') || 'ACP session update')
+	const titleFallback = $derived((String((pendingEntity.sequence) ?? '') ? 'Update #' + String((pendingEntity.sequence) ?? '') : '') || 'ACP session update')
 	const viewDomId = $derived('acp-session-update-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,14 +68,14 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.sequence ?? prefetched.sequence ?? '')}
+	idDragPlainText={String(pendingEntity.sequence ?? '')}
 	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = selection.entitySelector.sequence ?? prefetched.sequence}
+		{@const serialValue = pendingEntity.sequence}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Update </span>
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpSessionUpdate}>
 			{#snippet Pending()}
-				{[String((prefetched.updateKind) ?? '')].filter(Boolean).join(' ') || title || 'ACP session update'}
+				{[String((pendingEntity.updateKind) ?? '')].filter(Boolean).join(' ') || title || 'ACP session update'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpSessionUpdate}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sequence = selection.entitySelector.sequence ?? prefetched.sequence}
+							{@const sequence = pendingEntity.sequence}
 							{#if sequence !== undefined && sequence !== null}
 								<NumberValue value={Number(sequence)} />
 							{/if}
@@ -178,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const updateKind = prefetched.updateKind}
+							{@const updateKind = pendingEntity.updateKind}
 							{#if updateKind !== undefined && updateKind !== null}
 								{String((updateKind) ?? '')}
 							{/if}
@@ -205,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>

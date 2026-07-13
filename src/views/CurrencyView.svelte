@@ -52,7 +52,7 @@
 			symbol: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.iso4217 ?? prefetched.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency')
 	const viewDomId = $derived('currency-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.iso4217 !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+		href ?? (pendingEntity.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
 			iso4217: String(pendingEntity.iso4217 ?? ''),
 		}) : undefined)
 	}
@@ -83,7 +83,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={currency}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.iso4217 ?? prefetched.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={currency}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.iso4217 ?? prefetched.iso4217) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'currency'}
+				{[String((pendingEntity.iso4217) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'currency'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -134,6 +134,8 @@
 							})
 						}
 					>
+						{#snippet Pending()}{/snippet}
+
 						{#snippet children(currencyTimestamps)}
 							{@const currencyTimestamp = currencyTimestamps.values[0]}
 							{#if currencyTimestamp != null}
@@ -147,9 +149,9 @@
 										})
 									}
 									href={
-										(currencyTimestamp[EntityMetaKey.Selector].$currency !== undefined && currencyTimestamp[EntityMetaKey.Selector].$currency.iso4217 !== undefined && currencyTimestamp[EntityMetaKey.Selector].timestampMs !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
-											iso4217: String(currencyTimestamp[EntityMetaKey.Selector].$currency.iso4217 ?? ''),
+										(currencyTimestamp[EntityMetaKey.Selector].timestampMs !== undefined && currencyTimestamp[EntityMetaKey.Selector].$currency !== undefined && currencyTimestamp[EntityMetaKey.Selector].$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
 											timestampMs: String(currencyTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+											iso4217: String(currencyTimestamp[EntityMetaKey.Selector].$currency.iso4217 ?? ''),
 										}) : undefined)
 									}
 									prefetched={{ ...currencyTimestampSelector, ...currencyTimestamp }}
@@ -175,7 +177,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const symbol = prefetched.symbol}
+						{@const symbol = pendingEntity.symbol}
 						{#if symbol !== undefined && symbol !== null}
 							<div>
 								<dt>Symbol</dt>
@@ -216,7 +218,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const minorUnitExponent = prefetched.minorUnitExponent}
+							{@const minorUnitExponent = pendingEntity.minorUnitExponent}
 							{#if minorUnitExponent !== undefined && minorUnitExponent !== null}
 								{String((minorUnitExponent) ?? '')}
 							{/if}
@@ -243,7 +245,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const catalogSortWeight = prefetched.catalogSortWeight}
+					{@const catalogSortWeight = pendingEntity.catalogSortWeight}
 					{#if catalogSortWeight !== undefined && catalogSortWeight !== null}
 						<div>
 							<dt>Catalog sort weight</dt>
@@ -312,8 +314,14 @@
 
 				{#snippet SectionMarketsWithCurrencyAsBase({ id, label, open })}
 					<MarketsView
-						selection={selection.$$marketsWithCurrencyAsBase}
-						href={resolve('/(assets)/markets')}
+						selection={
+							selection.$$marketsWithCurrencyAsBase({
+								sources: [
+									Source.Constants_Internal,
+								],
+							})
+						}
+						href={resolve('/markets')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -323,8 +331,14 @@
 
 				{#snippet SectionMarketsWithCurrencyAsQuote({ id, label, open })}
 					<MarketsView
-						selection={selection.$$marketsWithCurrencyAsQuote}
-						href={resolve('/(assets)/markets')}
+						selection={
+							selection.$$marketsWithCurrencyAsQuote({
+								sources: [
+									Source.Constants_Internal,
+								],
+							})
+						}
+						href={resolve('/markets')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}

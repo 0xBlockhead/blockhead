@@ -49,7 +49,7 @@
 			supportsOutputSubstitution: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'payjoin endpoint timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'payjoin endpoint timestamp')
 	const viewDomId = $derived('payjoin-endpoint-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={payjoinEndpointTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={payjoinEndpointTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.responseStatus) ?? ''), String((prefetched.error) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'payjoin endpoint timestamp'}
+				{[String((pendingEntity.responseStatus) ?? ''), String((pendingEntity.error) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'payjoin endpoint timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -106,13 +106,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={payjoinEndpointTimestamp}>
 			{#snippet Pending()}
-				{@const requiresOhttp0 = prefetched.requiresOhttp}
+				{@const requiresOhttp0 = pendingEntity.requiresOhttp}
 				{#if requiresOhttp0 !== undefined && requiresOhttp0 !== null}
 					<span data-text="muted">
 						{requiresOhttp0 ? 'Yes' : 'No'}
 					</span>
 				{/if}
-				{@const supportsOutputSubstitution1 = prefetched.supportsOutputSubstitution}
+				{@const supportsOutputSubstitution1 = pendingEntity.supportsOutputSubstitution}
 				{#if supportsOutputSubstitution1 !== undefined && supportsOutputSubstitution1 !== null}
 					<span data-text="muted">
 						{supportsOutputSubstitution1 ? 'Yes' : 'No'}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -194,7 +194,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -223,7 +223,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportsOutputSubstitution = prefetched.supportsOutputSubstitution}
+					{@const supportsOutputSubstitution = pendingEntity.supportsOutputSubstitution}
 					{#if supportsOutputSubstitution !== undefined && supportsOutputSubstitution !== null}
 						<div>
 							<dt>supports output substitution</dt>
@@ -258,7 +258,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requiresOhttp = prefetched.requiresOhttp}
+					{@const requiresOhttp = pendingEntity.requiresOhttp}
 					{#if requiresOhttp !== undefined && requiresOhttp !== null}
 						<div>
 							<dt>requires ohttp</dt>
@@ -293,7 +293,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxPayloadBytes = prefetched.maxPayloadBytes}
+					{@const maxPayloadBytes = pendingEntity.maxPayloadBytes}
 					{#if maxPayloadBytes !== undefined && maxPayloadBytes !== null}
 						<div>
 							<dt>max payload bytes</dt>
@@ -330,7 +330,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSeenAt = prefetched.lastSeenAt}
+					{@const lastSeenAt = pendingEntity.lastSeenAt}
 					{#if lastSeenAt !== undefined && lastSeenAt !== null}
 						<div>
 							<dt>last seen AT</dt>
@@ -365,7 +365,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const responseStatus = prefetched.responseStatus}
+					{@const responseStatus = pendingEntity.responseStatus}
 					{#if responseStatus !== undefined && responseStatus !== null}
 						<div>
 							<dt>response status</dt>
@@ -400,7 +400,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

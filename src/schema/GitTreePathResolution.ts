@@ -10,8 +10,10 @@ export enum GitTreePathResolutionSelector {
 }
 export const GitTreePathResolution = entity({
 	entityType: EntityType.GitTreePathResolution,
-	label: 'Git tree path resolution',
-	labelPlural: 'Git tree path resolutions',
+	labels: {
+		singular: 'Git tree path resolution',
+		plural: 'Git tree path resolutions',
+	},
 })({
 	$repository: {
 		label: 'repository',

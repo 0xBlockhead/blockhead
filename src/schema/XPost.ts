@@ -9,8 +9,10 @@ export enum XPostSelector {
 }
 export const XPost = entity({
 	entityType: EntityType.XPost,
-	label: 'X post',
-	labelPlural: 'X posts',
+	labels: {
+		singular: 'X post',
+		plural: 'X posts',
+	},
 })({
 	id: {
 		label: 'ID',

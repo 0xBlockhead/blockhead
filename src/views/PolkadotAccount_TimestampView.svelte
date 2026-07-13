@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -50,7 +49,7 @@
 			nonce: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'Polkadot account timestamp')
+	const titleFallback = $derived([String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'Polkadot account timestamp')
 	const viewDomId = $derived('polkadot-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -68,8 +67,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$account !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.caip2 !== undefined && pendingEntity.$account.$network.caip2.namespace !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.caip2 !== undefined && pendingEntity.$account.$network.caip2.reference !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.accountId !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]/observation/[timestampMs=nonNegativeInteger]/[source]', {
-			networkSlug: String(networkByCaip2[String(String(pendingEntity.$account.$network.caip2.namespace) + ':' + String(pendingEntity.$account.$network.caip2.reference))].slug ?? ''),
+		href ?? (pendingEntity.$account !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.slug !== undefined && pendingEntity.$account.accountId !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			network: String(pendingEntity.$account.$network.slug ?? ''),
 			accountId: String(pendingEntity.$account.accountId ?? ''),
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
@@ -82,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={polkadotAccountTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot account timestamp'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot account timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -95,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotAccountTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.freeBalancePlancks) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot account timestamp'}
+				{[String((pendingEntity.freeBalancePlancks) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot account timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,13 +107,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={polkadotAccountTimestamp}>
 			{#snippet Pending()}
-				{@const nonce0 = prefetched.nonce}
+				{@const nonce0 = pendingEntity.nonce}
 				{#if nonce0 !== undefined && nonce0 !== null}
 					<span data-text="muted">
 						{String((nonce0) ?? '')}
 					</span>
 				{/if}
-				{@const timestampMs1 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs1 = pendingEntity.timestampMs}
 				{#if timestampMs1 !== undefined && timestampMs1 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs1)} />
@@ -155,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -215,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nonce = prefetched.nonce}
+					{@const nonce = pendingEntity.nonce}
 					{#if nonce !== undefined && nonce !== null}
 						<div>
 							<dt>Nonce</dt>
@@ -253,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freeBalancePlancks = prefetched.freeBalancePlancks}
+					{@const freeBalancePlancks = pendingEntity.freeBalancePlancks}
 					{#if freeBalancePlancks !== undefined && freeBalancePlancks !== null}
 						<div>
 							<dt>Free balance plancks</dt>
@@ -284,8 +283,8 @@
 					<PolkadotAccountView
 						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account, {})}
 						href={
-							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$account.$network.caip2.namespace) + ':' + String(selection.entitySelector.$account.$network.caip2.reference))].slug ?? ''),
+							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined && selection.entitySelector.$account.accountId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
+								network: String(selection.entitySelector.$account.$network.slug ?? ''),
 								accountId: String(selection.entitySelector.$account.accountId ?? ''),
 							}) : undefined)
 						}

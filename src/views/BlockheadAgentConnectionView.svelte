@@ -52,7 +52,7 @@
 			enabled: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent connection')
+	const titleFallback = $derived([String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent connection')
 	const viewDomId = $derived('blockhead-agent-connection-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAgentConnection}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent connection'}
+				{[String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent connection'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentConnection}>
 			{#snippet Pending()}
-				{[String((prefetched.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent connection'}
+				{[String((pendingEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent connection'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAgentConnection}>
 			{#snippet Pending()}
-				{@const enabled0 = prefetched.enabled}
+				{@const enabled0 = pendingEntity.enabled}
 				{#if enabled0 !== undefined && enabled0 !== null}
 					<span data-text="muted">
 						{enabled0 ? 'Yes' : 'No'}
@@ -139,7 +139,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const connectionId = selection.entitySelector.connectionId ?? prefetched.connectionId}
+							{@const connectionId = pendingEntity.connectionId}
 							{#if connectionId !== undefined && connectionId !== null}
 								{String((connectionId) ?? '')}
 							{/if}
@@ -159,6 +159,8 @@
 			<ResourceBoundary
 				resource={selection.$profile}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadAgentProfile)}
 					{#if blockheadAgentProfile != null && blockheadAgentProfile[EntityMetaKey.Selector] != null}
 						<div>
@@ -179,6 +181,8 @@
 			<ResourceBoundary
 				resource={selection.$source}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
 						<div>
@@ -206,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const connectionKind = prefetched.connectionKind}
+					{@const connectionKind = pendingEntity.connectionKind}
 					{#if connectionKind !== undefined && connectionKind !== null}
 						<div>
 							<dt>connection kind</dt>
@@ -243,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endpointUrl = prefetched.endpointUrl}
+					{@const endpointUrl = pendingEntity.endpointUrl}
 					{#if endpointUrl !== undefined && endpointUrl !== null}
 						<div>
 							<dt>endpoint URL</dt>
@@ -292,7 +296,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authKind = prefetched.authKind}
+					{@const authKind = pendingEntity.authKind}
 					{#if authKind !== undefined && authKind !== null}
 						<div>
 							<dt>auth kind</dt>
@@ -327,7 +331,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const enabled = prefetched.enabled}
+					{@const enabled = pendingEntity.enabled}
 					{#if enabled !== undefined && enabled !== null}
 						<div>
 							<dt>enabled</dt>

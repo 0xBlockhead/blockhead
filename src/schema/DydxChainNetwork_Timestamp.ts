@@ -9,8 +9,10 @@ export enum DydxChainNetwork_TimestampSelector {
 }
 export const DydxChainNetwork_Timestamp = entity({
 	entityType: EntityType.DydxChainNetwork_Timestamp,
-	label: 'dydx chain network timestamp',
-	labelPlural: 'dydx chain network observations',
+	labels: {
+		singular: 'dydx chain network timestamp',
+		plural: 'dydx chain network observations',
+	},
 })({
 	$network: {
 		label: 'network',

@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const round = selection.entitySelector.round ?? prefetched.round}
+							{@const round = pendingEntity.round}
 							{#if round !== undefined && round !== null}
 								{String((round) ?? '')}
 							{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -161,7 +161,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const assetName = prefetched.assetName}
+					{@const assetName = pendingEntity.assetName}
 					{#if assetName !== undefined && assetName !== null}
 						<div>
 							<dt>asset name</dt>
@@ -196,7 +196,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unitName = prefetched.unitName}
+					{@const unitName = pendingEntity.unitName}
 					{#if unitName !== undefined && unitName !== null}
 						<div>
 							<dt>unit name</dt>
@@ -233,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const total = prefetched.total}
+					{@const total = pendingEntity.total}
 					{#if total !== undefined && total !== null}
 						<div>
 							<dt>total</dt>
@@ -268,7 +268,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -303,7 +303,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const defaultFrozen = prefetched.defaultFrozen}
+					{@const defaultFrozen = pendingEntity.defaultFrozen}
 					{#if defaultFrozen !== undefined && defaultFrozen !== null}
 						<div>
 							<dt>default frozen</dt>
@@ -338,7 +338,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const url = prefetched.url}
+					{@const url = pendingEntity.url}
 					{#if url !== undefined && url !== null}
 						<div>
 							<dt>URL</dt>
@@ -387,7 +387,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataHash = prefetched.metadataHash}
+					{@const metadataHash = pendingEntity.metadataHash}
 					{#if metadataHash !== undefined && metadataHash !== null}
 						<div>
 							<dt>metadata hash</dt>
@@ -424,7 +424,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const manager = prefetched.manager}
+					{@const manager = pendingEntity.manager}
 					{#if manager !== undefined && manager !== null}
 						<div>
 							<dt>manager</dt>
@@ -459,7 +459,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reserve = prefetched.reserve}
+					{@const reserve = pendingEntity.reserve}
 					{#if reserve !== undefined && reserve !== null}
 						<div>
 							<dt>reserve</dt>
@@ -494,7 +494,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freeze = prefetched.freeze}
+					{@const freeze = pendingEntity.freeze}
 					{#if freeze !== undefined && freeze !== null}
 						<div>
 							<dt>freeze</dt>
@@ -529,7 +529,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clawback = prefetched.clawback}
+					{@const clawback = pendingEntity.clawback}
 					{#if clawback !== undefined && clawback !== null}
 						<div>
 							<dt>clawback</dt>
@@ -564,7 +564,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const holderCount = prefetched.holderCount}
+					{@const holderCount = pendingEntity.holderCount}
 					{#if holderCount !== undefined && holderCount !== null}
 						<div>
 							<dt>holder count</dt>
@@ -599,7 +599,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>

@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -120,9 +121,9 @@
 						selection={select(EntityType.EvmNetworkBridge, evmNetworkBridge[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkBridgeFields}
 						href={
-							(evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2.namespace !== undefined && evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2.reference !== undefined && evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2.namespace !== undefined && evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2.reference !== undefined && evmNetworkBridgeHrefFields.url !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/bridges/[toCaip2=eip155NetworkCaip2]/[url]', {
-								caip2: `${String(evmNetworkBridgeHrefFields.$fromNetwork.caip2.namespace ?? '')}:${String(evmNetworkBridgeHrefFields.$fromNetwork.caip2.reference ?? '')}`,
-								toCaip2: `${String(evmNetworkBridgeHrefFields.$toNetwork.caip2.namespace ?? '')}:${String(evmNetworkBridgeHrefFields.$toNetwork.caip2.reference ?? '')}`,
+							(evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.slug !== undefined && evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.url !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
+								network: String(evmNetworkBridgeHrefFields.$fromNetwork.slug ?? ''),
+								toCaip2: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$toNetwork.caip2) ?? ''),
 								url: String(evmNetworkBridgeHrefFields.url ?? ''),
 							}) : undefined)
 						}

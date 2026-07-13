@@ -47,7 +47,7 @@
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? ''), String((selection.entitySelector.classKey ?? prefetched.classKey) ?? '')].filter(Boolean).join(' ') || 'asset class')
+	const titleFallback = $derived([String((pendingEntity.label) ?? ''), String((pendingEntity.classKey) ?? '')].filter(Boolean).join(' ') || 'asset class')
 	const viewDomId = $derived('asset-class-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={assetClass}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? ''), String((selection.entitySelector.classKey ?? prefetched.classKey) ?? '')].filter(Boolean).join(' ') || title || 'asset class'}
+				{[String((pendingEntity.label) ?? ''), String((pendingEntity.classKey) ?? '')].filter(Boolean).join(' ') || title || 'asset class'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -84,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={assetClass}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.classKind ?? prefetched.classKind) ?? ''), String((selection.entitySelector.classKey ?? prefetched.classKey) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? ''), String((selection.entitySelector.classKey ?? prefetched.classKey) ?? '')].filter(Boolean).join(' ') || title || 'asset class'}
+				{[String((pendingEntity.classKind) ?? ''), String((pendingEntity.classKey) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? ''), String((pendingEntity.classKey) ?? '')].filter(Boolean).join(' ') || title || 'asset class'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,8 +101,8 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						href={
-							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)
@@ -119,8 +119,8 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						href={
-							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const classKind = selection.entitySelector.classKind ?? prefetched.classKind}
+							{@const classKind = pendingEntity.classKind}
 							{#if classKind !== undefined && classKind !== null}
 								{String((classKind) ?? '')}
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const classKey = selection.entitySelector.classKey ?? prefetched.classKey}
+							{@const classKey = pendingEntity.classKey}
 							{#if classKey !== undefined && classKey !== null}
 								{String((classKey) ?? '')}
 							{/if}
@@ -211,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>Slot</dt>
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const partition = prefetched.partition}
+					{@const partition = pendingEntity.partition}
 					{#if partition !== undefined && partition !== null}
 						<div>
 							<dt>Partition</dt>
@@ -281,7 +281,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const series = prefetched.series}
+					{@const series = pendingEntity.series}
 					{#if series !== undefined && series !== null}
 						<div>
 							<dt>Series</dt>
@@ -318,7 +318,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maturityMs = prefetched.maturityMs}
+					{@const maturityMs = pendingEntity.maturityMs}
 					{#if maturityMs !== undefined && maturityMs !== null}
 						<div>
 							<dt>Maturity</dt>
@@ -367,7 +367,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueDecimals = prefetched.valueDecimals}
+					{@const valueDecimals = pendingEntity.valueDecimals}
 					{#if valueDecimals !== undefined && valueDecimals !== null}
 						<div>
 							<dt>Value decimals</dt>
@@ -398,8 +398,8 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
 						href={
-							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -11,30 +12,40 @@
 	import { select } from '$/routes/+layout.svelte'
 
 
+	// State
+	let {
+		data,
+	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType.XmtpNetwork, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+		fields: {
+			protocolName: true,
+			registryName: true,
+			relationshipModel: true,
+			homeUrl: true,
+			docsUrl: true,
+		},
+	}))
+	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.protocolName) ?? '')].filter(Boolean).join(' ') || 'XMTP' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'XMTP')))
+
+
 	// Components
 	import Page from '$/components/Page.svelte'
 	import XmtpNetworkView from '$/views/XmtpNetworkView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>{pageEntityTitle} • XMTP • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<XmtpNetworkView
-		href={resolve('/(social)/(xmtp)/xmtp')}
-		selection={
-			select(EntityType.XmtpNetwork, {
-				scope: 'XmtpNetwork',
-			}, {
-				sources: [
-					Source.Constants_Internal,
-				],
-				fields: {
-					protocolName: true,
-					registryName: true,
-					relationshipModel: true,
-					homeUrl: true,
-					docsUrl: true,
-				},
-			})
-		}
+		href={resolve('/xmtp')}
+		selection={pageSelection}
 	/>
 </Page>

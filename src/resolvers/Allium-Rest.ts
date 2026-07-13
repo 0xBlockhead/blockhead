@@ -267,7 +267,7 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
-					const { readNormalizedLocalInternal } = await import('$/sources/Local/Internal/catalog.ts')
+					const { readNormalizedLocalInternal } = await import('$/resolvers/Local/Internal/catalog.ts')
 					const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 					const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 					type EvmNetworkActorCoinBalanceEntitySelector = EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>

@@ -11,8 +11,10 @@ export enum McpResourceContent_TimestampSelector {
 }
 export const McpResourceContent_Timestamp = entity({
 	entityType: EntityType.McpResourceContent_Timestamp,
-	label: 'mcp resource content timestamp',
-	labelPlural: 'mcp resource content observations',
+	labels: {
+		singular: 'mcp resource content timestamp',
+		plural: 'mcp resource content observations',
+	},
 })({
 	$resource: {
 		label: 'resource',

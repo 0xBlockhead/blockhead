@@ -10,8 +10,10 @@ export enum AlgorandTransactionProofSelector {
 }
 export const AlgorandTransactionProof = entity({
 	entityType: EntityType.AlgorandTransactionProof,
-	label: 'algorand transaction proof',
-	labelPlural: 'algorand transaction proofs',
+	labels: {
+		singular: 'algorand transaction proof',
+		plural: 'algorand transaction proofs',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

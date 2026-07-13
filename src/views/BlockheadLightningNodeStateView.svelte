@@ -51,22 +51,23 @@
 		],
 		fields: {
 			alias: true,
-			$node: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.alias) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state')
+	const titleFallback = $derived([String((pendingEntity.alias) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state')
 	const viewDomId = $derived('blockhead-lightning-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import BlockheadLightningNodeState_TimestampsView from '$/views/BlockheadLightningNodeState_TimestampsView.svelte'
+	import LightningNetworkView from '$/views/LightningNetworkView.svelte'
+	import LightningNodeView from '$/views/LightningNodeView.svelte'
 	import BlockheadLightningChannelStatesView from '$/views/BlockheadLightningChannelStatesView.svelte'
 	import LightningChannelsView from '$/views/LightningChannelsView.svelte'
 	import BlockheadLightningInvoicesView from '$/views/BlockheadLightningInvoicesView.svelte'
 	import BlockheadLightningPaymentsView from '$/views/BlockheadLightningPaymentsView.svelte'
-	import LightningNetworkView from '$/views/LightningNetworkView.svelte'
-	import LightningNodeView from '$/views/LightningNodeView.svelte'
+	import BlockheadLightningNodeState_TimestampsView from '$/views/BlockheadLightningNodeState_TimestampsView.svelte'
 </script>
 
 
@@ -83,7 +84,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLightningNodeState}>
 			{#snippet Pending()}
-				{[String((prefetched.alias) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state'}
+				{[String((pendingEntity.alias) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -127,8 +128,8 @@
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									prefetched={lightningNode}
 									href={
-										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-											networkSlug: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+											network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
 											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
 										}) : undefined)
 									}
@@ -153,8 +154,8 @@
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									prefetched={lightningNode}
 									href={
-										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-											networkSlug: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+											network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
 											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
 										}) : undefined)
 									}
@@ -184,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const connectionId = selection.entitySelector.connectionId ?? prefetched.connectionId}
+							{@const connectionId = pendingEntity.connectionId}
 							{#if connectionId !== undefined && connectionId !== null}
 								{String((connectionId) ?? '')}
 							{/if}
@@ -222,7 +223,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lndPubkey = prefetched.lndPubkey}
+					{@const lndPubkey = pendingEntity.lndPubkey}
 					{#if lndPubkey !== undefined && lndPubkey !== null}
 						<div>
 							<dt>lnd public key</dt>
@@ -257,7 +258,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const alias = prefetched.alias}
+					{@const alias = pendingEntity.alias}
 					{#if alias !== undefined && alias !== null}
 						<div>
 							<dt>alias</dt>
@@ -285,6 +286,8 @@
 			<ResourceBoundary
 				resource={selection.$node}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(lightningNode)}
 					{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
 						<div>
@@ -294,8 +297,8 @@
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									prefetched={lightningNode}
 									href={
-										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-											networkSlug: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+											network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
 											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
 										}) : undefined)
 									}
@@ -312,40 +315,143 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BlockheadLightningNodeState_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No node-state observations.'
-				id='BlockheadLightningNodeState_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-lightning-node-channels'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'lightning-node-channel-states',
+							label: 'Channel states',
+						},
+						{
+							id: 'lightning-node-channels',
+							label: 'Channels',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-channels'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Channels</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BlockheadLightningChannelStatesView
-				selection={selection.$$channelStates}
-				title='channel states'
-				emptyText='No local channel states.'
-				id='BlockheadLightningChannelStatesView-channel-states'
-			/>
+				{#snippet SectionLightningNodeChannelStates({ id, label, open })}
+					<BlockheadLightningChannelStatesView
+						selection={selection.$$channelStates}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No local channel states.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<LightningChannelsView
-				selection={selection.$$channels}
-				title='channels'
-				emptyText='No public channel refs.'
-				id='LightningChannelsView-channels'
-			/>
+				{#snippet SectionLightningNodeChannels({ id, label, open })}
+					<LightningChannelsView
+						selection={selection.$$channels}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No public channel refs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadLightningInvoicesView
-				selection={selection.$$invoices}
-				title='invoices'
-				emptyText='No invoices.'
-				id='BlockheadLightningInvoicesView-invoices'
-			/>
+			</CollapsibleTabs>
 
-			<BlockheadLightningPaymentsView
-				selection={selection.$$payments}
-				title='payments'
-				emptyText='No payments.'
-				id='BlockheadLightningPaymentsView-payments'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-lightning-node-payments'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'lightning-node-invoices',
+							label: 'Invoices',
+						},
+						{
+							id: 'lightning-node-payment-list',
+							label: 'Payments',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-payments'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Payments</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionLightningNodeInvoices({ id, label, open })}
+					<BlockheadLightningInvoicesView
+						selection={selection.$$invoices}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No invoices.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionLightningNodePaymentList({ id, label, open })}
+					<BlockheadLightningPaymentsView
+						selection={selection.$$payments}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No payments.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-lightning-node-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'lightning-node-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionLightningNodeTimestamps({ id, label, open })}
+					<BlockheadLightningNodeState_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No node-state observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

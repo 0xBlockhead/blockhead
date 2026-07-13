@@ -53,7 +53,7 @@
 			peerCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead kaspa node state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead kaspa node state timestamp')
 	const viewDomId = $derived('blockhead-kaspa-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.isSynced) ?? ''), String((prefetched.hasUtxoIndex) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead kaspa node state timestamp'}
+				{[String((pendingEntity.isSynced) ?? ''), String((pendingEntity.hasUtxoIndex) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead kaspa node state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const peerCount0 = prefetched.peerCount}
+				{@const peerCount0 = pendingEntity.peerCount}
 				{#if peerCount0 !== undefined && peerCount0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(peerCount0)} />
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const serverVersion = prefetched.serverVersion}
+					{@const serverVersion = pendingEntity.serverVersion}
 					{#if serverVersion !== undefined && serverVersion !== null}
 						<div>
 							<dt>server version</dt>
@@ -251,7 +251,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isSynced = prefetched.isSynced}
+					{@const isSynced = pendingEntity.isSynced}
 					{#if isSynced !== undefined && isSynced !== null}
 						<div>
 							<dt>is synced</dt>
@@ -286,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hasUtxoIndex = prefetched.hasUtxoIndex}
+					{@const hasUtxoIndex = pendingEntity.hasUtxoIndex}
 					{#if hasUtxoIndex !== undefined && hasUtxoIndex !== null}
 						<div>
 							<dt>has UTXO index</dt>
@@ -321,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>peer count</dt>
@@ -356,7 +356,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>
@@ -393,7 +393,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const virtualDaaScore = prefetched.virtualDaaScore}
+					{@const virtualDaaScore = pendingEntity.virtualDaaScore}
 					{#if virtualDaaScore !== undefined && virtualDaaScore !== null}
 						<div>
 							<dt>virtual daa score</dt>
@@ -428,7 +428,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const virtualSelectedParentHash = prefetched.virtualSelectedParentHash}
+					{@const virtualSelectedParentHash = pendingEntity.virtualSelectedParentHash}
 					{#if virtualSelectedParentHash !== undefined && virtualSelectedParentHash !== null}
 						<div>
 							<dt>virtual selected parent hash</dt>
@@ -463,7 +463,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pruningPointHash = prefetched.pruningPointHash}
+					{@const pruningPointHash = pendingEntity.pruningPointHash}
 					{#if pruningPointHash !== undefined && pruningPointHash !== null}
 						<div>
 							<dt>pruning point hash</dt>

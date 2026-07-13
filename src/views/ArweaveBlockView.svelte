@@ -46,7 +46,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.height) ?? '')].filter(Boolean).join(' ') || [String((prefetched.indepHash) ?? '')].filter(Boolean).join(' ') || 'arweave block')
+	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.indepHash) ?? '')].filter(Boolean).join(' ') || 'arweave block')
 	const viewDomId = $derived('arweave-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={arweaveBlock}>
 			{#snippet Pending()}
-				{@const height0 = prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<NumberValue value={Number(height0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveBlock}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const height = prefetched.height}
+							{@const height = pendingEntity.height}
 							{#if height !== undefined && height !== null}
 								<NumberValue value={Number(height)} />
 							{/if}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const indepHash = prefetched.indepHash}
+							{@const indepHash = pendingEntity.indepHash}
 							{#if indepHash !== undefined && indepHash !== null}
 								<TruncatedValue value={String((indepHash) ?? '')} />
 							{/if}
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousBlock = prefetched.previousBlock}
+					{@const previousBlock = pendingEntity.previousBlock}
 					{#if previousBlock !== undefined && previousBlock !== null}
 						<div>
 							<dt>previous block</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount}
+					{@const transactionCount = pendingEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>transaction count</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockSizeBytes = prefetched.blockSizeBytes}
+					{@const blockSizeBytes = pendingEntity.blockSizeBytes}
 					{#if blockSizeBytes !== undefined && blockSizeBytes !== null}
 						<div>
 							<dt>block size bytes</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const weaveSizeBytes = prefetched.weaveSizeBytes}
+					{@const weaveSizeBytes = pendingEntity.weaveSizeBytes}
 					{#if weaveSizeBytes !== undefined && weaveSizeBytes !== null}
 						<div>
 							<dt>weave size bytes</dt>
@@ -370,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionRoot = prefetched.transactionRoot}
+					{@const transactionRoot = pendingEntity.transactionRoot}
 					{#if transactionRoot !== undefined && transactionRoot !== null}
 						<div>
 							<dt>transaction root</dt>
@@ -405,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const walletList = prefetched.walletList}
+					{@const walletList = pendingEntity.walletList}
 					{#if walletList !== undefined && walletList !== null}
 						<div>
 							<dt>wallet list</dt>
@@ -440,7 +440,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardAddress = prefetched.rewardAddress}
+					{@const rewardAddress = pendingEntity.rewardAddress}
 					{#if rewardAddress !== undefined && rewardAddress !== null}
 						<div>
 							<dt>reward address</dt>
@@ -475,7 +475,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardPoolWinston = prefetched.rewardPoolWinston}
+					{@const rewardPoolWinston = pendingEntity.rewardPoolWinston}
 					{#if rewardPoolWinston !== undefined && rewardPoolWinston !== null}
 						<div>
 							<dt>reward pool winston</dt>
@@ -510,7 +510,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const cumulativeDiff = prefetched.cumulativeDiff}
+					{@const cumulativeDiff = pendingEntity.cumulativeDiff}
 					{#if cumulativeDiff !== undefined && cumulativeDiff !== null}
 						<div>
 							<dt>cumulative diff</dt>
@@ -545,7 +545,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hashListMerkle = prefetched.hashListMerkle}
+					{@const hashListMerkle = pendingEntity.hashListMerkle}
 					{#if hashListMerkle !== undefined && hashListMerkle !== null}
 						<div>
 							<dt>hash list merkle</dt>

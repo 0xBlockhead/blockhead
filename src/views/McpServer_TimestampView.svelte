@@ -51,7 +51,7 @@
 			error: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp server timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp server timestamp')
 	const viewDomId = $derived('mcp-server-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpServerTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mcpServerTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.health) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'mcp server timestamp'}
+				{[String((pendingEntity.health) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'mcp server timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpServerTimestamp}>
 			{#snippet Pending()}
-				{@const error0 = prefetched.error}
+				{@const error0 = pendingEntity.error}
 				{#if error0 !== undefined && error0 !== null}
 					<span data-text="muted">
 						{String((error0) ?? '')}
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -211,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const health = prefetched.health}
+					{@const health = pendingEntity.health}
 					{#if health !== undefined && health !== null}
 						<div>
 							<dt>health</dt>
@@ -246,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>
@@ -283,7 +283,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toolCount = prefetched.toolCount}
+					{@const toolCount = pendingEntity.toolCount}
 					{#if toolCount !== undefined && toolCount !== null}
 						<div>
 							<dt>tool count</dt>
@@ -318,7 +318,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resourceCount = prefetched.resourceCount}
+					{@const resourceCount = pendingEntity.resourceCount}
 					{#if resourceCount !== undefined && resourceCount !== null}
 						<div>
 							<dt>resource count</dt>
@@ -353,7 +353,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const promptCount = prefetched.promptCount}
+					{@const promptCount = pendingEntity.promptCount}
 					{#if promptCount !== undefined && promptCount !== null}
 						<div>
 							<dt>prompt count</dt>
@@ -388,7 +388,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nextCursor = prefetched.nextCursor}
+					{@const nextCursor = pendingEntity.nextCursor}
 					{#if nextCursor !== undefined && nextCursor !== null}
 						<div>
 							<dt>next cursor</dt>
@@ -423,7 +423,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>
@@ -460,7 +460,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toolsListChanged = prefetched.toolsListChanged}
+					{@const toolsListChanged = pendingEntity.toolsListChanged}
 					{#if toolsListChanged !== undefined && toolsListChanged !== null}
 						<div>
 							<dt>tools list changed</dt>
@@ -495,7 +495,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resourcesListChanged = prefetched.resourcesListChanged}
+					{@const resourcesListChanged = pendingEntity.resourcesListChanged}
 					{#if resourcesListChanged !== undefined && resourcesListChanged !== null}
 						<div>
 							<dt>resources list changed</dt>
@@ -530,7 +530,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resourcesSubscribe = prefetched.resourcesSubscribe}
+					{@const resourcesSubscribe = pendingEntity.resourcesSubscribe}
 					{#if resourcesSubscribe !== undefined && resourcesSubscribe !== null}
 						<div>
 							<dt>resources subscribe</dt>
@@ -565,7 +565,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const promptsListChanged = prefetched.promptsListChanged}
+					{@const promptsListChanged = pendingEntity.promptsListChanged}
 					{#if promptsListChanged !== undefined && promptsListChanged !== null}
 						<div>
 							<dt>prompts list changed</dt>

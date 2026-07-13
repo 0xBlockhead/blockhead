@@ -9,8 +9,10 @@ export enum BlockheadStateChannel_TimestampSelector {
 }
 export const BlockheadStateChannel_Timestamp = entity({
 	entityType: EntityType.BlockheadStateChannel_Timestamp,
-	label: 'blockhead state channel timestamp',
-	labelPlural: 'blockhead state channel observations',
+	labels: {
+		singular: 'blockhead state channel timestamp',
+		plural: 'blockhead state channel observations',
+	},
 })({
 	$channel: {
 		label: 'channel',

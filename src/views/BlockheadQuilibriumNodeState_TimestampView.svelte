@@ -53,7 +53,7 @@
 			latestFrameNumber: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead quilibrium node state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead quilibrium node state timestamp')
 	const viewDomId = $derived('blockhead-quilibrium-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadQuilibriumNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadQuilibriumNodeStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.engineState) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead quilibrium node state timestamp'}
+				{[String((pendingEntity.engineState) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead quilibrium node state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadQuilibriumNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const latestFrameNumber0 = prefetched.latestFrameNumber}
+				{@const latestFrameNumber0 = pendingEntity.latestFrameNumber}
 				{#if latestFrameNumber0 !== undefined && latestFrameNumber0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(latestFrameNumber0)} />
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeVersion = prefetched.nodeVersion}
+					{@const nodeVersion = pendingEntity.nodeVersion}
 					{#if nodeVersion !== undefined && nodeVersion !== null}
 						<div>
 							<dt>node version</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const engineState = prefetched.engineState}
+					{@const engineState = pendingEntity.engineState}
 					{#if engineState !== undefined && engineState !== null}
 						<div>
 							<dt>engine state</dt>
@@ -286,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestFrameNumber = prefetched.latestFrameNumber}
+					{@const latestFrameNumber = pendingEntity.latestFrameNumber}
 					{#if latestFrameNumber !== undefined && latestFrameNumber !== null}
 						<div>
 							<dt>latest frame number</dt>
@@ -321,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestFrameHash = prefetched.latestFrameHash}
+					{@const latestFrameHash = pendingEntity.latestFrameHash}
 					{#if latestFrameHash !== undefined && latestFrameHash !== null}
 						<div>
 							<dt>latest frame hash</dt>
@@ -356,7 +356,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const difficulty = prefetched.difficulty}
+					{@const difficulty = pendingEntity.difficulty}
 					{#if difficulty !== undefined && difficulty !== null}
 						<div>
 							<dt>difficulty</dt>
@@ -393,7 +393,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>peer count</dt>
@@ -428,7 +428,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingMessageCount = prefetched.pendingMessageCount}
+					{@const pendingMessageCount = pendingEntity.pendingMessageCount}
 					{#if pendingMessageCount !== undefined && pendingMessageCount !== null}
 						<div>
 							<dt>pending message count</dt>
@@ -463,7 +463,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const frameStoreHead = prefetched.frameStoreHead}
+					{@const frameStoreHead = pendingEntity.frameStoreHead}
 					{#if frameStoreHead !== undefined && frameStoreHead !== null}
 						<div>
 							<dt>frame store head</dt>
@@ -498,7 +498,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>

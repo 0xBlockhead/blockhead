@@ -121,10 +121,10 @@
 						selection={select(EntityType.RedditLink_Timestamp, redditLinkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={redditLinkTimestampFields}
 						href={
-							(redditLinkTimestampHrefFields.$link !== undefined && redditLinkTimestampHrefFields.$link.fullname !== undefined && redditLinkTimestampHrefFields.timestampMs !== undefined && redditLinkTimestampHrefFields.source !== undefined ? resolve('/(social)/(reddit)/reddit/link/[fullname]/(link)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								fullname: String(redditLinkTimestampHrefFields.$link.fullname ?? ''),
+							(redditLinkTimestampHrefFields.timestampMs !== undefined && redditLinkTimestampHrefFields.source !== undefined && redditLinkTimestampHrefFields.$link !== undefined && redditLinkTimestampHrefFields.$link.fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(redditLinkTimestampHrefFields.timestampMs ?? ''),
 								source: String(redditLinkTimestampHrefFields.source ?? ''),
+								fullname: String(redditLinkTimestampHrefFields.$link.fullname ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

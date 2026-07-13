@@ -51,7 +51,7 @@
 			peerCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead codex storage node state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead codex storage node state timestamp')
 	const viewDomId = $derived('blockhead-codex-storage-node-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadCodexStorageNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCodexStorageNodeStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.version) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead codex storage node state timestamp'}
+				{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead codex storage node state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadCodexStorageNodeStateTimestamp}>
 			{#snippet Pending()}
-				{@const peerCount0 = prefetched.peerCount}
+				{@const peerCount0 = pendingEntity.peerCount}
 				{#if peerCount0 !== undefined && peerCount0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(peerCount0)} />
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const revision = prefetched.revision}
+					{@const revision = pendingEntity.revision}
 					{#if revision !== undefined && revision !== null}
 						<div>
 							<dt>revision</dt>
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const repoPath = prefetched.repoPath}
+					{@const repoPath = pendingEntity.repoPath}
 					{#if repoPath !== undefined && repoPath !== null}
 						<div>
 							<dt>repo path</dt>
@@ -322,7 +322,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const listenAddresses = prefetched.listenAddresses}
+							{@const listenAddresses = pendingEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
 								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -352,7 +352,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const announceAddresses = prefetched.announceAddresses}
+							{@const announceAddresses = pendingEntity.announceAddresses}
 							{#if announceAddresses !== undefined && announceAddresses !== null}
 								<TruncatedValue value={announceAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -379,7 +379,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>peer count</dt>
@@ -414,7 +414,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalBlocks = prefetched.totalBlocks}
+					{@const totalBlocks = pendingEntity.totalBlocks}
 					{#if totalBlocks !== undefined && totalBlocks !== null}
 						<div>
 							<dt>total blocks</dt>
@@ -451,7 +451,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quotaMaxBytes = prefetched.quotaMaxBytes}
+					{@const quotaMaxBytes = pendingEntity.quotaMaxBytes}
 					{#if quotaMaxBytes !== undefined && quotaMaxBytes !== null}
 						<div>
 							<dt>quota max bytes</dt>
@@ -486,7 +486,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quotaUsedBytes = prefetched.quotaUsedBytes}
+					{@const quotaUsedBytes = pendingEntity.quotaUsedBytes}
 					{#if quotaUsedBytes !== undefined && quotaUsedBytes !== null}
 						<div>
 							<dt>quota used bytes</dt>
@@ -521,7 +521,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const quotaReservedBytes = prefetched.quotaReservedBytes}
+					{@const quotaReservedBytes = pendingEntity.quotaReservedBytes}
 					{#if quotaReservedBytes !== undefined && quotaReservedBytes !== null}
 						<div>
 							<dt>quota reserved bytes</dt>

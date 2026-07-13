@@ -45,7 +45,7 @@
 			signatureKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.signatureId ?? prefetched.signatureId) ?? '')].filter(Boolean).join(' ') || 'Git signature')
+	const titleFallback = $derived([String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || 'Git signature')
 	const viewDomId = $derived('git-signature-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -69,7 +69,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitSignature}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.signatureId ?? prefetched.signatureId) ?? '')].filter(Boolean).join(' ') || title || 'Git signature'}
+				{[String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || title || 'Git signature'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -82,7 +82,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitSignature}>
 			{#snippet Pending()}
-				{[String((prefetched.verificationStatus) ?? ''), String((prefetched.signatureKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.signatureId ?? prefetched.signatureId) ?? '')].filter(Boolean).join(' ') || title || 'Git signature'}
+				{[String((pendingEntity.verificationStatus) ?? ''), String((pendingEntity.signatureKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.signatureId) ?? '')].filter(Boolean).join(' ') || title || 'Git signature'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signatureId = selection.entitySelector.signatureId ?? prefetched.signatureId}
+							{@const signatureId = pendingEntity.signatureId}
 							{#if signatureId !== undefined && signatureId !== null}
 								<TruncatedValue value={String((signatureId) ?? '')} />
 							{/if}
@@ -137,7 +137,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subjectObjectId = prefetched.subjectObjectId}
+							{@const subjectObjectId = pendingEntity.subjectObjectId}
 							{#if subjectObjectId !== undefined && subjectObjectId !== null}
 								{String((subjectObjectId) ?? '')}
 							{/if}
@@ -167,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signatureKind = prefetched.signatureKind}
+							{@const signatureKind = pendingEntity.signatureKind}
 							{#if signatureKind !== undefined && signatureKind !== null}
 								<TruncatedValue value={String((signatureKind) ?? '')} />
 							{/if}
@@ -197,7 +197,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const verificationStatus = prefetched.verificationStatus}
+							{@const verificationStatus = pendingEntity.verificationStatus}
 							{#if verificationStatus !== undefined && verificationStatus !== null}
 								{String((verificationStatus) ?? '')}
 							{/if}
@@ -224,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifier = prefetched.verifier}
+					{@const verifier = pendingEntity.verifier}
 					{#if verifier !== undefined && verifier !== null}
 						<div>
 							<dt>verifier</dt>
@@ -261,7 +261,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadHash = prefetched.payloadHash}
+					{@const payloadHash = pendingEntity.payloadHash}
 					{#if payloadHash !== undefined && payloadHash !== null}
 						<div>
 							<dt>payload hash</dt>
@@ -296,7 +296,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signature = prefetched.signature}
+					{@const signature = pendingEntity.signature}
 					{#if signature !== undefined && signature !== null}
 						<div>
 							<dt>signature</dt>
@@ -331,7 +331,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedAtMs = prefetched.verifiedAtMs}
+					{@const verifiedAtMs = pendingEntity.verifiedAtMs}
 					{#if verifiedAtMs !== undefined && verifiedAtMs !== null}
 						<div>
 							<dt>verified AT ms</dt>
@@ -366,7 +366,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evidenceUrl = prefetched.evidenceUrl}
+					{@const evidenceUrl = pendingEntity.evidenceUrl}
 					{#if evidenceUrl !== undefined && evidenceUrl !== null}
 						<div>
 							<dt>evidence URL</dt>

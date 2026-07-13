@@ -52,7 +52,7 @@
 			inputFeePpk: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.keysetId ?? prefetched.keysetId) ?? '')].filter(Boolean).join(' ') || 'Cashu keyset')
+	const titleFallback = $derived([String((pendingEntity.keysetId) ?? '')].filter(Boolean).join(' ') || 'Cashu keyset')
 	const viewDomId = $derived('cashu-keyset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cashuKeyset}>
 			{#snippet Pending()}
-				{@const keysetId0 = selection.entitySelector.keysetId ?? prefetched.keysetId}
+				{@const keysetId0 = pendingEntity.keysetId}
 				{#if keysetId0 !== undefined && keysetId0 !== null}
 					<TruncatedValue value={String((keysetId0) ?? '')} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cashuKeyset}>
 			{#snippet Pending()}
-				{[String((prefetched.unit) ?? ''), String((prefetched.active) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.keysetId ?? prefetched.keysetId) ?? '')].filter(Boolean).join(' ') || title || 'Cashu keyset'}
+				{[String((pendingEntity.unit) ?? ''), String((pendingEntity.active) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keysetId) ?? '')].filter(Boolean).join(' ') || title || 'Cashu keyset'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cashuKeyset}>
 			{#snippet Pending()}
-				{@const inputFeePpk0 = prefetched.inputFeePpk}
+				{@const inputFeePpk0 = pendingEntity.inputFeePpk}
 				{#if inputFeePpk0 !== undefined && inputFeePpk0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(inputFeePpk0)} />
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const keysetId = selection.entitySelector.keysetId ?? prefetched.keysetId}
+							{@const keysetId = pendingEntity.keysetId}
 							{#if keysetId !== undefined && keysetId !== null}
 								<TruncatedValue value={String((keysetId) ?? '')} />
 							{/if}
@@ -185,7 +185,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unit = prefetched.unit}
+					{@const unit = pendingEntity.unit}
 					{#if unit !== undefined && unit !== null}
 						<div>
 							<dt>unit</dt>
@@ -223,7 +223,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>active</dt>
@@ -261,7 +261,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputFeePpk = prefetched.inputFeePpk}
+					{@const inputFeePpk = pendingEntity.inputFeePpk}
 					{#if inputFeePpk !== undefined && inputFeePpk !== null}
 						<div>
 							<dt>input fee ppk</dt>
@@ -301,7 +301,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const keysByAmountJson = prefetched.keysByAmountJson}
+					{@const keysByAmountJson = pendingEntity.keysByAmountJson}
 					{#if keysByAmountJson !== undefined && keysByAmountJson !== null}
 						<div>
 							<dt>keys by amount JSON</dt>

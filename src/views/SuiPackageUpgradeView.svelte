@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const upgradedPackageId = selection.entitySelector.upgradedPackageId ?? prefetched.upgradedPackageId}
+							{@const upgradedPackageId = pendingEntity.upgradedPackageId}
 							{#if upgradedPackageId !== undefined && upgradedPackageId !== null}
 								{String((upgradedPackageId) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const upgradedVersion = prefetched.upgradedVersion}
+					{@const upgradedVersion = pendingEntity.upgradedVersion}
 					{#if upgradedVersion !== undefined && upgradedVersion !== null}
 						<div>
 							<dt>upgraded version</dt>
@@ -166,7 +166,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousPackageId = prefetched.previousPackageId}
+					{@const previousPackageId = pendingEntity.previousPackageId}
 					{#if previousPackageId !== undefined && previousPackageId !== null}
 						<div>
 							<dt>previous package ID</dt>
@@ -201,7 +201,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const policy = prefetched.policy}
+					{@const policy = pendingEntity.policy}
 					{#if policy !== undefined && policy !== null}
 						<div>
 							<dt>policy</dt>
@@ -236,7 +236,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const digest = prefetched.digest}
+					{@const digest = pendingEntity.digest}
 					{#if digest !== undefined && digest !== null}
 						<div>
 							<dt>digest</dt>
@@ -271,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -299,6 +299,8 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(suiTransaction)}
 					{#if suiTransaction != null && suiTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -319,6 +321,8 @@
 			<ResourceBoundary
 				resource={selection.$packageVersion}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(suiPackageVersion)}
 					{#if suiPackageVersion != null && suiPackageVersion[EntityMetaKey.Selector] != null}
 						<div>

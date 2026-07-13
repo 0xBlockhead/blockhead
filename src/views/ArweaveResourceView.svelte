@@ -46,7 +46,7 @@
 			canonicalUri: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.canonicalUri) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.transactionId ?? prefetched.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave resource')
+	const titleFallback = $derived([String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave resource')
 	const viewDomId = $derived('arweave-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={arweaveResource}>
 			{#snippet Pending()}
-				{[String((prefetched.canonicalUri) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.transactionId ?? prefetched.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave resource'}
+				{[String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave resource'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -84,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveResource}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.contentPath ?? prefetched.contentPath) ?? '')].filter(Boolean).join(' ') || [String((prefetched.canonicalUri) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.transactionId ?? prefetched.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave resource'}
+				{[String((pendingEntity.contentPath) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave resource'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionId = selection.entitySelector.transactionId ?? prefetched.transactionId}
+							{@const transactionId = pendingEntity.transactionId}
 							{#if transactionId !== undefined && transactionId !== null}
 								<TruncatedValue value={String((transactionId) ?? '')} />
 							{/if}
@@ -139,7 +139,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const contentPath = selection.entitySelector.contentPath ?? prefetched.contentPath}
+							{@const contentPath = pendingEntity.contentPath}
 							{#if contentPath !== undefined && contentPath !== null}
 								{String((contentPath) ?? '')}
 							{/if}
@@ -169,7 +169,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const canonicalUri = prefetched.canonicalUri}
+							{@const canonicalUri = pendingEntity.canonicalUri}
 							{#if canonicalUri !== undefined && canonicalUri !== null}
 								<svelte:element
 									this={'a'}
@@ -203,6 +203,8 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(arweaveTransaction)}
 					{#if arweaveTransaction != null && arweaveTransaction[EntityMetaKey.Selector] != null}
 						<div>

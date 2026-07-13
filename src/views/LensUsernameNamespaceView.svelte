@@ -45,7 +45,7 @@
 			totalUsernames: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.namespace) ?? ''), String((prefetched.tokenName) ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')
+	const titleFallback = $derived([String((pendingEntity.namespace) ?? ''), String((pendingEntity.tokenName) ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')
 	const viewDomId = $derived('lens-username-namespace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -70,7 +70,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensUsernameNamespace}>
 			{#snippet Pending()}
-				{[String((prefetched.namespace) ?? ''), String((prefetched.tokenName) ?? '')].filter(Boolean).join(' ') || title || 'Lens username namespace'}
+				{[String((pendingEntity.namespace) ?? ''), String((pendingEntity.tokenName) ?? '')].filter(Boolean).join(' ') || title || 'Lens username namespace'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -83,7 +83,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensUsernameNamespace}>
 			{#snippet Pending()}
-				{@const address0 = selection.entitySelector.address ?? prefetched.address}
+				{@const address0 = pendingEntity.address}
 				{#if address0 !== undefined && address0 !== null}
 					<TruncatedValue value={String((address0) ?? '')} />
 				{/if}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensUsernameNamespace}>
 			{#snippet Pending()}
-				{@const totalUsernames0 = prefetched.totalUsernames}
+				{@const totalUsernames0 = pendingEntity.totalUsernames}
 				{#if totalUsernames0 !== undefined && totalUsernames0 !== null}
 					<span data-text="muted">
 						{String((totalUsernames0) ?? '')}
@@ -137,7 +137,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const namespace = prefetched.namespace}
+							{@const namespace = pendingEntity.namespace}
 							{#if namespace !== undefined && namespace !== null}
 								{String((namespace) ?? '')}
 							{/if}
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenName = prefetched.tokenName}
+					{@const tokenName = pendingEntity.tokenName}
 					{#if tokenName !== undefined && tokenName !== null}
 						<div>
 							<dt>Token name</dt>
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenSymbol = prefetched.tokenSymbol}
+					{@const tokenSymbol = pendingEntity.tokenSymbol}
 					{#if tokenSymbol !== undefined && tokenSymbol !== null}
 						<div>
 							<dt>Token symbol</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalUsernames = prefetched.totalUsernames}
+					{@const totalUsernames = pendingEntity.totalUsernames}
 					{#if totalUsernames !== undefined && totalUsernames !== null}
 						<div>
 							<dt>Total usernames</dt>
@@ -274,7 +274,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -301,7 +301,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const owner = prefetched.owner}
+					{@const owner = pendingEntity.owner}
 					{#if owner !== undefined && owner !== null}
 						<div>
 							<dt>Owner</dt>
@@ -336,7 +336,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>

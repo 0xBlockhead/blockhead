@@ -52,7 +52,7 @@
 			activationTimestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade')
+	const titleFallback = $derived([String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade')
 	const viewDomId = $derived('ethereum-consensus-upgrade-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,8 +71,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/consensus/[upgradeSlug]', {
-			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			upgradeSlug: String(pendingEntity.slug ?? ''),
 		}) : undefined)
 	}
@@ -83,7 +83,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={ethereumConsensusUpgrade}>
 			{#snippet Pending()}
-				{[String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'}
+				{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={ethereumConsensusUpgrade}>
 			{#snippet Pending()}
-				{[String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'}
+				{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -118,7 +118,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocol = prefetched.protocol}
+					{@const protocol = pendingEntity.protocol}
 					{#if protocol !== undefined && protocol !== null}
 						<div>
 							<dt>Consensus fork</dt>
@@ -153,7 +153,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activationBlock = prefetched.activationBlock}
+					{@const activationBlock = pendingEntity.activationBlock}
 					{#if activationBlock !== undefined && activationBlock !== null}
 						<div>
 							<dt>Activation block</dt>
@@ -188,7 +188,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activationEpoch = prefetched.activationEpoch}
+					{@const activationEpoch = pendingEntity.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -223,7 +223,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activationTimestampMs = prefetched.activationTimestampMs}
+					{@const activationTimestampMs = pendingEntity.activationTimestampMs}
 					{#if activationTimestampMs !== undefined && activationTimestampMs !== null}
 						<div>
 							<dt>Activation time</dt>
@@ -259,7 +259,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const previousForkVersion = prefetched.previousForkVersion}
+						{@const previousForkVersion = pendingEntity.previousForkVersion}
 						{#if previousForkVersion !== undefined && previousForkVersion !== null}
 							<div>
 								<dt>Previous fork version</dt>
@@ -296,7 +296,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const currentForkVersion = prefetched.currentForkVersion}
+						{@const currentForkVersion = pendingEntity.currentForkVersion}
 						{#if currentForkVersion !== undefined && currentForkVersion !== null}
 							<div>
 								<dt>Current fork version</dt>

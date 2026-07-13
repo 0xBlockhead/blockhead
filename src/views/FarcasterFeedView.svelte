@@ -48,7 +48,7 @@
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? ''), String((selection.entitySelector.variant ?? prefetched.variant) ?? '')].filter(Boolean).join(' ') || 'Farcaster feed')
+	const titleFallback = $derived([String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || 'Farcaster feed')
 	const viewDomId = $derived('farcaster-feed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterFeed}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? ''), String((selection.entitySelector.variant ?? prefetched.variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
+				{[String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -84,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterFeed}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.variant ?? prefetched.variant) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? ''), String((selection.entitySelector.variant ?? prefetched.variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
+				{[String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const variant = selection.entitySelector.variant ?? prefetched.variant}
+							{@const variant = pendingEntity.variant}
 							{#if variant !== undefined && variant !== null}
 								{String((variant) ?? '')}
 							{/if}
@@ -138,7 +138,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fid = prefetched.fid}
+					{@const fid = pendingEntity.fid}
 					{#if fid !== undefined && fid !== null}
 						<div>
 							<dt>FID</dt>
@@ -175,7 +175,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const channelId = prefetched.channelId}
+					{@const channelId = pendingEntity.channelId}
 					{#if channelId !== undefined && channelId !== null}
 						<div>
 							<dt>Channel ID</dt>
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const viewerFid = prefetched.viewerFid}
+					{@const viewerFid = pendingEntity.viewerFid}
 					{#if viewerFid !== undefined && viewerFid !== null}
 						<div>
 							<dt>Viewer FID</dt>

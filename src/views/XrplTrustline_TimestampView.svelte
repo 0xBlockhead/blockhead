@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ledgerIndex = selection.entitySelector.ledgerIndex ?? prefetched.ledgerIndex}
+							{@const ledgerIndex = pendingEntity.ledgerIndex}
 							{#if ledgerIndex !== undefined && ledgerIndex !== null}
 								{String((ledgerIndex) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>balance</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const limit = prefetched.limit}
+					{@const limit = pendingEntity.limit}
 					{#if limit !== undefined && limit !== null}
 						<div>
 							<dt>limit</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const limitPeer = prefetched.limitPeer}
+					{@const limitPeer = pendingEntity.limitPeer}
 					{#if limitPeer !== undefined && limitPeer !== null}
 						<div>
 							<dt>limit peer</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const noRipple = prefetched.noRipple}
+					{@const noRipple = pendingEntity.noRipple}
 					{#if noRipple !== undefined && noRipple !== null}
 						<div>
 							<dt>no ripple</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const noRipplePeer = prefetched.noRipplePeer}
+					{@const noRipplePeer = pendingEntity.noRipplePeer}
 					{#if noRipplePeer !== undefined && noRipplePeer !== null}
 						<div>
 							<dt>no ripple peer</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorized = prefetched.authorized}
+					{@const authorized = pendingEntity.authorized}
 					{#if authorized !== undefined && authorized !== null}
 						<div>
 							<dt>authorized</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerAuthorized = prefetched.peerAuthorized}
+					{@const peerAuthorized = pendingEntity.peerAuthorized}
 					{#if peerAuthorized !== undefined && peerAuthorized !== null}
 						<div>
 							<dt>peer authorized</dt>

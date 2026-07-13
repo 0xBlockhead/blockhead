@@ -46,7 +46,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.height) ?? '')].filter(Boolean).join(' ') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'celestia block')
+	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'celestia block')
 	const viewDomId = $derived('celestia-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={celestiaBlock}>
 			{#snippet Pending()}
-				{@const height0 = prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<NumberValue value={Number(height0)} />
 				{/if}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={celestiaBlock}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const height = prefetched.height}
+							{@const height = pendingEntity.height}
 							{#if height !== undefined && height !== null}
 								<NumberValue value={Number(height)} />
 							{/if}
@@ -164,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hash = prefetched.hash}
+							{@const hash = pendingEntity.hash}
 							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
 							{/if}
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const appHash = prefetched.appHash}
+					{@const appHash = pendingEntity.appHash}
 					{#if appHash !== undefined && appHash !== null}
 						<div>
 							<dt>app hash</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataHash = prefetched.dataHash}
+					{@const dataHash = pendingEntity.dataHash}
 					{#if dataHash !== undefined && dataHash !== null}
 						<div>
 							<dt>data hash</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proposerAddress = prefetched.proposerAddress}
+					{@const proposerAddress = pendingEntity.proposerAddress}
 					{#if proposerAddress !== undefined && proposerAddress !== null}
 						<div>
 							<dt>proposer address</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -335,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blobCount = prefetched.blobCount}
+					{@const blobCount = pendingEntity.blobCount}
 					{#if blobCount !== undefined && blobCount !== null}
 						<div>
 							<dt>blob count</dt>
@@ -370,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const namespaceCount = prefetched.namespaceCount}
+					{@const namespaceCount = pendingEntity.namespaceCount}
 					{#if namespaceCount !== undefined && namespaceCount !== null}
 						<div>
 							<dt>namespace count</dt>
@@ -405,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount}
+					{@const transactionCount = pendingEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>transaction count</dt>

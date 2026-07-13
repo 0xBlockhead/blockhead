@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -53,7 +53,10 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import StellarNetwork_TimestampsView from '$/views/StellarNetwork_TimestampsView.svelte'
 	import StellarLedgersView from '$/views/StellarLedgersView.svelte'
 	import StellarTransactionsView from '$/views/StellarTransactionsView.svelte'
@@ -61,11 +64,10 @@
 	import StellarAccountsView from '$/views/StellarAccountsView.svelte'
 	import StellarAssetsView from '$/views/StellarAssetsView.svelte'
 	import StellarClaimableBalancesView from '$/views/StellarClaimableBalancesView.svelte'
-	import SorobanContractsView from '$/views/SorobanContractsView.svelte'
 	import StellarLiquidityPoolsView from '$/views/StellarLiquidityPoolsView.svelte'
 	import StellarOffersView from '$/views/StellarOffersView.svelte'
 	import StellarTradesView from '$/views/StellarTradesView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import SorobanContractsView from '$/views/SorobanContractsView.svelte'
 </script>
 
 
@@ -85,22 +87,10 @@
 				<NetworkView
 					selection={select(EntityType.Network, selection.entitySelector.$network)}
 					href={
-						(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -113,22 +103,10 @@
 				<NetworkView
 					selection={select(EntityType.Network, selection.entitySelector.$network)}
 					href={
-						(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-						}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-							networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+						(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+							network: String(selection.entitySelector.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -141,7 +119,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={stellarNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.passphrase) ?? '')].filter(Boolean).join(' ') || title || 'stellar network'}
+				{[String((pendingEntity.passphrase) ?? '')].filter(Boolean).join(' ') || title || 'stellar network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -159,22 +137,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -193,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const passphrase = prefetched.passphrase}
+					{@const passphrase = pendingEntity.passphrase}
 					{#if passphrase !== undefined && passphrase !== null}
 						<div>
 							<dt>passphrase</dt>
@@ -222,82 +188,254 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<StellarNetwork_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Stellar network observations.'
-				id='StellarNetwork_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-stellar-chain-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'stellar-chain-observations',
+							label: 'Observations',
+						},
+						{
+							id: 'stellar-chain-ledgers',
+							label: 'Ledgers',
+						},
+						{
+							id: 'stellar-chain-transactions',
+							label: 'Transactions',
+						},
+						{
+							id: 'stellar-chain-operations',
+							label: 'Operations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-chain-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Chain activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<StellarLedgersView
-				selection={selection.$$ledgers}
-				title='ledgers'
-				emptyText='No Stellar ledgers.'
-				id='StellarLedgersView-ledgers'
-			/>
+				{#snippet SectionStellarChainObservations({ id, label, open })}
+					<StellarNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar network observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<StellarTransactionsView
-				selection={selection.$$transactions}
-				title='transactions'
-				emptyText='No Stellar transactions.'
-				id='StellarTransactionsView-transactions'
-			/>
+				{#snippet SectionStellarChainLedgers({ id, label, open })}
+					<StellarLedgersView
+						selection={selection.$$ledgers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar ledgers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<StellarOperationsView
-				selection={selection.$$operations}
-				title='operations'
-				emptyText='No Stellar operations.'
-				id='StellarOperationsView-operations'
-			/>
+				{#snippet SectionStellarChainTransactions({ id, label, open })}
+					<StellarTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<StellarAccountsView
-				selection={selection.$$accounts}
-				title='accounts'
-				emptyText='No Stellar accounts.'
-				id='StellarAccountsView-accounts'
-			/>
+				{#snippet SectionStellarChainOperations({ id, label, open })}
+					<StellarOperationsView
+						selection={selection.$$operations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar operations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<StellarAssetsView
-				selection={selection.$$assets}
-				title='assets'
-				emptyText='No Stellar assets.'
-				id='StellarAssetsView-assets'
-			/>
+			</CollapsibleTabs>
 
-			<StellarClaimableBalancesView
-				selection={selection.$$claimableBalances}
-				title='claimable balances'
-				emptyText='No Stellar claimable balances.'
-				id='StellarClaimableBalancesView-claimable-balances'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-stellar-accounts-assets'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'stellar-accounts',
+							label: 'Accounts',
+						},
+						{
+							id: 'stellar-assets',
+							label: 'Assets',
+						},
+						{
+							id: 'stellar-claimables',
+							label: 'Claimable balances',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-accounts-assets'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Accounts and assets</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<SorobanContractsView
-				selection={selection.$$contracts}
-				title='contracts'
-				emptyText='No Soroban contracts.'
-				id='SorobanContractsView-contracts'
-			/>
+				{#snippet SectionStellarAccounts({ id, label, open })}
+					<StellarAccountsView
+						selection={selection.$$accounts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar accounts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<StellarLiquidityPoolsView
-				selection={selection.$$liquidityPools}
-				title='liquidity pools'
-				emptyText='No Stellar liquidity pools.'
-				id='StellarLiquidityPoolsView-liquidity-pools'
-			/>
+				{#snippet SectionStellarAssets({ id, label, open })}
+					<StellarAssetsView
+						selection={selection.$$assets}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar assets.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<StellarOffersView
-				selection={selection.$$offers}
-				title='offers'
-				emptyText='No Stellar offers.'
-				id='StellarOffersView-offers'
-			/>
+				{#snippet SectionStellarClaimables({ id, label, open })}
+					<StellarClaimableBalancesView
+						selection={selection.$$claimableBalances}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar claimable balances.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<StellarTradesView
-				selection={selection.$$trades}
-				title='trades'
-				emptyText='No Stellar trades.'
-				id='StellarTradesView-trades'
-			/>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-stellar-liquidity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'stellar-liquidity-pools',
+							label: 'Liquidity pools',
+						},
+						{
+							id: 'stellar-offers',
+							label: 'Offers',
+						},
+						{
+							id: 'stellar-trades',
+							label: 'Trades',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-liquidity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Liquidity, offers, and trades</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionStellarLiquidityPools({ id, label, open })}
+					<StellarLiquidityPoolsView
+						selection={selection.$$liquidityPools}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar liquidity pools.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionStellarOffers({ id, label, open })}
+					<StellarOffersView
+						selection={selection.$$offers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar offers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionStellarTrades({ id, label, open })}
+					<StellarTradesView
+						selection={selection.$$trades}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Stellar trades.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-stellar-contracts'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'stellar-soroban-contracts',
+							label: 'Contracts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-contracts'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Soroban contracts</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionStellarSorobanContracts({ id, label, open })}
+					<SorobanContractsView
+						selection={selection.$$contracts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Soroban contracts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

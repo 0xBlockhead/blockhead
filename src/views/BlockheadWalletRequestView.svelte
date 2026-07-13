@@ -53,7 +53,7 @@
 			requestedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.requestKind) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet request')
+	const titleFallback = $derived([String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet request')
 	const viewDomId = $derived('blockhead-wallet-request-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -62,6 +62,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BlockheadWalletRequestCallsView from '$/views/BlockheadWalletRequestCallsView.svelte'
 	import BlockheadWalletRequest_TimestampsView from '$/views/BlockheadWalletRequest_TimestampsView.svelte'
 	import BlockheadSessionActionView from '$/views/BlockheadSessionActionView.svelte'
 	import BlockheadIntentOrderView from '$/views/BlockheadIntentOrderView.svelte'
@@ -82,7 +83,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadWalletRequest}>
 			{#snippet Pending()}
-				{[String((prefetched.requestKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet request'}
+				{[String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet request'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -95,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletRequest}>
 			{#snippet Pending()}
-				{[String((prefetched.requestMethod) ?? '')].filter(Boolean).join(' ') || [String((prefetched.requestKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet request'}
+				{[String((pendingEntity.requestMethod) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet request'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -108,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadWalletRequest}>
 			{#snippet Pending()}
-				{@const requestedAt0 = prefetched.requestedAt}
+				{@const requestedAt0 = pendingEntity.requestedAt}
 				{#if requestedAt0 !== undefined && requestedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(requestedAt0)} />
@@ -143,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
 							{/if}
@@ -163,6 +164,8 @@
 			<ResourceBoundary
 				resource={selection.$sessionAction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSessionAction)}
 					{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
 						<div>
@@ -183,6 +186,8 @@
 			<ResourceBoundary
 				resource={selection.$intentOrder}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadIntentOrder)}
 					{#if blockheadIntentOrder != null && blockheadIntentOrder[EntityMetaKey.Selector] != null}
 						<div>
@@ -203,6 +208,8 @@
 			<ResourceBoundary
 				resource={selection.$walletConnection}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWalletConnection)}
 					{#if blockheadWalletConnection != null && blockheadWalletConnection[EntityMetaKey.Selector] != null}
 						<div>
@@ -230,7 +237,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const walletProtocol = prefetched.walletProtocol}
+					{@const walletProtocol = pendingEntity.walletProtocol}
 					{#if walletProtocol !== undefined && walletProtocol !== null}
 						<div>
 							<dt>wallet protocol</dt>
@@ -265,7 +272,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const caip10 = prefetched.caip10}
+					{@const caip10 = pendingEntity.caip10}
 					{#if caip10 !== undefined && caip10 !== null}
 						<div>
 							<dt>CAIP-10</dt>
@@ -305,7 +312,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestKind = prefetched.requestKind}
+							{@const requestKind = pendingEntity.requestKind}
 							{#if requestKind !== undefined && requestKind !== null}
 								{String((requestKind) ?? '')}
 							{/if}
@@ -335,7 +342,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestMethod = prefetched.requestMethod}
+							{@const requestMethod = pendingEntity.requestMethod}
 							{#if requestMethod !== undefined && requestMethod !== null}
 								{String((requestMethod) ?? '')}
 							{/if}
@@ -362,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chainId = prefetched.chainId}
+					{@const chainId = pendingEntity.chainId}
 					{#if chainId !== undefined && chainId !== null}
 						<div>
 							<dt>Chain ID</dt>
@@ -397,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fromAddress = prefetched.fromAddress}
+					{@const fromAddress = pendingEntity.fromAddress}
 					{#if fromAddress !== undefined && fromAddress !== null}
 						<div>
 							<dt>from address</dt>
@@ -432,7 +439,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const toAddress = prefetched.toAddress}
+					{@const toAddress = pendingEntity.toAddress}
 					{#if toAddress !== undefined && toAddress !== null}
 						<div>
 							<dt>to address</dt>
@@ -467,7 +474,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const value = prefetched.value}
+					{@const value = pendingEntity.value}
 					{#if value !== undefined && value !== null}
 						<div>
 							<dt>Value</dt>
@@ -504,7 +511,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const callCount = prefetched.callCount}
+					{@const callCount = pendingEntity.callCount}
 					{#if callCount !== undefined && callCount !== null}
 						<div>
 							<dt>call count</dt>
@@ -539,7 +546,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const atomicRequired = prefetched.atomicRequired}
+					{@const atomicRequired = pendingEntity.atomicRequired}
 					{#if atomicRequired !== undefined && atomicRequired !== null}
 						<div>
 							<dt>atomic required</dt>
@@ -574,7 +581,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestPayloadHash = prefetched.requestPayloadHash}
+					{@const requestPayloadHash = pendingEntity.requestPayloadHash}
 					{#if requestPayloadHash !== undefined && requestPayloadHash !== null}
 						<div>
 							<dt>request payload hash</dt>
@@ -609,7 +616,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const walletCallBundleId = prefetched.walletCallBundleId}
+					{@const walletCallBundleId = pendingEntity.walletCallBundleId}
 					{#if walletCallBundleId !== undefined && walletCallBundleId !== null}
 						<div>
 							<dt>wallet call bundle ID</dt>
@@ -647,7 +654,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestedAt = prefetched.requestedAt}
+							{@const requestedAt = pendingEntity.requestedAt}
 							{#if requestedAt !== undefined && requestedAt !== null}
 								<Timestamp timestamp={Number(requestedAt)} />
 							{/if}
@@ -674,7 +681,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const submittedAt = prefetched.submittedAt}
+					{@const submittedAt = pendingEntity.submittedAt}
 					{#if submittedAt !== undefined && submittedAt !== null}
 						<div>
 							<dt>submitted AT</dt>
@@ -703,6 +710,13 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
+			<BlockheadWalletRequestCallsView
+				selection={selection.$$calls}
+				title='calls'
+				emptyText='No wallet request calls.'
+				id='BlockheadWalletRequestCallsView-calls'
+			/>
+
 			<BlockheadWalletRequest_TimestampsView
 				selection={selection.$$timestamps}
 				title='timestamps'

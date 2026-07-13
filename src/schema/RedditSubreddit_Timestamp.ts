@@ -9,8 +9,10 @@ export enum RedditSubreddit_TimestampSelector {
 }
 export const RedditSubreddit_Timestamp = entity({
 	entityType: EntityType.RedditSubreddit_Timestamp,
-	label: 'Reddit subreddit timestamp',
-	labelPlural: 'Reddit subreddit observations',
+	labels: {
+		singular: 'Reddit subreddit timestamp',
+		plural: 'Reddit subreddit observations',
+	},
 })({
 	$subreddit: {
 		label: 'Subreddit',
@@ -22,7 +24,7 @@ export const RedditSubreddit_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

@@ -51,7 +51,7 @@
 			repositoryCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle node inventory timestamp')
+	const titleFallback = $derived([String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle node inventory timestamp')
 	const viewDomId = $derived('blockhead-radicle-node-inventory-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle node inventory timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle node inventory timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -108,7 +108,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
 			{#snippet Pending()}
-				{@const repositoryCount0 = prefetched.repositoryCount}
+				{@const repositoryCount0 = pendingEntity.repositoryCount}
 				{#if repositoryCount0 !== undefined && repositoryCount0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(repositoryCount0)} />
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const repositoryCount = prefetched.repositoryCount}
+					{@const repositoryCount = pendingEntity.repositoryCount}
 					{#if repositoryCount !== undefined && repositoryCount !== null}
 						<div>
 							<dt>repository count</dt>
@@ -278,7 +278,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const connectedPeerCount = prefetched.connectedPeerCount}
+					{@const connectedPeerCount = pendingEntity.connectedPeerCount}
 					{#if connectedPeerCount !== undefined && connectedPeerCount !== null}
 						<div>
 							<dt>connected peer count</dt>
@@ -313,7 +313,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const routingTableSize = prefetched.routingTableSize}
+					{@const routingTableSize = pendingEntity.routingTableSize}
 					{#if routingTableSize !== undefined && routingTableSize !== null}
 						<div>
 							<dt>routing table size</dt>
@@ -351,7 +351,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const advertisedRids = prefetched.advertisedRids}
+							{@const advertisedRids = pendingEntity.advertisedRids}
 							{#if advertisedRids !== undefined && advertisedRids !== null}
 								{advertisedRids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

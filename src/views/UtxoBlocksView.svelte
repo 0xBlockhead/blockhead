@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -121,9 +120,9 @@
 						selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={utxoBlockFields}
 						href={
-							(utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined && utxoBlockHrefFields.$network.caip2.namespace !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined && utxoBlockHrefFields.$network.caip2.reference !== undefined && utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-								networkSlug: String(networkByCaip2[String(String(utxoBlockHrefFields.$network.caip2.namespace) + ':' + String(utxoBlockHrefFields.$network.caip2.reference))].slug ?? ''),
-								height: String(utxoBlockHrefFields.height ?? ''),
+							(utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.slug !== undefined && utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								network: String(utxoBlockHrefFields.$network.slug ?? ''),
+								blockNumber: String(utxoBlockHrefFields.height ?? ''),
 								hash: String(utxoBlockHrefFields.hash ?? ''),
 							}) : undefined)
 						}

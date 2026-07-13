@@ -46,7 +46,7 @@
 			allowance: true,
 		},
 	}))
-	const titleFallback = $derived([(String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') ? 'Block ' + String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || 'EVM actor coin allowance block')
+	const titleFallback = $derived([(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || 'EVM actor coin allowance block')
 	const viewDomId = $derived('evm-actor-coin-allowance-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -70,7 +70,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
 			{#snippet Pending()}
-				{[(String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') ? 'Block ' + String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || title || 'EVM actor coin allowance block'}
+				{[(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || title || 'EVM actor coin allowance block'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -83,7 +83,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
 			{#snippet Pending()}
-				{[String((prefetched.allowance) ?? '')].filter(Boolean).join(' ') || [(String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') ? 'Block ' + String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || title || 'EVM actor coin allowance block'}
+				{[String((pendingEntity.allowance) ?? '')].filter(Boolean).join(' ') || [(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || title || 'EVM actor coin allowance block'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -96,7 +96,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const blockNumber = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
+							{@const blockNumber = pendingEntity.blockNumber}
 							{#if blockNumber !== undefined && blockNumber !== null}
 								{String((blockNumber) ?? '')}
 							{/if}
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -191,7 +191,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const allowance = prefetched.allowance}
+							{@const allowance = pendingEntity.allowance}
 							{#if allowance !== undefined && allowance !== null}
 								{String((allowance) ?? '')}
 							{/if}
@@ -218,7 +218,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockTag = prefetched.blockTag}
+					{@const blockTag = pendingEntity.blockTag}
 					{#if blockTag !== undefined && blockTag !== null}
 						<div>
 							<dt>Block tag</dt>
@@ -253,7 +253,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const checkedAt = prefetched.checkedAt}
+					{@const checkedAt = pendingEntity.checkedAt}
 					{#if checkedAt !== undefined && checkedAt !== null}
 						<div>
 							<dt>Checked at</dt>

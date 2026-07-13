@@ -9,8 +9,10 @@ export enum KaspaBlockSelector {
 }
 export const KaspaBlock = entity({
 	entityType: EntityType.KaspaBlock,
-	label: 'kaspa block',
-	labelPlural: 'kaspa blocks',
+	labels: {
+		singular: 'kaspa block',
+		plural: 'kaspa blocks',
+	},
 })({
 	$network: {
 		label: 'network',

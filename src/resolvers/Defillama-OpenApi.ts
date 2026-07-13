@@ -2,17 +2,11 @@ import { CoinId } from '$/constants/Coin.ts'
 import {
 	MarketAssetKind,
 	MarketKind,
-	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
-import { Iso4217 } from '$/constants/Currency.ts'
 import {
 	seededCoinSpotUsdMarkets,
 	seededCoinSpotUsdMarketByCoinId,
-	seededSpotMarketsWithCoinAsQuote,
-	seededSpotMarketsWithCurrencyAsBase,
-	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
-	type CatalogCurrencyCurrencyMarket,
 } from '$/constants/MarketCatalog.ts'
 import {
 	defineResolver,
@@ -30,7 +24,6 @@ import { NetworkSelector } from '$/schema/Network.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
-import { CurrencySelector } from '$/schema/Currency.ts'
 import { MarketSelector } from '$/schema/Market.ts'
 import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 
@@ -38,59 +31,38 @@ import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinCurrencyMarket) => ({
 	$base: {
 		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.baseCoinId },
+		assetKey: catalogMarket.baseCoinId,
 	},
 	$quote: {
 		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.quoteIso4217 },
+		assetKey: catalogMarket.quoteIso4217,
 	},
 	$marketVenue: {
 		marketVenueId: catalogMarket.marketVenueId,
 	},
 	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
+}) satisfies EntitySelector<
+	typeof schema,
+	EntityType.Market
+>
 
 const catalogCoinCurrencyMarketMatchesMarket = (
-	catalogMarket: CatalogCoinCurrencyMarket,
 	market: EntitySelector<typeof schema, EntityType.Market>
-) => (
-	market.marketKind === catalogMarket.marketKind
-	&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
-	&& market.$base.kind === MarketAssetKind.Coin
-	&& market.$base.$coin.coinId === catalogMarket.baseCoinId
+): market is EntitySelector<typeof schema, EntityType.Market> & {
+	readonly $base: {
+		readonly kind: MarketAssetKind.Coin
+		readonly assetKey: CoinId
+	}
+} => (
+	market.$base.kind === MarketAssetKind.Coin
 	&& market.$quote.kind === MarketAssetKind.Currency
-	&& market.$quote.$currency.iso4217 === catalogMarket.quoteIso4217
+	&& seededCoinSpotUsdMarkets.some((catalogMarket) => (
+		market.marketKind === catalogMarket.marketKind
+		&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
+		&& market.$base.assetKey === catalogMarket.baseCoinId
+		&& market.$quote.assetKey === catalogMarket.quoteIso4217
+	))
 )
-
-const marketSelectorFromCatalogCoinCoinMarket = (catalogMarket: CatalogCoinCoinMarket) => ({
-	$base: {
-		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.baseCoinId },
-	},
-	$quote: {
-		kind: MarketAssetKind.Coin,
-		$coin: { coinId: catalogMarket.quoteCoinId },
-	},
-	$marketVenue: {
-		marketVenueId: catalogMarket.marketVenueId,
-	},
-	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
-
-const marketSelectorFromCatalogCurrencyCurrencyMarket = (catalogMarket: CatalogCurrencyCurrencyMarket) => ({
-	$base: {
-		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.baseIso4217 },
-	},
-	$quote: {
-		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: catalogMarket.quoteIso4217 },
-	},
-	$marketVenue: {
-		marketVenueId: catalogMarket.marketVenueId,
-	},
-	marketKind: catalogMarket.marketKind,
-}) satisfies MarketIdLabelInput
 
 export default {
 	source: Source.Defillama_OpenApi,
@@ -104,11 +76,11 @@ export default {
 						throw new Error('Defillama_OpenApi: Market_Timestamp is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket($market))
 						throw new Error('Defillama_OpenApi: Market_Timestamp is catalog coin USD market only')
 					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 					const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
-					const coinId = $market.$base.$coin.coinId
+					const coinId = $market.$base.assetKey
 					const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
 					if (llamaId == null || llamaId !== feedKey)
 						throw new Error('Defillama_OpenApi: Market_Timestamp feedKey does not match catalog coin')
@@ -130,112 +102,6 @@ export default {
 			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
-			entityType: EntityType._Global,
-			resolve: {
-				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
-					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-					return (
-						Object.values(CoinId)
-							.flatMap((coinId) => (
-							defillamaCurrentPriceIdByCoinId[coinId] != null ?
-								[
-									{
-										[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
-									},
-								]
-							:
-								[]
-							))
-					)
-				}
-			},
-		})({
-				$$markets: (markets) => markets,
-			}),
-
-		defineResolver(Source.Defillama_OpenApi, {
-			entityType: EntityType.Coin,
-				resolve: {
-					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
-						return (
-							[
-								{
-									[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
-								},
-							]
-						)
-					}
-				},
-		})({
-				$$marketsWithCoinAsBase: (markets) => markets,
-			}),
-
-		defineResolver(Source.Defillama_OpenApi, {
-			entityType: EntityType.Coin,
-				resolve: {
-					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
-						const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-						return (
-							seededSpotMarketsWithCoinAsQuote
-							.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
-							.map(marketSelectorFromCatalogCoinCoinMarket)
-							.filter((marketId) => (
-							defillamaCurrentPriceIdByCoinId[marketId.$base.$coin.coinId] != null
-							))
-							.map((marketId) => (
-							{
-								[EntityMetaKey.Selector]: marketId,
-							}
-							))
-					)
-				}
-			},
-		})({
-				$$marketsWithCoinAsQuote: (markets) => markets,
-			}),
-
-		defineResolver(Source.Defillama_OpenApi, {
-			entityType: EntityType.Currency,
-			resolve: {
-				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
-					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-					return (
-						(
-						iso4217 === Iso4217.USD ?
-							seededCoinSpotUsdMarkets.filter((catalogMarket) => (
-								defillamaCurrentPriceIdByCoinId[catalogMarket.baseCoinId] != null
-							))
-						:
-							[]
-						).map((catalogMarket) => ({
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
-						}))
-					)
-				}
-			},
-		})({
-				$$marketsWithCurrencyAsQuote: (markets) => markets,
-			}),
-
-		defineResolver(Source.Defillama_OpenApi, {
-			entityType: EntityType.Currency,
-			resolve: {
-				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
-					const markets = seededSpotMarketsWithCurrencyAsBase
-						.filter((catalogMarket) => catalogMarket.baseIso4217 === iso4217)
-						.map((catalogMarket) => ({
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
-						}))
-					if (markets.length === 0)
-						throw new Error(`Defillama_OpenApi: no catalog markets with ${iso4217} as base`)
-					return markets
-				}
-			},
-		})({
-				$$marketsWithCurrencyAsBase: (markets) => markets,
-			}),
-
-		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				[MarketPriceSelector.Market]: async ({ $market }) => {
@@ -243,11 +109,11 @@ export default {
 						return []
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket($market))
 						return []
 					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 					const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
-					const coinId = $market.$base.$coin.coinId
+					const coinId = $market.$base.assetKey
 					const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
 					if (llamaId == null)
 						return []

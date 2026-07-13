@@ -9,8 +9,10 @@ export enum FarcasterCast_TimestampSelector {
 }
 export const FarcasterCast_Timestamp = entity({
 	entityType: EntityType.FarcasterCast_Timestamp,
-	label: 'Farcaster cast observation',
-	labelPlural: 'Farcaster cast observations',
+	labels: {
+		singular: 'Farcaster cast observation',
+		plural: 'Farcaster cast observations',
+	},
 })({
 	$cast: {
 		label: 'Cast',
@@ -21,7 +23,7 @@ export const FarcasterCast_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	likeCount: {

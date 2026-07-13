@@ -9,8 +9,10 @@ export enum FedimintFederationSelector {
 }
 export const FedimintFederation = entity({
 	entityType: EntityType.FedimintFederation,
-	label: 'Fedimint federation',
-	labelPlural: 'Fedimint federations',
+	labels: {
+		singular: 'Fedimint federation',
+		plural: 'Fedimint federations',
+	},
 })({
 	federationId: {
 		label: 'federation ID',

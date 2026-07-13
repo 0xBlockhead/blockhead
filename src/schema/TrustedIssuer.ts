@@ -9,8 +9,10 @@ export enum TrustedIssuerSelector {
 }
 export const TrustedIssuer = entity({
 	entityType: EntityType.TrustedIssuer,
-	label: 'trusted issuer',
-	labelPlural: 'trusted issuers',
+	labels: {
+		singular: 'trusted issuer',
+		plural: 'trusted issuers',
+	},
 })({
 	$profile: {
 		label: 'profile',

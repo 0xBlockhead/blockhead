@@ -10,8 +10,10 @@ export enum Eip7702AuthorizationSelector {
 }
 export const Eip7702Authorization = entity({
 	entityType: EntityType.Eip7702Authorization,
-	label: 'eip7702 authorization',
-	labelPlural: 'eip7702 authorizations',
+	labels: {
+		singular: 'eip7702 authorization',
+		plural: 'eip7702 authorizations',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

@@ -119,10 +119,10 @@
 						selection={select(EntityType.LiquidityPool_Block, liquidityPoolBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={liquidityPoolBlockFields}
 						href={
-							(liquidityPoolBlockHrefFields.$liquidityPool !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2 !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2.reference !== undefined && liquidityPoolBlockHrefFields.$liquidityPool !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.id !== undefined && liquidityPoolBlockHrefFields.blockNumber !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]/block/[blockNumber=nonNegativeInteger]', {
+							(liquidityPoolBlockHrefFields.blockNumber !== undefined && liquidityPoolBlockHrefFields.$liquidityPool !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2 !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2.reference !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.id !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/block/[blockNumber=nonNegativeBigInt]', {
+								blockNumber: String(liquidityPoolBlockHrefFields.blockNumber ?? ''),
 								chainId: String(liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2.reference ?? ''),
 								poolId: String(liquidityPoolBlockHrefFields.$liquidityPool.id ?? ''),
-								blockNumber: String(liquidityPoolBlockHrefFields.blockNumber ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

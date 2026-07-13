@@ -90,7 +90,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const commentId = selection.entitySelector.commentId ?? prefetched.commentId}
+							{@const commentId = pendingEntity.commentId}
 							{#if commentId !== undefined && commentId !== null}
 								{String((commentId) ?? '')}
 							{/if}
@@ -117,7 +117,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authorDid = prefetched.authorDid}
+					{@const authorDid = pendingEntity.authorDid}
 					{#if authorDid !== undefined && authorDid !== null}
 						<div>
 							<dt>author DID</dt>
@@ -152,7 +152,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const body = prefetched.body}
+					{@const body = pendingEntity.body}
 					{#if body !== undefined && body !== null}
 						<div>
 							<dt>body</dt>
@@ -187,7 +187,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const bodyObjectId = prefetched.bodyObjectId}
+					{@const bodyObjectId = pendingEntity.bodyObjectId}
 					{#if bodyObjectId !== undefined && bodyObjectId !== null}
 						<div>
 							<dt>body object ID</dt>
@@ -222,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -257,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>
@@ -292,7 +292,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const replyToCommentId = prefetched.replyToCommentId}
+					{@const replyToCommentId = pendingEntity.replyToCommentId}
 					{#if replyToCommentId !== undefined && replyToCommentId !== null}
 						<div>
 							<dt>reply to comment ID</dt>
@@ -320,6 +320,8 @@
 			<ResourceBoundary
 				resource={selection.$payloadObject}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>

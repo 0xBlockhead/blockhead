@@ -43,7 +43,7 @@
 			fetchedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.apiHost ?? prefetched.apiHost) ?? '')].filter(Boolean).join(' ') || 'CCTP allowance')
+	const titleFallback = $derived([String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || 'CCTP allowance')
 	const viewDomId = $derived('cctp-allowance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,7 +66,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cctpAllowance}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.apiHost ?? prefetched.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP allowance'}
+				{[String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP allowance'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -79,7 +79,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cctpAllowance}>
 			{#snippet Pending()}
-				{[String((prefetched.allowance) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.apiHost ?? prefetched.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP allowance'}
+				{[String((pendingEntity.allowance) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP allowance'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cctpAllowance}>
 			{#snippet Pending()}
-				{@const fetchedAt0 = prefetched.fetchedAt}
+				{@const fetchedAt0 = pendingEntity.fetchedAt}
 				{#if fetchedAt0 !== undefined && fetchedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(fetchedAt0)} />
@@ -127,7 +127,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const apiHost = selection.entitySelector.apiHost ?? prefetched.apiHost}
+							{@const apiHost = pendingEntity.apiHost}
 							{#if apiHost !== undefined && apiHost !== null}
 								{String((apiHost) ?? '')}
 							{/if}
@@ -154,7 +154,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const allowance = prefetched.allowance}
+					{@const allowance = pendingEntity.allowance}
 					{#if allowance !== undefined && allowance !== null}
 						<div>
 							<dt>Allowance</dt>
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fetchedAt = prefetched.fetchedAt}
+							{@const fetchedAt = pendingEntity.fetchedAt}
 							{#if fetchedAt !== undefined && fetchedAt !== null}
 								<Timestamp timestamp={Number(fetchedAt)} />
 							{/if}

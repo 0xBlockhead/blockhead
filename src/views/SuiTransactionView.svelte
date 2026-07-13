@@ -47,9 +47,16 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SuiNetworkView from '$/views/SuiNetworkView.svelte'
+	import SuiProgrammableTransactionCommandsView from '$/views/SuiProgrammableTransactionCommandsView.svelte'
+	import SuiObjectChangesView from '$/views/SuiObjectChangesView.svelte'
+	import SuiBalanceChangesView from '$/views/SuiBalanceChangesView.svelte'
+	import SuiEventsView from '$/views/SuiEventsView.svelte'
+	import SuiTransaction_TimestampsView from '$/views/SuiTransaction_TimestampsView.svelte'
 </script>
 
 
@@ -102,7 +109,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const digest = selection.entitySelector.digest ?? prefetched.digest}
+							{@const digest = pendingEntity.digest}
 							{#if digest !== undefined && digest !== null}
 								<TruncatedValue value={String((digest) ?? '')} />
 							{/if}
@@ -129,7 +136,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionKind = prefetched.transactionKind}
+					{@const transactionKind = pendingEntity.transactionKind}
 					{#if transactionKind !== undefined && transactionKind !== null}
 						<div>
 							<dt>transaction kind</dt>
@@ -164,7 +171,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sender = prefetched.sender}
+					{@const sender = pendingEntity.sender}
 					{#if sender !== undefined && sender !== null}
 						<div>
 							<dt>sender</dt>
@@ -189,5 +196,147 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-sui-transaction-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'sui-transaction-commands',
+							label: 'Commands',
+						},
+						{
+							id: 'sui-transaction-object-changes',
+							label: 'Object Changes',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionSuiTransactionCommands({ id, label, open })}
+					<SuiProgrammableTransactionCommandsView
+						selection={selection.$$commands}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No commands.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionSuiTransactionObjectChanges({ id, label, open })}
+					<SuiObjectChangesView
+						selection={selection.$$objectChanges}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No object changes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-sui-transaction-related'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'sui-transaction-balance-changes',
+							label: 'Balance Changes',
+						},
+						{
+							id: 'sui-transaction-events',
+							label: 'Events',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-related'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Related</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionSuiTransactionBalanceChanges({ id, label, open })}
+					<SuiBalanceChangesView
+						selection={selection.$$balanceChanges}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No balance changes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionSuiTransactionEvents({ id, label, open })}
+					<SuiEventsView
+						selection={selection.$$events}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No events.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-sui-transaction-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'sui-transaction-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionSuiTransactionTimestamps({ id, label, open })}
+					<SuiTransaction_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

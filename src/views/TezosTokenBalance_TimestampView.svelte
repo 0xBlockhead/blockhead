@@ -114,7 +114,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const level = selection.entitySelector.level ?? prefetched.level}
+							{@const level = pendingEntity.level}
 							{#if level !== undefined && level !== null}
 								{String((level) ?? '')}
 							{/if}
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -171,7 +171,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -206,7 +206,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>balance</dt>
@@ -241,7 +241,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenId = prefetched.tokenId}
+					{@const tokenId = pendingEntity.tokenId}
 					{#if tokenId !== undefined && tokenId !== null}
 						<div>
 							<dt>Token ID</dt>
@@ -276,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractAddress = prefetched.contractAddress}
+					{@const contractAddress = pendingEntity.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>contract address</dt>
@@ -311,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const firstLevel = prefetched.firstLevel}
+					{@const firstLevel = pendingEntity.firstLevel}
 					{#if firstLevel !== undefined && firstLevel !== null}
 						<div>
 							<dt>first level</dt>
@@ -346,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastLevel = prefetched.lastLevel}
+					{@const lastLevel = pendingEntity.lastLevel}
 					{#if lastLevel !== undefined && lastLevel !== null}
 						<div>
 							<dt>last level</dt>
@@ -381,7 +381,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transferCount = prefetched.transferCount}
+					{@const transferCount = pendingEntity.transferCount}
 					{#if transferCount !== undefined && transferCount !== null}
 						<div>
 							<dt>transfer count</dt>

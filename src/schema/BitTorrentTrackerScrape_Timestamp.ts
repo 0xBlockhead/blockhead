@@ -9,8 +9,10 @@ export enum BitTorrentTrackerScrape_TimestampSelector {
 }
 export const BitTorrentTrackerScrape_Timestamp = entity({
 	entityType: EntityType.BitTorrentTrackerScrape_Timestamp,
-	label: 'bit torrent tracker scrape timestamp',
-	labelPlural: 'bit torrent tracker scrape observations',
+	labels: {
+		singular: 'bit torrent tracker scrape timestamp',
+		plural: 'bit torrent tracker scrape observations',
+	},
 })({
 	$tracker: {
 		label: 'tracker',

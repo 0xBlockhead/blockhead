@@ -9,8 +9,10 @@ export enum StarknetContractSelector {
 }
 export const StarknetContract = entity({
 	entityType: EntityType.StarknetContract,
-	label: 'starknet contract',
-	labelPlural: 'starknet contracts',
+	labels: {
+		singular: 'starknet contract',
+		plural: 'starknet contracts',
+	},
 })({
 	$network: {
 		label: 'network',

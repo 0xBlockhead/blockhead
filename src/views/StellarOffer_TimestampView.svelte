@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerSequence = prefetched.ledgerSequence}
+					{@const ledgerSequence = pendingEntity.ledgerSequence}
 					{#if ledgerSequence !== undefined && ledgerSequence !== null}
 						<div>
 							<dt>ledger sequence</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const price = prefetched.price}
+					{@const price = pendingEntity.price}
 					{#if price !== undefined && price !== null}
 						<div>
 							<dt>price</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const priceNumerator = prefetched.priceNumerator}
+					{@const priceNumerator = pendingEntity.priceNumerator}
 					{#if priceNumerator !== undefined && priceNumerator !== null}
 						<div>
 							<dt>price numerator</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const priceDenominator = prefetched.priceDenominator}
+					{@const priceDenominator = pendingEntity.priceDenominator}
 					{#if priceDenominator !== undefined && priceDenominator !== null}
 						<div>
 							<dt>price denominator</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sponsor = prefetched.sponsor}
+					{@const sponsor = pendingEntity.sponsor}
 					{#if sponsor !== undefined && sponsor !== null}
 						<div>
 							<dt>sponsor</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>active</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastModifiedTimeMs = prefetched.lastModifiedTimeMs}
+					{@const lastModifiedTimeMs = pendingEntity.lastModifiedTimeMs}
 					{#if lastModifiedTimeMs !== undefined && lastModifiedTimeMs !== null}
 						<div>
 							<dt>last modified time ms</dt>

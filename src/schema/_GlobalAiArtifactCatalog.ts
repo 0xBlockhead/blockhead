@@ -9,8 +9,10 @@ export enum _GlobalAiArtifactCatalogSelector {
 }
 export const _GlobalAiArtifactCatalog = entity({
 	entityType: EntityType._GlobalAiArtifactCatalog,
-	label: 'global AI artifact catalog',
-	labelPlural: 'global AI artifact catalogs',
+	labels: {
+		singular: 'global AI artifact catalog',
+		plural: 'global AI artifact catalogs',
+	},
 })({
 	catalogId: {
 		label: 'catalog ID',

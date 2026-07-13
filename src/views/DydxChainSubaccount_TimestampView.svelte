@@ -48,7 +48,7 @@
 			Source.DydxValidator_Rest,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain subaccount timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain subaccount timestamp')
 	const viewDomId = $derived('dydx-chain-subaccount-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={dydxChainSubaccountTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -137,7 +137,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -167,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>block height</dt>
@@ -231,7 +231,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const equity = prefetched.equity}
+					{@const equity = pendingEntity.equity}
 					{#if equity !== undefined && equity !== null}
 						<div>
 							<dt>equity</dt>
@@ -266,7 +266,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freeCollateral = prefetched.freeCollateral}
+					{@const freeCollateral = pendingEntity.freeCollateral}
 					{#if freeCollateral !== undefined && freeCollateral !== null}
 						<div>
 							<dt>free collateral</dt>
@@ -301,7 +301,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const marginUsage = prefetched.marginUsage}
+					{@const marginUsage = pendingEntity.marginUsage}
 					{#if marginUsage !== undefined && marginUsage !== null}
 						<div>
 							<dt>margin usage</dt>
@@ -336,7 +336,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const openPositionCount = prefetched.openPositionCount}
+					{@const openPositionCount = pendingEntity.openPositionCount}
 					{#if openPositionCount !== undefined && openPositionCount !== null}
 						<div>
 							<dt>open position count</dt>
@@ -371,7 +371,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const openOrderCount = prefetched.openOrderCount}
+					{@const openOrderCount = pendingEntity.openOrderCount}
 					{#if openOrderCount !== undefined && openOrderCount !== null}
 						<div>
 							<dt>open order count</dt>

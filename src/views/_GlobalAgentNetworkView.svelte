@@ -43,7 +43,14 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AcpAgentProgramsView from '$/views/AcpAgentProgramsView.svelte'
+	import A2aAgentCardsView from '$/views/A2aAgentCardsView.svelte'
+	import McpServersView from '$/views/McpServersView.svelte'
+	import Eip8004AgentRegistrationsView from '$/views/Eip8004AgentRegistrationsView.svelte'
+	import BlockheadAgentProfilesView from '$/views/BlockheadAgentProfilesView.svelte'
 	import GlobalAgentNetwork_TimestampsView from '$/views/_GlobalAgentNetwork_TimestampsView.svelte'
 </script>
 
@@ -86,7 +93,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const networkId = selection.entitySelector.networkId ?? prefetched.networkId}
+							{@const networkId = pendingEntity.networkId}
 							{#if networkId !== undefined && networkId !== null}
 								{String((networkId) ?? '')}
 							{/if}
@@ -113,7 +120,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -148,7 +155,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolKind = prefetched.protocolKind}
+					{@const protocolKind = pendingEntity.protocolKind}
 					{#if protocolKind !== undefined && protocolKind !== null}
 						<div>
 							<dt>protocol kind</dt>
@@ -177,12 +184,158 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<GlobalAgentNetwork_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No agent network observations.'
-				id='_GlobalAgentNetwork_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-agent-protocols'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'agent-acp-programs',
+							label: 'ACP programs',
+						},
+						{
+							id: 'agent-a2a-cards',
+							label: 'A2A cards',
+						},
+						{
+							id: 'agent-mcp-servers',
+							label: 'MCP servers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-agent-protocols'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Agent protocols</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAgentAcpPrograms({ id, label, open })}
+					<AcpAgentProgramsView
+						selection={selection.$$acpPrograms}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ACP programs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAgentA2aCards({ id, label, open })}
+					<A2aAgentCardsView
+						selection={selection.$$a2aCards}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No A2A cards.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAgentMcpServers({ id, label, open })}
+					<McpServersView
+						selection={selection.$$mcpServers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No MCP servers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-agent-registrations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'agent-eip8004',
+							label: 'EIP-8004 registrations',
+						},
+						{
+							id: 'agent-blockhead-profiles',
+							label: 'Blockhead profiles',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-registrations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Registrations and profiles</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAgentEip8004({ id, label, open })}
+					<Eip8004AgentRegistrationsView
+						selection={selection.$$eip8004Registrations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No EIP-8004 registrations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAgentBlockheadProfiles({ id, label, open })}
+					<BlockheadAgentProfilesView
+						selection={selection.$$blockheadProfiles}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Blockhead agent profiles.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-agent-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'agent-hub-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAgentHubObservations({ id, label, open })}
+					<GlobalAgentNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No agent network observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

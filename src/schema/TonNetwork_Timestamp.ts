@@ -9,8 +9,10 @@ export enum TonNetwork_TimestampSelector {
 }
 export const TonNetwork_Timestamp = entity({
 	entityType: EntityType.TonNetwork_Timestamp,
-	label: 'ton network timestamp',
-	labelPlural: 'ton network observations',
+	labels: {
+		singular: 'ton network timestamp',
+		plural: 'ton network observations',
+	},
 })({
 	$network: {
 		label: 'network',

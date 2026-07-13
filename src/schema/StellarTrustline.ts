@@ -9,8 +9,10 @@ export enum StellarTrustlineSelector {
 }
 export const StellarTrustline = entity({
 	entityType: EntityType.StellarTrustline,
-	label: 'stellar trustline',
-	labelPlural: 'stellar trustlines',
+	labels: {
+		singular: 'stellar trustline',
+		plural: 'stellar trustlines',
+	},
 })({
 	$account: {
 		label: 'account',

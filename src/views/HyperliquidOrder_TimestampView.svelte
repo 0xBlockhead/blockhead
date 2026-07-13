@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const statusTimestampMs = prefetched.statusTimestampMs}
+					{@const statusTimestampMs = pendingEntity.statusTimestampMs}
 					{#if statusTimestampMs !== undefined && statusTimestampMs !== null}
 						<div>
 							<dt>status timestamp ms</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const size = prefetched.size}
+					{@const size = pendingEntity.size}
 					{#if size !== undefined && size !== null}
 						<div>
 							<dt>size</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const filledSize = prefetched.filledSize}
+					{@const filledSize = pendingEntity.filledSize}
 					{#if filledSize !== undefined && filledSize !== null}
 						<div>
 							<dt>filled size</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const remainingSize = prefetched.remainingSize}
+					{@const remainingSize = pendingEntity.remainingSize}
 					{#if remainingSize !== undefined && remainingSize !== null}
 						<div>
 							<dt>remaining size</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastFillTid = prefetched.lastFillTid}
+					{@const lastFillTid = pendingEntity.lastFillTid}
 					{#if lastFillTid !== undefined && lastFillTid !== null}
 						<div>
 							<dt>last fill tid</dt>

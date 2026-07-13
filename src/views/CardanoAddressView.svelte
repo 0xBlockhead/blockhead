@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -130,7 +130,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const addressKind = prefetched.addressKind}
+					{@const addressKind = pendingEntity.addressKind}
 					{#if addressKind !== undefined && addressKind !== null}
 						<div>
 							<dt>address kind</dt>
@@ -165,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paymentCredential = prefetched.paymentCredential}
+					{@const paymentCredential = pendingEntity.paymentCredential}
 					{#if paymentCredential !== undefined && paymentCredential !== null}
 						<div>
 							<dt>payment credential</dt>
@@ -200,7 +200,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakeCredential = prefetched.stakeCredential}
+					{@const stakeCredential = pendingEntity.stakeCredential}
 					{#if stakeCredential !== undefined && stakeCredential !== null}
 						<div>
 							<dt>stake credential</dt>
@@ -228,6 +228,8 @@
 			<ResourceBoundary
 				resource={selection.$stakeCredential}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoStakeCredential)}
 					{#if cardanoStakeCredential != null && cardanoStakeCredential[EntityMetaKey.Selector] != null}
 						<div>

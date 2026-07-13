@@ -9,8 +9,10 @@ export enum ZeroGDaQuorumSelector {
 }
 export const ZeroGDaQuorum = entity({
 	entityType: EntityType.ZeroGDaQuorum,
-	label: 'zero g da quorum',
-	labelPlural: 'zero g da quorums',
+	labels: {
+		singular: 'zero g da quorum',
+		plural: 'zero g da quorums',
+	},
 })({
 	$network: {
 		label: 'network',

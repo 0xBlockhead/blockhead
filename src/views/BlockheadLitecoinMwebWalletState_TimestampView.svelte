@@ -50,7 +50,7 @@
 			balanceLitoshis: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead litecoin mweb wallet state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead litecoin mweb wallet state timestamp')
 	const viewDomId = $derived('blockhead-litecoin-mweb-wallet-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLitecoinMwebWalletStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLitecoinMwebWalletStateTimestamp}>
 			{#snippet Pending()}
-				{@const balanceLitoshis0 = prefetched.balanceLitoshis}
+				{@const balanceLitoshis0 = pendingEntity.balanceLitoshis}
 				{#if balanceLitoshis0 !== undefined && balanceLitoshis0 !== null}
 					<NumberValue value={Number(balanceLitoshis0)} />
 				{/if}
@@ -114,7 +114,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLitecoinMwebWalletStateTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -160,7 +160,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -190,7 +190,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -217,7 +217,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mwebAddress = prefetched.mwebAddress}
+					{@const mwebAddress = pendingEntity.mwebAddress}
 					{#if mwebAddress !== undefined && mwebAddress !== null}
 						<div>
 							<dt>MWEB address</dt>
@@ -252,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transparentAddress = prefetched.transparentAddress}
+					{@const transparentAddress = pendingEntity.transparentAddress}
 					{#if transparentAddress !== undefined && transparentAddress !== null}
 						<div>
 							<dt>transparent address</dt>
@@ -289,7 +289,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balanceLitoshis = prefetched.balanceLitoshis}
+					{@const balanceLitoshis = pendingEntity.balanceLitoshis}
 					{#if balanceLitoshis !== undefined && balanceLitoshis !== null}
 						<div>
 							<dt>balance litoshis</dt>
@@ -324,7 +324,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mwebBalanceLitoshis = prefetched.mwebBalanceLitoshis}
+					{@const mwebBalanceLitoshis = pendingEntity.mwebBalanceLitoshis}
 					{#if mwebBalanceLitoshis !== undefined && mwebBalanceLitoshis !== null}
 						<div>
 							<dt>MWEB balance litoshis</dt>
@@ -359,7 +359,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transparentBalanceLitoshis = prefetched.transparentBalanceLitoshis}
+					{@const transparentBalanceLitoshis = pendingEntity.transparentBalanceLitoshis}
 					{#if transparentBalanceLitoshis !== undefined && transparentBalanceLitoshis !== null}
 						<div>
 							<dt>transparent balance litoshis</dt>
@@ -396,7 +396,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unconfirmedBalanceLitoshis = prefetched.unconfirmedBalanceLitoshis}
+					{@const unconfirmedBalanceLitoshis = pendingEntity.unconfirmedBalanceLitoshis}
 					{#if unconfirmedBalanceLitoshis !== undefined && unconfirmedBalanceLitoshis !== null}
 						<div>
 							<dt>unconfirmed balance litoshis</dt>
@@ -431,7 +431,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const immatureBalanceLitoshis = prefetched.immatureBalanceLitoshis}
+					{@const immatureBalanceLitoshis = pendingEntity.immatureBalanceLitoshis}
 					{#if immatureBalanceLitoshis !== undefined && immatureBalanceLitoshis !== null}
 						<div>
 							<dt>immature balance litoshis</dt>
@@ -466,7 +466,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastScannedHeight = prefetched.lastScannedHeight}
+					{@const lastScannedHeight = pendingEntity.lastScannedHeight}
 					{#if lastScannedHeight !== undefined && lastScannedHeight !== null}
 						<div>
 							<dt>last scanned height</dt>
@@ -501,7 +501,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>

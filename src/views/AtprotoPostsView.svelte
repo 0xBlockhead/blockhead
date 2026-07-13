@@ -119,8 +119,8 @@
 						selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoPostFields}
 						href={
-							(atprotoPostHrefFields.uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-								uri: encodeURIComponent(String(atprotoPostHrefFields.uri ?? '')),
+							(atprotoPostHrefFields.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]', {
+								uri: String(atprotoPostHrefFields.uri ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

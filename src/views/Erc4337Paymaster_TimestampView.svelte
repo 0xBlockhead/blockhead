@@ -47,7 +47,7 @@
 			userOperationsCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster timestamp')
 	const viewDomId = $derived('erc4337paymaster-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -65,8 +65,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$paymaster !== undefined && pendingEntity.$paymaster.$network !== undefined && pendingEntity.$paymaster.$network.caip2 !== undefined && pendingEntity.$paymaster.$network.caip2.namespace !== undefined && pendingEntity.$paymaster !== undefined && pendingEntity.$paymaster.$network !== undefined && pendingEntity.$paymaster.$network.caip2 !== undefined && pendingEntity.$paymaster.$network.caip2.reference !== undefined && pendingEntity.$paymaster !== undefined && pendingEntity.$paymaster.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymaster/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(pendingEntity.$paymaster.$network.caip2.namespace ?? '')}:${String(pendingEntity.$paymaster.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$paymaster !== undefined && pendingEntity.$paymaster.$network !== undefined && pendingEntity.$paymaster.$network.slug !== undefined && pendingEntity.$paymaster.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			network: String(pendingEntity.$paymaster.$network.slug ?? ''),
 			address: String(pendingEntity.$paymaster.address ?? ''),
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={erc4337PaymasterTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={erc4337PaymasterTimestamp}>
 			{#snippet Pending()}
-				{@const userOperationsCount0 = prefetched.userOperationsCount}
+				{@const userOperationsCount0 = pendingEntity.userOperationsCount}
 				{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
 					<NumberValue value={Number(userOperationsCount0)} />
 				{/if}
@@ -117,7 +117,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={erc4337PaymasterTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -152,7 +152,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -182,7 +182,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -209,7 +209,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const userOperationsCount = prefetched.userOperationsCount}
+					{@const userOperationsCount = pendingEntity.userOperationsCount}
 					{#if userOperationsCount !== undefined && userOperationsCount !== null}
 						<div>
 							<dt>User operations</dt>
@@ -242,8 +242,8 @@
 					<Erc4337PaymasterView
 						selection={select(EntityType.Erc4337Paymaster, selection.entitySelector.$paymaster, {})}
 						href={
-							(selection.entitySelector.$paymaster.$network !== undefined && selection.entitySelector.$paymaster.$network.caip2 !== undefined && selection.entitySelector.$paymaster.$network.caip2.namespace !== undefined && selection.entitySelector.$paymaster.$network !== undefined && selection.entitySelector.$paymaster.$network.caip2 !== undefined && selection.entitySelector.$paymaster.$network.caip2.reference !== undefined && selection.entitySelector.$paymaster.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymaster/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$paymaster.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$paymaster.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$paymaster.$network !== undefined && selection.entitySelector.$paymaster.$network.slug !== undefined && selection.entitySelector.$paymaster.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
+								network: String(selection.entitySelector.$paymaster.$network.slug ?? ''),
 								address: String(selection.entitySelector.$paymaster.address ?? ''),
 							}) : undefined)
 						}

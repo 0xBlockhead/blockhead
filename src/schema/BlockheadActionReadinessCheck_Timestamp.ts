@@ -10,8 +10,10 @@ export enum BlockheadActionReadinessCheck_TimestampSelector {
 }
 export const BlockheadActionReadinessCheck_Timestamp = entity({
 	entityType: EntityType.BlockheadActionReadinessCheck_Timestamp,
-	label: 'blockhead action readiness check timestamp',
-	labelPlural: 'blockhead action readiness check observations',
+	labels: {
+		singular: 'blockhead action readiness check timestamp',
+		plural: 'blockhead action readiness check observations',
+	},
 })({
 	$readinessCheck: {
 		label: 'readiness check',

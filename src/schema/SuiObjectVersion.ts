@@ -9,8 +9,10 @@ export enum SuiObjectVersionSelector {
 }
 export const SuiObjectVersion = entity({
 	entityType: EntityType.SuiObjectVersion,
-	label: 'sui object version',
-	labelPlural: 'sui object versions',
+	labels: {
+		singular: 'sui object version',
+		plural: 'sui object versions',
+	},
 })({
 	$network: {
 		label: 'network',

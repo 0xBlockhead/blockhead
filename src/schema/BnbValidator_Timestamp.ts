@@ -9,8 +9,10 @@ export enum BnbValidator_TimestampSelector {
 }
 export const BnbValidator_Timestamp = entity({
 	entityType: EntityType.BnbValidator_Timestamp,
-	label: 'bnb validator timestamp',
-	labelPlural: 'bnb validator observations',
+	labels: {
+		singular: 'bnb validator timestamp',
+		plural: 'bnb validator observations',
+	},
 })({
 	$validator: {
 		label: 'validator',

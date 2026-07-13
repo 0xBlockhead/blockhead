@@ -48,7 +48,7 @@
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.metricName ?? prefetched.metricName) ?? '')].filter(Boolean).join(' ') || 'AI evaluation timestamp')
+	const titleFallback = $derived([String((pendingEntity.metricName) ?? '')].filter(Boolean).join(' ') || 'AI evaluation timestamp')
 	const viewDomId = $derived('ai-evaluation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiEvaluationTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.metricName ?? prefetched.metricName) ?? '')].filter(Boolean).join(' ') || title || 'AI evaluation timestamp'}
+				{[String((pendingEntity.metricName) ?? '')].filter(Boolean).join(' ') || title || 'AI evaluation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiEvaluationTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.value) ?? ''), String((prefetched.unit) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.metricName ?? prefetched.metricName) ?? '')].filter(Boolean).join(' ') || title || 'AI evaluation timestamp'}
+				{[String((pendingEntity.value) ?? ''), String((pendingEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.metricName) ?? '')].filter(Boolean).join(' ') || title || 'AI evaluation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -104,7 +104,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiEvaluationTimestamp}>
 			{#snippet Pending()}
-				{@const subjectKind0 = selection.entitySelector.subjectKind ?? prefetched.subjectKind}
+				{@const subjectKind0 = pendingEntity.subjectKind}
 				{#if subjectKind0 !== undefined && subjectKind0 !== null}
 					<span data-text="muted">
 						{String((subjectKind0) ?? '')}
@@ -139,7 +139,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subjectKind = selection.entitySelector.subjectKind ?? prefetched.subjectKind}
+							{@const subjectKind = pendingEntity.subjectKind}
 							{#if subjectKind !== undefined && subjectKind !== null}
 								{String((subjectKind) ?? '')}
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const metricName = selection.entitySelector.metricName ?? prefetched.metricName}
+							{@const metricName = pendingEntity.metricName}
 							{#if metricName !== undefined && metricName !== null}
 								{String((metricName) ?? '')}
 							{/if}
@@ -207,7 +207,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metricType = prefetched.metricType}
+					{@const metricType = pendingEntity.metricType}
 					{#if metricType !== undefined && metricType !== null}
 						<div>
 							<dt>metric type</dt>
@@ -242,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const value = prefetched.value}
+					{@const value = pendingEntity.value}
 					{#if value !== undefined && value !== null}
 						<div>
 							<dt>Value</dt>
@@ -277,7 +277,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unit = prefetched.unit}
+					{@const unit = pendingEntity.unit}
 					{#if unit !== undefined && unit !== null}
 						<div>
 							<dt>unit</dt>
@@ -317,7 +317,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -347,7 +347,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -367,6 +367,8 @@
 			<ResourceBoundary
 				resource={selection.$model}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiModel)}
 					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
 						<div>
@@ -387,6 +389,8 @@
 			<ResourceBoundary
 				resource={selection.$modelVersion}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiModelVersion)}
 					{#if aiModelVersion != null && aiModelVersion[EntityMetaKey.Selector] != null}
 						<div>
@@ -407,6 +411,8 @@
 			<ResourceBoundary
 				resource={selection.$a2aAgentService}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(a2aAgentService)}
 					{#if a2aAgentService != null && a2aAgentService[EntityMetaKey.Selector] != null}
 						<div>
@@ -427,6 +433,8 @@
 			<ResourceBoundary
 				resource={selection.$mcpServer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null && mcpServer[EntityMetaKey.Selector] != null}
 						<div>
@@ -447,6 +455,8 @@
 			<ResourceBoundary
 				resource={selection.$eip8004Registration}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(eip8004AgentRegistration)}
 					{#if eip8004AgentRegistration != null && eip8004AgentRegistration[EntityMetaKey.Selector] != null}
 						<div>
@@ -476,7 +486,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceRunId = prefetched.sourceRunId}
+					{@const sourceRunId = pendingEntity.sourceRunId}
 					{#if sourceRunId !== undefined && sourceRunId !== null}
 						<div>
 							<dt>source run ID</dt>
@@ -511,7 +521,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceResultId = prefetched.sourceResultId}
+					{@const sourceResultId = pendingEntity.sourceResultId}
 					{#if sourceResultId !== undefined && sourceResultId !== null}
 						<div>
 							<dt>source result ID</dt>
@@ -546,7 +556,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const step = prefetched.step}
+					{@const step = pendingEntity.step}
 					{#if step !== undefined && step !== null}
 						<div>
 							<dt>step</dt>
@@ -581,7 +591,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const split = prefetched.split}
+					{@const split = pendingEntity.split}
 					{#if split !== undefined && split !== null}
 						<div>
 							<dt>split</dt>
@@ -616,7 +626,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const method = prefetched.method}
+					{@const method = pendingEntity.method}
 					{#if method !== undefined && method !== null}
 						<div>
 							<dt>method</dt>
@@ -651,7 +661,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const harnessVersion = prefetched.harnessVersion}
+					{@const harnessVersion = pendingEntity.harnessVersion}
 					{#if harnessVersion !== undefined && harnessVersion !== null}
 						<div>
 							<dt>harness version</dt>
@@ -688,7 +698,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datasetName = prefetched.datasetName}
+					{@const datasetName = pendingEntity.datasetName}
 					{#if datasetName !== undefined && datasetName !== null}
 						<div>
 							<dt>dataset name</dt>
@@ -723,7 +733,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datasetType = prefetched.datasetType}
+					{@const datasetType = pendingEntity.datasetType}
 					{#if datasetType !== undefined && datasetType !== null}
 						<div>
 							<dt>dataset type</dt>
@@ -758,7 +768,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datasetConfig = prefetched.datasetConfig}
+					{@const datasetConfig = pendingEntity.datasetConfig}
 					{#if datasetConfig !== undefined && datasetConfig !== null}
 						<div>
 							<dt>dataset config</dt>
@@ -793,7 +803,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datasetSplit = prefetched.datasetSplit}
+					{@const datasetSplit = pendingEntity.datasetSplit}
 					{#if datasetSplit !== undefined && datasetSplit !== null}
 						<div>
 							<dt>dataset split</dt>
@@ -828,7 +838,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const datasetDigest = prefetched.datasetDigest}
+					{@const datasetDigest = pendingEntity.datasetDigest}
 					{#if datasetDigest !== undefined && datasetDigest !== null}
 						<div>
 							<dt>dataset digest</dt>
@@ -863,7 +873,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceName = prefetched.sourceName}
+					{@const sourceName = pendingEntity.sourceName}
 					{#if sourceName !== undefined && sourceName !== null}
 						<div>
 							<dt>source name</dt>
@@ -898,7 +908,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceUrl = prefetched.sourceUrl}
+					{@const sourceUrl = pendingEntity.sourceUrl}
 					{#if sourceUrl !== undefined && sourceUrl !== null}
 						<div>
 							<dt>source URL</dt>

@@ -9,8 +9,10 @@ export enum CardanoTxOutputSelector {
 }
 export const CardanoTxOutput = entity({
 	entityType: EntityType.CardanoTxOutput,
-	label: 'cardano transaction output',
-	labelPlural: 'cardano transaction outputs',
+	labels: {
+		singular: 'cardano transaction output',
+		plural: 'cardano transaction outputs',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

@@ -9,8 +9,10 @@ export enum TezosTokenTransferSelector {
 }
 export const TezosTokenTransfer = entity({
 	entityType: EntityType.TezosTokenTransfer,
-	label: 'tezos token transfer',
-	labelPlural: 'tezos token transfers',
+	labels: {
+		singular: 'tezos token transfer',
+		plural: 'tezos token transfers',
+	},
 })({
 	$network: {
 		label: 'network',

@@ -9,8 +9,10 @@ export enum _GlobalFarcasterNetwork_TimestampSelector {
 }
 export const _GlobalFarcasterNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalFarcasterNetwork_Timestamp,
-	label: 'global Farcaster network timestamp',
-	labelPlural: 'global Farcaster network observations',
+	labels: {
+		singular: 'global Farcaster network timestamp',
+		plural: 'global Farcaster network observations',
+	},
 })({
 	$hub: {
 		label: 'hub',

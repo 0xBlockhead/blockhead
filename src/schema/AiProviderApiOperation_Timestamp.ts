@@ -9,8 +9,10 @@ export enum AiProviderApiOperation_TimestampSelector {
 }
 export const AiProviderApiOperation_Timestamp = entity({
 	entityType: EntityType.AiProviderApiOperation_Timestamp,
-	label: 'AI provider API operation timestamp',
-	labelPlural: 'AI provider API operation observations',
+	labels: {
+		singular: 'AI provider API operation timestamp',
+		plural: 'AI provider API operation observations',
+	},
 })({
 	$operation: {
 		label: 'operation',

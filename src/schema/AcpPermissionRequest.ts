@@ -9,8 +9,10 @@ export enum AcpPermissionRequestSelector {
 }
 export const AcpPermissionRequest = entity({
 	entityType: EntityType.AcpPermissionRequest,
-	label: 'acp permission request',
-	labelPlural: 'acp permission requests',
+	labels: {
+		singular: 'acp permission request',
+		plural: 'acp permission requests',
+	},
 })({
 	$session: {
 		label: 'session',

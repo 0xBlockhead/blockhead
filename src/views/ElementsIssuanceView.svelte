@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -45,12 +44,10 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const elementsIssuance = $derived(selection({
 		fields: {
-			$asset: true,
-			$reissuanceTokenAsset: true,
 			isReissuance: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.inputIndex ?? prefetched.inputIndex) ?? '')].filter(Boolean).join(' ') || 'Elements issuance')
+	const titleFallback = $derived([String((pendingEntity.inputIndex) ?? '')].filter(Boolean).join(' ') || 'Elements issuance')
 	const viewDomId = $derived('elements-issuance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={elementsIssuance}>
 			{#snippet Pending()}
-				{@const inputIndex0 = selection.entitySelector.inputIndex ?? prefetched.inputIndex}
+				{@const inputIndex0 = pendingEntity.inputIndex}
 				{#if inputIndex0 !== undefined && inputIndex0 !== null}
 					<NumberValue value={Number(inputIndex0)} />
 				{/if}
@@ -164,7 +161,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={elementsIssuance}>
 			{#snippet Pending()}
-				{@const isReissuance0 = prefetched.isReissuance}
+				{@const isReissuance0 = pendingEntity.isReissuance}
 				{#if isReissuance0 !== undefined && isReissuance0 !== null}
 					<span data-text="muted">
 						{isReissuance0 ? 'Yes' : 'No'}
@@ -192,9 +189,9 @@
 					<UtxoTransactionView
 						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction, {})}
 						href={
-							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.txId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(selection.entitySelector.$transaction.txId ?? ''),
+							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined && selection.entitySelector.$transaction.txId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -216,7 +213,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const inputIndex = selection.entitySelector.inputIndex ?? prefetched.inputIndex}
+							{@const inputIndex = pendingEntity.inputIndex}
 							{#if inputIndex !== undefined && inputIndex !== null}
 								<NumberValue value={Number(inputIndex)} />
 							{/if}
@@ -236,6 +233,8 @@
 			<ResourceBoundary
 				resource={selection.$asset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(elementsAsset)}
 					{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -256,6 +255,8 @@
 			<ResourceBoundary
 				resource={selection.$reissuanceTokenAsset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(elementsAsset)}
 					{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
 						<div>
@@ -285,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const issuedAmount = prefetched.issuedAmount}
+					{@const issuedAmount = pendingEntity.issuedAmount}
 					{#if issuedAmount !== undefined && issuedAmount !== null}
 						<div>
 							<dt>Issued amount</dt>
@@ -320,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenAmount = prefetched.tokenAmount}
+					{@const tokenAmount = pendingEntity.tokenAmount}
 					{#if tokenAmount !== undefined && tokenAmount !== null}
 						<div>
 							<dt>Token amount</dt>
@@ -355,7 +356,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isReissuance = prefetched.isReissuance}
+					{@const isReissuance = pendingEntity.isReissuance}
 					{#if isReissuance !== undefined && isReissuance !== null}
 						<div>
 							<dt>Reissuance</dt>
@@ -390,7 +391,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const assetEntropy = prefetched.assetEntropy}
+					{@const assetEntropy = pendingEntity.assetEntropy}
 					{#if assetEntropy !== undefined && assetEntropy !== null}
 						<div>
 							<dt>Asset entropy</dt>
@@ -425,7 +426,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const assetBlindingNonce = prefetched.assetBlindingNonce}
+					{@const assetBlindingNonce = pendingEntity.assetBlindingNonce}
 					{#if assetBlindingNonce !== undefined && assetBlindingNonce !== null}
 						<div>
 							<dt>Asset blinding nonce</dt>

@@ -9,8 +9,10 @@ export enum BlockheadLightningNodeState_TimestampSelector {
 }
 export const BlockheadLightningNodeState_Timestamp = entity({
 	entityType: EntityType.BlockheadLightningNodeState_Timestamp,
-	label: 'blockhead Lightning node state timestamp',
-	labelPlural: 'blockhead Lightning node state observations',
+	labels: {
+		singular: 'blockhead Lightning node state timestamp',
+		plural: 'blockhead Lightning node state observations',
+	},
 })({
 	$localNodeState: {
 		label: 'local node state',

@@ -120,7 +120,8 @@
 						selection={select(EntityType.BridgeRouteStep, bridgeRouteStep[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bridgeRouteStepFields}
 						href={
-							(bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromChainId !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.toChainId !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromToken !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.toToken !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromAmount !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromAddress !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.slippage !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.toAddress !== undefined && bridgeRouteStepHrefFields.indexInRoute !== undefined ? resolve('/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex=bridgeRouteStepIndex]', {
+							(bridgeRouteStepHrefFields.indexInRoute !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromChainId !== undefined && bridgeRouteStepHrefFields.$route.toChainId !== undefined && bridgeRouteStepHrefFields.$route.fromToken !== undefined && bridgeRouteStepHrefFields.$route.toToken !== undefined && bridgeRouteStepHrefFields.$route.fromAmount !== undefined && bridgeRouteStepHrefFields.$route.fromAddress !== undefined && bridgeRouteStepHrefFields.$route.slippage !== undefined && bridgeRouteStepHrefFields.$route.toAddress !== undefined ? resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/step/[stepIndex=bridgeRouteStepIndex]', {
+								stepIndex: String(bridgeRouteStepHrefFields.indexInRoute ?? ''),
 								fromChainId: String(bridgeRouteStepHrefFields.$route.fromChainId ?? ''),
 								toChainId: String(bridgeRouteStepHrefFields.$route.toChainId ?? ''),
 								fromToken: String(bridgeRouteStepHrefFields.$route.fromToken ?? ''),
@@ -129,7 +130,6 @@
 								fromAddress: String(bridgeRouteStepHrefFields.$route.fromAddress ?? ''),
 								slippage: String(bridgeRouteStepHrefFields.$route.slippage ?? ''),
 								toAddress: String(bridgeRouteStepHrefFields.$route.toAddress ?? ''),
-								stepIndex: String(bridgeRouteStepHrefFields.indexInRoute ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

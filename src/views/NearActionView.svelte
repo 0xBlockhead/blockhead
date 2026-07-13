@@ -51,7 +51,7 @@
 			methodName: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.actionKind) ?? '')].filter(Boolean).join(' ') || 'near action')
+	const titleFallback = $derived([String((pendingEntity.actionKind) ?? '')].filter(Boolean).join(' ') || 'near action')
 	const viewDomId = $derived('near-action-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearAction}>
 			{#snippet Pending()}
-				{[String((prefetched.actionKind) ?? '')].filter(Boolean).join(' ') || title || 'near action'}
+				{[String((pendingEntity.actionKind) ?? '')].filter(Boolean).join(' ') || title || 'near action'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -88,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearAction}>
 			{#snippet Pending()}
-				{[String((prefetched.methodName) ?? '')].filter(Boolean).join(' ') || [String((prefetched.actionKind) ?? '')].filter(Boolean).join(' ') || title || 'near action'}
+				{[String((pendingEntity.methodName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.actionKind) ?? '')].filter(Boolean).join(' ') || title || 'near action'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -101,7 +101,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearAction}>
 			{#snippet Pending()}
-				{@const actionIndex0 = selection.entitySelector.actionIndex ?? prefetched.actionIndex}
+				{@const actionIndex0 = pendingEntity.actionIndex}
 				{#if actionIndex0 !== undefined && actionIndex0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(actionIndex0)} />
@@ -147,7 +147,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const actionIndex = selection.entitySelector.actionIndex ?? prefetched.actionIndex}
+							{@const actionIndex = pendingEntity.actionIndex}
 							{#if actionIndex !== undefined && actionIndex !== null}
 								<NumberValue value={Number(actionIndex)} />
 							{/if}
@@ -180,7 +180,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const actionKind = prefetched.actionKind}
+							{@const actionKind = pendingEntity.actionKind}
 							{#if actionKind !== undefined && actionKind !== null}
 								{String((actionKind) ?? '')}
 							{/if}
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const methodName = prefetched.methodName}
+					{@const methodName = pendingEntity.methodName}
 					{#if methodName !== undefined && methodName !== null}
 						<div>
 							<dt>Method name</dt>
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const depositYoctoNear = prefetched.depositYoctoNear}
+					{@const depositYoctoNear = pendingEntity.depositYoctoNear}
 					{#if depositYoctoNear !== undefined && depositYoctoNear !== null}
 						<div>
 							<dt>Deposit yocto near</dt>

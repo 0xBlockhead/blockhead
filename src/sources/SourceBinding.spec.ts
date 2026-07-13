@@ -1,4 +1,5 @@
 import {
+	readFileSync,
 	statSync,
 } from 'node:fs'
 
@@ -7,6 +8,7 @@ import {
 	describe,
 	expect,
 	it,
+	vi,
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
@@ -27,6 +29,13 @@ import {
 } from '$/sources/SourceBinding.ts'
 import { sourceProviders as generatedSourceProviders } from '$/sources/$sourceProviders.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
+import { sourceBindings as browserSourceBindings } from '$/sources/index.ts'
+import {
+	enabledSourceBindings,
+	httpProxyOrigins,
+	remoteLiveBindings,
+} from '$/sources/index.server.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 import { validateSourceBinding } from '$/sources/validateSourceBindings.ts'
 import { validateSourceBindings } from '$/sources/validateSourceBindings.ts'
 
@@ -60,38 +69,10 @@ const validBinding = {
 
 let sourceProviders: SourceProviderDefinition[]
 let sourceBindings: readonly SourceBinding[]
-let browserSourceBindings: readonly SourceBinding[]
-let remoteLiveBindings: readonly SourceBinding[]
-let httpProxyOrigins: Set<string>
 
 beforeAll(() => {
 	sourceProviders = [...generatedSourceProviders]
 	sourceBindings = validateSourceBindings(sourceProviders.flatMap((provider) => provider.bindings))
-	browserSourceBindings = validateSourceBindings(
-		sourceBindings.filter((binding) => (
-			(
-				binding.delivery === SourceDelivery.BrowserDirect
-				|| binding.delivery === SourceDelivery.HttpProxy
-				|| binding.delivery === SourceDelivery.RemoteQuery
-				|| binding.delivery === SourceDelivery.RemoteLive
-			)
-			&& binding.credentials.every((credential) => (
-				credential.scope === SourceCredentialScope.None
-				|| credential.scope === SourceCredentialScope.PublicConfig
-				|| credential.scope === SourceCredentialScope.UserDelegated
-			))
-		))
-	)
-	remoteLiveBindings = sourceBindings.filter((binding) => binding.delivery === SourceDelivery.RemoteLive)
-	httpProxyOrigins = new Set(
-		sourceBindings
-			.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
-			.flatMap((binding) => (
-				binding.endpoints
-					.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-					.map((endpoint) => endpoint.origin ?? endpoint.locator)
-			))
-	)
 })
 
 const sourceMember = (
@@ -195,19 +176,19 @@ describe('source binding indexes', () => {
 	})
 
 	it('derives HTTP proxy origins from enabled HttpProxy HTTP endpoints', () => {
-		const expectedHttpProxyOrigins = new Set(
-			sourceBindings
+		expect(httpProxyOrigins).toEqual(new Set(
+			enabledSourceBindings
 				.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
 				.flatMap((binding) => (
 					binding.endpoints
 						.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-						.map((endpoint) => endpoint.origin ?? endpoint.locator)
+						.flatMap((endpoint) => endpoint.origin == null ? [] : [endpoint.origin])
 				))
-		)
-
-		expect(expectedHttpProxyOrigins.size).toBeGreaterThan(0)
-		for (const origin of expectedHttpProxyOrigins)
-			expect(httpProxyOrigins.has(origin)).toBe(true)
+		))
+		expect(httpProxyOrigins.size).toBeGreaterThan(0)
+		expect([...httpProxyOrigins].every((origin) => (
+			origin.startsWith('http://') || origin.startsWith('https://')
+		))).toBe(true)
 	})
 
 	it('keeps public config credentials schema-backed', () => {
@@ -232,6 +213,48 @@ describe('source binding indexes', () => {
 			&& binding.delivery === SourceDelivery.RemoteLive
 		))).toBe(true)
 		expect(httpProxyOrigins.has('wss://ethereum.publicnode.com')).toBe(false)
+		expect(remoteLiveBindings.flatMap((binding) => (
+			binding.endpoints
+				.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
+				.map((endpoint) => endpoint.locator)
+		)).some((locator) => httpProxyOrigins.has(locator))).toBe(false)
+	})
+
+	it('serves RemoteLive through sourceLive instead of the HTTP proxy', () => {
+		expect(readFileSync('src/sources/_runtime/live.remote.ts', 'utf8'))
+			.toMatch(/export const sourceLive = query\.live/)
+		expect(readFileSync('src/sources/_runtime/live.remote.ts', 'utf8'))
+			.not.toMatch(/api-proxy|corsFetch|sourceFetch/)
+		expect(readFileSync('src/sources/_runtime/proxy.server.ts', 'utf8'))
+			.not.toMatch(/RemoteLive|WebSocket/)
+	})
+
+	it('routes source HTTP from the binding delivery contract', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+		try {
+			await sourceFetch({
+				...validBinding,
+				endpoints: [{
+					...validBinding.endpoints[0],
+					corsEnabled: true,
+				}],
+			}, 'https://eth.blockscout.com/api')
+			expect(fetchMock).toHaveBeenCalledWith(
+				'/api-proxy/https://eth.blockscout.com/api',
+				expect.objectContaining({
+					signal: expect.any(AbortSignal),
+				})
+			)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
+	it('keeps the CORS browser proof free of route-specific delivery ignores', () => {
+		expect(readFileSync('tests/e2e/cors-policy.e2e.ts', 'utf8'))
+			.not.toMatch(/e2eBoundaryLiveOptionalPathnames|failFast\s*:/)
 	})
 
 	it('models generated OpenAPI artifacts as binding metadata', () => {
@@ -294,5 +317,13 @@ describe('source binding indexes', () => {
 		expect(browserSourceBindings.some((binding) => (
 			binding.source === Source.TezosDappetizer_Postgres
 		))).toBe(false)
+	})
+
+	it('keeps runtime-secret remote bindings in the browser-facing source registry', () => {
+		expect(browserSourceBindings.some((binding) => (
+			binding.source === Source.GoogleAi_Rest
+			&& binding.delivery === SourceDelivery.RemoteQuery
+			&& binding.credentials.some((credential) => credential.scope === SourceCredentialScope.RuntimeSecret)
+		))).toBe(true)
 	})
 })

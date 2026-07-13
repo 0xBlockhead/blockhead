@@ -10,8 +10,10 @@ export enum EasSchemaSelector {
 }
 export const EasSchema = entity({
 	entityType: EntityType.EasSchema,
-	label: 'EAS schema',
-	labelPlural: 'EAS schemas',
+	labels: {
+		singular: 'EAS schema',
+		plural: 'EAS schemas',
+	},
 })({
 	$network: {
 		label: 'Network',

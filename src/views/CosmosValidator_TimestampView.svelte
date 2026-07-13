@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -48,7 +47,7 @@
 			tokens: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'Cosmos validator timestamp')
+	const titleFallback = $derived([String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'Cosmos validator timestamp')
 	const viewDomId = $derived('cosmos-validator-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -64,14 +63,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={
-		href ?? (pendingEntity.$validator !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.caip2 !== undefined && pendingEntity.$validator.$network.caip2.namespace !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.caip2 !== undefined && pendingEntity.$validator.$network.caip2.reference !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.operatorAddress !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(pendingEntity.$validator.$network.caip2.namespace ?? '')}:${String(pendingEntity.$validator.$network.caip2.reference ?? '')}`,
-			operatorAddress: String(pendingEntity.$validator.operatorAddress ?? ''),
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-		}) : undefined)
-	}
+	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -79,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cosmosValidatorTimestamp}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos validator timestamp'}
+				{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos validator timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cosmosValidatorTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? ''), String((prefetched.tokens) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos validator timestamp'}
+				{[String((pendingEntity.status) ?? ''), String((pendingEntity.tokens) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos validator timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +97,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cosmosValidatorTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -140,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -170,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -197,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const jailed = prefetched.jailed}
+					{@const jailed = pendingEntity.jailed}
 					{#if jailed !== undefined && jailed !== null}
 						<div>
 							<dt>Jailed</dt>
@@ -232,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>Status</dt>
@@ -269,7 +261,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokens = prefetched.tokens}
+					{@const tokens = pendingEntity.tokens}
 					{#if tokens !== undefined && tokens !== null}
 						<div>
 							<dt>Tokens</dt>
@@ -304,7 +296,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatorShares = prefetched.delegatorShares}
+					{@const delegatorShares = pendingEntity.delegatorShares}
 					{#if delegatorShares !== undefined && delegatorShares !== null}
 						<div>
 							<dt>Delegator shares</dt>
@@ -339,7 +331,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commissionRate = prefetched.commissionRate}
+					{@const commissionRate = pendingEntity.commissionRate}
 					{#if commissionRate !== undefined && commissionRate !== null}
 						<div>
 							<dt>Commission rate</dt>
@@ -374,7 +366,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minSelfDelegation = prefetched.minSelfDelegation}
+					{@const minSelfDelegation = pendingEntity.minSelfDelegation}
 					{#if minSelfDelegation !== undefined && minSelfDelegation !== null}
 						<div>
 							<dt>Minimum self delegation</dt>
@@ -404,12 +396,6 @@
 				<dd>
 					<CosmosValidatorView
 						selection={select(EntityType.CosmosValidator, selection.entitySelector.$validator, {})}
-						href={
-							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.namespace !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.reference !== undefined && selection.entitySelector.$validator.operatorAddress !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]', {
-								caip2: `${String(selection.entitySelector.$validator.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$validator.$network.caip2.reference ?? '')}`,
-								operatorAddress: String(selection.entitySelector.$validator.operatorAddress ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

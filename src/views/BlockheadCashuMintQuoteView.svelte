@@ -47,7 +47,7 @@
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.quoteId ?? prefetched.quoteId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu mint quote')
+	const titleFallback = $derived([String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu mint quote')
 	const viewDomId = $derived('blockhead-cashu-mint-quote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadCashuMintQuote}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.quoteId ?? prefetched.quoteId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu mint quote'}
+				{[String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu mint quote'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuMintQuote}>
 			{#snippet Pending()}
-				{[String((prefetched.amount) ?? ''), String((prefetched.unit) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.quoteId ?? prefetched.quoteId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu mint quote'}
+				{[String((pendingEntity.amount) ?? ''), String((pendingEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu mint quote'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -122,7 +122,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const method = selection.entitySelector.method ?? prefetched.method}
+							{@const method = pendingEntity.method}
 							{#if method !== undefined && method !== null}
 								{String((method) ?? '')}
 							{/if}
@@ -152,7 +152,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const quoteId = selection.entitySelector.quoteId ?? prefetched.quoteId}
+							{@const quoteId = pendingEntity.quoteId}
 							{#if quoteId !== undefined && quoteId !== null}
 								{String((quoteId) ?? '')}
 							{/if}
@@ -182,7 +182,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const request = prefetched.request}
+							{@const request = pendingEntity.request}
 							{#if request !== undefined && request !== null}
 								{String((request) ?? '')}
 							{/if}
@@ -202,6 +202,8 @@
 			<ResourceBoundary
 				resource={selection.$walletState}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadCashuWalletState)}
 					{#if blockheadCashuWalletState != null && blockheadCashuWalletState[EntityMetaKey.Selector] != null}
 						<div>
@@ -231,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unit = prefetched.unit}
+					{@const unit = pendingEntity.unit}
 					{#if unit !== undefined && unit !== null}
 						<div>
 							<dt>unit</dt>
@@ -266,7 +268,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>

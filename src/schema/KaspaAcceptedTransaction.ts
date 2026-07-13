@@ -9,8 +9,10 @@ export enum KaspaAcceptedTransactionSelector {
 }
 export const KaspaAcceptedTransaction = entity({
 	entityType: EntityType.KaspaAcceptedTransaction,
-	label: 'kaspa accepted transaction',
-	labelPlural: 'kaspa accepted transactions',
+	labels: {
+		singular: 'kaspa accepted transaction',
+		plural: 'kaspa accepted transactions',
+	},
 })({
 	$acceptingBlock: {
 		label: 'accepting block',

@@ -118,10 +118,10 @@
 						selection={select(EntityType.YoutubeComment_Timestamp, youtubeCommentTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={youtubeCommentTimestampFields}
 						href={
-							(youtubeCommentTimestampHrefFields.$comment !== undefined && youtubeCommentTimestampHrefFields.$comment.videoId !== undefined && youtubeCommentTimestampHrefFields.$comment !== undefined && youtubeCommentTimestampHrefFields.$comment.commentId !== undefined && youtubeCommentTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]', {
+							(youtubeCommentTimestampHrefFields.timestampMs !== undefined && youtubeCommentTimestampHrefFields.$comment !== undefined && youtubeCommentTimestampHrefFields.$comment.videoId !== undefined && youtubeCommentTimestampHrefFields.$comment.commentId !== undefined ? resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
+								timestampMs: String(youtubeCommentTimestampHrefFields.timestampMs ?? ''),
 								videoId: String(youtubeCommentTimestampHrefFields.$comment.videoId ?? ''),
 								commentId: String(youtubeCommentTimestampHrefFields.$comment.commentId ?? ''),
-								timestampMs: String(youtubeCommentTimestampHrefFields.timestampMs ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

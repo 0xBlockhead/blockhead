@@ -43,7 +43,7 @@
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((prefetched.registryServerName) ?? ''), String((prefetched.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'MCP server package')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.registryServerName) ?? ''), String((pendingEntity.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'MCP server package')
 	const viewDomId = $derived('mcp-server-package-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,7 +66,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpServerPackage}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.registryServerName) ?? ''), String((prefetched.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'MCP server package'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.registryServerName) ?? ''), String((pendingEntity.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'MCP server package'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -88,7 +88,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registryServerName = prefetched.registryServerName}
+					{@const registryServerName = pendingEntity.registryServerName}
 					{#if registryServerName !== undefined && registryServerName !== null}
 						<div>
 							<dt>registry server name</dt>
@@ -123,7 +123,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const repositoryUrl = prefetched.repositoryUrl}
+					{@const repositoryUrl = pendingEntity.repositoryUrl}
 					{#if repositoryUrl !== undefined && repositoryUrl !== null}
 						<div>
 							<dt>repository URL</dt>
@@ -172,7 +172,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>

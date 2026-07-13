@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -119,9 +118,9 @@
 						selection={select(EntityType.BitcoinCashCashTokenCommitment, bitcoinCashCashTokenCommitment[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitcoinCashCashTokenCommitmentFields}
 						href={
-							(bitcoinCashCashTokenCommitmentHrefFields.$output !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network.caip2.namespace !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network.caip2.reference !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
-								networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.txId ?? ''),
+							(bitcoinCashCashTokenCommitmentHrefFields.$output !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network.slug !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenCommitmentHrefFields.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft/commitment', {
+								network: String(bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.$network.slug ?? ''),
+								transactionId: String(bitcoinCashCashTokenCommitmentHrefFields.$output.$transaction.txId ?? ''),
 								outputIndex: String(bitcoinCashCashTokenCommitmentHrefFields.$output.indexInTransaction ?? ''),
 							}) : undefined)
 						}

@@ -53,7 +53,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.sessionId ?? prefetched.sessionId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle sync session')
+	const titleFallback = $derived([String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle sync session')
 	const viewDomId = $derived('blockhead-radicle-sync-session-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadRadicleSyncSession}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.sessionId ?? prefetched.sessionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle sync session'}
+				{[String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle sync session'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadicleSyncSession}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.sessionId ?? prefetched.sessionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle sync session'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead radicle sync session'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadRadicleSyncSession}>
 			{#snippet Pending()}
-				{@const startedAt0 = prefetched.startedAt}
+				{@const startedAt0 = pendingEntity.startedAt}
 				{#if startedAt0 !== undefined && startedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(startedAt0)} />
@@ -140,7 +140,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sessionId = selection.entitySelector.sessionId ?? prefetched.sessionId}
+							{@const sessionId = pendingEntity.sessionId}
 							{#if sessionId !== undefined && sessionId !== null}
 								{String((sessionId) ?? '')}
 							{/if}
@@ -164,7 +164,7 @@
 						resource={selection.$localNode}
 					>
 						{#snippet children(blockheadRadicleNodeState)}
-							{#if blockheadRadicleNodeState[EntityMetaKey.Selector] != null}
+							{#if blockheadRadicleNodeState != null && blockheadRadicleNodeState[EntityMetaKey.Selector] != null}
 								<BlockheadRadicleNodeStateView
 									selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
 									prefetched={blockheadRadicleNodeState}
@@ -190,7 +190,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const remoteNodeId = prefetched.remoteNodeId}
+							{@const remoteNodeId = pendingEntity.remoteNodeId}
 							{#if remoteNodeId !== undefined && remoteNodeId !== null}
 								{String((remoteNodeId) ?? '')}
 							{/if}
@@ -210,6 +210,8 @@
 			<ResourceBoundary
 				resource={selection.$repository}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(radicleRepository)}
 					{#if radicleRepository != null && radicleRepository[EntityMetaKey.Selector] != null}
 						<div>
@@ -237,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rid = prefetched.rid}
+					{@const rid = pendingEntity.rid}
 					{#if rid !== undefined && rid !== null}
 						<div>
 							<dt>rid</dt>
@@ -277,7 +279,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const startedAt = prefetched.startedAt}
+							{@const startedAt = pendingEntity.startedAt}
 							{#if startedAt !== undefined && startedAt !== null}
 								<Timestamp timestamp={Number(startedAt)} />
 							{/if}
@@ -304,7 +306,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const completedAt = prefetched.completedAt}
+					{@const completedAt = pendingEntity.completedAt}
 					{#if completedAt !== undefined && completedAt !== null}
 						<div>
 							<dt>completed AT</dt>
@@ -342,7 +344,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const requestedRefs = prefetched.requestedRefs}
+							{@const requestedRefs = pendingEntity.requestedRefs}
 							{#if requestedRefs !== undefined && requestedRefs !== null}
 								{requestedRefs.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -369,7 +371,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const receivedObjects = prefetched.receivedObjects}
+					{@const receivedObjects = pendingEntity.receivedObjects}
 					{#if receivedObjects !== undefined && receivedObjects !== null}
 						<div>
 							<dt>received objects</dt>
@@ -407,7 +409,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -434,7 +436,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

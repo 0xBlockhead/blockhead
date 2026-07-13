@@ -9,8 +9,10 @@ export enum ZeroGDaNodeSelector {
 }
 export const ZeroGDaNode = entity({
 	entityType: EntityType.ZeroGDaNode,
-	label: 'zero g da node',
-	labelPlural: 'zero g da nodes',
+	labels: {
+		singular: 'zero g da node',
+		plural: 'zero g da nodes',
+	},
 })({
 	$network: {
 		label: 'network',

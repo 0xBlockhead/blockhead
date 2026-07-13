@@ -9,8 +9,10 @@ export enum LightningNodeSelector {
 }
 export const LightningNode = entity({
 	entityType: EntityType.LightningNode,
-	label: 'Lightning node',
-	labelPlural: 'Lightning nodes',
+	labels: {
+		singular: 'Lightning node',
+		plural: 'Lightning nodes',
+	},
 })({
 	$network: {
 		label: 'Network',

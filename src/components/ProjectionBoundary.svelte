@@ -1,14 +1,16 @@
+<script module lang="ts">
+	import Projection from '$/components/Projection.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+</script>
+
+
 <script lang="ts" generics="
 	Value
 ">
 	// Types/constants
 	import type { Snippet } from 'svelte'
 
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type {
-		EntityFieldAddress,
-		ProjectionValue,
-	} from '$/schema/$schema.ts'
+	import type { EntityFieldAddress, ProjectionValue } from '$/schema/$schema.ts'
 
 
 	// State
@@ -19,24 +21,21 @@
 		Blocked,
 		Unsupported,
 	}: {
-		resource: SvelteKitResource<ProjectionValue<Value>>
+		resource: import('$/lib/db/queryResource.svelte.ts').SvelteKitResource<ProjectionValue<Value>>
 		Applicable: Snippet<[value: Value]>
 		NotApplicable?: Snippet
 		Blocked?: Snippet<[dependencies: readonly EntityFieldAddress[]]>
 		Unsupported?: Snippet
 	} = $props()
-
-
-	// Components
-	import Projection from '$/components/Projection.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
-<ResourceBoundary {resource}>
+<ResourceBoundary
+	resource={resource}
+>
 	{#snippet children(projection)}
 		<Projection
-			{projection}
+			projection={projection}
 			{Applicable}
 			{NotApplicable}
 			{Blocked}

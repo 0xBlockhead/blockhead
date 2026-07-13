@@ -9,8 +9,10 @@ export enum ZeroGKvEntrySelector {
 }
 export const ZeroGKvEntry = entity({
 	entityType: EntityType.ZeroGKvEntry,
-	label: 'zero g kv entry',
-	labelPlural: 'zero g kv entries',
+	labels: {
+		singular: 'zero g kv entry',
+		plural: 'zero g kv entries',
+	},
 })({
 	$network: {
 		label: 'network',

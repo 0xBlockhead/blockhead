@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -57,7 +58,7 @@
 			$tokenContract: true,
 		},
 	}))
-	const titleFallback = $derived((String((selection.entitySelector.indexInLog ?? prefetched.indexInLog) ?? '') ? 'Transfer #' + String((selection.entitySelector.indexInLog ?? prefetched.indexInLog) ?? '') : '') || 'Token transfer')
+	const titleFallback = $derived((String((pendingEntity.indexInLog) ?? '') ? 'Transfer #' + String((pendingEntity.indexInLog) ?? '') : '') || 'Token transfer')
 	const viewDomId = $derived('evm-token-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,13 +77,13 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.indexInLog ?? prefetched.indexInLog ?? '')}
+	idDragPlainText={String(pendingEntity.indexInLog ?? '')}
 	href={
-		href ?? (pendingEntity.$log !== undefined && pendingEntity.$log.$transaction !== undefined && pendingEntity.$log.$transaction.$network !== undefined && pendingEntity.$log.$transaction.$network.caip2 !== undefined && pendingEntity.$log.$transaction.$network.caip2.namespace !== undefined && pendingEntity.$log !== undefined && pendingEntity.$log.$transaction !== undefined && pendingEntity.$log.$transaction.$network !== undefined && pendingEntity.$log.$transaction.$network.caip2 !== undefined && pendingEntity.$log.$transaction.$network.caip2.reference !== undefined && pendingEntity.$log !== undefined && pendingEntity.$log.$transaction !== undefined && pendingEntity.$log.$transaction.txHash !== undefined && pendingEntity.$log !== undefined && pendingEntity.$log.indexInTransaction !== undefined && pendingEntity.indexInLog !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/token-transfer/[indexInTransaction=nonNegativeInteger]/[indexInLog=nonNegativeInteger]', {
-			caip2: `${String(pendingEntity.$log.$transaction.$network.caip2.namespace ?? '')}:${String(pendingEntity.$log.$transaction.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$log !== undefined && pendingEntity.$log.$transaction !== undefined && pendingEntity.$log.$transaction.$network !== undefined && pendingEntity.$log.$transaction.$network.slug !== undefined && pendingEntity.$log.$transaction.txHash !== undefined && pendingEntity.$log.indexInTransaction !== undefined && pendingEntity.indexInLog !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
+			network: String(pendingEntity.$log.$transaction.$network.slug ?? ''),
 			transactionId: String(pendingEntity.$log.$transaction.txHash ?? ''),
 			indexInTransaction: String(pendingEntity.$log.indexInTransaction ?? ''),
-			indexInLog: String(pendingEntity.indexInLog ?? ''),
+			transferIndex: String(pendingEntity.indexInLog ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -92,7 +93,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmTokenTransfer}>
 			{#snippet Pending()}
-				{(String((selection.entitySelector.indexInLog ?? prefetched.indexInLog) ?? '') ? 'Transfer #' + String((selection.entitySelector.indexInLog ?? prefetched.indexInLog) ?? '') : '') || title || [(String((selection.entitySelector.indexInLog ?? prefetched.indexInLog) ?? '') ? '#' + String((selection.entitySelector.indexInLog ?? prefetched.indexInLog) ?? '') : '')].filter(Boolean).join(' ') || 'Token transfer'}
+				{(String((pendingEntity.indexInLog) ?? '') ? 'Transfer #' + String((pendingEntity.indexInLog) ?? '') : '') || title || [(String((pendingEntity.indexInLog) ?? '') ? '#' + String((pendingEntity.indexInLog) ?? '') : '')].filter(Boolean).join(' ') || 'Token transfer'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +104,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = selection.entitySelector.indexInLog ?? prefetched.indexInLog}
+		{@const serialValue = pendingEntity.indexInLog}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -126,7 +127,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const indexInLog = selection.entitySelector.indexInLog ?? prefetched.indexInLog}
+							{@const indexInLog = pendingEntity.indexInLog}
 							{#if indexInLog !== undefined && indexInLog !== null}
 								<span>#</span>
 								{String((indexInLog) ?? '')}
@@ -151,8 +152,8 @@
 					<EvmLogView
 						selection={select(EntityType.EvmLog, selection.entitySelector.$log, {})}
 						href={
-							(selection.entitySelector.$log.$transaction !== undefined && selection.entitySelector.$log.$transaction.$network !== undefined && selection.entitySelector.$log.$transaction.$network.caip2 !== undefined && selection.entitySelector.$log.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$log.$transaction !== undefined && selection.entitySelector.$log.$transaction.$network !== undefined && selection.entitySelector.$log.$transaction.$network.caip2 !== undefined && selection.entitySelector.$log.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$log.$transaction !== undefined && selection.entitySelector.$log.$transaction.txHash !== undefined && selection.entitySelector.$log.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/log/[indexInTransaction=nonNegativeInteger]', {
-								caip2: `${String(selection.entitySelector.$log.$transaction.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$log.$transaction.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$log.$transaction !== undefined && selection.entitySelector.$log.$transaction.$network !== undefined && selection.entitySelector.$log.$transaction.$network.slug !== undefined && selection.entitySelector.$log.$transaction.txHash !== undefined && selection.entitySelector.$log.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]', {
+								network: String(selection.entitySelector.$log.$transaction.$network.slug ?? ''),
 								transactionId: String(selection.entitySelector.$log.$transaction.txHash ?? ''),
 								indexInTransaction: String(selection.entitySelector.$log.indexInTransaction ?? ''),
 							}) : undefined)
@@ -178,7 +179,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const standard = prefetched.standard}
+							{@const standard = pendingEntity.standard}
 							{#if standard !== undefined && standard !== null}
 								{String((standard) ?? '')}
 							{/if}
@@ -208,7 +209,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const amount = prefetched.amount}
+							{@const amount = pendingEntity.amount}
 							{#if amount !== undefined && amount !== null}
 								<NumberValue value={Number(amount)} />
 							{/if}
@@ -225,46 +226,41 @@
 				</dd>
 			</div>
 
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={
-						selection({
-							fields: {
-								tokenId: true,
-							},
-						})
-					}
-				>
-					{#snippet Pending()}
-						{@const tokenId = prefetched.tokenId}
-						{#if tokenId !== undefined && tokenId !== null}
-							<div>
-								<dt>Token ID</dt>
-								<dd>
-									<NumberValue value={Number(tokenId)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-
-					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const tokenId = resolvedEntity.tokenId}
-						{#if tokenId !== undefined && tokenId !== null}
-							<div>
-								<dt>Token ID</dt>
-								<dd>
-									<NumberValue value={Number(tokenId)} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
+			<ProjectionBoundary
+				resource={selection.Nft}
+			>
+				{#snippet Applicable(projection)}
+					{#if contentOpen}
+						<div>
+							<dt>Token ID</dt>
+							<dd>
+								<ResourceBoundary
+									resource={
+										projection.tokenId({
+											fields: {
+												tokenId: true,
+											},
+										})
+									}
+								>
+									{#snippet Pending()}{/snippet}
+									{#snippet children(tokenId)}
+										{#if tokenId !== undefined && tokenId !== null}
+											<NumberValue value={Number(tokenId)} />
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ProjectionBoundary>
 
 			<ResourceBoundary
 				resource={selection.$from}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -274,7 +270,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -290,6 +286,8 @@
 			<ResourceBoundary
 				resource={selection.$to}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -299,7 +297,7 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -315,6 +313,8 @@
 			<ResourceBoundary
 				resource={selection.$coinInstance}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -324,9 +324,12 @@
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									prefetched={evmCoinInstance}
 									href={
-										(evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? true : evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+										(evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-											coinInstanceSlug: String((evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? 'native' : evmCoinInstance[EntityMetaKey.Selector].$contract.address)),
+											coinInstanceSlug: String('native' ?? ''),
+										}) : evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+											coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
+											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -342,6 +345,8 @@
 				<ResourceBoundary
 					resource={selection.$tokenContract}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(evmContract)}
 						{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 							<div>
@@ -351,8 +356,8 @@
 										selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 										prefetched={evmContract}
 										href={
-											(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-												caip2: `${String(evmContract[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmContract[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+												network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 											}) : undefined)
 										}
@@ -381,7 +386,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const tokenSymbol = prefetched.tokenSymbol}
+						{@const tokenSymbol = pendingEntity.tokenSymbol}
 						{#if tokenSymbol !== undefined && tokenSymbol !== null}
 							<div>
 								<dt>Token symbol</dt>
@@ -422,7 +427,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const tokenName = prefetched.tokenName}
+						{@const tokenName = pendingEntity.tokenName}
 						{#if tokenName !== undefined && tokenName !== null}
 							<div>
 								<dt>Token name</dt>
@@ -463,7 +468,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const tokenDecimals = prefetched.tokenDecimals}
+						{@const tokenDecimals = pendingEntity.tokenDecimals}
 						{#if tokenDecimals !== undefined && tokenDecimals !== null}
 							<div>
 								<dt>Token decimals</dt>

@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionType = selection.entitySelector.transactionType ?? prefetched.transactionType}
+							{@const transactionType = pendingEntity.transactionType}
 							{#if transactionType !== undefined && transactionType !== null}
 								{String((transactionType) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -188,7 +188,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasTinybar = prefetched.gasTinybar}
+					{@const gasTinybar = pendingEntity.gasTinybar}
 					{#if gasTinybar !== undefined && gasTinybar !== null}
 						<div>
 							<dt>gas tinybar</dt>
@@ -223,7 +223,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const baseTinycent = prefetched.baseTinycent}
+					{@const baseTinycent = pendingEntity.baseTinycent}
 					{#if baseTinycent !== undefined && baseTinycent !== null}
 						<div>
 							<dt>base tinycent</dt>
@@ -258,7 +258,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeTinycent = prefetched.nodeTinycent}
+					{@const nodeTinycent = pendingEntity.nodeTinycent}
 					{#if nodeTinycent !== undefined && nodeTinycent !== null}
 						<div>
 							<dt>node tinycent</dt>
@@ -293,7 +293,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const networkTinycent = prefetched.networkTinycent}
+					{@const networkTinycent = pendingEntity.networkTinycent}
 					{#if networkTinycent !== undefined && networkTinycent !== null}
 						<div>
 							<dt>network tinycent</dt>
@@ -328,7 +328,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const serviceTinycent = prefetched.serviceTinycent}
+					{@const serviceTinycent = pendingEntity.serviceTinycent}
 					{#if serviceTinycent !== undefined && serviceTinycent !== null}
 						<div>
 							<dt>service tinycent</dt>
@@ -363,7 +363,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalTinycent = prefetched.totalTinycent}
+					{@const totalTinycent = pendingEntity.totalTinycent}
 					{#if totalTinycent !== undefined && totalTinycent !== null}
 						<div>
 							<dt>total tinycent</dt>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fieldNameHash = selection.entitySelector.fieldNameHash ?? prefetched.fieldNameHash}
+							{@const fieldNameHash = pendingEntity.fieldNameHash}
 							{#if fieldNameHash !== undefined && fieldNameHash !== null}
 								<TruncatedValue value={String((fieldNameHash) ?? '')} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const childObjectId = selection.entitySelector.childObjectId ?? prefetched.childObjectId}
+							{@const childObjectId = pendingEntity.childObjectId}
 							{#if childObjectId !== undefined && childObjectId !== null}
 								{String((childObjectId) ?? '')}
 							{/if}

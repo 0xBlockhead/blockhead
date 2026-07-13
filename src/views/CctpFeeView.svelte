@@ -38,7 +38,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cctpFee = $derived(selection({}))
-	const titleFallback = $derived([String((selection.entitySelector.apiHost ?? prefetched.apiHost) ?? '')].filter(Boolean).join(' ') || 'CCTP fee')
+	const titleFallback = $derived([String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || 'CCTP fee')
 	const viewDomId = $derived('cctp-fee-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -60,7 +60,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cctpFee}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.apiHost ?? prefetched.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP fee'}
+				{[String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP fee'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -73,7 +73,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cctpFee}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.fromDomain ?? prefetched.fromDomain) ?? ''), String((selection.entitySelector.toDomain ?? prefetched.toDomain) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.apiHost ?? prefetched.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP fee'}
+				{[String((pendingEntity.fromDomain) ?? ''), String((pendingEntity.toDomain) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.apiHost) ?? '')].filter(Boolean).join(' ') || title || 'CCTP fee'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -98,7 +98,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const apiHost = selection.entitySelector.apiHost ?? prefetched.apiHost}
+							{@const apiHost = pendingEntity.apiHost}
 							{#if apiHost !== undefined && apiHost !== null}
 								{String((apiHost) ?? '')}
 							{/if}
@@ -128,7 +128,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const fromDomain = selection.entitySelector.fromDomain ?? prefetched.fromDomain}
+							{@const fromDomain = pendingEntity.fromDomain}
 							{#if fromDomain !== undefined && fromDomain !== null}
 								{String((fromDomain) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const toDomain = selection.entitySelector.toDomain ?? prefetched.toDomain}
+							{@const toDomain = pendingEntity.toDomain}
 							{#if toDomain !== undefined && toDomain !== null}
 								{String((toDomain) ?? '')}
 							{/if}

@@ -119,8 +119,8 @@
 						selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmRollupFields}
 						href={
-							(evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.caip2 !== undefined && evmRollupHrefFields.$network.caip2.namespace !== undefined && evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.caip2 !== undefined && evmRollupHrefFields.$network.caip2.reference !== undefined && evmRollupHrefFields.projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-								caip2: `${String(evmRollupHrefFields.$network.caip2.namespace ?? '')}:${String(evmRollupHrefFields.$network.caip2.reference ?? '')}`,
+							(evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.slug !== undefined && evmRollupHrefFields.projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+								network: String(evmRollupHrefFields.$network.slug ?? ''),
 								projectId: String(evmRollupHrefFields.projectId ?? ''),
 							}) : undefined)
 						}

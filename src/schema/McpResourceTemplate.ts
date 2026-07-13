@@ -9,8 +9,10 @@ export enum McpResourceTemplateSelector {
 }
 export const McpResourceTemplate = entity({
 	entityType: EntityType.McpResourceTemplate,
-	label: 'mcp resource template',
-	labelPlural: 'mcp resource templates',
+	labels: {
+		singular: 'mcp resource template',
+		plural: 'mcp resource templates',
+	},
 })({
 	$server: {
 		label: 'server',

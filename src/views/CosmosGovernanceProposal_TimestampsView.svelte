@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -70,7 +69,6 @@
 					status: true,
 					source: true,
 					timestampMs: true,
-					$proposal: true,
 				},
 			})
 		}
@@ -115,18 +113,9 @@
 
 				{#snippet Item({ item: cosmosGovernanceProposalTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosGovernanceProposal_Timestamp> })}
 					{@const cosmosGovernanceProposalTimestampFields = { ...cosmosGovernanceProposalTimestamp[EntityMetaKey.Selector], ...cosmosGovernanceProposalTimestamp }}
-					{@const cosmosGovernanceProposalTimestampHrefFields = { ...cosmosGovernanceProposalTimestamp, ...cosmosGovernanceProposalTimestamp[EntityMetaKey.Selector] }}
 					<CosmosGovernanceProposal_TimestampView
 						selection={select(EntityType.CosmosGovernanceProposal_Timestamp, cosmosGovernanceProposalTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosGovernanceProposalTimestampFields}
-						href={
-							(cosmosGovernanceProposalTimestampHrefFields.$proposal !== undefined && cosmosGovernanceProposalTimestampHrefFields.$proposal.$network !== undefined && cosmosGovernanceProposalTimestampHrefFields.$proposal.$network.caip2 !== undefined && cosmosGovernanceProposalTimestampHrefFields.$proposal.$network.caip2.namespace !== undefined && cosmosGovernanceProposalTimestampHrefFields.$proposal !== undefined && cosmosGovernanceProposalTimestampHrefFields.$proposal.$network !== undefined && cosmosGovernanceProposalTimestampHrefFields.$proposal.$network.caip2 !== undefined && cosmosGovernanceProposalTimestampHrefFields.$proposal.$network.caip2.reference !== undefined && cosmosGovernanceProposalTimestampHrefFields.$proposal !== undefined && cosmosGovernanceProposalTimestampHrefFields.$proposal.proposalId !== undefined && cosmosGovernanceProposalTimestampHrefFields.timestampMs !== undefined && cosmosGovernanceProposalTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/governance/proposal/[proposalId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(cosmosGovernanceProposalTimestampHrefFields.$proposal.$network.caip2.namespace ?? '')}:${String(cosmosGovernanceProposalTimestampHrefFields.$proposal.$network.caip2.reference ?? '')}`,
-								proposalId: String(cosmosGovernanceProposalTimestampHrefFields.$proposal.proposalId ?? ''),
-								timestampMs: String(cosmosGovernanceProposalTimestampHrefFields.timestampMs ?? ''),
-								source: String(cosmosGovernanceProposalTimestampHrefFields.source ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -9,8 +9,10 @@ export enum GitForgeIssueSelector {
 }
 export const GitForgeIssue = entity({
 	entityType: EntityType.GitForgeIssue,
-	label: 'Git forge issue',
-	labelPlural: 'Git forge issues',
+	labels: {
+		singular: 'Git forge issue',
+		plural: 'Git forge issues',
+	},
 })({
 	$forgeMirror: {
 		label: 'forge mirror',

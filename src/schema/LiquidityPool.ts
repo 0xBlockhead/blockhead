@@ -10,8 +10,10 @@ export enum LiquidityPoolSelector {
 }
 export const LiquidityPool = entity({
 	entityType: EntityType.LiquidityPool,
-	label: 'liquidity pool',
-	labelPlural: 'liquidity pools',
+	labels: {
+		singular: 'liquidity pool',
+		plural: 'liquidity pools',
+	},
 })({
 	$network: {
 		label: 'Network',

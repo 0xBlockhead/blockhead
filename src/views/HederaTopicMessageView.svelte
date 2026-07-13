@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sequenceNumber = selection.entitySelector.sequenceNumber ?? prefetched.sequenceNumber}
+							{@const sequenceNumber = pendingEntity.sequenceNumber}
 							{#if sequenceNumber !== undefined && sequenceNumber !== null}
 								{String((sequenceNumber) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consensusTimestamp = prefetched.consensusTimestamp}
+					{@const consensusTimestamp = pendingEntity.consensusTimestamp}
 					{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
 						<div>
 							<dt>consensus timestamp</dt>
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const runningHash = prefetched.runningHash}
+					{@const runningHash = pendingEntity.runningHash}
 					{#if runningHash !== undefined && runningHash !== null}
 						<div>
 							<dt>running hash</dt>
@@ -199,7 +199,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payerAccount = prefetched.payerAccount}
+					{@const payerAccount = pendingEntity.payerAccount}
 					{#if payerAccount !== undefined && payerAccount !== null}
 						<div>
 							<dt>payer account</dt>
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const message = prefetched.message}
+					{@const message = pendingEntity.message}
 					{#if message !== undefined && message !== null}
 						<div>
 							<dt>message</dt>

@@ -9,8 +9,10 @@ export enum RadicleIdentityDocumentSelector {
 }
 export const RadicleIdentityDocument = entity({
 	entityType: EntityType.RadicleIdentityDocument,
-	label: 'radicle identity document',
-	labelPlural: 'radicle identity documents',
+	labels: {
+		singular: 'radicle identity document',
+		plural: 'radicle identity documents',
+	},
 })({
 	rid: {
 		label: 'rid',

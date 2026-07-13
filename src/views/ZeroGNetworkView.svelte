@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -56,15 +56,24 @@
 			$executionNetwork: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'zero g network')
+	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'zero g network')
 	const viewDomId = $derived('zero-gnetwork-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import ZeroGConsensusNetworkView from '$/views/ZeroGConsensusNetworkView.svelte'
+	import ZeroGNetwork_TimestampsView from '$/views/ZeroGNetwork_TimestampsView.svelte'
+	import ZeroGStorageNodesView from '$/views/ZeroGStorageNodesView.svelte'
+	import ZeroGDataBlobsView from '$/views/ZeroGDataBlobsView.svelte'
+	import ZeroGKvEntriesView from '$/views/ZeroGKvEntriesView.svelte'
+	import ZeroGDaQuorumsView from '$/views/ZeroGDaQuorumsView.svelte'
+	import ZeroGDaNodesView from '$/views/ZeroGDaNodesView.svelte'
+	import ZeroGServiceProvidersView from '$/views/ZeroGServiceProvidersView.svelte'
 </script>
 
 
@@ -81,7 +90,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={zeroGNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'zero g network'}
+				{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'zero g network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +103,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={zeroGNetwork}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.slug ?? prefetched.slug) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'zero g network'}
+				{[String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'zero g network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +116,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGNetwork}>
 			{#snippet Pending()}
-				{@const environment0 = prefetched.environment}
+				{@const environment0 = pendingEntity.environment}
 				{#if environment0 !== undefined && environment0 !== null}
 					<span data-text="muted">
 						{String((environment0) ?? '')}
@@ -142,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const slug = selection.entitySelector.slug ?? prefetched.slug}
+							{@const slug = pendingEntity.slug}
 							{#if slug !== undefined && slug !== null}
 								{String((slug) ?? '')}
 							{/if}
@@ -172,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const name = prefetched.name}
+							{@const name = pendingEntity.name}
 							{#if name !== undefined && name !== null}
 								{String((name) ?? '')}
 							{/if}
@@ -202,7 +211,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const namespace = prefetched.namespace}
+							{@const namespace = pendingEntity.namespace}
 							{#if namespace !== undefined && namespace !== null}
 								{String((namespace) ?? '')}
 							{/if}
@@ -232,7 +241,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const environment = prefetched.environment}
+							{@const environment = pendingEntity.environment}
 							{#if environment !== undefined && environment !== null}
 								{String((environment) ?? '')}
 							{/if}
@@ -262,7 +271,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const chainId = prefetched.chainId}
+							{@const chainId = pendingEntity.chainId}
 							{#if chainId !== undefined && chainId !== null}
 								<NumberValue value={Number(chainId)} />
 							{/if}
@@ -284,6 +293,8 @@
 			<ResourceBoundary
 				resource={selection.$executionNetwork}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
 						<div>
@@ -293,22 +304,10 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-											networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
-										}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(network[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -323,6 +322,8 @@
 			<ResourceBoundary
 				resource={selection.$consensusNetwork}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
 						<div>
@@ -340,5 +341,198 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-zerog-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'zerog-network-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionZerogNetworkObservations({ id, label, open })}
+					<ZeroGNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No 0G network observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-zerog-storage'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'zerog-storage-nodes',
+							label: 'Storage nodes',
+						},
+						{
+							id: 'zerog-data-blobs',
+							label: 'Data blobs',
+						},
+						{
+							id: 'zerog-kv-entries',
+							label: 'KV entries',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-storage'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Storage</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionZerogStorageNodes({ id, label, open })}
+					<ZeroGStorageNodesView
+						selection={selection.$$storageNodes}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No 0G storage nodes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionZerogDataBlobs({ id, label, open })}
+					<ZeroGDataBlobsView
+						selection={selection.$$dataBlobs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No 0G data blobs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionZerogKvEntries({ id, label, open })}
+					<ZeroGKvEntriesView
+						selection={selection.$$kvEntries}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No 0G KV entries.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-zerog-data-availability'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'zerog-da-quorums',
+							label: 'DA quorums',
+						},
+						{
+							id: 'zerog-da-nodes',
+							label: 'DA nodes',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-data-availability'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Data availability</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionZerogDaQuorums({ id, label, open })}
+					<ZeroGDaQuorumsView
+						selection={selection.$$daQuorums}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No 0G DA quorums.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionZerogDaNodes({ id, label, open })}
+					<ZeroGDaNodesView
+						selection={selection.$$daNodes}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No 0G DA nodes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-zerog-service-providers'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'zerog-service-provider-list',
+							label: 'Service providers',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-service-providers'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Service providers</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionZerogServiceProviderList({ id, label, open })}
+					<ZeroGServiceProvidersView
+						selection={selection.$$serviceProviders}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No 0G service providers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

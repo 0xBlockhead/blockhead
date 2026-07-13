@@ -50,7 +50,7 @@
 			issuedAmount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Elements asset observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Elements asset observation')
 	const viewDomId = $derived('elements-asset-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={elementsAssetTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={elementsAssetTimestamp}>
 			{#snippet Pending()}
-				{@const issuedAmount0 = prefetched.issuedAmount}
+				{@const issuedAmount0 = pendingEntity.issuedAmount}
 				{#if issuedAmount0 !== undefined && issuedAmount0 !== null}
 					<NumberValue value={Number(issuedAmount0)} />
 				{/if}
@@ -136,7 +136,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -166,7 +166,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const issuedAmount = prefetched.issuedAmount}
+					{@const issuedAmount = pendingEntity.issuedAmount}
 					{#if issuedAmount !== undefined && issuedAmount !== null}
 						<div>
 							<dt>Issued amount</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const burnedAmount = prefetched.burnedAmount}
+					{@const burnedAmount = pendingEntity.burnedAmount}
 					{#if burnedAmount !== undefined && burnedAmount !== null}
 						<div>
 							<dt>Burned amount</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reissuanceTokenCount = prefetched.reissuanceTokenCount}
+					{@const reissuanceTokenCount = pendingEntity.reissuanceTokenCount}
 					{#if reissuanceTokenCount !== undefined && reissuanceTokenCount !== null}
 						<div>
 							<dt>Reissuance tokens</dt>

@@ -118,8 +118,8 @@
 						selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={erc4337PaymasterFields}
 						href={
-							(erc4337PaymasterHrefFields.$network !== undefined && erc4337PaymasterHrefFields.$network.caip2 !== undefined && erc4337PaymasterHrefFields.$network.caip2.namespace !== undefined && erc4337PaymasterHrefFields.$network !== undefined && erc4337PaymasterHrefFields.$network.caip2 !== undefined && erc4337PaymasterHrefFields.$network.caip2.reference !== undefined && erc4337PaymasterHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymaster/[address=evmAddress]', {
-								caip2: `${String(erc4337PaymasterHrefFields.$network.caip2.namespace ?? '')}:${String(erc4337PaymasterHrefFields.$network.caip2.reference ?? '')}`,
+							(erc4337PaymasterHrefFields.$network !== undefined && erc4337PaymasterHrefFields.$network.slug !== undefined && erc4337PaymasterHrefFields.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
+								network: String(erc4337PaymasterHrefFields.$network.slug ?? ''),
 								address: String(erc4337PaymasterHrefFields.address ?? ''),
 							}) : undefined)
 						}

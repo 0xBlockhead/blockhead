@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const inputIndex = selection.entitySelector.inputIndex ?? prefetched.inputIndex}
+							{@const inputIndex = pendingEntity.inputIndex}
 							{#if inputIndex !== undefined && inputIndex !== null}
 								{String((inputIndex) ?? '')}
 							{/if}
@@ -130,7 +130,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputKind = prefetched.inputKind}
+					{@const inputKind = pendingEntity.inputKind}
 					{#if inputKind !== undefined && inputKind !== null}
 						<div>
 							<dt>input kind</dt>
@@ -165,7 +165,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spentTxHash = prefetched.spentTxHash}
+					{@const spentTxHash = pendingEntity.spentTxHash}
 					{#if spentTxHash !== undefined && spentTxHash !== null}
 						<div>
 							<dt>spent transaction hash</dt>
@@ -200,7 +200,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spentOutputIndex = prefetched.spentOutputIndex}
+					{@const spentOutputIndex = pendingEntity.spentOutputIndex}
 					{#if spentOutputIndex !== undefined && spentOutputIndex !== null}
 						<div>
 							<dt>spent output index</dt>
@@ -228,6 +228,8 @@
 			<ResourceBoundary
 				resource={selection.$spentOutput}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoTxOutput)}
 					{#if cardanoTxOutput != null && cardanoTxOutput[EntityMetaKey.Selector] != null}
 						<div>
@@ -255,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const redeemerIndex = prefetched.redeemerIndex}
+					{@const redeemerIndex = pendingEntity.redeemerIndex}
 					{#if redeemerIndex !== undefined && redeemerIndex !== null}
 						<div>
 							<dt>redeemer index</dt>

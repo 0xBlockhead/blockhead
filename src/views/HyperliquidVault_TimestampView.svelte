@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const apr = prefetched.apr}
+					{@const apr = pendingEntity.apr}
 					{#if apr !== undefined && apr !== null}
 						<div>
 							<dt>apr</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const leaderFraction = prefetched.leaderFraction}
+					{@const leaderFraction = pendingEntity.leaderFraction}
 					{#if leaderFraction !== undefined && leaderFraction !== null}
 						<div>
 							<dt>leader fraction</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const leaderCommission = prefetched.leaderCommission}
+					{@const leaderCommission = pendingEntity.leaderCommission}
 					{#if leaderCommission !== undefined && leaderCommission !== null}
 						<div>
 							<dt>leader commission</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxDistributable = prefetched.maxDistributable}
+					{@const maxDistributable = pendingEntity.maxDistributable}
 					{#if maxDistributable !== undefined && maxDistributable !== null}
 						<div>
 							<dt>max distributable</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxWithdrawable = prefetched.maxWithdrawable}
+					{@const maxWithdrawable = pendingEntity.maxWithdrawable}
 					{#if maxWithdrawable !== undefined && maxWithdrawable !== null}
 						<div>
 							<dt>max withdrawable</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isClosed = prefetched.isClosed}
+					{@const isClosed = pendingEntity.isClosed}
 					{#if isClosed !== undefined && isClosed !== null}
 						<div>
 							<dt>is closed</dt>
@@ -438,7 +438,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const allowDeposits = prefetched.allowDeposits}
+					{@const allowDeposits = pendingEntity.allowDeposits}
 					{#if allowDeposits !== undefined && allowDeposits !== null}
 						<div>
 							<dt>allow deposits</dt>
@@ -473,7 +473,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const alwaysCloseOnWithdraw = prefetched.alwaysCloseOnWithdraw}
+					{@const alwaysCloseOnWithdraw = pendingEntity.alwaysCloseOnWithdraw}
 					{#if alwaysCloseOnWithdraw !== undefined && alwaysCloseOnWithdraw !== null}
 						<div>
 							<dt>always close on withdraw</dt>
@@ -508,7 +508,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followerCount = prefetched.followerCount}
+					{@const followerCount = pendingEntity.followerCount}
 					{#if followerCount !== undefined && followerCount !== null}
 						<div>
 							<dt>follower count</dt>

@@ -10,8 +10,10 @@ export enum OracleFeedSelector {
 }
 export const OracleFeed = entity({
 	entityType: EntityType.OracleFeed,
-	label: 'oracle feed',
-	labelPlural: 'oracle feeds',
+	labels: {
+		singular: 'oracle feed',
+		plural: 'oracle feeds',
+	},
 })({
 	$network: {
 		label: 'network',

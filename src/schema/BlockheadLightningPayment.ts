@@ -9,8 +9,10 @@ export enum BlockheadLightningPaymentSelector {
 }
 export const BlockheadLightningPayment = entity({
 	entityType: EntityType.BlockheadLightningPayment,
-	label: 'Lightning payment',
-	labelPlural: 'Lightning payments',
+	labels: {
+		singular: 'Lightning payment',
+		plural: 'Lightning payments',
+	},
 })({
 	$network: {
 		label: 'Network',

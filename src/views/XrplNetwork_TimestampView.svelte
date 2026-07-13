@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validatedLedgerIndex = prefetched.validatedLedgerIndex}
+					{@const validatedLedgerIndex = pendingEntity.validatedLedgerIndex}
 					{#if validatedLedgerIndex !== undefined && validatedLedgerIndex !== null}
 						<div>
 							<dt>validated ledger index</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const completeLedgers = prefetched.completeLedgers}
+					{@const completeLedgers = pendingEntity.completeLedgers}
 					{#if completeLedgers !== undefined && completeLedgers !== null}
 						<div>
 							<dt>complete ledgers</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const loadFactor = prefetched.loadFactor}
+					{@const loadFactor = pendingEntity.loadFactor}
 					{#if loadFactor !== undefined && loadFactor !== null}
 						<div>
 							<dt>load factor</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>peer count</dt>

@@ -54,7 +54,7 @@
 			confirmations: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash note state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash note state timestamp')
 	const viewDomId = $derived('blockhead-zcash-note-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadZcashNoteStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZcashNoteStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.spent) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zcash note state timestamp'}
+				{[String((pendingEntity.spent) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zcash note state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZcashNoteStateTimestamp}>
 			{#snippet Pending()}
-				{@const confirmations0 = prefetched.confirmations}
+				{@const confirmations0 = pendingEntity.confirmations}
 				{#if confirmations0 !== undefined && confirmations0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(confirmations0)} />
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -187,7 +187,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spent = prefetched.spent}
+					{@const spent = pendingEntity.spent}
 					{#if spent !== undefined && spent !== null}
 						<div>
 							<dt>spent</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spendTransactionId = prefetched.spendTransactionId}
+					{@const spendTransactionId = pendingEntity.spendTransactionId}
 					{#if spendTransactionId !== undefined && spendTransactionId !== null}
 						<div>
 							<dt>spend transaction ID</dt>
@@ -286,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spentAtHeight = prefetched.spentAtHeight}
+					{@const spentAtHeight = pendingEntity.spentAtHeight}
 					{#if spentAtHeight !== undefined && spentAtHeight !== null}
 						<div>
 							<dt>spent AT height</dt>
@@ -321,7 +321,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const confirmations = prefetched.confirmations}
+					{@const confirmations = pendingEntity.confirmations}
 					{#if confirmations !== undefined && confirmations !== null}
 						<div>
 							<dt>confirmations</dt>
@@ -356,7 +356,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const witnessAvailable = prefetched.witnessAvailable}
+					{@const witnessAvailable = pendingEntity.witnessAvailable}
 					{#if witnessAvailable !== undefined && witnessAvailable !== null}
 						<div>
 							<dt>witness available</dt>
@@ -393,7 +393,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastScannedHeight = prefetched.lastScannedHeight}
+					{@const lastScannedHeight = pendingEntity.lastScannedHeight}
 					{#if lastScannedHeight !== undefined && lastScannedHeight !== null}
 						<div>
 							<dt>last scanned height</dt>
@@ -428,7 +428,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastScannedAt = prefetched.lastScannedAt}
+					{@const lastScannedAt = pendingEntity.lastScannedAt}
 					{#if lastScannedAt !== undefined && lastScannedAt !== null}
 						<div>
 							<dt>last scanned AT</dt>

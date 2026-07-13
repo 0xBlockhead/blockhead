@@ -118,9 +118,9 @@
 						selection={select(EntityType.FarcasterUser_Timestamp, farcasterUserTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={farcasterUserTimestampFields}
 						href={
-							(farcasterUserTimestampHrefFields.$user !== undefined && farcasterUserTimestampHrefFields.$user.fid !== undefined && farcasterUserTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(farcaster)/farcaster/user/[userId=farcasterFid]/(user)/observations/[timestampMs=nonNegativeInteger]', {
-								userId: String(farcasterUserTimestampHrefFields.$user.fid ?? ''),
+							(farcasterUserTimestampHrefFields.timestampMs !== undefined && farcasterUserTimestampHrefFields.$user !== undefined && farcasterUserTimestampHrefFields.$user.fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]/observations/[timestampMs=nonNegativeInteger]', {
 								timestampMs: String(farcasterUserTimestampHrefFields.timestampMs ?? ''),
+								userId: String(farcasterUserTimestampHrefFields.$user.fid ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

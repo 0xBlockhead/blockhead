@@ -9,8 +9,10 @@ export enum BitTorrentAnnounce_TimestampSelector {
 }
 export const BitTorrentAnnounce_Timestamp = entity({
 	entityType: EntityType.BitTorrentAnnounce_Timestamp,
-	label: 'bit torrent announce timestamp',
-	labelPlural: 'bit torrent announce observations',
+	labels: {
+		singular: 'bit torrent announce timestamp',
+		plural: 'bit torrent announce observations',
+	},
 })({
 	$torrent: {
 		label: 'torrent',

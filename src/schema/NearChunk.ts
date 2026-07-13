@@ -10,8 +10,10 @@ export enum NearChunkSelector {
 }
 export const NearChunk = entity({
 	entityType: EntityType.NearChunk,
-	label: 'near chunk',
-	labelPlural: 'near chunks',
+	labels: {
+		singular: 'near chunk',
+		plural: 'near chunks',
+	},
 })({
 	$network: {
 		label: 'Network',

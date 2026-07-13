@@ -9,8 +9,10 @@ export enum TonContractGetMethodSelector {
 }
 export const TonContractGetMethod = entity({
 	entityType: EntityType.TonContractGetMethod,
-	label: 'ton contract get method',
-	labelPlural: 'ton contract get methods',
+	labels: {
+		singular: 'ton contract get method',
+		plural: 'ton contract get methods',
+	},
 })({
 	$contract: {
 		label: 'contract',

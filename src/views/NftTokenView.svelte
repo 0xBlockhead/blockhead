@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tokenKey = selection.entitySelector.tokenKey ?? prefetched.tokenKey}
+							{@const tokenKey = pendingEntity.tokenKey}
 							{#if tokenKey !== undefined && tokenKey !== null}
 								{String((tokenKey) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenId = prefetched.tokenId}
+					{@const tokenId = pendingEntity.tokenId}
 					{#if tokenId !== undefined && tokenId !== null}
 						<div>
 							<dt>Token ID</dt>
@@ -161,6 +161,8 @@
 			<ResourceBoundary
 				resource={selection.$assetObject}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(assetObject)}
 					{#if assetObject != null && assetObject[EntityMetaKey.Selector] != null}
 						<div>
@@ -181,6 +183,8 @@
 			<ResourceBoundary
 				resource={selection.$metadata}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tokenMetadataDocument)}
 					{#if tokenMetadataDocument != null && tokenMetadataDocument[EntityMetaKey.Selector] != null}
 						<div>

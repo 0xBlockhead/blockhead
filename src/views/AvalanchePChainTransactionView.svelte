@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -46,10 +46,9 @@
 	const avalanchePChainTransaction = $derived(selection({
 		fields: {
 			txType: true,
-			$block: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche p chain transaction')
+	const titleFallback = $derived([String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche p chain transaction')
 	const viewDomId = $derived('avalanche-pchain-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={avalanchePChainTransaction}>
 			{#snippet Pending()}
-				{@const txId0 = selection.entitySelector.txId ?? prefetched.txId}
+				{@const txId0 = pendingEntity.txId}
 				{#if txId0 !== undefined && txId0 !== null}
 					<TruncatedValue value={String((txId0) ?? '')} />
 				{/if}
@@ -96,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={avalanchePChainTransaction}>
 			{#snippet Pending()}
-				{[String((prefetched.txType) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || title || 'avalanche p chain transaction'}
+				{[String((pendingEntity.txType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || 'avalanche p chain transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -157,22 +156,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -194,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const txId = selection.entitySelector.txId ?? prefetched.txId}
+							{@const txId = pendingEntity.txId}
 							{#if txId !== undefined && txId !== null}
 								<TruncatedValue value={String((txId) ?? '')} />
 							{/if}
@@ -221,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const txType = prefetched.txType}
+					{@const txType = pendingEntity.txType}
 					{#if txType !== undefined && txType !== null}
 						<div>
 							<dt>transaction type</dt>
@@ -249,6 +236,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(avalanchePChainBlock)}
 					{#if avalanchePChainBlock != null && avalanchePChainBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -278,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subnetId = prefetched.subnetId}
+					{@const subnetId = pendingEntity.subnetId}
 					{#if subnetId !== undefined && subnetId !== null}
 						<div>
 							<dt>subnet ID</dt>
@@ -313,7 +302,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockchainId = prefetched.blockchainId}
+					{@const blockchainId = pendingEntity.blockchainId}
 					{#if blockchainId !== undefined && blockchainId !== null}
 						<div>
 							<dt>blockchain ID</dt>
@@ -348,7 +337,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nodeId = prefetched.nodeId}
+					{@const nodeId = pendingEntity.nodeId}
 					{#if nodeId !== undefined && nodeId !== null}
 						<div>
 							<dt>node ID</dt>
@@ -383,7 +372,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startTimeMs = prefetched.startTimeMs}
+					{@const startTimeMs = pendingEntity.startTimeMs}
 					{#if startTimeMs !== undefined && startTimeMs !== null}
 						<div>
 							<dt>start time ms</dt>
@@ -418,7 +407,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endTimeMs = prefetched.endTimeMs}
+					{@const endTimeMs = pendingEntity.endTimeMs}
 					{#if endTimeMs !== undefined && endTimeMs !== null}
 						<div>
 							<dt>end time ms</dt>
@@ -455,7 +444,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakeAmountNavax = prefetched.stakeAmountNavax}
+					{@const stakeAmountNavax = pendingEntity.stakeAmountNavax}
 					{#if stakeAmountNavax !== undefined && stakeAmountNavax !== null}
 						<div>
 							<dt>stake amount navax</dt>
@@ -490,7 +479,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeNavax = prefetched.feeNavax}
+					{@const feeNavax = pendingEntity.feeNavax}
 					{#if feeNavax !== undefined && feeNavax !== null}
 						<div>
 							<dt>fee navax</dt>
@@ -525,7 +514,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo}
+					{@const memo = pendingEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>memo</dt>
@@ -560,7 +549,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceChain = prefetched.sourceChain}
+					{@const sourceChain = pendingEntity.sourceChain}
 					{#if sourceChain !== undefined && sourceChain !== null}
 						<div>
 							<dt>source chain</dt>
@@ -595,7 +584,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const destinationChain = prefetched.destinationChain}
+					{@const destinationChain = pendingEntity.destinationChain}
 					{#if destinationChain !== undefined && destinationChain !== null}
 						<div>
 							<dt>destination chain</dt>

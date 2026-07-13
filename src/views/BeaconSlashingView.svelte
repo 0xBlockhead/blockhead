@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -44,7 +44,7 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const beaconSlashing = $derived(selection({}))
-	const titleFallback = $derived((String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') ? 'Slashing #' + String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') : '') || 'beacon slashing')
+	const titleFallback = $derived((String((pendingEntity.indexInSlot) ?? '') ? 'Slashing #' + String((pendingEntity.indexInSlot) ?? '') : '') || 'beacon slashing')
 	const viewDomId = $derived('beacon-slashing-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -60,10 +60,10 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.indexInSlot ?? prefetched.indexInSlot ?? '')}
+	idDragPlainText={String(pendingEntity.indexInSlot ?? '')}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.slot !== undefined && pendingEntity.kind !== undefined && pendingEntity.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/slashing/[kind]/[index=nonNegativeInteger]', {
-			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.slot !== undefined && pendingEntity.kind !== undefined && pendingEntity.indexInSlot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/slashing/[kind=stringSegment]/[index=nonNegativeInteger]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			slot: String(pendingEntity.slot ?? ''),
 			kind: String(pendingEntity.kind ?? ''),
 			index: String(pendingEntity.indexInSlot ?? ''),
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={beaconSlashing}>
 			{#snippet Pending()}
-				{(String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') ? 'Slashing #' + String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') : '') || title || 'beacon slashing'}
+				{(String((pendingEntity.indexInSlot) ?? '') ? 'Slashing #' + String((pendingEntity.indexInSlot) ?? '') : '') || title || 'beacon slashing'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={beaconSlashing}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.kind ?? prefetched.kind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.kind ?? prefetched.kind) ?? ''), (String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') ? ' #' + String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || title || 'beacon slashing'}
+				{[String((pendingEntity.kind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.kind) ?? ''), (String((pendingEntity.indexInSlot) ?? '') ? ' #' + String((pendingEntity.indexInSlot) ?? '') : '')].filter(Boolean).join(' ') || title || 'beacon slashing'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={beaconSlashing}>
 			{#snippet Pending()}
-				{@const slot0 = selection.entitySelector.slot ?? prefetched.slot}
+				{@const slot0 = pendingEntity.slot}
 				{#if slot0 !== undefined && slot0 !== null}
 					<span data-text="muted">
 						<span>Slot </span>
@@ -139,7 +139,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const kind = selection.entitySelector.kind ?? prefetched.kind}
+							{@const kind = pendingEntity.kind}
 							{#if kind !== undefined && kind !== null}
 								{String((kind) ?? '')}
 							{/if}
@@ -169,7 +169,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const indexInSlot = selection.entitySelector.indexInSlot ?? prefetched.indexInSlot}
+							{@const indexInSlot = pendingEntity.indexInSlot}
 							{#if indexInSlot !== undefined && indexInSlot !== null}
 								<NumberValue value={Number(indexInSlot)} />
 							{/if}
@@ -199,7 +199,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const slot = selection.entitySelector.slot ?? prefetched.slot}
+							{@const slot = pendingEntity.slot}
 							{#if slot !== undefined && slot !== null}
 								<NumberValue value={Number(slot)} />
 							{/if}
@@ -222,22 +222,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

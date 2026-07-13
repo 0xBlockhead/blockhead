@@ -9,8 +9,10 @@ export enum CardanoStakePool_TimestampSelector {
 }
 export const CardanoStakePool_Timestamp = entity({
 	entityType: EntityType.CardanoStakePool_Timestamp,
-	label: 'cardano stake pool timestamp',
-	labelPlural: 'cardano stake pool observations',
+	labels: {
+		singular: 'cardano stake pool timestamp',
+		plural: 'cardano stake pool observations',
+	},
 })({
 	$pool: {
 		label: 'pool',

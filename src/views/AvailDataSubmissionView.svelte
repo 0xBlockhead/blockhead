@@ -46,7 +46,7 @@
 			blockNumber: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.submissionKey ?? prefetched.submissionKey) ?? '')].filter(Boolean).join(' ') || 'avail data submission')
+	const titleFallback = $derived([String((pendingEntity.submissionKey) ?? '')].filter(Boolean).join(' ') || 'avail data submission')
 	const viewDomId = $derived('avail-data-submission-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={availDataSubmission}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.submissionKey ?? prefetched.submissionKey) ?? '')].filter(Boolean).join(' ') || title || 'avail data submission'}
+				{[String((pendingEntity.submissionKey) ?? '')].filter(Boolean).join(' ') || title || 'avail data submission'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={availDataSubmission}>
 			{#snippet Pending()}
-				{@const blockNumber0 = prefetched.blockNumber}
+				{@const blockNumber0 = pendingEntity.blockNumber}
 				{#if blockNumber0 !== undefined && blockNumber0 !== null}
 					<NumberValue value={Number(blockNumber0)} />
 				{/if}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={availDataSubmission}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -151,7 +151,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -181,7 +181,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const submissionKey = selection.entitySelector.submissionKey ?? prefetched.submissionKey}
+							{@const submissionKey = pendingEntity.submissionKey}
 							{#if submissionKey !== undefined && submissionKey !== null}
 								{String((submissionKey) ?? '')}
 							{/if}
@@ -201,6 +201,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(availBlock)}
 					{#if availBlock != null && availBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -221,6 +223,8 @@
 			<ResourceBoundary
 				resource={selection.$appId}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(availAppId)}
 					{#if availAppId != null && availAppId[EntityMetaKey.Selector] != null}
 						<div>
@@ -250,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -285,7 +289,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const extrinsicIndex = prefetched.extrinsicIndex}
+					{@const extrinsicIndex = pendingEntity.extrinsicIndex}
 					{#if extrinsicIndex !== undefined && extrinsicIndex !== null}
 						<div>
 							<dt>extrinsic index</dt>
@@ -320,7 +324,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>transaction hash</dt>
@@ -355,7 +359,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const appId = prefetched.appId}
+					{@const appId = pendingEntity.appId}
 					{#if appId !== undefined && appId !== null}
 						<div>
 							<dt>app ID</dt>
@@ -392,7 +396,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataHash = prefetched.dataHash}
+					{@const dataHash = pendingEntity.dataHash}
 					{#if dataHash !== undefined && dataHash !== null}
 						<div>
 							<dt>data hash</dt>
@@ -427,7 +431,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const commitment = prefetched.commitment}
+					{@const commitment = pendingEntity.commitment}
 					{#if commitment !== undefined && commitment !== null}
 						<div>
 							<dt>commitment</dt>
@@ -462,7 +466,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sizeBytes = prefetched.sizeBytes}
+					{@const sizeBytes = pendingEntity.sizeBytes}
 					{#if sizeBytes !== undefined && sizeBytes !== null}
 						<div>
 							<dt>size bytes</dt>
@@ -499,7 +503,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proofAvailable = prefetched.proofAvailable}
+					{@const proofAvailable = pendingEntity.proofAvailable}
 					{#if proofAvailable !== undefined && proofAvailable !== null}
 						<div>
 							<dt>proof available</dt>
@@ -534,7 +538,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payload = prefetched.payload}
+					{@const payload = pendingEntity.payload}
 					{#if payload !== undefined && payload !== null}
 						<div>
 							<dt>payload</dt>
@@ -569,7 +573,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payloadRequested = prefetched.payloadRequested}
+					{@const payloadRequested = pendingEntity.payloadRequested}
 					{#if payloadRequested !== undefined && payloadRequested !== null}
 						<div>
 							<dt>payload requested</dt>

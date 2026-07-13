@@ -10,8 +10,10 @@ export enum GitPackedObjectSelector {
 }
 export const GitPackedObject = entity({
 	entityType: EntityType.GitPackedObject,
-	label: 'Git packed object',
-	labelPlural: 'Git packed objects',
+	labels: {
+		singular: 'Git packed object',
+		plural: 'Git packed objects',
+	},
 })({
 	packHash: {
 		label: 'pack hash',

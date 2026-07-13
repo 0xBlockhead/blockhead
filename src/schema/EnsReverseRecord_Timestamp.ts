@@ -9,8 +9,10 @@ export enum EnsReverseRecord_TimestampSelector {
 }
 export const EnsReverseRecord_Timestamp = entity({
 	entityType: EntityType.EnsReverseRecord_Timestamp,
-	label: 'ENS reverse record timestamp',
-	labelPlural: 'ENS reverse record observations',
+	labels: {
+		singular: 'ENS reverse record timestamp',
+		plural: 'ENS reverse record observations',
+	},
 })({
 	$reverseRecord: {
 		label: 'Reverse record',

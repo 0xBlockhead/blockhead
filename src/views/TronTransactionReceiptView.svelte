@@ -106,7 +106,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeSun = prefetched.feeSun}
+					{@const feeSun = pendingEntity.feeSun}
 					{#if feeSun !== undefined && feeSun !== null}
 						<div>
 							<dt>Fee sun</dt>
@@ -147,7 +147,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const result = prefetched.result}
+					{@const result = pendingEntity.result}
 					{#if result !== undefined && result !== null}
 						<div>
 							<dt>Result</dt>
@@ -182,7 +182,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resMessageHex = prefetched.resMessageHex}
+					{@const resMessageHex = pendingEntity.resMessageHex}
 					{#if resMessageHex !== undefined && resMessageHex !== null}
 						<div>
 							<dt>Result message hex</dt>
@@ -217,7 +217,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const contractAddress = prefetched.contractAddress}
+					{@const contractAddress = pendingEntity.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>Contract address</dt>
@@ -252,7 +252,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const energyUsage = prefetched.energyUsage}
+					{@const energyUsage = pendingEntity.energyUsage}
 					{#if energyUsage !== undefined && energyUsage !== null}
 						<div>
 							<dt>Energy usage</dt>
@@ -287,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const originEnergyUsage = prefetched.originEnergyUsage}
+					{@const originEnergyUsage = pendingEntity.originEnergyUsage}
 					{#if originEnergyUsage !== undefined && originEnergyUsage !== null}
 						<div>
 							<dt>Origin energy usage</dt>
@@ -327,7 +327,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const energyUsageTotal = prefetched.energyUsageTotal}
+					{@const energyUsageTotal = pendingEntity.energyUsageTotal}
 					{#if energyUsageTotal !== undefined && energyUsageTotal !== null}
 						<div>
 							<dt>Energy usage total</dt>
@@ -362,7 +362,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const energyFeeSun = prefetched.energyFeeSun}
+					{@const energyFeeSun = pendingEntity.energyFeeSun}
 					{#if energyFeeSun !== undefined && energyFeeSun !== null}
 						<div>
 							<dt>Energy fee sun</dt>
@@ -397,7 +397,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const energyPenaltyTotal = prefetched.energyPenaltyTotal}
+					{@const energyPenaltyTotal = pendingEntity.energyPenaltyTotal}
 					{#if energyPenaltyTotal !== undefined && energyPenaltyTotal !== null}
 						<div>
 							<dt>Energy penalty total</dt>
@@ -437,7 +437,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const netUsage = prefetched.netUsage}
+					{@const netUsage = pendingEntity.netUsage}
 					{#if netUsage !== undefined && netUsage !== null}
 						<div>
 							<dt>Net usage</dt>
@@ -472,7 +472,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const netFeeSun = prefetched.netFeeSun}
+					{@const netFeeSun = pendingEntity.netFeeSun}
 					{#if netFeeSun !== undefined && netFeeSun !== null}
 						<div>
 							<dt>Net fee sun</dt>
@@ -507,7 +507,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const logCount = prefetched.logCount}
+					{@const logCount = pendingEntity.logCount}
 					{#if logCount !== undefined && logCount !== null}
 						<div>
 							<dt>Logs</dt>
@@ -542,7 +542,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const internalTransactionCount = prefetched.internalTransactionCount}
+					{@const internalTransactionCount = pendingEntity.internalTransactionCount}
 					{#if internalTransactionCount !== undefined && internalTransactionCount !== null}
 						<div>
 							<dt>Internal transactions</dt>
@@ -585,7 +585,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const contractResultHex = prefetched.contractResultHex}
+							{@const contractResultHex = pendingEntity.contractResultHex}
 							{#if contractResultHex !== undefined && contractResultHex !== null}
 								{contractResultHex.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

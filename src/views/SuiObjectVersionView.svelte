@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectId = selection.entitySelector.objectId ?? prefetched.objectId}
+							{@const objectId = pendingEntity.objectId}
 							{#if objectId !== undefined && objectId !== null}
 								{String((objectId) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const version = selection.entitySelector.version ?? prefetched.version}
+							{@const version = pendingEntity.version}
 							{#if version !== undefined && version !== null}
 								{String((version) ?? '')}
 							{/if}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const digest = selection.entitySelector.digest ?? prefetched.digest}
+							{@const digest = pendingEntity.digest}
 							{#if digest !== undefined && digest !== null}
 								<TruncatedValue value={String((digest) ?? '')} />
 							{/if}
@@ -189,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const objectType = prefetched.objectType}
+					{@const objectType = pendingEntity.objectType}
 					{#if objectType !== undefined && objectType !== null}
 						<div>
 							<dt>object type</dt>
@@ -224,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousTransaction = prefetched.previousTransaction}
+					{@const previousTransaction = pendingEntity.previousTransaction}
 					{#if previousTransaction !== undefined && previousTransaction !== null}
 						<div>
 							<dt>previous transaction</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storageRebate = prefetched.storageRebate}
+					{@const storageRebate = pendingEntity.storageRebate}
 					{#if storageRebate !== undefined && storageRebate !== null}
 						<div>
 							<dt>storage rebate</dt>

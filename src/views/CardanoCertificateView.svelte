@@ -105,7 +105,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const certificateIndex = selection.entitySelector.certificateIndex ?? prefetched.certificateIndex}
+							{@const certificateIndex = pendingEntity.certificateIndex}
 							{#if certificateIndex !== undefined && certificateIndex !== null}
 								{String((certificateIndex) ?? '')}
 							{/if}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const certificateKind = prefetched.certificateKind}
+							{@const certificateKind = pendingEntity.certificateKind}
 							{#if certificateKind !== undefined && certificateKind !== null}
 								{String((certificateKind) ?? '')}
 							{/if}
@@ -155,6 +155,8 @@
 			<ResourceBoundary
 				resource={selection.$stakeCredential}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoStakeCredential)}
 					{#if cardanoStakeCredential != null && cardanoStakeCredential[EntityMetaKey.Selector] != null}
 						<div>
@@ -175,6 +177,8 @@
 			<ResourceBoundary
 				resource={selection.$stakePool}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoStakePool)}
 					{#if cardanoStakePool != null && cardanoStakePool[EntityMetaKey.Selector] != null}
 						<div>
@@ -195,6 +199,8 @@
 			<ResourceBoundary
 				resource={selection.$drep}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(cardanoDRep)}
 					{#if cardanoDRep != null && cardanoDRep[EntityMetaKey.Selector] != null}
 						<div>
@@ -222,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const poolId = prefetched.poolId}
+					{@const poolId = pendingEntity.poolId}
 					{#if poolId !== undefined && poolId !== null}
 						<div>
 							<dt>pool ID</dt>
@@ -257,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardAddress = prefetched.rewardAddress}
+					{@const rewardAddress = pendingEntity.rewardAddress}
 					{#if rewardAddress !== undefined && rewardAddress !== null}
 						<div>
 							<dt>reward address</dt>
@@ -292,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const depositLovelace = prefetched.depositLovelace}
+					{@const depositLovelace = pendingEntity.depositLovelace}
 					{#if depositLovelace !== undefined && depositLovelace !== null}
 						<div>
 							<dt>deposit lovelace</dt>
@@ -327,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epoch = prefetched.epoch}
+					{@const epoch = pendingEntity.epoch}
 					{#if epoch !== undefined && epoch !== null}
 						<div>
 							<dt>epoch</dt>
@@ -362,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataUrl = prefetched.metadataUrl}
+					{@const metadataUrl = pendingEntity.metadataUrl}
 					{#if metadataUrl !== undefined && metadataUrl !== null}
 						<div>
 							<dt>metadata URL</dt>
@@ -411,7 +417,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataHash = prefetched.metadataHash}
+					{@const metadataHash = pendingEntity.metadataHash}
 					{#if metadataHash !== undefined && metadataHash !== null}
 						<div>
 							<dt>metadata hash</dt>

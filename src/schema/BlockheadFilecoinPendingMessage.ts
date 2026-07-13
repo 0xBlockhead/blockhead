@@ -9,8 +9,10 @@ export enum BlockheadFilecoinPendingMessageSelector {
 }
 export const BlockheadFilecoinPendingMessage = entity({
 	entityType: EntityType.BlockheadFilecoinPendingMessage,
-	label: 'blockhead filecoin pending message',
-	labelPlural: 'blockhead filecoin pending messages',
+	labels: {
+		singular: 'blockhead filecoin pending message',
+		plural: 'blockhead filecoin pending messages',
+	},
 })({
 	nodeId: {
 		label: 'node ID',

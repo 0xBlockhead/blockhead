@@ -9,8 +9,10 @@ export enum _GlobalIpfsAccess_TimestampSelector {
 }
 export const _GlobalIpfsAccess_Timestamp = entity({
 	entityType: EntityType._GlobalIpfsAccess_Timestamp,
-	label: 'global IPFS access timestamp',
-	labelPlural: 'global IPFS access observations',
+	labels: {
+		singular: 'global IPFS access timestamp',
+		plural: 'global IPFS access observations',
+	},
 })({
 	$hub: {
 		label: 'Hub',
@@ -22,7 +24,7 @@ export const _GlobalIpfsAccess_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

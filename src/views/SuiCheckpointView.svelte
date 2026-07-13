@@ -99,7 +99,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequence = prefetched.sequence}
+					{@const sequence = pendingEntity.sequence}
 					{#if sequence !== undefined && sequence !== null}
 						<div>
 							<dt>sequence</dt>
@@ -134,7 +134,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const digest = prefetched.digest}
+					{@const digest = pendingEntity.digest}
 					{#if digest !== undefined && digest !== null}
 						<div>
 							<dt>digest</dt>
@@ -169,7 +169,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const epoch = prefetched.epoch}
+					{@const epoch = pendingEntity.epoch}
 					{#if epoch !== undefined && epoch !== null}
 						<div>
 							<dt>epoch</dt>
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -239,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousDigest = prefetched.previousDigest}
+					{@const previousDigest = pendingEntity.previousDigest}
 					{#if previousDigest !== undefined && previousDigest !== null}
 						<div>
 							<dt>previous digest</dt>

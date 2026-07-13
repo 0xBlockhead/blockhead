@@ -52,10 +52,9 @@
 		],
 		fields: {
 			transactionKind: true,
-			$block: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.transactionHash ?? prefetched.transactionHash) ?? '')].filter(Boolean).join(' ') || 'starknet transaction')
+	const titleFallback = $derived([String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || 'starknet transaction')
 	const viewDomId = $derived('starknet-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -81,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={starknetTransaction}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.transactionHash ?? prefetched.transactionHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet transaction'}
+				{[String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetTransaction}>
 			{#snippet Pending()}
-				{[String((prefetched.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.transactionHash ?? prefetched.transactionHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet transaction'}
+				{[String((pendingEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.transactionHash) ?? '')].filter(Boolean).join(' ') || title || 'starknet transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -162,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionHash = selection.entitySelector.transactionHash ?? prefetched.transactionHash}
+							{@const transactionHash = pendingEntity.transactionHash}
 							{#if transactionHash !== undefined && transactionHash !== null}
 								<TruncatedValue value={String((transactionHash) ?? '')} />
 							{/if}
@@ -189,7 +188,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionKind = prefetched.transactionKind}
+					{@const transactionKind = pendingEntity.transactionKind}
 					{#if transactionKind !== undefined && transactionKind !== null}
 						<div>
 							<dt>transaction kind</dt>
@@ -217,6 +216,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(starknetBlock)}
 					{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -244,7 +245,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const senderAddress = prefetched.senderAddress}
+					{@const senderAddress = pendingEntity.senderAddress}
 					{#if senderAddress !== undefined && senderAddress !== null}
 						<div>
 							<dt>sender address</dt>
@@ -279,7 +280,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nonce = prefetched.nonce}
+					{@const nonce = pendingEntity.nonce}
 					{#if nonce !== undefined && nonce !== null}
 						<div>
 							<dt>nonce</dt>
@@ -316,7 +317,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -351,7 +352,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resourceBounds = prefetched.resourceBounds}
+					{@const resourceBounds = pendingEntity.resourceBounds}
 					{#if resourceBounds !== undefined && resourceBounds !== null}
 						<div>
 							<dt>resource bounds</dt>
@@ -389,7 +390,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const calldata = prefetched.calldata}
+							{@const calldata = pendingEntity.calldata}
 							{#if calldata !== undefined && calldata !== null}
 								{calldata.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -419,7 +420,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signature = prefetched.signature}
+							{@const signature = pendingEntity.signature}
 							{#if signature !== undefined && signature !== null}
 								<TruncatedValue value={signature.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}

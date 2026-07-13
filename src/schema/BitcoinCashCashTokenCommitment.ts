@@ -10,8 +10,10 @@ export enum BitcoinCashCashTokenCommitmentSelector {
 }
 export const BitcoinCashCashTokenCommitment = entity({
 	entityType: EntityType.BitcoinCashCashTokenCommitment,
-	label: 'Bitcoin Cash CashToken commitment',
-	labelPlural: 'Bitcoin Cash CashToken commitments',
+	labels: {
+		singular: 'Bitcoin Cash CashToken commitment',
+		plural: 'Bitcoin Cash CashToken commitments',
+	},
 })({
 	$output: {
 		label: 'Output',

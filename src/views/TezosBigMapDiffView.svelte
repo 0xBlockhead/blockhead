@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const bigMapId = selection.entitySelector.bigMapId ?? prefetched.bigMapId}
+							{@const bigMapId = pendingEntity.bigMapId}
 							{#if bigMapId !== undefined && bigMapId !== null}
 								{String((bigMapId) ?? '')}
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const keyHash = selection.entitySelector.keyHash ?? prefetched.keyHash}
+							{@const keyHash = pendingEntity.keyHash}
 							{#if keyHash !== undefined && keyHash !== null}
 								<TruncatedValue value={String((keyHash) ?? '')} />
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const action = prefetched.action}
+							{@const action = pendingEntity.action}
 							{#if action !== undefined && action !== null}
 								{String((action) ?? '')}
 							{/if}
@@ -183,6 +183,8 @@
 			<ResourceBoundary
 				resource={selection.$bigMap}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tezosBigMap)}
 					{#if tezosBigMap != null && tezosBigMap[EntityMetaKey.Selector] != null}
 						<div>

@@ -10,8 +10,10 @@ export enum MoneroNetwork_TimestampSelector {
 }
 export const MoneroNetwork_Timestamp = entity({
 	entityType: EntityType.MoneroNetwork_Timestamp,
-	label: 'monero network timestamp',
-	labelPlural: 'monero network observations',
+	labels: {
+		singular: 'monero network timestamp',
+		plural: 'monero network observations',
+	},
 })({
 	$network: {
 		label: 'Network',

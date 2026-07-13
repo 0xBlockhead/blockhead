@@ -9,8 +9,10 @@ export enum A2aAgentService_TimestampSelector {
 }
 export const A2aAgentService_Timestamp = entity({
 	entityType: EntityType.A2aAgentService_Timestamp,
-	label: 'a2a agent service timestamp',
-	labelPlural: 'a2a agent service observations',
+	labels: {
+		singular: 'a2a agent service timestamp',
+		plural: 'a2a agent service observations',
+	},
 })({
 	$service: {
 		label: 'service',

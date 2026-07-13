@@ -48,11 +48,10 @@
 		],
 		fields: {
 			label: true,
-			$model: true,
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.profileId ?? prefetched.profileId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent profile')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.profileId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent profile')
 	const viewDomId = $derived('blockhead-agent-profile-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAgentProfile}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.profileId ?? prefetched.profileId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent profile'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.profileId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent profile'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -130,7 +129,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAgentProfile}>
 			{#snippet Pending()}
-				{@const updatedAt0 = prefetched.updatedAt}
+				{@const updatedAt0 = pendingEntity.updatedAt}
 				{#if updatedAt0 !== undefined && updatedAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(updatedAt0)} />
@@ -165,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const profileId = selection.entitySelector.profileId ?? prefetched.profileId}
+							{@const profileId = pendingEntity.profileId}
 							{#if profileId !== undefined && profileId !== null}
 								{String((profileId) ?? '')}
 							{/if}
@@ -192,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -220,6 +219,8 @@
 			<ResourceBoundary
 				resource={selection.$model}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiModel)}
 					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
 						<div>
@@ -242,6 +243,8 @@
 			<ResourceBoundary
 				resource={selection.$mcpServer}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null && mcpServer[EntityMetaKey.Selector] != null}
 						<div>
@@ -262,6 +265,8 @@
 			<ResourceBoundary
 				resource={selection.$eip8004Registration}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(eip8004AgentRegistration)}
 					{#if eip8004AgentRegistration != null && eip8004AgentRegistration[EntityMetaKey.Selector] != null}
 						<div>
@@ -291,7 +296,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -326,7 +331,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updatedAt = prefetched.updatedAt}
+					{@const updatedAt = pendingEntity.updatedAt}
 					{#if updatedAt !== undefined && updatedAt !== null}
 						<div>
 							<dt>Updated</dt>

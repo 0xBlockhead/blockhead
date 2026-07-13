@@ -118,7 +118,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -177,7 +177,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const eligibleAmount = prefetched.eligibleAmount}
+					{@const eligibleAmount = pendingEntity.eligibleAmount}
 					{#if eligibleAmount !== undefined && eligibleAmount !== null}
 						<div>
 							<dt>eligible amount</dt>
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const claimedAmount = prefetched.claimedAmount}
+					{@const claimedAmount = pendingEntity.claimedAmount}
 					{#if claimedAmount !== undefined && claimedAmount !== null}
 						<div>
 							<dt>claimed amount</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const claimStatus = prefetched.claimStatus}
+					{@const claimStatus = pendingEntity.claimStatus}
 					{#if claimStatus !== undefined && claimStatus !== null}
 						<div>
 							<dt>claim status</dt>
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proofHash = prefetched.proofHash}
+					{@const proofHash = pendingEntity.proofHash}
 					{#if proofHash !== undefined && proofHash !== null}
 						<div>
 							<dt>proof hash</dt>
@@ -310,6 +310,8 @@
 			<ResourceBoundary
 				resource={selection.$claimTransaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmTransaction)}
 					{#if evmTransaction != null && evmTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -319,8 +321,8 @@
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									prefetched={evmTransaction}
 									href={
-										(evmTransaction[EntityMetaKey.Selector].$network !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmTransaction[EntityMetaKey.Selector].$network !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmTransaction[EntityMetaKey.Selector].txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-											caip2: `${String(evmTransaction[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmTransaction[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(evmTransaction[EntityMetaKey.Selector].$network !== undefined && evmTransaction[EntityMetaKey.Selector].$network.slug !== undefined && evmTransaction[EntityMetaKey.Selector].txHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+											network: String(evmTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
 											transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
 										}) : undefined)
 									}
@@ -343,7 +345,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiresAt = prefetched.expiresAt}
+					{@const expiresAt = pendingEntity.expiresAt}
 					{#if expiresAt !== undefined && expiresAt !== null}
 						<div>
 							<dt>expires AT</dt>
@@ -380,7 +382,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

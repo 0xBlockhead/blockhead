@@ -9,8 +9,10 @@ export enum ZeroGSettlementTraceSelector {
 }
 export const ZeroGSettlementTrace = entity({
 	entityType: EntityType.ZeroGSettlementTrace,
-	label: 'zero g settlement trace',
-	labelPlural: 'zero g settlement traces',
+	labels: {
+		singular: 'zero g settlement trace',
+		plural: 'zero g settlement traces',
+	},
 })({
 	$serviceRequest: {
 		label: 'service request',

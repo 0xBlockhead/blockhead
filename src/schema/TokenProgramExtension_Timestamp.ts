@@ -9,8 +9,10 @@ export enum TokenProgramExtension_TimestampSelector {
 }
 export const TokenProgramExtension_Timestamp = entity({
 	entityType: EntityType.TokenProgramExtension_Timestamp,
-	label: 'token program extension timestamp',
-	labelPlural: 'token program extension observations',
+	labels: {
+		singular: 'token program extension timestamp',
+		plural: 'token program extension observations',
+	},
 })({
 	$assetInstance: {
 		label: 'Asset instance',

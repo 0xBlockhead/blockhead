@@ -54,7 +54,7 @@
 			capabilityKey: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.checkKind) ?? '')].filter(Boolean).join(' ') || 'blockhead action readiness check')
+	const titleFallback = $derived([String((pendingEntity.checkKind) ?? '')].filter(Boolean).join(' ') || 'blockhead action readiness check')
 	const viewDomId = $derived('blockhead-action-readiness-check-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -81,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadActionReadinessCheck}>
 			{#snippet Pending()}
-				{[String((prefetched.checkKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action readiness check'}
+				{[String((pendingEntity.checkKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action readiness check'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadActionReadinessCheck}>
 			{#snippet Pending()}
-				{[String((prefetched.capabilityKey) ?? '')].filter(Boolean).join(' ') || [String((prefetched.checkKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action readiness check'}
+				{[String((pendingEntity.capabilityKey) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.checkKind) ?? '')].filter(Boolean).join(' ') || title || 'blockhead action readiness check'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadActionReadinessCheck}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -136,7 +136,7 @@
 						resource={selection.$sessionAction}
 					>
 						{#snippet children(blockheadSessionAction)}
-							{#if blockheadSessionAction[EntityMetaKey.Selector] != null}
+							{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
 								<BlockheadSessionActionView
 									selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionAction}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const checkId = selection.entitySelector.checkId ?? prefetched.checkId}
+							{@const checkId = pendingEntity.checkId}
 							{#if checkId !== undefined && checkId !== null}
 								{String((checkId) ?? '')}
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const checkKind = prefetched.checkKind}
+							{@const checkKind = pendingEntity.checkKind}
 							{#if checkKind !== undefined && checkKind !== null}
 								{String((checkKind) ?? '')}
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const networkCaip2 = prefetched.networkCaip2}
+					{@const networkCaip2 = pendingEntity.networkCaip2}
 					{#if networkCaip2 !== undefined && networkCaip2 !== null}
 						<div>
 							<dt>network CAIP-2</dt>
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountCaip10 = prefetched.accountCaip10}
+					{@const accountCaip10 = pendingEntity.accountCaip10}
 					{#if accountCaip10 !== undefined && accountCaip10 !== null}
 						<div>
 							<dt>account CAIP-10</dt>
@@ -289,7 +289,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const assetCaip19 = prefetched.assetCaip19}
+					{@const assetCaip19 = pendingEntity.assetCaip19}
 					{#if assetCaip19 !== undefined && assetCaip19 !== null}
 						<div>
 							<dt>asset CAIP-19</dt>
@@ -326,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chainId = prefetched.chainId}
+					{@const chainId = pendingEntity.chainId}
 					{#if chainId !== undefined && chainId !== null}
 						<div>
 							<dt>Chain ID</dt>
@@ -361,7 +361,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountAddress = prefetched.accountAddress}
+					{@const accountAddress = pendingEntity.accountAddress}
 					{#if accountAddress !== undefined && accountAddress !== null}
 						<div>
 							<dt>account address</dt>
@@ -396,7 +396,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenAddress = prefetched.tokenAddress}
+					{@const tokenAddress = pendingEntity.tokenAddress}
 					{#if tokenAddress !== undefined && tokenAddress !== null}
 						<div>
 							<dt>token address</dt>
@@ -431,7 +431,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spenderAddress = prefetched.spenderAddress}
+					{@const spenderAddress = pendingEntity.spenderAddress}
 					{#if spenderAddress !== undefined && spenderAddress !== null}
 						<div>
 							<dt>spender address</dt>
@@ -466,7 +466,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const capabilityKey = prefetched.capabilityKey}
+					{@const capabilityKey = pendingEntity.capabilityKey}
 					{#if capabilityKey !== undefined && capabilityKey !== null}
 						<div>
 							<dt>capability key</dt>
@@ -501,7 +501,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requiredAmount = prefetched.requiredAmount}
+					{@const requiredAmount = pendingEntity.requiredAmount}
 					{#if requiredAmount !== undefined && requiredAmount !== null}
 						<div>
 							<dt>required amount</dt>
@@ -539,7 +539,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}

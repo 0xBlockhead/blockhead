@@ -119,7 +119,7 @@
 						selection={select(EntityType._GlobalIpfsAccess_Timestamp, globalIpfsAccessTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalIpfsAccessTimestampFields}
 						href={
-							(globalIpfsAccessTimestampHrefFields.timestampMs !== undefined && globalIpfsAccessTimestampHrefFields.source !== undefined ? resolve('/(explore)/(ipfs)/ipfs/access/observations/[timestampMs=nonNegativeInteger]/[source]', {
+							(globalIpfsAccessTimestampHrefFields.timestampMs !== undefined && globalIpfsAccessTimestampHrefFields.source !== undefined ? resolve('/ipfs/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(globalIpfsAccessTimestampHrefFields.timestampMs ?? ''),
 								source: String(globalIpfsAccessTimestampHrefFields.source ?? ''),
 							}) : undefined)

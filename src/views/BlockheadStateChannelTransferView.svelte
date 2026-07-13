@@ -52,7 +52,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.amount ?? prefetched.amount) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel transfer')
+	const titleFallback = $derived([String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel transfer')
 	const viewDomId = $derived('blockhead-state-channel-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadStateChannelTransfer}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.amount ?? prefetched.amount) ?? '')].filter(Boolean).join(' ') || title || 'blockhead state channel transfer'}
+				{[String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || title || 'blockhead state channel transfer'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadStateChannelTransfer}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.amount ?? prefetched.amount) ?? '')].filter(Boolean).join(' ') || title || 'blockhead state channel transfer'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || title || 'blockhead state channel transfer'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadStateChannelTransfer}>
 			{#snippet Pending()}
-				{@const timestamp0 = prefetched.timestamp}
+				{@const timestamp0 = pendingEntity.timestamp}
 				{#if timestamp0 !== undefined && timestamp0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestamp0)} />
@@ -131,7 +131,7 @@
 					<BlockheadStateChannelView
 						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel, {})}
 						href={
-							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId]', {
+							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {
 								channelId: String(selection.entitySelector.$channel.id ?? ''),
 							}) : undefined)
 						}
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const turnNum = selection.entitySelector.turnNum ?? prefetched.turnNum}
+							{@const turnNum = pendingEntity.turnNum}
 							{#if turnNum !== undefined && turnNum !== null}
 								{String((turnNum) ?? '')}
 							{/if}
@@ -177,7 +177,7 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$from, {})}
 						href={
-							(selection.entitySelector.$from.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+							(selection.entitySelector.$from.address !== undefined ? resolve('/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$from.address ?? ''),
 							}) : undefined)
 						}
@@ -193,7 +193,7 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$to, {})}
 						href={
-							(selection.entitySelector.$to.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+							(selection.entitySelector.$to.address !== undefined ? resolve('/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$to.address ?? ''),
 							}) : undefined)
 						}
@@ -216,7 +216,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const amount = selection.entitySelector.amount ?? prefetched.amount}
+							{@const amount = pendingEntity.amount}
 							{#if amount !== undefined && amount !== null}
 								{String((amount) ?? '')}
 							{/if}
@@ -246,7 +246,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -276,7 +276,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestamp = prefetched.timestamp}
+							{@const timestamp = pendingEntity.timestamp}
 							{#if timestamp !== undefined && timestamp !== null}
 								<Timestamp timestamp={Number(timestamp)} />
 							{/if}

@@ -9,8 +9,10 @@ export enum CosmosValidator_TimestampSelector {
 }
 export const CosmosValidator_Timestamp = entity({
 	entityType: EntityType.CosmosValidator_Timestamp,
-	label: 'Cosmos validator timestamp',
-	labelPlural: 'Cosmos validator observations',
+	labels: {
+		singular: 'Cosmos validator timestamp',
+		plural: 'Cosmos validator observations',
+	},
 })({
 	$validator: {
 		label: 'Validator',
@@ -22,7 +24,7 @@ export const CosmosValidator_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

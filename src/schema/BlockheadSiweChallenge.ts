@@ -11,8 +11,10 @@ export enum BlockheadSiweChallengeSelector {
 }
 export const BlockheadSiweChallenge = entity({
 	entityType: EntityType.BlockheadSiweChallenge,
-	label: 'blockhead siwe challenge',
-	labelPlural: 'blockhead siwe challenges',
+	labels: {
+		singular: 'blockhead siwe challenge',
+		plural: 'blockhead siwe challenges',
+	},
 })({
 	id: {
 		label: 'ID',

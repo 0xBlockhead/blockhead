@@ -9,8 +9,10 @@ export enum ArweaveResource_TimestampSelector {
 }
 export const ArweaveResource_Timestamp = entity({
 	entityType: EntityType.ArweaveResource_Timestamp,
-	label: 'arweave resource timestamp',
-	labelPlural: 'arweave resource observations',
+	labels: {
+		singular: 'arweave resource timestamp',
+		plural: 'arweave resource observations',
+	},
 })({
 	$resource: {
 		label: 'resource',

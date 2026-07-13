@@ -27,6 +27,7 @@ export type WalletScope = {
 }
 
 export type WalletConnection = {
+	connectionKey?: string
 	walletId: string
 	status: BlockheadConnectionStatus
 	protocol: WalletProtocol
@@ -35,6 +36,9 @@ export type WalletConnection = {
 	accounts: WalletAccount[]
 	selected: boolean
 	connectedAt: number
+	disconnectedAt?: number
+	sessionId?: string
+	sessionTopic?: string
 	error?: string
 }
 

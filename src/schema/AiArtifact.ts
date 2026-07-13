@@ -15,8 +15,10 @@ export enum AiArtifactSelector {
 }
 export const AiArtifact = entity({
 	entityType: EntityType.AiArtifact,
-	label: 'AI artifact',
-	labelPlural: 'AI artifacts',
+	labels: {
+		singular: 'AI artifact',
+		plural: 'AI artifacts',
+	},
 })({
 	digestAlgorithm: {
 		label: 'digest algorithm',

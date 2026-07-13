@@ -32,17 +32,14 @@ import type { E2eRouteFixtureMetadata } from './_generatedRouteFixtureMetadata.t
 
 
 const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
-const BITCOIN_ADDRESS = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' as const
-const BITCOIN_TX_ID = '4d3e4007c50313d031ffb3f180d0bd6b37192e1c852ec9f9a16ad1db957707c6' as const
+const BITCOIN_TX_ID = '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b' as const
+const BITCOIN_GENESIS_BLOCK_HASH = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f' as const
 const BITCOIN_CASH_CASH_TOKEN_TX_ID = '9c3f790921eab71fe9b210a9884c81708dc55d9444bba8c54394b827e2cf7f5a' as const
 const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const
 const SAMPLE_TX_HASH = '0x31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca' as const
 const SAMPLE_USER_OPERATION_HASH = '0xca87534346367dbf4ff6675627a3e43635db5a36bd8ef99ffcd20a63d1555ef5' as const
-const SOLANA_PROBE_SIGNATURE = 'E2eSolanaSignature11111111111111111111111111111111111111111111111' as const
 const SOLANA_PROBE_PROGRAM_ID = '11111111111111111111111111111111' as const
 const SOLANA_PROBE_TOKEN_MINT_ADDRESS = 'So11111111111111111111111111111111111111112' as const
-const SOLANA_PROBE_OWNER_PUBKEY = 'ba4df886d2a7c4224bc98efb6cbf3817b0e2b7227c287b692a7c7d0a9e3e86ff' as const
-const SOLANA_PROBE_VOTE_PUBKEY = 'E2eVotePubkey111111111111111111111111111111111111111' as const
 const CAST_HASH_32 = '0xe4f2e1c70d72388a98dba2a2511a9b480840e544' as const
 const FARCASTER_OBSERVATION_TIMESTAMP_MS = '1700000000000' as const
 const NOSTR_PROBE_PUBKEY = nostrNetworkSeedProfiles[0].pubkey
@@ -69,11 +66,11 @@ const LENS_PROBE_POST_ID = '161m1s2r2av9deyh2a3' as const
 const ethUsdCatalogMarket = {
 	$base: {
 		kind: MarketAssetKind.Coin,
-		$coin: { coinId: CoinId.ETH },
+		assetKey: CoinId.ETH,
 	},
 	$quote: {
 		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: 'USD' },
+		assetKey: 'USD',
 	},
 	$marketVenue: {
 		marketVenueId: MarketVenueId.Binance,
@@ -139,7 +136,7 @@ const PROPOSAL_REF_BY_KIND_SLUG: Record<string, string> = {
 export const e2eRouteParamFixtures: Partial<Record<string, string>> = {
 	networkId: '1',
 	networkStackId: 'Ethereum',
-	networkSlug: 'bitcoin',
+	network: 'eip155:1',
 	caip2Namespace: 'eip155',
 	caip2Reference: '1',
 	caip2: 'eip155:1',
@@ -153,10 +150,10 @@ export const e2eRouteParamFixtures: Partial<Record<string, string>> = {
 	blockNumber: '18000000',
 	height: '18000000',
 	transactionId: SAMPLE_TX_HASH,
-	txId: SAMPLE_TX_HASH,
 	address: VITALIK_ADDRESS,
 	caipId: '25',
 	sessionId: 'e2e-probe-session',
+	connectionKey: 'e2e-probe-wallet-connection',
 	source: 'Constants_Internal',
 	sourceId: 'e2e-probe-source',
 	dashboardId: 'e2e-probe-panel-tree',
@@ -199,10 +196,8 @@ export const e2eRouteParamFixtures: Partial<Record<string, string>> = {
 	target: 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
 	test: 'test',
 	tokenAccountPubkey: 'E2eTokenAccount1111111111111111111111111111',
-	signature: SOLANA_PROBE_SIGNATURE,
 	programId: SOLANA_PROBE_PROGRAM_ID,
 	mintAddress: SOLANA_PROBE_TOKEN_MINT_ADDRESS,
-	votePubkey: SOLANA_PROBE_VOTE_PUBKEY,
 	marketKey: stringify(ethUsdCatalogMarket),
 	instanceOrigin: 'https://mastodon.social',
 	did: atprotoNetworkSeedActors[0].did,
@@ -221,7 +216,7 @@ export const e2eRouteParamFixtures: Partial<Record<string, string>> = {
 	actionIndex: '0',
 	messageIndex: '0',
 	period: '0',
-	validatorIndex: '0',
+	validatorId: '0',
 	sampleKey: 'Etherscan_Rest:gastracker:gasoracle',
 	observerKey: 'Voltaire_JsonRpc:txpool_status:ethereum.publicnode.com',
 	observer: 'ethereum.publicnode.com',
@@ -268,6 +263,7 @@ export const e2eRouteParamFixtures: Partial<Record<string, string>> = {
 	blobIndex: '0',
 	logIndex: '0',
 	indexInLog: '0',
+	transferIndex: '0',
 	userOperationHash: SAMPLE_USER_OPERATION_HASH,
 	coinInstanceSlug: 'native',
 	marketVenueId: MarketVenueId.Binance,
@@ -288,7 +284,7 @@ export const e2eRouteParamFixtures: Partial<Record<string, string>> = {
 	channelId: 'e2e-probe-state-channel',
 	contactId: 'e2e-probe-room-peer',
 	roomId: 'e2e-probe-room',
-	url: 'https%3A%2F%2Fexample.com',
+	url: 'https://example.com',
 	walletId: 'eip6963:e2e-probe-wallet',
 }
 
@@ -311,50 +307,80 @@ export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
 
 export const e2eRouteParamFixtureForMetadata = (
 	routeId: string,
-	routeFixtureMetadata: E2eRouteFixtureMetadata,
+	routeFixtureMetadata: E2eRouteFixtureMetadata | undefined,
 	paramKey: string
 ) => {
 	const fixture = (
-		routeFixtureMetadata.fixture?.[paramKey]
+		routeFixtureMetadata?.fixture?.[paramKey]
 		?? (
-			paramKey === 'pubkey'
-			&& routeId === '/network/[networkSlug=networkSlug]/solana/account/[pubkey]' ?
-				SOLANA_PROBE_OWNER_PUBKEY
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'txId'
+			paramKey === 'transactionId'
 			&& routeId.includes('/cash-token/') ?
 				BITCOIN_CASH_CASH_TOKEN_TX_ID
 			:
 				undefined
 		)
 		?? (
-			paramKey === 'txId'
-			&& routeId.startsWith('/network/[networkSlug=networkSlug]/')
-			&& (
-				routeId.includes('/transactions/[txId]')
-				|| routeId.includes('/utxo/tx/[txId]')
-			) ?
+			paramKey === 'transactionId'
+			&& routeId.startsWith('/network/[network=networkCaip2OrNetworkSlug]/')
+			&& routeId.includes('/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/')
+			&& /\/(?:input|inputs|output|outputs)\b/.test(routeId) ?
 				BITCOIN_TX_ID
 			:
 				undefined
 		)
 		?? (
-			paramKey === 'address'
-			&& routeId.startsWith('/network/[networkSlug=networkSlug]/')
-			&& (
-				routeId.includes('/address/[address]')
-				|| routeId.includes('/utxo/address/[address]')
-			) ?
-				BITCOIN_ADDRESS
+			paramKey === 'network'
+			&& routeId.startsWith('/network/[network=networkCaip2OrNetworkSlug]/')
+			&& /\/tx\/\[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId\]\/(?:input|inputs|output|outputs)\b/.test(routeId) ?
+				'bitcoin'
 			:
 				undefined
 		)
 		?? (
-			paramKey === 'height'
-			&& routeId.startsWith('/network/[networkSlug=networkSlug]/') ?
+			paramKey === 'blockNumber'
+			&& routeId.includes('/block/[blockNumber=nonNegativeBigInt]') ?
+				'0'
+			:
+				undefined
+		)
+		?? (
+			paramKey === 'hash'
+			&& routeId.includes('/block/[blockNumber=nonNegativeBigInt]/[hash]') ?
+				BITCOIN_GENESIS_BLOCK_HASH
+			:
+				undefined
+		)
+		?? (
+			paramKey === 'marketKind'
+			&& routeId.includes('/derivatives/') ?
+				MarketKind.Perpetual
+			:
+				undefined
+		)
+		?? (
+			paramKey === 'feedKey'
+			&& routeId.includes('/derivatives/') ?
+				`coingecko:${MarketVenueId.Binance}`
+			:
+				undefined
+		)
+		?? (
+			paramKey === 'feedKey'
+			&& routeId.includes('/price/quotes/') ?
+				'ethereum'
+			:
+				undefined
+		)
+		?? (
+			paramKey === 'timestampMs'
+			&& routeId.includes('/price/quotes/') ?
+				ETHEREUM_MARKET_TIMESTAMP_MS
+			:
+				undefined
+		)
+		?? (
+			paramKey === 'createdAt'
+			&& routeId.includes('/accounts/transaction/') ?
 				'0'
 			:
 				undefined
@@ -362,14 +388,14 @@ export const e2eRouteParamFixtureForMetadata = (
 		?? e2eRouteParamFixtures[paramKey]
 	)
 	if (fixture == null)
-		throw new Error(`Missing generated E2E route fixture for ${routeId} param ${paramKey}`)
+		throw new Error(`Missing E2E route fixture for ${routeId} param ${paramKey}`)
 
 	return fixture
 }
 
 export const e2eRouteParamFixtureVariantsForMetadata = (
 	routeId: string,
-	routeFixtureMetadata: E2eRouteFixtureMetadata,
+	routeFixtureMetadata: E2eRouteFixtureMetadata | undefined,
 	paramKey: string,
 	selectedParams: Readonly<Record<string, string>>
 ) => {
@@ -383,7 +409,7 @@ export const e2eRouteParamFixtureVariantsForMetadata = (
 		]
 
 	const metadataVariants = [
-		...new Set(routeFixtureMetadata.variants?.flatMap((variant) => (
+		...new Set(routeFixtureMetadata?.variants?.flatMap((variant) => (
 			variant[paramKey] == null ? [] : [variant[paramKey]]
 		)) ?? []),
 	]

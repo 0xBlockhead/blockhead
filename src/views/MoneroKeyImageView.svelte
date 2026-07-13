@@ -46,11 +46,8 @@
 		sources: [
 			Source.MoneroDaemonRpc_JsonRpc,
 		],
-		fields: {
-			$ring: true,
-		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.keyImage ?? prefetched.keyImage) ?? '')].filter(Boolean).join(' ') || 'monero key image')
+	const titleFallback = $derived([String((pendingEntity.keyImage) ?? '')].filter(Boolean).join(' ') || 'monero key image')
 	const viewDomId = $derived('monero-key-image-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={moneroKeyImage}>
 			{#snippet Pending()}
-				{@const keyImage0 = selection.entitySelector.keyImage ?? prefetched.keyImage}
+				{@const keyImage0 = pendingEntity.keyImage}
 				{#if keyImage0 !== undefined && keyImage0 !== null}
 					<TruncatedValue value={String((keyImage0) ?? '')} />
 				{/if}
@@ -95,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={moneroKeyImage}>
 			{#snippet Pending()}
-				{@const inputIndex0 = selection.entitySelector.inputIndex ?? prefetched.inputIndex}
+				{@const inputIndex0 = pendingEntity.inputIndex}
 				{#if inputIndex0 !== undefined && inputIndex0 !== null}
 					<NumberValue value={Number(inputIndex0)} />
 				{/if}
@@ -192,7 +189,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const inputIndex = selection.entitySelector.inputIndex ?? prefetched.inputIndex}
+							{@const inputIndex = pendingEntity.inputIndex}
 							{#if inputIndex !== undefined && inputIndex !== null}
 								<NumberValue value={Number(inputIndex)} />
 							{/if}
@@ -222,7 +219,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const keyImage = selection.entitySelector.keyImage ?? prefetched.keyImage}
+							{@const keyImage = pendingEntity.keyImage}
 							{#if keyImage !== undefined && keyImage !== null}
 								<TruncatedValue value={String((keyImage) ?? '')} />
 							{/if}
@@ -248,6 +245,8 @@
 					})
 				}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(moneroRing)}
 					{#if moneroRing != null && moneroRing[EntityMetaKey.Selector] != null}
 						<div>

@@ -9,8 +9,10 @@ export enum TezosBigMapKeySelector {
 }
 export const TezosBigMapKey = entity({
 	entityType: EntityType.TezosBigMapKey,
-	label: 'tezos big map key',
-	labelPlural: 'tezos big map keys',
+	labels: {
+		singular: 'tezos big map key',
+		plural: 'tezos big map keys',
+	},
 })({
 	$bigMap: {
 		label: 'big map',

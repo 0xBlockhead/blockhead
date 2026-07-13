@@ -52,7 +52,7 @@
 			deliveryType: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.transactionAddress ?? prefetched.transactionAddress) ?? '')].filter(Boolean).join(' ') || 'blockhead quilibrium pending transaction')
+	const titleFallback = $derived([String((pendingEntity.transactionAddress) ?? '')].filter(Boolean).join(' ') || 'blockhead quilibrium pending transaction')
 	const viewDomId = $derived('blockhead-quilibrium-pending-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.transactionAddress ?? prefetched.transactionAddress) ?? '')].filter(Boolean).join(' ') || title || 'blockhead quilibrium pending transaction'}
+				{[String((pendingEntity.transactionAddress) ?? '')].filter(Boolean).join(' ') || title || 'blockhead quilibrium pending transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -92,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
 			{#snippet Pending()}
-				{@const amount0 = prefetched.amount}
+				{@const amount0 = pendingEntity.amount}
 				{#if amount0 !== undefined && amount0 !== null}
 					<NumberValue value={Number(amount0)} />
 				{/if}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
 			{#snippet Pending()}
-				{@const deliveryType0 = prefetched.deliveryType}
+				{@const deliveryType0 = pendingEntity.deliveryType}
 				{#if deliveryType0 !== undefined && deliveryType0 !== null}
 					<span data-text="muted">
 						{String((deliveryType0) ?? '')}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionAddress = selection.entitySelector.transactionAddress ?? prefetched.transactionAddress}
+							{@const transactionAddress = pendingEntity.transactionAddress}
 							{#if transactionAddress !== undefined && transactionAddress !== null}
 								<TruncatedValue value={String((transactionAddress) ?? '')} />
 							{/if}
@@ -177,6 +177,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(quilibriumAccount)}
 					{#if quilibriumAccount != null && quilibriumAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -197,6 +199,8 @@
 			<ResourceBoundary
 				resource={selection.$refundAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(quilibriumAccount)}
 					{#if quilibriumAccount != null && quilibriumAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -224,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const coinAddress = prefetched.coinAddress}
+					{@const coinAddress = pendingEntity.coinAddress}
 					{#if coinAddress !== undefined && coinAddress !== null}
 						<div>
 							<dt>coin address</dt>
@@ -261,7 +265,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -296,7 +300,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deliveryType = prefetched.deliveryType}
+					{@const deliveryType = pendingEntity.deliveryType}
 					{#if deliveryType !== undefined && deliveryType !== null}
 						<div>
 							<dt>delivery type</dt>
@@ -331,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deliveryAddress = prefetched.deliveryAddress}
+					{@const deliveryAddress = pendingEntity.deliveryAddress}
 					{#if deliveryAddress !== undefined && deliveryAddress !== null}
 						<div>
 							<dt>delivery address</dt>
@@ -366,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedAt = prefetched.observedAt}
+					{@const observedAt = pendingEntity.observedAt}
 					{#if observedAt !== undefined && observedAt !== null}
 						<div>
 							<dt>observed AT</dt>

@@ -47,12 +47,14 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import AlgorandApplicationLocalState_RoundsView from '$/views/AlgorandApplicationLocalState_RoundsView.svelte'
-	import AlgorandAssetHolding_RoundsView from '$/views/AlgorandAssetHolding_RoundsView.svelte'
-	import AlgorandAccount_TimestampsView from '$/views/AlgorandAccount_TimestampsView.svelte'
 	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
+	import AlgorandAccount_TimestampsView from '$/views/AlgorandAccount_TimestampsView.svelte'
+	import AlgorandAssetHolding_RoundsView from '$/views/AlgorandAssetHolding_RoundsView.svelte'
+	import AlgorandApplicationLocalState_RoundsView from '$/views/AlgorandApplicationLocalState_RoundsView.svelte'
 </script>
 
 
@@ -105,7 +107,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -126,26 +128,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AlgorandApplicationLocalState_RoundsView
-				selection={selection.$$applicationLocalStateRounds}
-				title='application local state rounds'
-				emptyText='No Algorand application local state rounds.'
-				id='AlgorandApplicationLocalState_RoundsView-application-local-state-rounds'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-algorand-account-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'algorand-account-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AlgorandAssetHolding_RoundsView
-				selection={selection.$$assetHoldingRounds}
-				title='asset holding rounds'
-				emptyText='No Algorand asset holding rounds.'
-				id='AlgorandAssetHolding_RoundsView-asset-holding-rounds'
-			/>
+				{#snippet SectionAlgorandAccountTimestamps({ id, label, open })}
+					<AlgorandAccount_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand account observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AlgorandAccount_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Algorand account observations.'
-				id='AlgorandAccount_TimestampsView-timestamps'
-			/>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-algorand-account-holdings'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'algorand-account-asset-holdings',
+							label: 'Asset holdings',
+						},
+						{
+							id: 'algorand-account-app-local-state',
+							label: 'Application local state',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-holdings'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Holdings and apps</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAlgorandAccountAssetHoldings({ id, label, open })}
+					<AlgorandAssetHolding_RoundsView
+						selection={selection.$$assetHoldingRounds}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand asset holding rounds.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionAlgorandAccountAppLocalState({ id, label, open })}
+					<AlgorandApplicationLocalState_RoundsView
+						selection={selection.$$applicationLocalStateRounds}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Algorand application local state rounds.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
 
@@ -49,7 +48,7 @@
 			finalRoot: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.pool ?? prefetched.pool) ?? '')].filter(Boolean).join(' ') || 'zcash shielded pool block state')
+	const titleFallback = $derived([String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || 'zcash shielded pool block state')
 	const viewDomId = $derived('zcash-shielded-pool-block-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={zcashShieldedPoolBlockState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.pool ?? prefetched.pool) ?? '')].filter(Boolean).join(' ') || title || 'zcash shielded pool block state'}
+				{[String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || title || 'zcash shielded pool block state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={zcashShieldedPoolBlockState}>
 			{#snippet Pending()}
-				{@const finalRoot0 = prefetched.finalRoot}
+				{@const finalRoot0 = pendingEntity.finalRoot}
 				{#if finalRoot0 !== undefined && finalRoot0 !== null}
 					<TruncatedValue value={String((finalRoot0) ?? '')} />
 				{/if}
@@ -110,9 +109,9 @@
 					<UtxoBlockView
 						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block, {})}
 						href={
-							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.namespace !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined && selection.entitySelector.$block.$network.caip2.reference !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$block.$network.caip2.namespace) + ':' + String(selection.entitySelector.$block.$network.caip2.reference))].slug ?? ''),
-								height: String(selection.entitySelector.$block.height ?? ''),
+							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.height !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								network: String(selection.entitySelector.$block.$network.slug ?? ''),
+								blockNumber: String(selection.entitySelector.$block.height ?? ''),
 								hash: String(selection.entitySelector.$block.hash ?? ''),
 							}) : undefined)
 						}
@@ -135,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const pool = selection.entitySelector.pool ?? prefetched.pool}
+							{@const pool = pendingEntity.pool}
 							{#if pool !== undefined && pool !== null}
 								{String((pool) ?? '')}
 							{/if}
@@ -162,7 +161,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const finalRoot = prefetched.finalRoot}
+					{@const finalRoot = pendingEntity.finalRoot}
 					{#if finalRoot !== undefined && finalRoot !== null}
 						<div>
 							<dt>final root</dt>
@@ -197,7 +196,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockCommitments = prefetched.blockCommitments}
+					{@const blockCommitments = pendingEntity.blockCommitments}
 					{#if blockCommitments !== undefined && blockCommitments !== null}
 						<div>
 							<dt>block commitments</dt>

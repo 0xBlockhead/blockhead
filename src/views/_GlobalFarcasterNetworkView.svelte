@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -51,7 +52,14 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import FarcasterFeedsView from '$/views/FarcasterFeedsView.svelte'
+	import FarcasterUsersView from '$/views/FarcasterUsersView.svelte'
+	import FarcasterChannelsView from '$/views/FarcasterChannelsView.svelte'
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
+	import GlobalFarcasterNetwork_TimestampsView from '$/views/_GlobalFarcasterNetwork_TimestampsView.svelte'
 </script>
 
 
@@ -81,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalFarcasterNetwork}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.scope ?? prefetched.scope) ?? '')].filter(Boolean).join(' ') || title || 'global Farcaster network'}
+				{[String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || title || 'global Farcaster network'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,5 +97,173 @@
 				{[String((resolvedEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-farcaster-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'farcaster-feeds',
+							label: 'Feeds',
+						},
+						{
+							id: 'farcaster-users',
+							label: 'Users',
+						},
+						{
+							id: 'farcaster-channels',
+							label: 'Channels',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Directory</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionFarcasterFeeds({ id, label, open })}
+					<FarcasterFeedsView
+						selection={
+							selection.$$observedFeeds({
+								sources: [
+									Source.Constants_Internal,
+									Source.Farcaster_Rest,
+								],
+							})
+						}
+						href={resolve('/farcaster/feed')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster feeds in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionFarcasterUsers({ id, label, open })}
+					<FarcasterUsersView
+						selection={
+							selection.$$observedUsers({
+								sources: [
+									Source.Farcaster_Rest,
+									Source.Neynar_Rest,
+									Source.Snapchain_Rest,
+								],
+							})
+						}
+						href={resolve('/farcaster/users')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster users in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionFarcasterChannels({ id, label, open })}
+					<FarcasterChannelsView
+						selection={
+							selection.$$observedChannels({
+								sources: [
+									Source.Farcaster_Rest,
+									Source.Neynar_Rest,
+								],
+							})
+						}
+						href={resolve('/farcaster/channels')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster channels in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-farcaster-casts'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'farcaster-cast-list',
+							label: 'Casts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-casts'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Casts</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionFarcasterCastList({ id, label, open })}
+					<FarcasterCastsView
+						selection={selection.$$observedCasts}
+						href={resolve('/farcaster/feed/trending')}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster casts in this observed.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-farcaster-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'farcaster-hub-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionFarcasterHubObservations({ id, label, open })}
+					<GlobalFarcasterNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Farcaster observed observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const workchain = prefetched.workchain}
+							{@const workchain = pendingEntity.workchain}
 							{#if workchain !== undefined && workchain !== null}
 								{String((workchain) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const shardPrefix = prefetched.shardPrefix}
+							{@const shardPrefix = pendingEntity.shardPrefix}
 							{#if shardPrefix !== undefined && shardPrefix !== null}
 								{String((shardPrefix) ?? '')}
 							{/if}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const seqno = prefetched.seqno}
+							{@const seqno = pendingEntity.seqno}
 							{#if seqno !== undefined && seqno !== null}
 								{String((seqno) ?? '')}
 							{/if}
@@ -189,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rootHash = prefetched.rootHash}
+					{@const rootHash = pendingEntity.rootHash}
 					{#if rootHash !== undefined && rootHash !== null}
 						<div>
 							<dt>root hash</dt>
@@ -224,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fileHash = prefetched.fileHash}
+					{@const fileHash = pendingEntity.fileHash}
 					{#if fileHash !== undefined && fileHash !== null}
 						<div>
 							<dt>file hash</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const genUtimeMs = prefetched.genUtimeMs}
+					{@const genUtimeMs = pendingEntity.genUtimeMs}
 					{#if genUtimeMs !== undefined && genUtimeMs !== null}
 						<div>
 							<dt>gen utime ms</dt>
@@ -294,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startLt = prefetched.startLt}
+					{@const startLt = pendingEntity.startLt}
 					{#if startLt !== undefined && startLt !== null}
 						<div>
 							<dt>start lt</dt>
@@ -329,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endLt = prefetched.endLt}
+					{@const endLt = pendingEntity.endLt}
 					{#if endLt !== undefined && endLt !== null}
 						<div>
 							<dt>end lt</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minRefMcSeqno = prefetched.minRefMcSeqno}
+					{@const minRefMcSeqno = pendingEntity.minRefMcSeqno}
 					{#if minRefMcSeqno !== undefined && minRefMcSeqno !== null}
 						<div>
 							<dt>min ref mc seqno</dt>

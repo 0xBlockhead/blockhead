@@ -10,8 +10,10 @@ export enum MoneroNetworkSelector {
 }
 export const MoneroNetwork = entity({
 	entityType: EntityType.MoneroNetwork,
-	label: 'monero network',
-	labelPlural: 'monero networks',
+	labels: {
+		singular: 'monero network',
+		plural: 'monero networks',
+	},
 	description: 'Monero-specific view over a canonical Network row, with daemon RPC endpoints, node observations, and recent blocks.',
 })({
 	$network: {

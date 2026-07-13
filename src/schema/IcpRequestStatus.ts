@@ -9,8 +9,10 @@ export enum IcpRequestStatusSelector {
 }
 export const IcpRequestStatus = entity({
 	entityType: EntityType.IcpRequestStatus,
-	label: 'icp request status',
-	labelPlural: 'icp request statuses',
+	labels: {
+		singular: 'icp request status',
+		plural: 'icp request statuses',
+	},
 })({
 	$network: {
 		label: 'network',

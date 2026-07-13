@@ -51,7 +51,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain market timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain market timestamp')
 	const viewDomId = $derived('dydx-chain-market-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={dydxChainMarketTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainMarketTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain market timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'dydx chain market timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -188,7 +188,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -225,7 +225,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const oraclePrice = prefetched.oraclePrice}
+					{@const oraclePrice = pendingEntity.oraclePrice}
 					{#if oraclePrice !== undefined && oraclePrice !== null}
 						<div>
 							<dt>oracle price</dt>
@@ -260,7 +260,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fundingRate = prefetched.fundingRate}
+					{@const fundingRate = pendingEntity.fundingRate}
 					{#if fundingRate !== undefined && fundingRate !== null}
 						<div>
 							<dt>funding rate</dt>
@@ -295,7 +295,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const openInterest = prefetched.openInterest}
+					{@const openInterest = pendingEntity.openInterest}
 					{#if openInterest !== undefined && openInterest !== null}
 						<div>
 							<dt>open interest</dt>
@@ -330,7 +330,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nextFundingAtMs = prefetched.nextFundingAtMs}
+					{@const nextFundingAtMs = pendingEntity.nextFundingAtMs}
 					{#if nextFundingAtMs !== undefined && nextFundingAtMs !== null}
 						<div>
 							<dt>next funding at ms</dt>

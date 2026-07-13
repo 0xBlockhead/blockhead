@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const associationStatus = prefetched.associationStatus}
+					{@const associationStatus = pendingEntity.associationStatus}
 					{#if associationStatus !== undefined && associationStatus !== null}
 						<div>
 							<dt>association status</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>balance</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const kycStatus = prefetched.kycStatus}
+					{@const kycStatus = pendingEntity.kycStatus}
 					{#if kycStatus !== undefined && kycStatus !== null}
 						<div>
 							<dt>kyc status</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freezeStatus = prefetched.freezeStatus}
+					{@const freezeStatus = pendingEntity.freezeStatus}
 					{#if freezeStatus !== undefined && freezeStatus !== null}
 						<div>
 							<dt>freeze status</dt>

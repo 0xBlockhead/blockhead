@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -121,9 +120,9 @@
 						selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={utxoTransactionFields}
 						href={
-							(utxoTransactionHrefFields.$network !== undefined && utxoTransactionHrefFields.$network.caip2 !== undefined && utxoTransactionHrefFields.$network.caip2.namespace !== undefined && utxoTransactionHrefFields.$network !== undefined && utxoTransactionHrefFields.$network.caip2 !== undefined && utxoTransactionHrefFields.$network.caip2.reference !== undefined && utxoTransactionHrefFields.txId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]', {
-								networkSlug: String(networkByCaip2[String(String(utxoTransactionHrefFields.$network.caip2.namespace) + ':' + String(utxoTransactionHrefFields.$network.caip2.reference))].slug ?? ''),
-								txId: String(utxoTransactionHrefFields.txId ?? ''),
+							(utxoTransactionHrefFields.$network !== undefined && utxoTransactionHrefFields.$network.slug !== undefined && utxoTransactionHrefFields.txId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								network: String(utxoTransactionHrefFields.$network.slug ?? ''),
+								transactionId: String(utxoTransactionHrefFields.txId ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

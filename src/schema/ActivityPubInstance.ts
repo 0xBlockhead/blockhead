@@ -2,6 +2,7 @@
 
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
@@ -10,14 +11,16 @@ export enum ActivityPubInstanceSelector {
 }
 export const ActivityPubInstance = entity({
 	entityType: EntityType.ActivityPubInstance,
-	label: 'ActivityPub instance',
-	labelPlural: 'ActivityPub instances',
+	labels: {
+		singular: 'ActivityPub instance',
+		plural: 'ActivityPub instances',
+	},
 	description: 'A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.',
 })({
 	instanceOrigin: {
 		label: 'Instance origin',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: (UrlString),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

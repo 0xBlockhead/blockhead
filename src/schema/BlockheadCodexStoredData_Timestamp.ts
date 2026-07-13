@@ -9,8 +9,10 @@ export enum BlockheadCodexStoredData_TimestampSelector {
 }
 export const BlockheadCodexStoredData_Timestamp = entity({
 	entityType: EntityType.BlockheadCodexStoredData_Timestamp,
-	label: 'blockhead codex stored data timestamp',
-	labelPlural: 'blockhead codex stored data observations',
+	labels: {
+		singular: 'blockhead codex stored data timestamp',
+		plural: 'blockhead codex stored data observations',
+	},
 })({
 	$storedData: {
 		label: 'stored data',

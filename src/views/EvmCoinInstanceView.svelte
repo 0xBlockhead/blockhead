@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -49,14 +49,13 @@
 	const evmCoinInstance = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
-			Source.Blockscout_Rest,
 		],
 		fields: {
 			symbol: true,
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'EVM coin instance')
+	const titleFallback = $derived([String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'EVM coin instance')
 	const viewDomId = $derived('evm-coin-instance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -78,9 +77,12 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && (pendingEntity.type !== undefined && (pendingEntity.type === 'NativeCurrency' ? true : pendingEntity.$contract !== undefined && pendingEntity.$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+		href ?? (pendingEntity.type !== undefined && pendingEntity.type === 'NativeCurrency' && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 			chainId: String(pendingEntity.$network.caip2.reference ?? ''),
-			coinInstanceSlug: String((pendingEntity.type === 'NativeCurrency' ? 'native' : pendingEntity.$contract.address)),
+			coinInstanceSlug: String('native' ?? ''),
+		}) : pendingEntity.type !== undefined && pendingEntity.type === 'Erc20Token' && pendingEntity.$contract !== undefined && pendingEntity.$contract.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+			coinInstanceSlug: String(pendingEntity.$contract.address ?? ''),
+			chainId: String(pendingEntity.$network.caip2.reference ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -90,7 +92,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmCoinInstance}>
 			{#snippet Pending()}
-				{[String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'EVM coin instance'}
+				{[String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'EVM coin instance'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +105,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmCoinInstance}>
 			{#snippet Pending()}
-				{[String((prefetched.symbol) ?? '')].filter(Boolean).join(' ') || [String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'EVM coin instance'}
+				{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'EVM coin instance'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -128,7 +130,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const symbol = prefetched.symbol}
+							{@const symbol = pendingEntity.symbol}
 							{#if symbol !== undefined && symbol !== null}
 								{String((symbol) ?? '')}
 							{/if}
@@ -155,7 +157,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -193,7 +195,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const coinId = prefetched.coinId}
+							{@const coinId = pendingEntity.coinId}
 							{#if coinId !== undefined && coinId !== null}
 								{String((coinId) ?? '')}
 							{/if}
@@ -223,7 +225,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const type = selection.entitySelector.type ?? prefetched.type}
+							{@const type = pendingEntity.type}
 							{#if type !== undefined && type !== null}
 								{String((type) ?? '')}
 							{/if}
@@ -255,7 +257,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const decimals = prefetched.decimals}
+							{@const decimals = pendingEntity.decimals}
 							{#if decimals !== undefined && decimals !== null}
 								{String((decimals) ?? '')}
 							{/if}
@@ -282,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const caip19 = prefetched.caip19}
+					{@const caip19 = pendingEntity.caip19}
 					{#if caip19 !== undefined && caip19 !== null}
 						<div>
 							<dt>CAIP-19</dt>
@@ -317,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const representation = prefetched.representation}
+					{@const representation = pendingEntity.representation}
 					{#if representation !== undefined && representation !== null}
 						<div>
 							<dt>Representation</dt>
@@ -352,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const iconUrl = prefetched.iconUrl}
+					{@const iconUrl = pendingEntity.iconUrl}
 					{#if iconUrl !== undefined && iconUrl !== null}
 						<div>
 							<dt>Icon URL</dt>
@@ -399,22 +401,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -426,6 +416,8 @@
 			<ResourceBoundary
 				resource={selection.$contract}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -435,8 +427,8 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmContract[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
@@ -452,6 +444,8 @@
 			<ResourceBoundary
 				resource={selection.$canonicalInstance}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -461,9 +455,12 @@
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									prefetched={evmCoinInstance}
 									href={
-										(evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? true : evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+										(evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-											coinInstanceSlug: String((evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? 'native' : evmCoinInstance[EntityMetaKey.Selector].$contract.address)),
+											coinInstanceSlug: String('native' ?? ''),
+										}) : evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+											coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
+											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -478,6 +475,8 @@
 			<ResourceBoundary
 				resource={selection.$icon}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(media)}
 					{#if media != null && media[EntityMetaKey.Selector] != null}
 						<div>
@@ -487,7 +486,7 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/(explore)/media/[url]', {
+										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
 											url: String(media[EntityMetaKey.Selector].url ?? ''),
 										}) : undefined)
 									}
@@ -533,7 +532,7 @@
 			<MarketsView
 				selection={selection.$$marketsWithInstanceAsBase}
 				title='Markets with instance as base'
-				href={resolve('/(assets)/markets')}
+				href={resolve('/markets')}
 				emptyText='No markets use this instance as base yet.'
 				id='MarketsView-markets-with-instance-as-base'
 			/>
@@ -541,7 +540,7 @@
 			<MarketsView
 				selection={selection.$$marketsWithInstanceAsQuote}
 				title='Markets with instance as quote'
-				href={resolve('/(assets)/markets')}
+				href={resolve('/markets')}
 				emptyText='No markets use this instance as quote yet.'
 				id='MarketsView-markets-with-instance-as-quote'
 			/>

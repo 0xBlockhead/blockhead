@@ -11,8 +11,10 @@ export enum MoneroBlockSelector {
 }
 export const MoneroBlock = entity({
 	entityType: EntityType.MoneroBlock,
-	label: 'monero block',
-	labelPlural: 'monero blocks',
+	labels: {
+		singular: 'monero block',
+		plural: 'monero blocks',
+	},
 })({
 	$network: {
 		label: 'Network',

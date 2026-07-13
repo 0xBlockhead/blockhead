@@ -10,8 +10,10 @@ export enum _GlobalEvmAbiCatalogSelector {
 }
 export const _GlobalEvmAbiCatalog = entity({
 	entityType: EntityType._GlobalEvmAbiCatalog,
-	label: 'global EVM ABI catalog',
-	labelPlural: 'global EVM ABI catalogs',
+	labels: {
+		singular: 'global EVM ABI catalog',
+		plural: 'global EVM ABI catalogs',
+	},
 })({
 	scope: {
 		label: 'Scope',

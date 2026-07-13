@@ -9,8 +9,10 @@ export enum NearContractStorageEntrySelector {
 }
 export const NearContractStorageEntry = entity({
 	entityType: EntityType.NearContractStorageEntry,
-	label: 'near contract storage entry',
-	labelPlural: 'near contract storage entries',
+	labels: {
+		singular: 'near contract storage entry',
+		plural: 'near contract storage entries',
+	},
 })({
 	$contract: {
 		label: 'Contract',

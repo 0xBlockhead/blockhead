@@ -121,8 +121,8 @@
 						selection={select(EntityType.EvmNetwork_Txpool_Timestamp, evmNetworkTxpoolTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkTxpoolTimestampFields}
 						href={
-							(evmNetworkTxpoolTimestampHrefFields.$network !== undefined && evmNetworkTxpoolTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTxpoolTimestampHrefFields.$network.caip2.namespace !== undefined && evmNetworkTxpoolTimestampHrefFields.$network !== undefined && evmNetworkTxpoolTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTxpoolTimestampHrefFields.$network.caip2.reference !== undefined && evmNetworkTxpoolTimestampHrefFields.timestampMs !== undefined && evmNetworkTxpoolTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mempool/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(evmNetworkTxpoolTimestampHrefFields.$network.caip2.namespace ?? '')}:${String(evmNetworkTxpoolTimestampHrefFields.$network.caip2.reference ?? '')}`,
+							(evmNetworkTxpoolTimestampHrefFields.$network !== undefined && evmNetworkTxpoolTimestampHrefFields.$network.slug !== undefined && evmNetworkTxpoolTimestampHrefFields.timestampMs !== undefined && evmNetworkTxpoolTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mempool/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								network: String(evmNetworkTxpoolTimestampHrefFields.$network.slug ?? ''),
 								timestampMs: String(evmNetworkTxpoolTimestampHrefFields.timestampMs ?? ''),
 								source: String(evmNetworkTxpoolTimestampHrefFields.source ?? ''),
 							}) : undefined)

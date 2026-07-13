@@ -54,7 +54,7 @@
 			resolvedIntentType: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.modality) ?? '')].filter(Boolean).join(' ') || 'blockhead intent invocation')
+	const titleFallback = $derived([String((pendingEntity.modality) ?? '')].filter(Boolean).join(' ') || 'blockhead intent invocation')
 	const viewDomId = $derived('blockhead-intent-invocation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -81,7 +81,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadIntentInvocation}>
 			{#snippet Pending()}
-				{[String((prefetched.modality) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent invocation'}
+				{[String((pendingEntity.modality) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent invocation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -94,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadIntentInvocation}>
 			{#snippet Pending()}
-				{[String((prefetched.resolvedIntentType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.modality) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent invocation'}
+				{[String((pendingEntity.resolvedIntentType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.modality) ?? '')].filter(Boolean).join(' ') || title || 'blockhead intent invocation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadIntentInvocation}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
@@ -136,7 +136,7 @@
 						resource={selection.$session}
 					>
 						{#snippet children(blockheadSession)}
-							{#if blockheadSession[EntityMetaKey.Selector] != null}
+							{#if blockheadSession != null && blockheadSession[EntityMetaKey.Selector] != null}
 								<BlockheadSessionView
 									selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
 									prefetched={blockheadSession}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const invocationId = selection.entitySelector.invocationId ?? prefetched.invocationId}
+							{@const invocationId = pendingEntity.invocationId}
 							{#if invocationId !== undefined && invocationId !== null}
 								{String((invocationId) ?? '')}
 							{/if}
@@ -192,7 +192,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const modality = prefetched.modality}
+							{@const modality = pendingEntity.modality}
 							{#if modality !== undefined && modality !== null}
 								{String((modality) ?? '')}
 							{/if}
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceEntityType = prefetched.sourceEntityType}
+					{@const sourceEntityType = pendingEntity.sourceEntityType}
 					{#if sourceEntityType !== undefined && sourceEntityType !== null}
 						<div>
 							<dt>source entity type</dt>
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetEntityType = prefetched.targetEntityType}
+					{@const targetEntityType = pendingEntity.targetEntityType}
 					{#if targetEntityType !== undefined && targetEntityType !== null}
 						<div>
 							<dt>target entity type</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourcePlacement = prefetched.sourcePlacement}
+					{@const sourcePlacement = pendingEntity.sourcePlacement}
 					{#if sourcePlacement !== undefined && sourcePlacement !== null}
 						<div>
 							<dt>source placement</dt>
@@ -326,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const targetPlacement = prefetched.targetPlacement}
+					{@const targetPlacement = pendingEntity.targetPlacement}
 					{#if targetPlacement !== undefined && targetPlacement !== null}
 						<div>
 							<dt>target placement</dt>
@@ -361,7 +361,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resolvedIntentType = prefetched.resolvedIntentType}
+					{@const resolvedIntentType = pendingEntity.resolvedIntentType}
 					{#if resolvedIntentType !== undefined && resolvedIntentType !== null}
 						<div>
 							<dt>resolved intent type</dt>
@@ -396,7 +396,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const intentDefinitionKey = prefetched.intentDefinitionKey}
+					{@const intentDefinitionKey = pendingEntity.intentDefinitionKey}
 					{#if intentDefinitionKey !== undefined && intentDefinitionKey !== null}
 						<div>
 							<dt>intent definition key</dt>
@@ -431,7 +431,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const selectedOptionIndex = prefetched.selectedOptionIndex}
+					{@const selectedOptionIndex = pendingEntity.selectedOptionIndex}
 					{#if selectedOptionIndex !== undefined && selectedOptionIndex !== null}
 						<div>
 							<dt>selected option index</dt>
@@ -468,7 +468,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const invocationPayloadHash = prefetched.invocationPayloadHash}
+					{@const invocationPayloadHash = pendingEntity.invocationPayloadHash}
 					{#if invocationPayloadHash !== undefined && invocationPayloadHash !== null}
 						<div>
 							<dt>invocation payload hash</dt>
@@ -503,7 +503,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const intentDefinitionHash = prefetched.intentDefinitionHash}
+					{@const intentDefinitionHash = pendingEntity.intentDefinitionHash}
 					{#if intentDefinitionHash !== undefined && intentDefinitionHash !== null}
 						<div>
 							<dt>intent definition hash</dt>
@@ -538,7 +538,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const selectedOptionHash = prefetched.selectedOptionHash}
+					{@const selectedOptionHash = pendingEntity.selectedOptionHash}
 					{#if selectedOptionHash !== undefined && selectedOptionHash !== null}
 						<div>
 							<dt>selected option hash</dt>
@@ -576,7 +576,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}
@@ -596,6 +596,8 @@
 			<ResourceBoundary
 				resource={selection.$createdAction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadSessionAction)}
 					{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
 						<div>

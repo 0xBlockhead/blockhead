@@ -41,25 +41,23 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCashuWalletState = $derived(selection({
-		fields: {
-			$mint: true,
-		},
-	}))
-	const titleFallback = $derived([String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu wallet state')
+	const blockheadCashuWalletState = $derived(selection({}))
+	const titleFallback = $derived([String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu wallet state')
 	const viewDomId = $derived('blockhead-cashu-wallet-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import BlockheadCashuWalletState_TimestampsView from '$/views/BlockheadCashuWalletState_TimestampsView.svelte'
+	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
+	import CashuMintView from '$/views/CashuMintView.svelte'
 	import BlockheadCashuProofsView from '$/views/BlockheadCashuProofsView.svelte'
 	import BlockheadCashuTokensView from '$/views/BlockheadCashuTokensView.svelte'
 	import BlockheadCashuMintQuotesView from '$/views/BlockheadCashuMintQuotesView.svelte'
 	import BlockheadCashuMeltQuotesView from '$/views/BlockheadCashuMeltQuotesView.svelte'
-	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
-	import CashuMintView from '$/views/CashuMintView.svelte'
+	import BlockheadCashuWalletState_TimestampsView from '$/views/BlockheadCashuWalletState_TimestampsView.svelte'
 </script>
 
 
@@ -76,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadCashuWalletState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu wallet state'}
+				{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead Cashu wallet state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuWalletState}>
 			{#snippet Pending()}
-				{@const unit0 = selection.entitySelector.unit ?? prefetched.unit}
+				{@const unit0 = pendingEntity.unit}
 				{#if unit0 !== undefined && unit0 !== null}
 					{String((unit0) ?? '')}
 				{/if}
@@ -146,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const walletId = selection.entitySelector.walletId ?? prefetched.walletId}
+							{@const walletId = pendingEntity.walletId}
 							{#if walletId !== undefined && walletId !== null}
 								{String((walletId) ?? '')}
 							{/if}
@@ -166,6 +164,8 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -190,7 +190,7 @@
 						resource={selection.$mint}
 					>
 						{#snippet children(cashuMint)}
-							{#if cashuMint[EntityMetaKey.Selector] != null}
+							{#if cashuMint != null && cashuMint[EntityMetaKey.Selector] != null}
 								<CashuMintView
 									selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 									prefetched={cashuMint}
@@ -216,7 +216,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const mintUrl = selection.entitySelector.mintUrl ?? prefetched.mintUrl}
+							{@const mintUrl = pendingEntity.mintUrl}
 							{#if mintUrl !== undefined && mintUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -260,7 +260,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const unit = selection.entitySelector.unit ?? prefetched.unit}
+							{@const unit = pendingEntity.unit}
 							{#if unit !== undefined && unit !== null}
 								{String((unit) ?? '')}
 							{/if}
@@ -281,40 +281,143 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BlockheadCashuWalletState_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='BlockheadCashuWalletState_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-cashu-wallet-balance'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'cashu-proofs',
+							label: 'Proofs',
+						},
+						{
+							id: 'cashu-tokens',
+							label: 'Tokens',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-balance'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Balance</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BlockheadCashuProofsView
-				selection={selection.$$proofs}
-				title='proofs'
-				emptyText='No proofs found.'
-				id='BlockheadCashuProofsView-proofs'
-			/>
+				{#snippet SectionCashuProofs({ id, label, open })}
+					<BlockheadCashuProofsView
+						selection={selection.$$proofs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No proofs found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadCashuTokensView
-				selection={selection.$$tokens}
-				title='tokens'
-				emptyText='No tokens found.'
-				id='BlockheadCashuTokensView-tokens'
-			/>
+				{#snippet SectionCashuTokens({ id, label, open })}
+					<BlockheadCashuTokensView
+						selection={selection.$$tokens}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No tokens found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadCashuMintQuotesView
-				selection={selection.$$mintQuotes}
-				title='mint quotes'
-				emptyText='No mint quotes found.'
-				id='BlockheadCashuMintQuotesView-mint-quotes'
-			/>
+			</CollapsibleTabs>
 
-			<BlockheadCashuMeltQuotesView
-				selection={selection.$$meltQuotes}
-				title='melt quotes'
-				emptyText='No melt quotes found.'
-				id='BlockheadCashuMeltQuotesView-melt-quotes'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-cashu-wallet-quotes'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'cashu-mint-quotes',
+							label: 'Mint quotes',
+						},
+						{
+							id: 'cashu-melt-quotes',
+							label: 'Melt quotes',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-quotes'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Quotes</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionCashuMintQuotes({ id, label, open })}
+					<BlockheadCashuMintQuotesView
+						selection={selection.$$mintQuotes}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No mint quotes found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionCashuMeltQuotes({ id, label, open })}
+					<BlockheadCashuMeltQuotesView
+						selection={selection.$$meltQuotes}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No melt quotes found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-cashu-wallet-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'cashu-wallet-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionCashuWalletTimestamps({ id, label, open })}
+					<BlockheadCashuWalletState_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

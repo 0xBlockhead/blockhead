@@ -10,8 +10,10 @@ export enum ZeroGConsensusNetworkSelector {
 }
 export const ZeroGConsensusNetwork = entity({
 	entityType: EntityType.ZeroGConsensusNetwork,
-	label: 'zero g consensus network',
-	labelPlural: 'zero g consensus networks',
+	labels: {
+		singular: 'zero g consensus network',
+		plural: 'zero g consensus networks',
+	},
 })({
 	$network: {
 		label: 'network',

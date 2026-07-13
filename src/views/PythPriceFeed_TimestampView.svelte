@@ -54,7 +54,7 @@
 			price: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.publishTimeMs ?? prefetched.publishTimeMs) ?? '')].filter(Boolean).join(' ') || 'Pyth price feed timestamp')
+	const titleFallback = $derived([String((pendingEntity.publishTimeMs) ?? '')].filter(Boolean).join(' ') || 'Pyth price feed timestamp')
 	const viewDomId = $derived('pyth-price-feed-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={pythPriceFeedTimestamp}>
 			{#snippet Pending()}
-				{@const publishTimeMs0 = selection.entitySelector.publishTimeMs ?? prefetched.publishTimeMs}
+				{@const publishTimeMs0 = pendingEntity.publishTimeMs}
 				{#if publishTimeMs0 !== undefined && publishTimeMs0 !== null}
 					<Timestamp timestamp={Number(publishTimeMs0)} />
 				{/if}
@@ -99,7 +99,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={pythPriceFeedTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.price) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.publishTimeMs ?? prefetched.publishTimeMs) ?? '')].filter(Boolean).join(' ') || title || 'Pyth price feed timestamp'}
+				{[String((pendingEntity.price) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.publishTimeMs) ?? '')].filter(Boolean).join(' ') || title || 'Pyth price feed timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -112,7 +112,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={pythPriceFeedTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -158,7 +158,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const publishTimeMs = selection.entitySelector.publishTimeMs ?? prefetched.publishTimeMs}
+							{@const publishTimeMs = pendingEntity.publishTimeMs}
 							{#if publishTimeMs !== undefined && publishTimeMs !== null}
 								<Timestamp timestamp={Number(publishTimeMs)} />
 							{/if}
@@ -188,7 +188,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const observedAtMs = prefetched.observedAtMs}
+					{@const observedAtMs = pendingEntity.observedAtMs}
 					{#if observedAtMs !== undefined && observedAtMs !== null}
 						<div>
 							<dt>Observed at ms</dt>
@@ -250,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const price = prefetched.price}
+					{@const price = pendingEntity.price}
 					{#if price !== undefined && price !== null}
 						<div>
 							<dt>Price</dt>
@@ -287,7 +287,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const conf = prefetched.conf}
+					{@const conf = pendingEntity.conf}
 					{#if conf !== undefined && conf !== null}
 						<div>
 							<dt>Conf</dt>
@@ -322,7 +322,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expo = prefetched.expo}
+					{@const expo = pendingEntity.expo}
 					{#if expo !== undefined && expo !== null}
 						<div>
 							<dt>Expo</dt>
@@ -357,7 +357,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const emaPrice = prefetched.emaPrice}
+					{@const emaPrice = pendingEntity.emaPrice}
 					{#if emaPrice !== undefined && emaPrice !== null}
 						<div>
 							<dt>EMA price</dt>
@@ -392,7 +392,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const emaConf = prefetched.emaConf}
+					{@const emaConf = pendingEntity.emaConf}
 					{#if emaConf !== undefined && emaConf !== null}
 						<div>
 							<dt>EMA conf</dt>
@@ -429,7 +429,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const vaa = prefetched.vaa}
+					{@const vaa = pendingEntity.vaa}
 					{#if vaa !== undefined && vaa !== null}
 						<div>
 							<dt>VAA</dt>
@@ -464,7 +464,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const updateDataHash = prefetched.updateDataHash}
+					{@const updateDataHash = pendingEntity.updateDataHash}
 					{#if updateDataHash !== undefined && updateDataHash !== null}
 						<div>
 							<dt>Update data hash</dt>
@@ -499,7 +499,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>Slot</dt>
@@ -534,7 +534,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequence = prefetched.sequence}
+					{@const sequence = pendingEntity.sequence}
 					{#if sequence !== undefined && sequence !== null}
 						<div>
 							<dt>Sequence</dt>
@@ -569,7 +569,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const onChainNetwork = prefetched.onChainNetwork}
+					{@const onChainNetwork = pendingEntity.onChainNetwork}
 					{#if onChainNetwork !== undefined && onChainNetwork !== null}
 						<div>
 							<dt>On-chain network</dt>
@@ -604,7 +604,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const onChainContract = prefetched.onChainContract}
+					{@const onChainContract = pendingEntity.onChainContract}
 					{#if onChainContract !== undefined && onChainContract !== null}
 						<div>
 							<dt>On-chain contract</dt>
@@ -639,7 +639,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stale = prefetched.stale}
+					{@const stale = pendingEntity.stale}
 					{#if stale !== undefined && stale !== null}
 						<div>
 							<dt>Stale</dt>

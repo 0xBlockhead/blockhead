@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const claimableBalanceId = selection.entitySelector.claimableBalanceId ?? prefetched.claimableBalanceId}
+							{@const claimableBalanceId = pendingEntity.claimableBalanceId}
 							{#if claimableBalanceId !== undefined && claimableBalanceId !== null}
 								{String((claimableBalanceId) ?? '')}
 							{/if}

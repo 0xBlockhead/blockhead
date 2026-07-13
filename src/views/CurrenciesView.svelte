@@ -118,7 +118,7 @@
 						selection={select(EntityType.Currency, currency[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={currencyFields}
 						href={
-							(currencyHrefFields.iso4217 !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+							(currencyHrefFields.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {
 								iso4217: String(currencyHrefFields.iso4217 ?? ''),
 							}) : undefined)
 						}

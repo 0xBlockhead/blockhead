@@ -45,10 +45,9 @@
 	const gitPackedObject = $derived(selection({
 		fields: {
 			storedKind: true,
-			$packfile: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || 'Git packed object')
+	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git packed object')
 	const viewDomId = $derived('git-packed-object-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitPackedObject}>
 			{#snippet Pending()}
-				{@const objectId0 = selection.entitySelector.objectId ?? prefetched.objectId}
+				{@const objectId0 = pendingEntity.objectId}
 				{#if objectId0 !== undefined && objectId0 !== null}
 					<TruncatedValue value={String((objectId0) ?? '')} />
 				{/if}
@@ -93,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitPackedObject}>
 			{#snippet Pending()}
-				{[String((prefetched.storedKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git packed object'}
+				{[String((pendingEntity.storedKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git packed object'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -157,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const packHash = selection.entitySelector.packHash ?? prefetched.packHash}
+							{@const packHash = pendingEntity.packHash}
 							{#if packHash !== undefined && packHash !== null}
 								<TruncatedValue value={String((packHash) ?? '')} />
 							{/if}
@@ -187,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectId = selection.entitySelector.objectId ?? prefetched.objectId}
+							{@const objectId = pendingEntity.objectId}
 							{#if objectId !== undefined && objectId !== null}
 								<TruncatedValue value={String((objectId) ?? '')} />
 							{/if}
@@ -217,7 +216,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectFormat = selection.entitySelector.objectFormat ?? prefetched.objectFormat}
+							{@const objectFormat = pendingEntity.objectFormat}
 							{#if objectFormat !== undefined && objectFormat !== null}
 								{String((objectFormat) ?? '')}
 							{/if}
@@ -244,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const offset = prefetched.offset}
+					{@const offset = pendingEntity.offset}
 					{#if offset !== undefined && offset !== null}
 						<div>
 							<dt>offset</dt>
@@ -279,7 +278,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deltaBaseObjectId = prefetched.deltaBaseObjectId}
+					{@const deltaBaseObjectId = pendingEntity.deltaBaseObjectId}
 					{#if deltaBaseObjectId !== undefined && deltaBaseObjectId !== null}
 						<div>
 							<dt>delta base object ID</dt>
@@ -314,7 +313,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storedKind = prefetched.storedKind}
+					{@const storedKind = pendingEntity.storedKind}
 					{#if storedKind !== undefined && storedKind !== null}
 						<div>
 							<dt>stored kind</dt>
@@ -346,7 +345,7 @@
 						resource={selection.$packfile}
 					>
 						{#snippet children(gitPackfile)}
-							{#if gitPackfile[EntityMetaKey.Selector] != null}
+							{#if gitPackfile != null && gitPackfile[EntityMetaKey.Selector] != null}
 								<GitPackfileView
 									selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
 									prefetched={gitPackfile}
@@ -362,6 +361,8 @@
 			<ResourceBoundary
 				resource={selection.$object}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitObject)}
 					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
 						<div>

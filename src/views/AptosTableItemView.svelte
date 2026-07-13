@@ -47,7 +47,7 @@
 			valueType: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.keyHash ?? prefetched.keyHash) ?? '')].filter(Boolean).join(' ') || 'aptos table item')
+	const titleFallback = $derived([String((pendingEntity.keyHash) ?? '')].filter(Boolean).join(' ') || 'aptos table item')
 	const viewDomId = $derived('aptos-table-item-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosTableItem}>
 			{#snippet Pending()}
-				{@const keyHash0 = selection.entitySelector.keyHash ?? prefetched.keyHash}
+				{@const keyHash0 = pendingEntity.keyHash}
 				{#if keyHash0 !== undefined && keyHash0 !== null}
 					<TruncatedValue value={String((keyHash0) ?? '')} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosTableItem}>
 			{#snippet Pending()}
-				{[String((prefetched.keyType) ?? ''), String((prefetched.valueType) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.keyHash ?? prefetched.keyHash) ?? '')].filter(Boolean).join(' ') || title || 'aptos table item'}
+				{[String((pendingEntity.keyType) ?? ''), String((pendingEntity.valueType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keyHash) ?? '')].filter(Boolean).join(' ') || title || 'aptos table item'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -127,7 +127,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tableHandle = selection.entitySelector.tableHandle ?? prefetched.tableHandle}
+							{@const tableHandle = pendingEntity.tableHandle}
 							{#if tableHandle !== undefined && tableHandle !== null}
 								{String((tableHandle) ?? '')}
 							{/if}
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const keyHash = selection.entitySelector.keyHash ?? prefetched.keyHash}
+							{@const keyHash = pendingEntity.keyHash}
 							{#if keyHash !== undefined && keyHash !== null}
 								<TruncatedValue value={String((keyHash) ?? '')} />
 							{/if}
@@ -186,7 +186,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const keyType = prefetched.keyType}
+					{@const keyType = pendingEntity.keyType}
 					{#if keyType !== undefined && keyType !== null}
 						<div>
 							<dt>key type</dt>
@@ -221,7 +221,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueType = prefetched.valueType}
+					{@const valueType = pendingEntity.valueType}
 					{#if valueType !== undefined && valueType !== null}
 						<div>
 							<dt>value type</dt>

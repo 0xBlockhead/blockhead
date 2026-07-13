@@ -47,8 +47,15 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import GitRepositoryView from '$/views/GitRepositoryView.svelte'
+	import RadicleDelegatesView from '$/views/RadicleDelegatesView.svelte'
+	import RadicleSignedRefsView from '$/views/RadicleSignedRefsView.svelte'
+	import RadicleIssuesView from '$/views/RadicleIssuesView.svelte'
+	import RadiclePatchesView from '$/views/RadiclePatchesView.svelte'
+	import BlockheadRadicleSeedObservation_TimestampsView from '$/views/BlockheadRadicleSeedObservation_TimestampsView.svelte'
 </script>
 
 
@@ -90,7 +97,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const rid = selection.entitySelector.rid ?? prefetched.rid}
+							{@const rid = pendingEntity.rid}
 							{#if rid !== undefined && rid !== null}
 								{String((rid) ?? '')}
 							{/if}
@@ -114,7 +121,7 @@
 						resource={selection.$gitRepository}
 					>
 						{#snippet children(gitRepository)}
-							{#if gitRepository[EntityMetaKey.Selector] != null}
+							{#if gitRepository != null && gitRepository[EntityMetaKey.Selector] != null}
 								<GitRepositoryView
 									selection={select(EntityType.GitRepository, gitRepository[EntityMetaKey.Selector])}
 									prefetched={gitRepository}
@@ -137,7 +144,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -172,7 +179,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -210,7 +217,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const visibility = prefetched.visibility}
+							{@const visibility = pendingEntity.visibility}
 							{#if visibility !== undefined && visibility !== null}
 								{String((visibility) ?? '')}
 							{/if}
@@ -237,7 +244,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const defaultBranch = prefetched.defaultBranch}
+					{@const defaultBranch = pendingEntity.defaultBranch}
 					{#if defaultBranch !== undefined && defaultBranch !== null}
 						<div>
 							<dt>default branch</dt>
@@ -262,5 +269,147 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-radicle-repository-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'radicle-repository-delegates',
+							label: 'Delegates',
+						},
+						{
+							id: 'radicle-repository-signed-refs',
+							label: 'Signed Refs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRadicleRepositoryDelegates({ id, label, open })}
+					<RadicleDelegatesView
+						selection={selection.$$delegates}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No delegates.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionRadicleRepositorySignedRefs({ id, label, open })}
+					<RadicleSignedRefsView
+						selection={selection.$$signedRefs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No signed refs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-radicle-repository-related'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'radicle-repository-issues',
+							label: 'Issues',
+						},
+						{
+							id: 'radicle-repository-patches',
+							label: 'Patches',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-related'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Related</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRadicleRepositoryIssues({ id, label, open })}
+					<RadicleIssuesView
+						selection={selection.$$issues}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No issues.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionRadicleRepositoryPatches({ id, label, open })}
+					<RadiclePatchesView
+						selection={selection.$$patches}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No patches.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-radicle-repository-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'radicle-repository-seed-observations',
+							label: 'Seed Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRadicleRepositorySeedObservations({ id, label, open })}
+					<BlockheadRadicleSeedObservation_TimestampsView
+						selection={selection.$$seedObservations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No seed observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

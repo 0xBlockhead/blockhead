@@ -10,8 +10,10 @@ export enum PayoutSelector {
 }
 export const Payout = entity({
 	entityType: EntityType.Payout,
-	label: 'payout',
-	labelPlural: 'payouts',
+	labels: {
+		singular: 'payout',
+		plural: 'payouts',
+	},
 })({
 	source: {
 		label: 'Source',

@@ -120,8 +120,8 @@
 						selection={select(EntityType.EvmNetwork_Timestamp, evmNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkTimestampFields}
 						href={
-							(evmNetworkTimestampHrefFields.$network !== undefined && evmNetworkTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTimestampHrefFields.$network.caip2.namespace !== undefined && evmNetworkTimestampHrefFields.$network !== undefined && evmNetworkTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTimestampHrefFields.$network.caip2.reference !== undefined && evmNetworkTimestampHrefFields.timestampMs !== undefined && evmNetworkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(evmNetworkTimestampHrefFields.$network.caip2.namespace ?? '')}:${String(evmNetworkTimestampHrefFields.$network.caip2.reference ?? '')}`,
+							(evmNetworkTimestampHrefFields.$network !== undefined && evmNetworkTimestampHrefFields.$network.slug !== undefined && evmNetworkTimestampHrefFields.timestampMs !== undefined && evmNetworkTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								network: String(evmNetworkTimestampHrefFields.$network.slug ?? ''),
 								timestampMs: String(evmNetworkTimestampHrefFields.timestampMs ?? ''),
 								source: String(evmNetworkTimestampHrefFields.source ?? ''),
 							}) : undefined)

@@ -9,8 +9,10 @@ export enum TonContractGetMethod_TimestampSelector {
 }
 export const TonContractGetMethod_Timestamp = entity({
 	entityType: EntityType.TonContractGetMethod_Timestamp,
-	label: 'ton contract get method timestamp',
-	labelPlural: 'ton contract get method observations',
+	labels: {
+		singular: 'ton contract get method timestamp',
+		plural: 'ton contract get method observations',
+	},
 })({
 	$method: {
 		label: 'method',

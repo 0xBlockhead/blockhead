@@ -9,8 +9,10 @@ export enum BittensorBlockSelector {
 }
 export const BittensorBlock = entity({
 	entityType: EntityType.BittensorBlock,
-	label: 'Bittensor block',
-	labelPlural: 'Bittensor blocks',
+	labels: {
+		singular: 'Bittensor block',
+		plural: 'Bittensor blocks',
+	},
 })({
 	$network: {
 		label: 'Network',

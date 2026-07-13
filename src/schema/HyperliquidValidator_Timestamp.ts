@@ -9,8 +9,10 @@ export enum HyperliquidValidator_TimestampSelector {
 }
 export const HyperliquidValidator_Timestamp = entity({
 	entityType: EntityType.HyperliquidValidator_Timestamp,
-	label: 'hyperliquid validator timestamp',
-	labelPlural: 'hyperliquid validator observations',
+	labels: {
+		singular: 'hyperliquid validator timestamp',
+		plural: 'hyperliquid validator observations',
+	},
 })({
 	$validator: {
 		label: 'validator',

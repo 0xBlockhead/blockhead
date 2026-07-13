@@ -9,8 +9,10 @@ export enum XrplAccount_TimestampSelector {
 }
 export const XrplAccount_Timestamp = entity({
 	entityType: EntityType.XrplAccount_Timestamp,
-	label: 'xrpl account timestamp',
-	labelPlural: 'xrpl account observations',
+	labels: {
+		singular: 'xrpl account timestamp',
+		plural: 'xrpl account observations',
+	},
 })({
 	$account: {
 		label: 'account',

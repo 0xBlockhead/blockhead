@@ -9,8 +9,10 @@ export enum KaspaVirtualChain_TimestampSelector {
 }
 export const KaspaVirtualChain_Timestamp = entity({
 	entityType: EntityType.KaspaVirtualChain_Timestamp,
-	label: 'kaspa virtual chain timestamp',
-	labelPlural: 'kaspa virtual chain observations',
+	labels: {
+		singular: 'kaspa virtual chain timestamp',
+		plural: 'kaspa virtual chain observations',
+	},
 })({
 	$network: {
 		label: 'network',

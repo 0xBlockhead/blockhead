@@ -9,8 +9,10 @@ export enum RadicleDiscussionCommentSelector {
 }
 export const RadicleDiscussionComment = entity({
 	entityType: EntityType.RadicleDiscussionComment,
-	label: 'radicle discussion comment',
-	labelPlural: 'radicle discussion comments',
+	labels: {
+		singular: 'radicle discussion comment',
+		plural: 'radicle discussion comments',
+	},
 })({
 	discussionSelector: {
 		label: 'discussion selector',

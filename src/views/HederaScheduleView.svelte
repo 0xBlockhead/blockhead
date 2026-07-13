@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const scheduleId = selection.entitySelector.scheduleId ?? prefetched.scheduleId}
+							{@const scheduleId = pendingEntity.scheduleId}
 							{#if scheduleId !== undefined && scheduleId !== null}
 								{String((scheduleId) ?? '')}
 							{/if}
@@ -129,7 +129,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const creatorAccountId = prefetched.creatorAccountId}
+					{@const creatorAccountId = pendingEntity.creatorAccountId}
 					{#if creatorAccountId !== undefined && creatorAccountId !== null}
 						<div>
 							<dt>creator account ID</dt>
@@ -164,7 +164,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const payerAccountId = prefetched.payerAccountId}
+					{@const payerAccountId = pendingEntity.payerAccountId}
 					{#if payerAccountId !== undefined && payerAccountId !== null}
 						<div>
 							<dt>payer account ID</dt>

@@ -52,7 +52,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((String((selection.entitySelector.indexInTurn ?? prefetched.indexInTurn) ?? '') ? 'Call #' + String((selection.entitySelector.indexInTurn ?? prefetched.indexInTurn) ?? '') : '') || 'blockhead agent provider call')
+	const titleFallback = $derived((String((pendingEntity.indexInTurn) ?? '') ? 'Call #' + String((pendingEntity.indexInTurn) ?? '') : '') || 'blockhead agent provider call')
 	const viewDomId = $derived('blockhead-agent-provider-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,6 +66,10 @@
 	import AiModelProviderView from '$/views/AiModelProviderView.svelte'
 	import AiModelView from '$/views/AiModelView.svelte'
 	import AiProviderApiOperationView from '$/views/AiProviderApiOperationView.svelte'
+	import McpToolCallView from '$/views/McpToolCallView.svelte'
+	import A2aTaskView from '$/views/A2aTaskView.svelte'
+	import AcpSessionView from '$/views/AcpSessionView.svelte'
+	import AcpPromptTurnView from '$/views/AcpPromptTurnView.svelte'
 </script>
 
 
@@ -74,14 +78,14 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(selection.entitySelector.indexInTurn ?? prefetched.indexInTurn ?? '')}
+	idDragPlainText={String(pendingEntity.indexInTurn ?? '')}
 	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = selection.entitySelector.indexInTurn ?? prefetched.indexInTurn}
+		{@const serialValue = pendingEntity.indexInTurn}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Call </span>
@@ -95,7 +99,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentProviderCall}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent provider call'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead agent provider call'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -113,9 +117,9 @@
 					<BlockheadAgentConversationTurnView
 						selection={select(EntityType.BlockheadAgentConversationTurn, selection.entitySelector.$turn, {})}
 						href={
-							(selection.entitySelector.$turn.$conversation !== undefined && selection.entitySelector.$turn.$conversation.id !== undefined && selection.entitySelector.$turn.id !== undefined ? resolve('/~/agents/conversation/[conversationId]/turn/[turnId]', {
-								conversationId: String(selection.entitySelector.$turn.$conversation.id ?? ''),
+							(selection.entitySelector.$turn.id !== undefined && selection.entitySelector.$turn.$conversation !== undefined && selection.entitySelector.$turn.$conversation.id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {
 								turnId: String(selection.entitySelector.$turn.id ?? ''),
+								conversationId: String(selection.entitySelector.$turn.$conversation.id ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -137,7 +141,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const indexInTurn = selection.entitySelector.indexInTurn ?? prefetched.indexInTurn}
+							{@const indexInTurn = pendingEntity.indexInTurn}
 							{#if indexInTurn !== undefined && indexInTurn !== null}
 								<NumberValue value={Number(indexInTurn)} />
 							{/if}
@@ -157,6 +161,8 @@
 			<ResourceBoundary
 				resource={selection.$connection}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
 						<div>
@@ -177,6 +183,8 @@
 			<ResourceBoundary
 				resource={selection.$provider}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiModelProvider)}
 					{#if aiModelProvider != null && aiModelProvider[EntityMetaKey.Selector] != null}
 						<div>
@@ -197,6 +205,8 @@
 			<ResourceBoundary
 				resource={selection.$model}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiModel)}
 					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
 						<div>
@@ -217,6 +227,8 @@
 			<ResourceBoundary
 				resource={selection.$operation}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiProviderApiOperation)}
 					{#if aiProviderApiOperation != null && aiProviderApiOperation[EntityMetaKey.Selector] != null}
 						<div>
@@ -225,6 +237,96 @@
 								<AiProviderApiOperationView
 									selection={select(EntityType.AiProviderApiOperation, aiProviderApiOperation[EntityMetaKey.Selector])}
 									prefetched={aiProviderApiOperation}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={selection.$mcpToolCall}
+			>
+				{#snippet Pending()}{/snippet}
+
+				{#snippet children(mcpToolCall)}
+					{#if mcpToolCall != null && mcpToolCall[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>MCP tool call</dt>
+							<dd>
+								<McpToolCallView
+									selection={select(EntityType.McpToolCall, mcpToolCall[EntityMetaKey.Selector])}
+									prefetched={mcpToolCall}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$a2aTask}
+			>
+				{#snippet Pending()}{/snippet}
+
+				{#snippet children(a2aTask)}
+					{#if a2aTask != null && a2aTask[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>A2A task</dt>
+							<dd>
+								<A2aTaskView
+									selection={select(EntityType.A2aTask, a2aTask[EntityMetaKey.Selector])}
+									prefetched={a2aTask}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$acpSession}
+			>
+				{#snippet Pending()}{/snippet}
+
+				{#snippet children(acpSession)}
+					{#if acpSession != null && acpSession[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>ACP session</dt>
+							<dd>
+								<AcpSessionView
+									selection={select(EntityType.AcpSession, acpSession[EntityMetaKey.Selector])}
+									prefetched={acpSession}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$acpPromptTurn}
+			>
+				{#snippet Pending()}{/snippet}
+
+				{#snippet children(acpPromptTurn)}
+					{#if acpPromptTurn != null && acpPromptTurn[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>ACP prompt turn</dt>
+							<dd>
+								<AcpPromptTurnView
+									selection={select(EntityType.AcpPromptTurn, acpPromptTurn[EntityMetaKey.Selector])}
+									prefetched={acpPromptTurn}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -246,7 +348,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerRequestId = prefetched.providerRequestId}
+					{@const providerRequestId = pendingEntity.providerRequestId}
 					{#if providerRequestId !== undefined && providerRequestId !== null}
 						<div>
 							<dt>provider request ID</dt>
@@ -281,7 +383,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerResponseId = prefetched.providerResponseId}
+					{@const providerResponseId = pendingEntity.providerResponseId}
 					{#if providerResponseId !== undefined && providerResponseId !== null}
 						<div>
 							<dt>provider response ID</dt>
@@ -316,7 +418,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -351,7 +453,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>
@@ -388,7 +490,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startedAt = prefetched.startedAt}
+					{@const startedAt = pendingEntity.startedAt}
 					{#if startedAt !== undefined && startedAt !== null}
 						<div>
 							<dt>started AT</dt>
@@ -423,7 +525,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const completedAt = prefetched.completedAt}
+					{@const completedAt = pendingEntity.completedAt}
 					{#if completedAt !== undefined && completedAt !== null}
 						<div>
 							<dt>completed AT</dt>
@@ -458,7 +560,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latencyMs = prefetched.latencyMs}
+					{@const latencyMs = pendingEntity.latencyMs}
 					{#if latencyMs !== undefined && latencyMs !== null}
 						<div>
 							<dt>latency ms</dt>
@@ -495,7 +597,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestHashAlgorithm = prefetched.requestHashAlgorithm}
+					{@const requestHashAlgorithm = pendingEntity.requestHashAlgorithm}
 					{#if requestHashAlgorithm !== undefined && requestHashAlgorithm !== null}
 						<div>
 							<dt>request hash algorithm</dt>
@@ -530,7 +632,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const requestHash = prefetched.requestHash}
+					{@const requestHash = pendingEntity.requestHash}
 					{#if requestHash !== undefined && requestHash !== null}
 						<div>
 							<dt>request hash</dt>
@@ -565,7 +667,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const responseHashAlgorithm = prefetched.responseHashAlgorithm}
+					{@const responseHashAlgorithm = pendingEntity.responseHashAlgorithm}
 					{#if responseHashAlgorithm !== undefined && responseHashAlgorithm !== null}
 						<div>
 							<dt>response hash algorithm</dt>
@@ -600,7 +702,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const responseHash = prefetched.responseHash}
+					{@const responseHash = pendingEntity.responseHash}
 					{#if responseHash !== undefined && responseHash !== null}
 						<div>
 							<dt>response hash</dt>
@@ -637,7 +739,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const inputTokenCount = prefetched.inputTokenCount}
+					{@const inputTokenCount = pendingEntity.inputTokenCount}
 					{#if inputTokenCount !== undefined && inputTokenCount !== null}
 						<div>
 							<dt>input token count</dt>
@@ -672,7 +774,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outputTokenCount = prefetched.outputTokenCount}
+					{@const outputTokenCount = pendingEntity.outputTokenCount}
 					{#if outputTokenCount !== undefined && outputTokenCount !== null}
 						<div>
 							<dt>output token count</dt>

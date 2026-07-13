@@ -47,18 +47,20 @@
 			sender: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || [String((prefetched.version) ?? '')].filter(Boolean).join(' ') || 'aptos transaction')
+	const titleFallback = $derived([String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'aptos transaction')
 	const viewDomId = $derived('aptos-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import AptosTransaction_TimestampsView from '$/views/AptosTransaction_TimestampsView.svelte'
+	import AptosNetworkView from '$/views/AptosNetworkView.svelte'
 	import AptosStateChangesView from '$/views/AptosStateChangesView.svelte'
 	import AptosEventsView from '$/views/AptosEventsView.svelte'
-	import AptosNetworkView from '$/views/AptosNetworkView.svelte'
+	import AptosTransaction_TimestampsView from '$/views/AptosTransaction_TimestampsView.svelte'
 </script>
 
 
@@ -75,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosTransaction}>
 			{#snippet Pending()}
-				{@const hash0 = prefetched.hash}
+				{@const hash0 = pendingEntity.hash}
 				{#if hash0 !== undefined && hash0 !== null}
 					<TruncatedValue value={String((hash0) ?? '')} />
 				{/if}
@@ -94,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosTransaction}>
 			{#snippet Pending()}
-				{[String((prefetched.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.version) ?? '')].filter(Boolean).join(' ') || 'aptos transaction'}
+				{[String((pendingEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'aptos transaction'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aptosTransaction}>
 			{#snippet Pending()}
-				{@const sender0 = prefetched.sender}
+				{@const sender0 = pendingEntity.sender}
 				{#if sender0 !== undefined && sender0 !== null}
 					<span data-text="muted">
 						{String((sender0) ?? '')}
@@ -153,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const version = prefetched.version}
+							{@const version = pendingEntity.version}
 							{#if version !== undefined && version !== null}
 								<NumberValue value={Number(version)} />
 							{/if}
@@ -183,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hash = prefetched.hash}
+							{@const hash = pendingEntity.hash}
 							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
 							{/if}
@@ -212,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionKind = prefetched.transactionKind}
+					{@const transactionKind = pendingEntity.transactionKind}
 					{#if transactionKind !== undefined && transactionKind !== null}
 						<div>
 							<dt>transaction kind</dt>
@@ -247,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sender = prefetched.sender}
+					{@const sender = pendingEntity.sender}
 					{#if sender !== undefined && sender !== null}
 						<div>
 							<dt>sender</dt>
@@ -276,26 +278,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AptosTransaction_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='AptosTransaction_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-aptos-tx-effects'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'aptos-tx-state-changes',
+							label: 'State changes',
+						},
+						{
+							id: 'aptos-tx-events',
+							label: 'Events',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-effects'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Effects</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AptosStateChangesView
-				selection={selection.$$stateChanges}
-				title='state changes'
-				emptyText='No state changes found.'
-				id='AptosStateChangesView-state-changes'
-			/>
+				{#snippet SectionAptosTxStateChanges({ id, label, open })}
+					<AptosStateChangesView
+						selection={selection.$$stateChanges}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No state changes found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<AptosEventsView
-				selection={selection.$$events}
-				title='events'
-				emptyText='No events found.'
-				id='AptosEventsView-events'
-			/>
+				{#snippet SectionAptosTxEvents({ id, label, open })}
+					<AptosEventsView
+						selection={selection.$$events}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No events found.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-aptos-tx-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'aptos-tx-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAptosTxTimestamps({ id, label, open })}
+					<AptosTransaction_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No observations yet.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

@@ -9,8 +9,10 @@ export enum BridgeRouteStepSelector {
 }
 export const BridgeRouteStep = entity({
 	entityType: EntityType.BridgeRouteStep,
-	label: 'bridge route step',
-	labelPlural: 'bridge route steps',
+	labels: {
+		singular: 'bridge route step',
+		plural: 'bridge route steps',
+	},
 })({
 	$route: {
 		label: 'Route',
@@ -21,7 +23,7 @@ export const BridgeRouteStep = entity({
 	indexInRoute: {
 		label: 'Index in route',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	stepType: {

@@ -13,7 +13,7 @@ export const getContents = (): Promise<DogecoinDipsGithubContents> => (
 	getGithubContents({
 		endpoints: githubHttpEndpoints,
 		target: dogecoinDipsGithubRepo,
-	}) as Promise<DogecoinDipsGithubContents>
+	})
 )
 
 export const getMediaWikiText = ({ number }: { number: number }) => (

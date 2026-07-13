@@ -1,0 +1,35 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>XMTP accounts • Blockhead</title>
+</svelte:head>
+
+
+<Page>
+	<EvmAccountsView
+		href={resolve('/xmtp/accounts')}
+		title='XMTP accounts'
+		selection={
+			select(EntityType._Global, {
+				scope: '$$actors',
+			}).$$actors
+		}
+		id='actors'
+	/>
+</Page>

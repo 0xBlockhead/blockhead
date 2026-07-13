@@ -9,8 +9,10 @@ export enum AptosStateChangeSelector {
 }
 export const AptosStateChange = entity({
 	entityType: EntityType.AptosStateChange,
-	label: 'aptos state change',
-	labelPlural: 'aptos state changes',
+	labels: {
+		singular: 'aptos state change',
+		plural: 'aptos state changes',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

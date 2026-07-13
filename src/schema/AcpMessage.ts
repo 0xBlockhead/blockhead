@@ -9,8 +9,10 @@ export enum AcpMessageSelector {
 }
 export const AcpMessage = entity({
 	entityType: EntityType.AcpMessage,
-	label: 'acp message',
-	labelPlural: 'acp messages',
+	labels: {
+		singular: 'acp message',
+		plural: 'acp messages',
+	},
 })({
 	$session: {
 		label: 'session',

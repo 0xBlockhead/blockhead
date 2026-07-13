@@ -119,8 +119,8 @@
 						selection={select(EntityType.EvmNetwork_GasFee_Block, evmNetworkGasFeeBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkGasFeeBlockFields}
 						href={
-							(evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.caip2 !== undefined && evmNetworkGasFeeBlockHrefFields.$network.caip2.namespace !== undefined && evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.caip2 !== undefined && evmNetworkGasFeeBlockHrefFields.$network.caip2.reference !== undefined && evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/fee-market/block/[blockNumber=evmBlockNumber]', {
-								caip2: `${String(evmNetworkGasFeeBlockHrefFields.$network.caip2.namespace ?? '')}:${String(evmNetworkGasFeeBlockHrefFields.$network.caip2.reference ?? '')}`,
+							(evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.slug !== undefined && evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
+								network: String(evmNetworkGasFeeBlockHrefFields.$network.slug ?? ''),
 								blockNumber: String(evmNetworkGasFeeBlockHrefFields.blockNumber ?? ''),
 							}) : undefined)
 						}

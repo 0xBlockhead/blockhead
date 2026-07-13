@@ -11,8 +11,10 @@ export enum A2aMessagePartSelector {
 }
 export const A2aMessagePart = entity({
 	entityType: EntityType.A2aMessagePart,
-	label: 'a2a message part',
-	labelPlural: 'a2a message parts',
+	labels: {
+		singular: 'a2a message part',
+		plural: 'a2a message parts',
+	},
 })({
 	$message: {
 		label: 'message',

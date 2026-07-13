@@ -52,7 +52,7 @@
 			settlementTransactionHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.traceId ?? prefetched.traceId) ?? '')].filter(Boolean).join(' ') || 'zero g settlement trace')
+	const titleFallback = $derived([String((pendingEntity.traceId) ?? '')].filter(Boolean).join(' ') || 'zero g settlement trace')
 	const viewDomId = $derived('zero-gsettlement-trace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={zeroGSettlementTrace}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.traceId ?? prefetched.traceId) ?? '')].filter(Boolean).join(' ') || title || 'zero g settlement trace'}
+				{[String((pendingEntity.traceId) ?? '')].filter(Boolean).join(' ') || title || 'zero g settlement trace'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +111,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGSettlementTrace}>
 			{#snippet Pending()}
-				{@const settlementTransactionHash0 = prefetched.settlementTransactionHash}
+				{@const settlementTransactionHash0 = pendingEntity.settlementTransactionHash}
 				{#if settlementTransactionHash0 !== undefined && settlementTransactionHash0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((settlementTransactionHash0) ?? '')} />
@@ -157,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const traceId = selection.entitySelector.traceId ?? prefetched.traceId}
+							{@const traceId = pendingEntity.traceId}
 							{#if traceId !== undefined && traceId !== null}
 								{String((traceId) ?? '')}
 							{/if}
@@ -184,7 +184,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const settlementTransactionHash = prefetched.settlementTransactionHash}
+					{@const settlementTransactionHash = pendingEntity.settlementTransactionHash}
 					{#if settlementTransactionHash !== undefined && settlementTransactionHash !== null}
 						<div>
 							<dt>settlement transaction hash</dt>
@@ -219,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const acknowledgementSignature = prefetched.acknowledgementSignature}
+					{@const acknowledgementSignature = pendingEntity.acknowledgementSignature}
 					{#if acknowledgementSignature !== undefined && acknowledgementSignature !== null}
 						<div>
 							<dt>acknowledgement signature</dt>
@@ -254,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rewardAmount = prefetched.rewardAmount}
+					{@const rewardAmount = pendingEntity.rewardAmount}
 					{#if rewardAmount !== undefined && rewardAmount !== null}
 						<div>
 							<dt>reward amount</dt>

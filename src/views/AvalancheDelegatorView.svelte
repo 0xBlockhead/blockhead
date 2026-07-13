@@ -47,7 +47,7 @@
 			stakeAmountNavax: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.delegatorAddress) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche delegator')
+	const titleFallback = $derived([String((pendingEntity.delegatorAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche delegator')
 	const viewDomId = $derived('avalanche-delegator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={avalancheDelegator}>
 			{#snippet Pending()}
-				{[String((prefetched.delegatorAddress) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche delegator'}
+				{[String((pendingEntity.delegatorAddress) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche delegator'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={avalancheDelegator}>
 			{#snippet Pending()}
-				{@const stakeAmountNavax0 = prefetched.stakeAmountNavax}
+				{@const stakeAmountNavax0 = pendingEntity.stakeAmountNavax}
 				{#if stakeAmountNavax0 !== undefined && stakeAmountNavax0 !== null}
 					<NumberValue value={Number(stakeAmountNavax0)} />
 				{/if}
@@ -128,7 +128,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const txId = selection.entitySelector.txId ?? prefetched.txId}
+							{@const txId = pendingEntity.txId}
 							{#if txId !== undefined && txId !== null}
 								<TruncatedValue value={String((txId) ?? '')} />
 							{/if}
@@ -155,7 +155,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatorAddress = prefetched.delegatorAddress}
+					{@const delegatorAddress = pendingEntity.delegatorAddress}
 					{#if delegatorAddress !== undefined && delegatorAddress !== null}
 						<div>
 							<dt>delegator address</dt>
@@ -192,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const stakeAmountNavax = prefetched.stakeAmountNavax}
+					{@const stakeAmountNavax = pendingEntity.stakeAmountNavax}
 					{#if stakeAmountNavax !== undefined && stakeAmountNavax !== null}
 						<div>
 							<dt>stake amount navax</dt>
@@ -227,7 +227,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const potentialRewardNavax = prefetched.potentialRewardNavax}
+					{@const potentialRewardNavax = pendingEntity.potentialRewardNavax}
 					{#if potentialRewardNavax !== undefined && potentialRewardNavax !== null}
 						<div>
 							<dt>potential reward navax</dt>
@@ -262,7 +262,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startTimeMs = prefetched.startTimeMs}
+					{@const startTimeMs = pendingEntity.startTimeMs}
 					{#if startTimeMs !== undefined && startTimeMs !== null}
 						<div>
 							<dt>start time ms</dt>
@@ -297,7 +297,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endTimeMs = prefetched.endTimeMs}
+					{@const endTimeMs = pendingEntity.endTimeMs}
 					{#if endTimeMs !== undefined && endTimeMs !== null}
 						<div>
 							<dt>end time ms</dt>

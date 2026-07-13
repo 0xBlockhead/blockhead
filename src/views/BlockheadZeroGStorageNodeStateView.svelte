@@ -50,17 +50,19 @@
 			Source.ZeroGStorageNode_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state')
+	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state')
 	const viewDomId = $derived('blockhead-zero-gstorage-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import BlockheadZeroGStorageNodeState_TimestampsView from '$/views/BlockheadZeroGStorageNodeState_TimestampsView.svelte'
+	import ZeroGNetworkView from '$/views/ZeroGNetworkView.svelte'
 	import BlockheadZeroGStoredChunksView from '$/views/BlockheadZeroGStoredChunksView.svelte'
 	import BlockheadZeroGStorageProofsView from '$/views/BlockheadZeroGStorageProofsView.svelte'
-	import ZeroGNetworkView from '$/views/ZeroGNetworkView.svelte'
+	import BlockheadZeroGStorageNodeState_TimestampsView from '$/views/BlockheadZeroGStorageNodeState_TimestampsView.svelte'
 </script>
 
 
@@ -77,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadZeroGStorageNodeState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.nodeId ?? prefetched.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zero g storage node state'}
+				{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead zero g storage node state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,7 +113,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZeroGStorageNodeState}>
 			{#snippet Pending()}
-				{@const connectionId0 = selection.entitySelector.connectionId ?? prefetched.connectionId}
+				{@const connectionId0 = pendingEntity.connectionId}
 				{#if connectionId0 !== undefined && connectionId0 !== null}
 					<span data-text="muted">
 						{String((connectionId0) ?? '')}
@@ -146,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const connectionId = selection.entitySelector.connectionId ?? prefetched.connectionId}
+							{@const connectionId = pendingEntity.connectionId}
 							{#if connectionId !== undefined && connectionId !== null}
 								{String((connectionId) ?? '')}
 							{/if}
@@ -187,7 +189,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nodeId = selection.entitySelector.nodeId ?? prefetched.nodeId}
+							{@const nodeId = pendingEntity.nodeId}
 							{#if nodeId !== undefined && nodeId !== null}
 								{String((nodeId) ?? '')}
 							{/if}
@@ -214,7 +216,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endpoint = prefetched.endpoint}
+					{@const endpoint = pendingEntity.endpoint}
 					{#if endpoint !== undefined && endpoint !== null}
 						<div>
 							<dt>endpoint</dt>
@@ -263,7 +265,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const storagePath = prefetched.storagePath}
+					{@const storagePath = pendingEntity.storagePath}
 					{#if storagePath !== undefined && storagePath !== null}
 						<div>
 							<dt>storage path</dt>
@@ -292,26 +294,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BlockheadZeroGStorageNodeState_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No 0G storage-node observations.'
-				id='BlockheadZeroGStorageNodeState_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-zerog-storage-local'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'zerog-local-chunks',
+							label: 'Local chunks',
+						},
+						{
+							id: 'zerog-local-proofs',
+							label: 'Local proofs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-local-storage'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Local storage</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BlockheadZeroGStoredChunksView
-				selection={selection.$$localChunks}
-				title='local chunks'
-				emptyText='No local chunks.'
-				id='BlockheadZeroGStoredChunksView-local-chunks'
-			/>
+				{#snippet SectionZerogLocalChunks({ id, label, open })}
+					<BlockheadZeroGStoredChunksView
+						selection={selection.$$localChunks}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No local chunks.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadZeroGStorageProofsView
-				selection={selection.$$localProofs}
-				title='local proofs'
-				emptyText='No local proofs.'
-				id='BlockheadZeroGStorageProofsView-local-proofs'
-			/>
+				{#snippet SectionZerogLocalProofs({ id, label, open })}
+					<BlockheadZeroGStorageProofsView
+						selection={selection.$$localProofs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No local proofs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-zerog-storage-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'zerog-storage-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionZerogStorageTimestamps({ id, label, open })}
+					<BlockheadZeroGStorageNodeState_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No 0G storage-node observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

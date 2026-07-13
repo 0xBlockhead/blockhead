@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -163,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const url = prefetched.url}
+					{@const url = pendingEntity.url}
 					{#if url !== undefined && url !== null}
 						<div>
 							<dt>URL</dt>
@@ -215,7 +215,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const voteCount = prefetched.voteCount}
+					{@const voteCount = pendingEntity.voteCount}
 					{#if voteCount !== undefined && voteCount !== null}
 						<div>
 							<dt>Votes</dt>
@@ -253,7 +253,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalProduced = prefetched.totalProduced}
+					{@const totalProduced = pendingEntity.totalProduced}
 					{#if totalProduced !== undefined && totalProduced !== null}
 						<div>
 							<dt>Total produced</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalMissed = prefetched.totalMissed}
+					{@const totalMissed = pendingEntity.totalMissed}
 					{#if totalMissed !== undefined && totalMissed !== null}
 						<div>
 							<dt>Total missed</dt>
@@ -329,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestBlockHeight = prefetched.latestBlockHeight}
+					{@const latestBlockHeight = pendingEntity.latestBlockHeight}
 					{#if latestBlockHeight !== undefined && latestBlockHeight !== null}
 						<div>
 							<dt>Latest block height</dt>
@@ -367,7 +367,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestSlotNumber = prefetched.latestSlotNumber}
+					{@const latestSlotNumber = pendingEntity.latestSlotNumber}
 					{#if latestSlotNumber !== undefined && latestSlotNumber !== null}
 						<div>
 							<dt>Latest slot number</dt>
@@ -405,7 +405,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const active = prefetched.active}
+					{@const active = pendingEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>Active</dt>

@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const level = selection.entitySelector.level ?? prefetched.level}
+							{@const level = pendingEntity.level}
 							{#if level !== undefined && level !== null}
 								{String((level) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataUri = prefetched.metadataUri}
+					{@const metadataUri = pendingEntity.metadataUri}
 					{#if metadataUri !== undefined && metadataUri !== null}
 						<div>
 							<dt>metadata URI</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -278,7 +278,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const symbol = prefetched.symbol}
+					{@const symbol = pendingEntity.symbol}
 					{#if symbol !== undefined && symbol !== null}
 						<div>
 							<dt>Symbol</dt>
@@ -313,7 +313,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -348,7 +348,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const artifactUri = prefetched.artifactUri}
+					{@const artifactUri = pendingEntity.artifactUri}
 					{#if artifactUri !== undefined && artifactUri !== null}
 						<div>
 							<dt>artifact URI</dt>
@@ -397,7 +397,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const displayUri = prefetched.displayUri}
+					{@const displayUri = pendingEntity.displayUri}
 					{#if displayUri !== undefined && displayUri !== null}
 						<div>
 							<dt>display URI</dt>
@@ -446,7 +446,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const thumbnailUri = prefetched.thumbnailUri}
+					{@const thumbnailUri = pendingEntity.thumbnailUri}
 					{#if thumbnailUri !== undefined && thumbnailUri !== null}
 						<div>
 							<dt>thumbnail URI</dt>
@@ -495,7 +495,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalSupply = prefetched.totalSupply}
+					{@const totalSupply = pendingEntity.totalSupply}
 					{#if totalSupply !== undefined && totalSupply !== null}
 						<div>
 							<dt>total supply</dt>
@@ -530,7 +530,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const holderCount = prefetched.holderCount}
+					{@const holderCount = pendingEntity.holderCount}
 					{#if holderCount !== undefined && holderCount !== null}
 						<div>
 							<dt>holder count</dt>
@@ -565,7 +565,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transferCount = prefetched.transferCount}
+					{@const transferCount = pendingEntity.transferCount}
 					{#if transferCount !== undefined && transferCount !== null}
 						<div>
 							<dt>transfer count</dt>

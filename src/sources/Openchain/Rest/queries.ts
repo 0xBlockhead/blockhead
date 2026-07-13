@@ -107,7 +107,10 @@ export const getEventEntries = async ({
 	})
 	assertOpenchainOk(json)
 	const openchainEntries = json.result?.event?.[key] ?? []
-	return openchainEntries.length > 0 ? openchainEntries : fourbyteEventEntries(hex)
+	return openchainEntries.length > 0 ?
+		openchainEntries
+	:
+		fourbyteEventEntries(hex).catch(() => [])
 }
 
 /**

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -120,9 +119,9 @@
 						selection={select(EntityType.SolanaTransaction, solanaTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaTransactionFields}
 						href={
-							(solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined && solanaTransactionHrefFields.$network.caip2.namespace !== undefined && solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined && solanaTransactionHrefFields.$network.caip2.reference !== undefined && solanaTransactionHrefFields.signature !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/tx/[signature]', {
-								networkSlug: String(networkByCaip2[String(String(solanaTransactionHrefFields.$network.caip2.namespace) + ':' + String(solanaTransactionHrefFields.$network.caip2.reference))].slug ?? ''),
-								signature: String(solanaTransactionHrefFields.signature ?? ''),
+							(solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.slug !== undefined && solanaTransactionHrefFields.signature !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								network: String(solanaTransactionHrefFields.$network.slug ?? ''),
+								transactionId: String(solanaTransactionHrefFields.signature ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

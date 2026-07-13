@@ -10,8 +10,10 @@ export enum OracleFeed_TimestampSelector {
 }
 export const OracleFeed_Timestamp = entity({
 	entityType: EntityType.OracleFeed_Timestamp,
-	label: 'oracle feed timestamp',
-	labelPlural: 'oracle feed observations',
+	labels: {
+		singular: 'oracle feed timestamp',
+		plural: 'oracle feed observations',
+	},
 })({
 	$oracleFeed: {
 		label: 'oracle feed',

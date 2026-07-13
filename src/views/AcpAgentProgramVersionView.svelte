@@ -50,7 +50,7 @@
 			distributionKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.version) ?? '')].filter(Boolean).join(' ') || 'ACP agent program version')
+	const titleFallback = $derived([String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'ACP agent program version')
 	const viewDomId = $derived('acp-agent-program-version-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpAgentProgramVersion}>
 			{#snippet Pending()}
-				{[String((prefetched.version) ?? '')].filter(Boolean).join(' ') || title || 'ACP agent program version'}
+				{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || title || 'ACP agent program version'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -128,7 +128,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpAgentProgramVersion}>
 			{#snippet Pending()}
-				{@const distributionKind0 = prefetched.distributionKind}
+				{@const distributionKind0 = pendingEntity.distributionKind}
 				{#if distributionKind0 !== undefined && distributionKind0 !== null}
 					<span data-text="muted">
 						{String((distributionKind0) ?? '')}
@@ -153,6 +153,8 @@
 			<ResourceBoundary
 				resource={selection.$program}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(acpAgentProgram)}
 					{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
 						<div>
@@ -180,7 +182,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const version = prefetched.version}
+					{@const version = pendingEntity.version}
 					{#if version !== undefined && version !== null}
 						<div>
 							<dt>version</dt>
@@ -208,6 +210,8 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
 						<div>
@@ -237,7 +241,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const releaseDate = prefetched.releaseDate}
+					{@const releaseDate = pendingEntity.releaseDate}
 					{#if releaseDate !== undefined && releaseDate !== null}
 						<div>
 							<dt>release date</dt>
@@ -272,7 +276,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const distributionKind = prefetched.distributionKind}
+					{@const distributionKind = pendingEntity.distributionKind}
 					{#if distributionKind !== undefined && distributionKind !== null}
 						<div>
 							<dt>distribution kind</dt>
@@ -307,7 +311,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const command = prefetched.command}
+					{@const command = pendingEntity.command}
 					{#if command !== undefined && command !== null}
 						<div>
 							<dt>command</dt>

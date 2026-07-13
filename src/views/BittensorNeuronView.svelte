@@ -47,7 +47,7 @@
 			Source.Bittensor_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.uid ?? prefetched.uid) ?? '')].filter(Boolean).join(' ') || 'Bittensor neuron')
+	const titleFallback = $derived([String((pendingEntity.uid) ?? '')].filter(Boolean).join(' ') || 'Bittensor neuron')
 	const viewDomId = $derived('bittensor-neuron-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bittensorNeuron}>
 			{#snippet Pending()}
-				{@const uid0 = selection.entitySelector.uid ?? prefetched.uid}
+				{@const uid0 = pendingEntity.uid}
 				{#if uid0 !== undefined && uid0 !== null}
 					<NumberValue value={Number(uid0)} />
 				{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const uid = selection.entitySelector.uid ?? prefetched.uid}
+							{@const uid = pendingEntity.uid}
 							{#if uid !== undefined && uid !== null}
 								<NumberValue value={Number(uid)} />
 							{/if}

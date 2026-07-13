@@ -9,8 +9,10 @@ export enum SolanaBlockSelector {
 }
 export const SolanaBlock = entity({
 	entityType: EntityType.SolanaBlock,
-	label: 'solana block',
-	labelPlural: 'Solana blocks',
+	labels: {
+		singular: 'solana block',
+		plural: 'Solana blocks',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -21,7 +23,7 @@ export const SolanaBlock = entity({
 	slot: {
 		label: 'Slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHeight: {

@@ -9,8 +9,10 @@ export enum SuiTransaction_TimestampSelector {
 }
 export const SuiTransaction_Timestamp = entity({
 	entityType: EntityType.SuiTransaction_Timestamp,
-	label: 'sui transaction timestamp',
-	labelPlural: 'sui transaction observations',
+	labels: {
+		singular: 'sui transaction timestamp',
+		plural: 'sui transaction observations',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

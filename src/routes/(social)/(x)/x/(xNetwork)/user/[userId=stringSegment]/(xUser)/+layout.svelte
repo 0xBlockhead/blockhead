@@ -1,0 +1,53 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { LayoutProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		children,
+		data,
+		params,
+	}: LayoutProps = $props()
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import XUserView from '$/views/XUserView.svelte'
+</script>
+
+
+{#key params.userId}
+	<ParentPageCollapsible
+		href={
+			resolve('/x/user/[userId=stringSegment]', {
+				userId: params.userId,
+			})
+		}
+	>
+		{#snippet Summary()}
+			{@const DetailView = XUserView}
+
+			<DetailView
+				selection={select(EntityType.XUser, data.selector)}
+				href={
+					resolve('/x/user/[userId=stringSegment]', {
+						userId: params.userId,
+					})
+				}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/snippet}
+
+		{@render children()}
+	</ParentPageCollapsible>
+{/key}

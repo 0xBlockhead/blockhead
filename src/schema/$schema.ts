@@ -27,18 +27,23 @@ type SchemaType<
 export type EntityDefinition<
 	_EntityType extends string = string,
 	_Source extends string = string,
+	_Selectors extends readonly EntitySelectorDefinition[] = readonly EntitySelectorDefinition[],
+	_Fields extends readonly EntityFieldDefinition<_Source>[] = readonly EntityFieldDefinition<_Source>[],
+	_Facets extends readonly EntityFacetDefinition<_Source>[] | undefined = readonly EntityFacetDefinition<_Source>[] | undefined,
 > = {
 	readonly entityType: _EntityType
-	readonly label: string
-	readonly labelPlural: string
+	readonly labels: {
+		readonly singular: string
+		readonly plural: string
+	}
 	readonly description?: string
-	readonly selectors: readonly EntitySelectorDefinition[]
-	readonly fields: readonly EntityFieldDefinition<_Source>[]
-	readonly facets?: readonly EntityFacetDefinition<_Source>[]
+	readonly selectors: _Selectors
+	readonly fields: _Fields
+	readonly facets?: _Facets
 }
 
 export type EntityFacetDefinition<_Source extends string = string> = {
-	readonly id: string
+	readonly name: string
 	readonly condition?: EntityFacetCondition
 	readonly fields: readonly EntityFieldDefinition<_Source>[]
 	readonly facets?: readonly EntityFacetDefinition<_Source>[]
@@ -59,15 +64,6 @@ export enum EntityFieldCardinality {
 	ZeroOrOne = 'ZeroOrOne',
 	Many = 'Many',
 	ZeroOrMany = 'ZeroOrMany',
-}
-
-export type EntityFieldCondition<
-	_FieldName extends string = string,
-	_Value extends string | number = string | number,
-> = {
-	readonly fieldName: _FieldName
-	readonly itemIndex?: number
-	readonly values: readonly _Value[]
 }
 
 export type EntityFacetPath = readonly string[]
@@ -104,24 +100,6 @@ export type ProjectionValue<_Value> =
 			readonly resolution: ProjectionResolution.Unsupported
 		}
 
-export type EntityFieldConditionKey<_Condition extends EntityFieldCondition> = (
-	_Condition extends {
-		itemIndex: infer _ItemIndex extends number
-	} ?
-		`${_Condition['fieldName']}[${_ItemIndex}]`
-	:
-		_Condition['fieldName']
-)
-
-export const entityFieldConditionKey = (
-	condition: EntityFieldCondition
-) => (
-	condition.itemIndex == null ?
-		condition.fieldName
-	:
-		`${condition.fieldName}[${condition.itemIndex}]`
-)
-
 export const entityFieldCardinalityIsMultiple = (
 	cardinality: EntityFieldCardinality
 ) => (
@@ -150,10 +128,6 @@ export const entityFieldAddressKey = (
 	fieldName: string
 ) => `${entityType}${facetPath.join('')}${fieldName}`
 
-export const entityFacetFieldName = (
-	fieldDefinition: EntityFieldDefinition
-) => fieldDefinition.name
-
 export const entityFieldPrimitiveValueIsValid = (
 	fieldDefinition: Extract<EntityFieldDefinition, {
 		readonly type: EntityFieldType.Primitive
@@ -169,7 +143,6 @@ export type EntityFieldDefinition<_Source extends string = string> = (
 		labelPlural?: string
 		description?: string
 		defaultSources?: readonly _Source[]
-		when?: EntityFieldCondition
 		facetPath?: EntityFacetPath
 		normalize?: EntityFieldValueNormalizer
 	}
@@ -202,19 +175,86 @@ export type EntityFacetCondition =
 	}
 	| {
 		readonly path: readonly (string | number)[]
-		readonly isOneOf: readonly (string | number | boolean | null)[]
+		readonly isOneOf: readonly [
+			string | number | boolean | null,
+			...(string | number | boolean | null)[],
+		]
 	}
 	| {
 		readonly path: readonly (string | number)[]
 		readonly includes: string | number | boolean | null
 	}
 	| {
-		readonly all: readonly EntityFacetCondition[]
+		readonly all: readonly [EntityFacetCondition, ...EntityFacetCondition[]]
 	}
 
-type EntityFieldDefinitionInput<_Source extends string = string> = Omit<EntityFieldDefinition<_Source>, 'name'>
+type EntityFieldDefinitionInput<_Source extends string = string> = (
+	EntityFieldDefinition<_Source> extends infer _FieldDefinition ?
+		_FieldDefinition extends EntityFieldDefinition<_Source> ?
+			Omit<_FieldDefinition, 'name'>
+		:
+			never
+	:
+		never
+)
 
 type EntityFieldDefinitionInputByName<_Source extends string = string> = Record<string, EntityFieldDefinitionInput<_Source>>
+
+type EntityFieldDefinitionInputsWithValidNames<
+	_Fields extends EntityFieldDefinitionInputByName,
+> = {
+	readonly [_FieldName in keyof _Fields]: _FieldName extends string ?
+		_Fields[_FieldName]['type'] extends EntityFieldType.Primitive ?
+			_FieldName extends `$${string}` ? never : _Fields[_FieldName]
+		: _Fields[_FieldName]['type'] extends EntityFieldType.EntityReference ?
+			_FieldName extends `$$${string}` ?
+				never
+			: _FieldName extends `$${infer _ReferenceName}` ?
+				_ReferenceName extends '' ? never : _Fields[_FieldName]
+			:
+				never
+		: _Fields[_FieldName]['type'] extends EntityFieldType.EntitiesReference ?
+			_FieldName extends `$$${infer _ReferencesName}` ?
+				_ReferencesName extends '' ? never : _Fields[_FieldName]
+			:
+				never
+		:
+			never
+	:
+		never
+}
+
+type EntityFieldDefinitionFromInput<
+	_FieldName extends string,
+	_Field extends EntityFieldDefinitionInput,
+> = (
+	_Field extends { readonly type: EntityFieldType.Primitive } ?
+		& _Field
+		& { readonly name: _FieldName }
+	: _Field extends { readonly type: EntityFieldType.EntityReference } ?
+		_FieldName extends `$${string}` ?
+			& _Field
+			& { readonly name: _FieldName }
+		:
+			never
+	: _Field extends { readonly type: EntityFieldType.EntitiesReference } ?
+		_FieldName extends `$$${string}` ?
+			& _Field
+			& { readonly name: _FieldName }
+		:
+			never
+	:
+		never
+)
+
+type EntityFieldDefinitionsFromInputs<
+	_Fields extends EntityFieldDefinitionInputByName,
+> = readonly {
+	readonly [_FieldName in keyof _Fields & string]: EntityFieldDefinitionFromInput<
+		_FieldName,
+		_Fields[_FieldName]
+	>
+}[keyof _Fields & string][]
 
 type AnyEntityFacetInput<_Source extends string = string> = {
 	readonly condition: EntityFacetCondition
@@ -233,14 +273,34 @@ type EntityFacetInput<
 	readonly facets?: _Facets
 }
 
-type EntityFacetConditionPathIsValid<
+type EntityFacetDefinitionsFromInputs<
+	_Facets extends Record<string, AnyEntityFacetInput>,
+> = readonly {
+	readonly [_FacetName in keyof _Facets & string]: {
+		readonly name: _FacetName
+		readonly condition: _Facets[_FacetName]['condition']
+		readonly fields: EntityFieldDefinitionsFromInputs<_Facets[_FacetName]['fields']>
+		readonly facets?: EntityFacetDefinitionsFromInputs<NonNullable<_Facets[_FacetName]['facets']>>
+	}
+}[keyof _Facets & string][]
+
+type EntitySelectorDefinitionsFromInputs<
+	_Selectors extends Record<string, readonly string[]>,
+> = readonly {
+	readonly [_SelectorName in keyof _Selectors & string]: {
+		readonly name: _SelectorName
+		readonly fields: _Selectors[_SelectorName]
+	}
+}[keyof _Selectors & string][]
+
+type EntityFacetConditionTarget<
 	_Fields,
 	_Facets,
 	_Path,
 > = (
 	_Path extends readonly [infer _Segment extends string, ...infer _Rest extends readonly (string | number)[]] ?
 		_Segment extends keyof _Facets ?
-			EntityFacetConditionPathIsValid<
+			EntityFacetConditionTarget<
 				_Fields & (
 					_Facets[_Segment] extends { readonly fields: infer _FacetFields } ?
 						_FacetFields
@@ -254,12 +314,46 @@ type EntityFacetConditionPathIsValid<
 				_Rest
 			>
 		: _Segment extends keyof _Fields ?
-			_Rest extends readonly [] | readonly [number] ?
-				true
+			_Rest extends readonly [] ?
+				{
+					readonly field: _Fields[_Segment]
+					readonly indexed: false
+				}
+			: _Rest extends readonly [number] ?
+				_Fields[_Segment] extends {
+					readonly type: EntityFieldType.Primitive
+					readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+				} ?
+					{
+						readonly field: _Fields[_Segment]
+						readonly indexed: true
+					}
+				:
+					never
 			:
-				false
+				never
 		:
+			never
+	:
+		never
+)
+
+type EntityFacetScalarConditionTargetIsValid<_Target> = (
+	[_Target] extends [never] ?
+		false
+	: _Target extends {
+		readonly field: {
+			readonly type: EntityFieldType.Primitive
+			readonly cardinality: infer _Cardinality
+		}
+		readonly indexed: infer _Indexed
+	} ?
+		_Indexed extends true ?
+			true
+		: _Cardinality extends EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany ?
 			false
+		:
+			true
 	:
 		false
 )
@@ -274,8 +368,36 @@ type EntityFacetConditionIsValid<
 			false
 		:
 			true
-	: _Condition extends { readonly path: infer _Path extends readonly (string | number)[] } ?
-		EntityFacetConditionPathIsValid<_Fields, _Facets, _Path>
+	: _Condition extends {
+		readonly path: infer _Path extends readonly (string | number)[]
+		readonly includes: string | number | boolean | null
+	} ?
+		EntityFacetConditionTarget<_Fields, _Facets, _Path> extends infer _Target ?
+			[_Target] extends [never] ?
+				false
+			: _Target extends {
+				readonly field: {
+					readonly type: EntityFieldType.Primitive
+					readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+				}
+				readonly indexed: false
+			} ?
+				true
+			:
+				false
+		:
+			false
+	: _Condition extends {
+		readonly path: infer _Path extends readonly (string | number)[]
+		readonly is: string | number | boolean | null
+	} | {
+		readonly path: infer _Path extends readonly (string | number)[]
+		readonly isOneOf: readonly [
+			string | number | boolean | null,
+			...(string | number | boolean | null)[],
+		]
+	} ?
+		EntityFacetScalarConditionTargetIsValid<EntityFacetConditionTarget<_Fields, _Facets, _Path>>
 	:
 		false
 )
@@ -287,17 +409,31 @@ type EntityFacetInputIsValid<
 > = (
 	_Facet extends {
 		readonly condition: infer _Condition
+		readonly fields: infer _FacetFields
 		readonly facets?: infer _NestedFacets
 	} ?
 		EntityFacetConditionIsValid<_Fields, _AllFacets, _Condition> extends true ?
-			false extends {
+			Extract<keyof NonNullable<_NestedFacets>, keyof _Fields | keyof _FacetFields> extends never ?
+				false extends {
 				readonly [
 					_NestedFacetName in keyof NonNullable<_NestedFacets>
-				]: EntityFacetInputIsValid<_Fields, _AllFacets, NonNullable<_NestedFacets>[_NestedFacetName]>
-			}[keyof NonNullable<_NestedFacets>] ?
-				false
+				]: _NestedFacetName extends string ?
+					_NestedFacetName extends Capitalize<_NestedFacetName> ?
+						EntityFacetInputIsValid<
+							_Fields & _FacetFields,
+							_AllFacets,
+							NonNullable<_NestedFacets>[_NestedFacetName]
+						>
+					:
+						false
+				:
+					false
+				}[keyof NonNullable<_NestedFacets>] ?
+					false
+				:
+					true
 			:
-				true
+				false
 		:
 			false
 	:
@@ -312,16 +448,16 @@ const entityDefinitionFields = <_Source extends string>(
 } as EntityFieldDefinition<_Source>))
 
 const entityFacetDefinition = <_Source extends string>(
-	id: string,
+	name: string,
 	facetInput: AnyEntityFacetInput<_Source>
 ): EntityFacetDefinition<_Source> => ({
-	id,
+	name,
 	condition: facetInput.condition,
 	fields: entityDefinitionFields(facetInput.fields),
 	facets: facetInput.facets == null ?
 		undefined
 	:
-		Object.entries(facetInput.facets).map(([facetId, childFacet]) => entityFacetDefinition(facetId, childFacet)),
+	Object.entries(facetInput.facets).map(([facetName, childFacet]) => entityFacetDefinition(facetName, childFacet)),
 })
 
 const entityFacetInput = <_Source extends string>(
@@ -334,8 +470,8 @@ const entityFacetInput = <_Source extends string>(
 	facets: nested?.facets == null ?
 		undefined
 	:
-		Object.fromEntries(Object.entries(nested.facets).map(([facetId, childFacet]) => [
-			facetId,
+	Object.fromEntries(Object.entries(nested.facets).map(([facetName, childFacet]) => [
+			facetName,
 			entityFacetInput(childFacet.condition, childFacet.fields, childFacet),
 		])),
 })
@@ -343,7 +479,7 @@ const entityFacetInput = <_Source extends string>(
 export const facet = <const _Condition extends EntityFacetCondition>(
 	condition: _Condition
 ) => <const _Fields extends EntityFieldDefinitionInputByName>(
-	fields: _Fields
+	fields: _Fields & EntityFieldDefinitionInputsWithValidNames<_Fields>
 ) => Object.assign(
 		<const _Nested extends { readonly facets?: Record<string, AnyEntityFacetInput> }>(
 			nested: _Nested
@@ -383,47 +519,73 @@ export const entity = <
 	const _EntityType extends string,
 >(meta: {
 	readonly entityType: _EntityType
-	readonly label: string
-	readonly labelPlural: string
+	readonly labels: {
+		readonly singular: string
+		readonly plural: string
+	}
 	readonly description?: string
 }) => <const _Fields extends EntityFieldDefinitionInputByName>(
-	fields: _Fields
-) => <
-	const _Selectors extends Record<string, readonly string[]>,
-	const _Facets extends Record<string, AnyEntityFacetInput> = {},
->(
-	selectorsAndFacets: {
-		readonly selectors: {
-			readonly [
-				_SelectorName in keyof _Selectors
-			]: _Selectors[_SelectorName][number] extends keyof _Fields & string ?
-				_Selectors[_SelectorName]
-			:
-				never
+	fields: _Fields & EntityFieldDefinitionInputsWithValidNames<_Fields>
+) => {
+	function defineEntity<
+		const _Selectors extends Record<string, readonly string[]>,
+		const _Facets extends Record<string, AnyEntityFacetInput> = {},
+	>(
+		selectorsAndFacets: {
+			readonly selectors: {
+				readonly [
+					_SelectorName in keyof _Selectors
+				]: _Selectors[_SelectorName][number] extends keyof _Fields & string ?
+					_Selectors[_SelectorName]
+				:
+					never
+			}
+			readonly facets?: {
+				readonly [
+					_FacetName in keyof _Facets
+				]: _FacetName extends string ?
+					_FacetName extends Capitalize<_FacetName> ?
+						_FacetName extends keyof _Fields ?
+							never
+						: EntityFacetInputIsValid<_Fields, _Facets, _Facets[_FacetName]> extends true ?
+							_Facets[_FacetName]
+						:
+							never
+					:
+					never
+				:
+					never
+			}
 		}
-		readonly facets?: {
-			readonly [
-				_FacetName in keyof _Facets
-			]: _FacetName extends keyof _Fields ?
-				never
-			: EntityFacetInputIsValid<_Fields, _Facets, _Facets[_FacetName]> extends true ?
-				_Facets[_FacetName]
+	): EntityDefinition<
+		_EntityType,
+		string,
+		EntitySelectorDefinitionsFromInputs<_Selectors>,
+		EntityFieldDefinitionsFromInputs<_Fields>,
+		EntityFacetDefinitionsFromInputs<_Facets>
+	>
+	function defineEntity(
+		selectorsAndFacets: {
+			readonly selectors: Record<string, readonly string[]>
+			readonly facets?: Record<string, AnyEntityFacetInput>
+		}
+	): EntityDefinition {
+		return {
+			...meta,
+			selectors: Object.entries(selectorsAndFacets.selectors).map(([name, selectorFields]) => ({
+				name: String(name),
+				fields: selectorFields,
+			})),
+			fields: entityDefinitionFields(fields),
+			facets: selectorsAndFacets.facets == null ?
+				undefined
 			:
-				never
+				Object.entries(selectorsAndFacets.facets).map(([facetName, facetInput]) => entityFacetDefinition(String(facetName), facetInput)),
 		}
 	}
-): EntityDefinition<_EntityType> => ({
-	...meta,
-	selectors: Object.entries(selectorsAndFacets.selectors).map(([name, selectorFields]) => ({
-		name,
-		fields: selectorFields,
-	})),
-	fields: entityDefinitionFields(fields),
-	facets: selectorsAndFacets.facets == null ?
-		undefined
-	:
-		Object.entries(selectorsAndFacets.facets).map(([facetId, facetInput]) => entityFacetDefinition(facetId, facetInput)),
-})
+
+	return defineEntity
+}
 
 export type EntityFieldDefinitions<_EntityDefinition extends EntityDefinition> = (
 	_EntityDefinition['fields'][number]
@@ -445,7 +607,7 @@ export function entityFieldDefinitions(
 	).flatMap((facetDefinition) => {
 		const facetPath = [
 			...parentPath,
-			facetDefinition.id,
+			facetDefinition.name,
 		]
 		return [
 			...facetDefinition.fields.map((fieldDefinition) => ({
@@ -498,10 +660,8 @@ type EntitySelectorFromDefinition<
 	_EntityDefinition extends EntityDefinition & {
 		readonly selectors: infer _Selectors extends readonly EntitySelectorDefinition[]
 	} ?
-		{
-			readonly [
-				_SelectorIndex in keyof _Selectors
-			]: _Selectors[_SelectorIndex] extends {
+		_Selectors[number] extends infer _Selector ?
+			_Selector extends {
 				readonly fields: infer _Fields extends readonly string[]
 			} ?
 				{
@@ -511,10 +671,11 @@ type EntitySelectorFromDefinition<
 				}
 			:
 				never
-		}[number]
+		:
+			never
 	:
 		never
-	)
+)
 
 export type EntitySelectorForSelectorName<
 	_Schema extends Schema,
@@ -567,7 +728,7 @@ const entitySelectorFieldDefinition = (
 	entityDefinition: EntityDefinition,
 	selectorField: string
 ) => {
-	const fieldDefinition = entityFieldDefinitions(entityDefinition)
+	const fieldDefinition = entityDefinition.fields
 		.find((candidate) => candidate.name === selectorField)
 	if (fieldDefinition == null)
 		throw new Error(`${entityDefinition.entityType}: selector references unknown field ${selectorField}`)
@@ -761,134 +922,6 @@ export const entitySelectorsFromFields = <
 	})
 }
 
-type NonConditionalScalarPrimitiveFieldName<
-	_Fields extends readonly EntityFieldDefinition[],
-> = Exclude<
-	_Fields[number],
-	{ when: EntityFieldCondition }
-> extends infer _Field ?
-	_Field extends {
-		readonly name: infer _FieldName extends string
-		readonly type: EntityFieldType.Primitive
-		readonly primitiveType: SchemaType<string | number>
-		readonly cardinality: EntityFieldCardinality.One
-	} ?
-		_FieldName
-	:
-	never
-:
-	never
-
-type NonConditionalIndexedPrimitiveFieldName<
-	_Fields extends readonly EntityFieldDefinition[],
-> = Exclude<
-	_Fields[number],
-	{ when: EntityFieldCondition }
-> extends infer _Field ?
-	_Field extends {
-		readonly name: infer _FieldName extends string
-		readonly type: EntityFieldType.Primitive
-		readonly primitiveType: SchemaType<string | number | readonly (string | number)[]>
-		readonly cardinality: EntityFieldCardinality.One
-	} ?
-		_Field['primitiveType'] extends SchemaType<readonly (string | number)[]> ?
-			_FieldName
-		:
-			never
-	:
-		never
-:
-	never
-
-type ScalarPrimitiveFieldValue<
-	_Fields extends readonly EntityFieldDefinition[],
-	_FieldName extends string,
-> = _Fields[number] extends infer _Field ?
-	_Field extends {
-		readonly name: _FieldName
-		readonly type: EntityFieldType.Primitive
-		readonly primitiveType: SchemaType<infer _Value extends string | number>
-	} ?
-		_Value
-	:
-	never
-:
-	never
-
-type IndexedPrimitiveFieldItemValue<
-	_Fields extends readonly EntityFieldDefinition[],
-	_FieldName extends string,
-> = _Fields[number] extends infer _Field ?
-	_Field extends {
-		readonly name: _FieldName
-		readonly type: EntityFieldType.Primitive
-		readonly primitiveType: SchemaType<infer _Value>
-		readonly cardinality: EntityFieldCardinality.One
-	} ?
-		_Value extends readonly (infer _Item extends string | number)[] ?
-			_Item
-		:
-			never
-	:
-		never
-:
-	never
-
-export function conditionalOn<
-	const _Fields extends readonly EntityFieldDefinition[],
-	const _FieldName extends NonConditionalScalarPrimitiveFieldName<_Fields>,
-	const _Values extends readonly ScalarPrimitiveFieldValue<_Fields, _FieldName>[],
->(
-	_fields: _Fields,
-	fieldName: _FieldName,
-	values: _Values
-): {
-	fieldName: _FieldName
-	values: _Values
-}
-export function conditionalOn<
-	const _Fields extends readonly EntityFieldDefinition[],
-	const _FieldName extends NonConditionalIndexedPrimitiveFieldName<_Fields>,
-	const _Values extends readonly IndexedPrimitiveFieldItemValue<_Fields, _FieldName>[],
-	const _ItemIndex extends number,
->(
-	_fields: _Fields,
-	fieldName: _FieldName,
-	values: _Values,
-	options: {
-		itemIndex: _ItemIndex
-	}
-): {
-	fieldName: _FieldName
-	itemIndex: _ItemIndex
-	values: _Values
-}
-export function conditionalOn(
-	_fields: readonly EntityFieldDefinition[],
-	fieldName: string,
-	values: readonly (string | number)[],
-	options?: {
-		itemIndex?: number
-	}
-) {
-	if (
-		options?.itemIndex != null
-		&& (
-			!Number.isInteger(options.itemIndex)
-			|| options.itemIndex < 0
-		)
-	)
-		throw new Error(`Invalid conditional field index: ${options.itemIndex}`)
-
-	return {
-		fieldName,
-		...(options?.itemIndex != null && {
-			itemIndex: options.itemIndex,
-		}),
-		values,
-	}
-}
-
 export type Schema = readonly EntityDefinition[]
 
 export type EntityType<_Schema extends Schema> = _Schema[number]['entityType']
@@ -917,155 +950,82 @@ export type EntityFieldName<
 	_EntityType extends EntityType<_Schema>,
 > = EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>['name']
 
-export type EntityFacetId<
+type EntityFacetDefinitionAtPath<
+	_Facets extends readonly EntityFacetDefinition[] | undefined,
+	_Path extends readonly string[],
+> = _Path extends readonly [
+	infer _FacetName extends string,
+	...infer _Remaining extends string[],
+]
+	? Extract<NonNullable<_Facets>[number], { readonly name: _FacetName }> extends infer _Facet extends EntityFacetDefinition
+		? _Remaining extends []
+			? _Facet
+			: EntityFacetDefinitionAtPath<_Facet['facets'], _Remaining>
+		: never
+	: never
+
+export type EntityFacetDefinitionForPath<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = NonNullable<EntityDefinitionForEntityType<_Schema, _EntityType>['facets']>[number]['id']
+	_FacetPath extends readonly string[],
+> = EntityFacetDefinitionAtPath<
+		EntityDefinitionForEntityType<_Schema, _EntityType>['facets'],
+		_FacetPath
+	>
+
+export type EntityFacetFieldNameAtPath<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[],
+> = EntityFacetDefinitionForPath<_Schema, _EntityType, _FacetPath>['fields'][number]['name']
+
+export type EntityFacetFieldDefinitionAtPath<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[],
+	_FieldName extends EntityFacetFieldNameAtPath<_Schema, _EntityType, _FacetPath>,
+> = Extract<
+	EntityFacetDefinitionForPath<_Schema, _EntityType, _FacetPath>['fields'][number],
+	{ readonly name: _FieldName }
+>
+
+export type EntityFacetName<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[] = [],
+> = _FacetPath extends [] ?
+	NonNullable<EntityDefinitionForEntityType<_Schema, _EntityType>['facets']>[number]['name']
+:
+	NonNullable<EntityFacetDefinitionForPath<_Schema, _EntityType, _FacetPath>['facets']>[number]['name']
 
 export type EntityFacetFieldDefinition<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-	_FacetId extends EntityFacetId<_Schema, _EntityType>,
+	_FacetName extends EntityFacetName<_Schema, _EntityType>,
 > = Extract<
 	NonNullable<EntityDefinitionForEntityType<_Schema, _EntityType>['facets']>[number],
-	{ readonly id: _FacetId }
+	{ readonly name: _FacetName }
 >['fields'][number]
 
 export type EntityFacetFieldName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-	_FacetId extends EntityFacetId<_Schema, _EntityType>,
+	_FacetName extends EntityFacetName<_Schema, _EntityType>,
 > = EntityFacetFieldDefinition<
 	_Schema,
 	_EntityType,
-	_FacetId
+	_FacetName
 >['name']
-
-export type EntityNonFacetFieldDefinition<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-> = EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>
-
-export type EntityNonFacetFieldName<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-> = EntityNonFacetFieldDefinition<_Schema, _EntityType>['name']
 
 export type EntityBaseFieldDefinition<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = Exclude<
-	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
-	{ when: EntityFieldCondition }
->
-
-export type EntityConditionalFieldDefinition<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-> = Extract<
-	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
-	{ when: EntityFieldCondition }
->
+> = EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>
 
 export type EntityBaseFieldName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = EntityBaseFieldDefinition<_Schema, _EntityType>['name']
-
-export type EntityConditionalDiscriminatorName<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-> = EntityConditionalFieldDefinition<_Schema, _EntityType> extends infer _FieldDefinition ?
-	_FieldDefinition extends {
-		when: infer _Condition extends EntityFieldCondition
-	} ?
-		EntityFieldConditionKey<_Condition>
-	:
-		never
-:
-	never
-
-type EntityConditionalFieldDefinitionForDiscriminator<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-> = EntityConditionalFieldDefinition<_Schema, _EntityType> extends infer _FieldDefinition ?
-	_FieldDefinition extends {
-		when: infer _Condition extends EntityFieldCondition
-	} ?
-		_DiscriminatorName extends EntityFieldConditionKey<_Condition> ?
-			_FieldDefinition
-		:
-			never
-	:
-		never
-:
-	never
-
-export type EntityConditionalDiscriminatorValue<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-> = EntityConditionalFieldDefinitionForDiscriminator<
-	_Schema,
-	_EntityType,
-	_DiscriminatorName
->['when']['values'][number]
-
-export type EntityConditionalFieldName<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-	_DiscriminatorValue extends EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>,
-> = EntityConditionalFieldDefinition<_Schema, _EntityType> extends infer _FieldDefinition ?
-	_FieldDefinition extends {
-		name: infer _FieldName
-		when: infer _Condition extends EntityFieldCondition
-	} ?
-		_DiscriminatorName extends EntityFieldConditionKey<_Condition> ?
-			_DiscriminatorValue extends _Condition['values'][number] ?
-				_FieldName
-			:
-				never
-		:
-			never
-	:
-		never
-:
-	never
-
-type EntityConditionalDiscriminatorFieldName<
-	_DiscriminatorName extends string,
-> = (
-	_DiscriminatorName extends `${infer _FieldName}[${number}]` ?
-		_FieldName
-	:
-		_DiscriminatorName
-)
-
-type EntityConditionalDiscriminatorFieldValue<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-> = (
-	EntityConditionalDiscriminatorFieldName<_DiscriminatorName> extends infer _FieldName extends EntityFieldName<_Schema, _EntityType> ?
-		EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName>
-	:
-		never
-)
-
-type EntityConditionalDiscriminatorItemValue<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-> = (
-	EntityConditionalDiscriminatorFieldName<_DiscriminatorName> extends infer _FieldName extends EntityFieldName<_Schema, _EntityType> ?
-		EntityFieldSingleResolvedValue<_Schema, _EntityType, _FieldName> extends readonly (infer _Item)[]
-			? _Item
-			: never
-	:
-		never
-)
 
 export type EntityFieldDefinitionByName<
 	_Schema extends Schema,
@@ -1092,7 +1052,7 @@ export type EntityReferenceValue<
 	readonly [EntityMetaKey.SelectorKey]?: string
 } & Partial<EntityFieldValues<_Schema, _EntityType>>
 
-type EntityFieldSingleResolvedValueFromDefinition<
+export type EntityFieldSingleResolvedValueFromDefinition<
 	_Schema extends Schema,
 	_FieldDefinition extends EntityFieldDefinition,
 > = (
@@ -1226,166 +1186,6 @@ type EntityFieldValuesFromDefinitions<
 	}
 )
 
-type EntityConditionalFieldDefinitionsForValue<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-	_DiscriminatorValue extends EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>,
-> = EntityConditionalFieldDefinitionForDiscriminator<
-	_Schema,
-	_EntityType,
-	_DiscriminatorName
-> extends infer _FieldDefinition ?
-	_FieldDefinition extends {
-		when: infer _Condition extends EntityFieldCondition
-	} ?
-		_DiscriminatorValue extends _Condition['values'][number] ?
-			_FieldDefinition
-		:
-			never
-	:
-		never
-:
-	never
-
-type EntityConditionalActiveDiscriminatorValue<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-	_DiscriminatorValue extends EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>,
-> = (
-	_DiscriminatorName extends `${string}[${number}]` ?
-		{
-			readonly [
-				_FieldName in EntityConditionalDiscriminatorFieldName<_DiscriminatorName>
-			]: [
-				_DiscriminatorValue,
-				...EntityConditionalDiscriminatorItemValue<_Schema, _EntityType, _DiscriminatorName>[],
-			]
-		}
-	:
-		{
-			readonly [
-				_FieldName in EntityConditionalDiscriminatorFieldName<_DiscriminatorName>
-			]: _DiscriminatorValue
-		}
-)
-
-type EntityConditionalInactiveDiscriminatorValue<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-> = (
-	_DiscriminatorName extends `${string}[${number}]` ?
-		{
-			readonly [
-				_FieldName in EntityConditionalDiscriminatorFieldName<_DiscriminatorName>
-			]: [
-				Exclude<
-					EntityConditionalDiscriminatorItemValue<_Schema, _EntityType, _DiscriminatorName>,
-					EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>
-				>,
-				...EntityConditionalDiscriminatorItemValue<_Schema, _EntityType, _DiscriminatorName>[],
-			]
-		}
-	:
-		{
-			readonly [
-				_FieldName in EntityConditionalDiscriminatorFieldName<_DiscriminatorName>
-			]: Exclude<
-				EntityConditionalDiscriminatorFieldValue<_Schema, _EntityType, _DiscriminatorName>,
-				EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>
-			>
-		}
-)
-
-type EntityConditionalFieldValuesForDiscriminator<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-> = (
-	| (
-		EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName> extends infer _DiscriminatorValue extends EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName> ?
-			& EntityConditionalActiveDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName, _DiscriminatorValue>
-			& EntityFieldValuesFromDefinitions<
-				_Schema,
-				EntityConditionalFieldDefinitionsForValue<
-					_Schema,
-					_EntityType,
-					_DiscriminatorName,
-					_DiscriminatorValue
-				>
-			>
-		:
-			never
-	)
-	| (
-		& EntityConditionalInactiveDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>
-		& Partial<EntityFieldValuesFromDefinitions<
-			_Schema,
-			EntityConditionalFieldDefinitionForDiscriminator<
-				_Schema,
-				_EntityType,
-				_DiscriminatorName
-			>
-		>>
-	)
-)
-
-type UnionToIntersection<_Union> = (
-	_Union extends _Union ?
-		(_value: _Union) => void
-	:
-		never
-) extends (_value: infer _Intersection) => void ?
-	_Intersection
-:
-	never
-
-type EntityConditionalFieldValuesIntersection<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-> = (
-	_DiscriminatorName extends _DiscriminatorName ?
-		(
-			_value: EntityConditionalFieldValuesForDiscriminator<
-				_Schema,
-				_EntityType,
-				_DiscriminatorName
-			>
-		) => void
-	:
-		never
-) extends (_value: infer _Intersection) => void ?
-	_Intersection
-:
-	never
-
-type EntityConditionalFieldValues<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-> = (
-	[
-		EntityConditionalDiscriminatorName<_Schema, _EntityType>,
-	] extends [never] ?
-		object
-	:
-		EntityConditionalFieldValuesIntersection<
-			_Schema,
-			_EntityType,
-			EntityConditionalDiscriminatorName<_Schema, _EntityType>
-		>
-)
-
-export type EntityResolvedFieldValues<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-> = (
-	& EntityFieldValuesFromDefinitions<_Schema, EntityBaseFieldDefinition<_Schema, _EntityType>>
-	& EntityConditionalFieldValues<_Schema, _EntityType>
-)
-
 export type EntityFieldValues<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -1409,22 +1209,13 @@ export type EntityProjectionDefinition = {
 	readonly entityType: string
 	readonly facetPath: EntityFacetPath
 	readonly condition?: EntityFacetCondition
+	readonly directDependencies: readonly EntityFieldAddress[]
+	readonly transitiveDependencies: readonly EntityFieldAddress[]
+	readonly topologicalIndex: number
 	readonly fields: readonly EntityFieldDefinition[]
 	readonly facets?: readonly EntityFacetDefinition[]
+	readonly childFacetPaths: readonly EntityFacetPath[]
 }
-
-export type EntityFieldDefinitionByEntityTypeAndName<_Schema extends Schema> = {
-	readonly [_EntityType in EntityType<_Schema>]: (
-		& {
-			readonly [fieldName: string]: EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>> | undefined
-		}
-		& {
-			readonly [
-				_FieldName in EntityFieldName<_Schema, _EntityType>
-			]: EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName>
-		}
-		)
-	}
 
 export type EntityFieldDefinitionByEntityTypePathAndName<_Schema extends Schema> = {
 	readonly [_EntityType in EntityType<_Schema>]: Record<string, EntityFieldDefinition | undefined>
@@ -1449,29 +1240,68 @@ export type EntitySelectorDefinitionByEntityTypeAndName<_Schema extends Schema> 
 export const indexSchema = <const _Schema extends Schema>(
 	schema: _Schema
 ) => {
+	const conditionDependencies = (
+		entityType: string,
+		condition: EntityFacetCondition | undefined
+	): EntityFieldAddress[] => {
+		if (condition == null)
+			return []
+		if ('all' in condition)
+			return condition.all.flatMap((child) => conditionDependencies(entityType, child))
+
+		const indexed = condition.path.at(-1)
+		const fieldName = typeof indexed === 'number' ? condition.path.at(-2) : indexed
+		if (typeof fieldName !== 'string')
+			return []
+
+		return [{
+			entityType,
+			facetPath: condition.path.slice(0, typeof indexed === 'number' ? -2 : -1).filter((segment): segment is string => typeof segment === 'string'),
+			fieldName,
+		}]
+	}
+	let topologicalIndex = 0
 	const projectionDefinitionsForFacets = (
 		entityType: string,
 		facets: readonly EntityFacetDefinition[] | undefined,
-		parentPath: EntityFacetPath = []
+		parentPath: EntityFacetPath = [],
+		parentDependencies: readonly EntityFieldAddress[] = []
 	): EntityProjectionDefinition[] => (
 		facets ?? []
 	).flatMap((facetDefinition) => {
 		const facetPath = [
 			...parentPath,
-			facetDefinition.id,
+			facetDefinition.name,
 		]
+		const directDependencies = conditionDependencies(entityType, facetDefinition.condition)
+		const transitiveDependencies = [...new Map([
+			...parentDependencies,
+			...directDependencies,
+		].map((dependency) => [
+			entityFieldAddressKey(dependency.entityType, dependency.facetPath, dependency.fieldName),
+			dependency,
+		])).values()]
+		const projectionDefinition = {
+			entityType,
+			facetPath,
+			condition: facetDefinition.condition,
+			directDependencies,
+			transitiveDependencies,
+			topologicalIndex: topologicalIndex++,
+			fields: facetDefinition.fields,
+			facets: facetDefinition.facets,
+			childFacetPaths: (facetDefinition.facets ?? []).map((childFacet) => [
+				...facetPath,
+				childFacet.name,
+			]),
+		} satisfies EntityProjectionDefinition
 		return [
-			{
-				entityType,
-				facetPath,
-				condition: facetDefinition.condition,
-				fields: facetDefinition.fields,
-				facets: facetDefinition.facets,
-			},
+			projectionDefinition,
 			...projectionDefinitionsForFacets(
 				entityType,
 				facetDefinition.facets,
-				facetPath
+				facetPath,
+				transitiveDependencies
 			),
 		]
 	})
@@ -1482,6 +1312,10 @@ export const indexSchema = <const _Schema extends Schema>(
 				facetPath: [],
 				fields: entityDefinition.fields,
 				facets: entityDefinition.facets,
+				directDependencies: [],
+				transitiveDependencies: [],
+				topologicalIndex: topologicalIndex++,
+				childFacetPaths: (entityDefinition.facets ?? []).map((facetDefinition) => [facetDefinition.name]),
 			},
 			...projectionDefinitionsForFacets(
 				entityDefinition.entityType,
@@ -1505,13 +1339,6 @@ export const indexSchema = <const _Schema extends Schema>(
 				projectionDefinition,
 			])
 		) as Record<string, EntityProjectionDefinition | undefined>,
-		entityFieldDefinitionByEntityTypeAndName: Object.fromEntries(schema.map((entityDefinition) => [
-			entityDefinition.entityType,
-			Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
-				fieldDefinition.name,
-				fieldDefinition,
-			])),
-		])) as EntityFieldDefinitionByEntityTypeAndName<_Schema>,
 		entityFieldDefinitionByEntityTypePathAndName: Object.fromEntries(schema.map((entityDefinition) => [
 			entityDefinition.entityType,
 			Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [

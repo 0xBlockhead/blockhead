@@ -9,8 +9,10 @@ export enum TezosMichelsonScriptSelector {
 }
 export const TezosMichelsonScript = entity({
 	entityType: EntityType.TezosMichelsonScript,
-	label: 'tezos michelson script',
-	labelPlural: 'tezos michelson scripts',
+	labels: {
+		singular: 'tezos michelson script',
+		plural: 'tezos michelson scripts',
+	},
 })({
 	$network: {
 		label: 'network',

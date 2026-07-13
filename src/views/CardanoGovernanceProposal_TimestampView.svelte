@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const epoch = selection.entitySelector.epoch ?? prefetched.epoch}
+							{@const epoch = pendingEntity.epoch}
 							{#if epoch !== undefined && epoch !== null}
 								{String((epoch) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot}
+					{@const slot = pendingEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>slot</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const enactedEpoch = prefetched.enactedEpoch}
+					{@const enactedEpoch = pendingEntity.enactedEpoch}
 					{#if enactedEpoch !== undefined && enactedEpoch !== null}
 						<div>
 							<dt>enacted epoch</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expiredEpoch = prefetched.expiredEpoch}
+					{@const expiredEpoch = pendingEntity.expiredEpoch}
 					{#if expiredEpoch !== undefined && expiredEpoch !== null}
 						<div>
 							<dt>expired epoch</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const droppedEpoch = prefetched.droppedEpoch}
+					{@const droppedEpoch = pendingEntity.droppedEpoch}
 					{#if droppedEpoch !== undefined && droppedEpoch !== null}
 						<div>
 							<dt>dropped epoch</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ratifiedEpoch = prefetched.ratifiedEpoch}
+					{@const ratifiedEpoch = pendingEntity.ratifiedEpoch}
 					{#if ratifiedEpoch !== undefined && ratifiedEpoch !== null}
 						<div>
 							<dt>ratified epoch</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const yesStakeLovelace = prefetched.yesStakeLovelace}
+					{@const yesStakeLovelace = pendingEntity.yesStakeLovelace}
 					{#if yesStakeLovelace !== undefined && yesStakeLovelace !== null}
 						<div>
 							<dt>yes stake lovelace</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const noStakeLovelace = prefetched.noStakeLovelace}
+					{@const noStakeLovelace = pendingEntity.noStakeLovelace}
 					{#if noStakeLovelace !== undefined && noStakeLovelace !== null}
 						<div>
 							<dt>no stake lovelace</dt>
@@ -438,7 +438,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const abstainStakeLovelace = prefetched.abstainStakeLovelace}
+					{@const abstainStakeLovelace = pendingEntity.abstainStakeLovelace}
 					{#if abstainStakeLovelace !== undefined && abstainStakeLovelace !== null}
 						<div>
 							<dt>abstain stake lovelace</dt>
@@ -473,7 +473,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const drepYesStakeLovelace = prefetched.drepYesStakeLovelace}
+					{@const drepYesStakeLovelace = pendingEntity.drepYesStakeLovelace}
 					{#if drepYesStakeLovelace !== undefined && drepYesStakeLovelace !== null}
 						<div>
 							<dt>drep yes stake lovelace</dt>
@@ -508,7 +508,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const drepNoStakeLovelace = prefetched.drepNoStakeLovelace}
+					{@const drepNoStakeLovelace = pendingEntity.drepNoStakeLovelace}
 					{#if drepNoStakeLovelace !== undefined && drepNoStakeLovelace !== null}
 						<div>
 							<dt>drep no stake lovelace</dt>
@@ -543,7 +543,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spoYesStakeLovelace = prefetched.spoYesStakeLovelace}
+					{@const spoYesStakeLovelace = pendingEntity.spoYesStakeLovelace}
 					{#if spoYesStakeLovelace !== undefined && spoYesStakeLovelace !== null}
 						<div>
 							<dt>spo yes stake lovelace</dt>
@@ -578,7 +578,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spoNoStakeLovelace = prefetched.spoNoStakeLovelace}
+					{@const spoNoStakeLovelace = pendingEntity.spoNoStakeLovelace}
 					{#if spoNoStakeLovelace !== undefined && spoNoStakeLovelace !== null}
 						<div>
 							<dt>spo no stake lovelace</dt>
@@ -613,7 +613,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const committeeYesCount = prefetched.committeeYesCount}
+					{@const committeeYesCount = pendingEntity.committeeYesCount}
 					{#if committeeYesCount !== undefined && committeeYesCount !== null}
 						<div>
 							<dt>committee yes count</dt>
@@ -648,7 +648,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const committeeNoCount = prefetched.committeeNoCount}
+					{@const committeeNoCount = pendingEntity.committeeNoCount}
 					{#if committeeNoCount !== undefined && committeeNoCount !== null}
 						<div>
 							<dt>committee no count</dt>

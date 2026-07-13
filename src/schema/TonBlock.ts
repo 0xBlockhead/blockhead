@@ -10,8 +10,10 @@ export enum TonBlockSelector {
 }
 export const TonBlock = entity({
 	entityType: EntityType.TonBlock,
-	label: 'ton block',
-	labelPlural: 'ton blocks',
+	labels: {
+		singular: 'ton block',
+		plural: 'ton blocks',
+	},
 })({
 	$network: {
 		label: 'network',

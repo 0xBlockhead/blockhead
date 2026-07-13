@@ -103,7 +103,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -160,7 +160,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const executedTimestamp = prefetched.executedTimestamp}
+					{@const executedTimestamp = pendingEntity.executedTimestamp}
 					{#if executedTimestamp !== undefined && executedTimestamp !== null}
 						<div>
 							<dt>executed timestamp</dt>
@@ -195,7 +195,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deleted = prefetched.deleted}
+					{@const deleted = pendingEntity.deleted}
 					{#if deleted !== undefined && deleted !== null}
 						<div>
 							<dt>deleted</dt>
@@ -230,7 +230,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expirationTime = prefetched.expirationTime}
+					{@const expirationTime = pendingEntity.expirationTime}
 					{#if expirationTime !== undefined && expirationTime !== null}
 						<div>
 							<dt>expiration time</dt>
@@ -265,7 +265,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const waitForExpiry = prefetched.waitForExpiry}
+					{@const waitForExpiry = pendingEntity.waitForExpiry}
 					{#if waitForExpiry !== undefined && waitForExpiry !== null}
 						<div>
 							<dt>wait for expiry</dt>
@@ -300,7 +300,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signatureCount = prefetched.signatureCount}
+					{@const signatureCount = pendingEntity.signatureCount}
 					{#if signatureCount !== undefined && signatureCount !== null}
 						<div>
 							<dt>signature count</dt>
@@ -328,6 +328,8 @@
 			<ResourceBoundary
 				resource={selection.$executionTransaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaTransaction)}
 					{#if hederaTransaction != null && hederaTransaction[EntityMetaKey.Selector] != null}
 						<div>

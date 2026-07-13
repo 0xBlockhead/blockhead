@@ -12,8 +12,10 @@ export enum AiBenchmarkSelector {
 }
 export const AiBenchmark = entity({
 	entityType: EntityType.AiBenchmark,
-	label: 'AI benchmark',
-	labelPlural: 'AI benchmarks',
+	labels: {
+		singular: 'AI benchmark',
+		plural: 'AI benchmarks',
+	},
 })({
 	benchmarkId: {
 		label: 'benchmark ID',

@@ -78,7 +78,7 @@
 				<EnsNameView
 					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 					href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 							ensName: String(selection.entitySelector.$name.name ?? ''),
 						}) : undefined)
 					}
@@ -92,7 +92,7 @@
 				<EnsNameView
 					selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 					href={
-						(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+						(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 							ensName: String(selection.entitySelector.$name.name ?? ''),
 						}) : undefined)
 					}
@@ -143,7 +143,7 @@
 					<EnsNameView
 						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
 						href={
-							(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+							(selection.entitySelector.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]', {
 								ensName: String(selection.entitySelector.$name.name ?? ''),
 							}) : undefined)
 						}

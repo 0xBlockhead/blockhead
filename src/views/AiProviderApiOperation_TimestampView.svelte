@@ -97,7 +97,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiProviderApiOperationTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.availabilityStatus) ?? '')].filter(Boolean).join(' ') || title || 'AI provider API operation timestamp'}
+				{[String((pendingEntity.availabilityStatus) ?? '')].filter(Boolean).join(' ') || title || 'AI provider API operation timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiProviderApiOperationTimestamp}>
 			{#snippet Pending()}
-				{@const error0 = prefetched.error}
+				{@const error0 = pendingEntity.error}
 				{#if error0 !== undefined && error0 !== null}
 					<span data-text="muted">
 						{String((error0) ?? '')}
@@ -156,7 +156,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -186,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const availabilityStatus = prefetched.availabilityStatus}
+					{@const availabilityStatus = pendingEntity.availabilityStatus}
 					{#if availabilityStatus !== undefined && availabilityStatus !== null}
 						<div>
 							<dt>availability status</dt>
@@ -250,7 +250,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedStreaming = prefetched.supportedStreaming}
+					{@const supportedStreaming = pendingEntity.supportedStreaming}
 					{#if supportedStreaming !== undefined && supportedStreaming !== null}
 						<div>
 							<dt>supported streaming</dt>
@@ -285,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedToolUse = prefetched.supportedToolUse}
+					{@const supportedToolUse = pendingEntity.supportedToolUse}
 					{#if supportedToolUse !== undefined && supportedToolUse !== null}
 						<div>
 							<dt>supported tool use</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedStructuredOutput = prefetched.supportedStructuredOutput}
+					{@const supportedStructuredOutput = pendingEntity.supportedStructuredOutput}
 					{#if supportedStructuredOutput !== undefined && supportedStructuredOutput !== null}
 						<div>
 							<dt>supported structured output</dt>
@@ -355,7 +355,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const supportedJsonMode = prefetched.supportedJsonMode}
+					{@const supportedJsonMode = pendingEntity.supportedJsonMode}
 					{#if supportedJsonMode !== undefined && supportedJsonMode !== null}
 						<div>
 							<dt>supported JSON mode</dt>
@@ -390,7 +390,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

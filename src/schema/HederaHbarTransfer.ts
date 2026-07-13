@@ -9,8 +9,10 @@ export enum HederaHbarTransferSelector {
 }
 export const HederaHbarTransfer = entity({
 	entityType: EntityType.HederaHbarTransfer,
-	label: 'hedera hbar transfer',
-	labelPlural: 'hedera hbar transfers',
+	labels: {
+		singular: 'hedera hbar transfer',
+		plural: 'hedera hbar transfers',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

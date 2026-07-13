@@ -52,7 +52,7 @@
 			publishedAtMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.videoId ?? prefetched.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video')
+	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video')
 	const viewDomId = $derived('youtube-video-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,8 +71,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.videoId !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-			videoId: encodeURIComponent(String(pendingEntity.videoId ?? '')),
+		href ?? (pendingEntity.videoId !== undefined ? resolve('/youtube/video/[videoId=stringSegment]', {
+			videoId: String(pendingEntity.videoId ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -82,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={youtubeVideo}>
 			{#snippet Pending()}
-				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.videoId ?? prefetched.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video'}
+				{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -95,7 +95,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={youtubeVideo}>
 			{#snippet Pending()}
-				{@const publishedAtMs0 = prefetched.publishedAtMs}
+				{@const publishedAtMs0 = pendingEntity.publishedAtMs}
 				{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(publishedAtMs0)} />
@@ -128,7 +128,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const description = prefetched.description}
+						{@const description = pendingEntity.description}
 						{#if description !== undefined && description !== null}
 							<div>
 								<dt>Description</dt>
@@ -167,7 +167,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const videoId = selection.entitySelector.videoId ?? prefetched.videoId}
+							{@const videoId = pendingEntity.videoId}
 							{#if videoId !== undefined && videoId !== null}
 								<TruncatedValue value={String((videoId) ?? '')} />
 							{/if}
@@ -195,7 +195,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const publishedAtMs = prefetched.publishedAtMs}
+						{@const publishedAtMs = pendingEntity.publishedAtMs}
 						{#if publishedAtMs !== undefined && publishedAtMs !== null}
 							<div>
 								<dt>Published</dt>
@@ -225,6 +225,8 @@
 				<ResourceBoundary
 					resource={selection.$author}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(youtubeChannel)}
 						{#if youtubeChannel != null && youtubeChannel[EntityMetaKey.Selector] != null}
 							<div>

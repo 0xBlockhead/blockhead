@@ -9,8 +9,10 @@ export enum AptosEventSelector {
 }
 export const AptosEvent = entity({
 	entityType: EntityType.AptosEvent,
-	label: 'aptos event',
-	labelPlural: 'aptos events',
+	labels: {
+		singular: 'aptos event',
+		plural: 'aptos events',
+	},
 })({
 	$network: {
 		label: 'network',

@@ -10,8 +10,10 @@ export enum Erc4337BundlerSelector {
 }
 export const Erc4337Bundler = entity({
 	entityType: EntityType.Erc4337Bundler,
-	label: 'ERC-4337 bundler',
-	labelPlural: 'ERC-4337 bundlers',
+	labels: {
+		singular: 'ERC-4337 bundler',
+		plural: 'ERC-4337 bundlers',
+	},
 })({
 	$network: {
 		label: 'Network',

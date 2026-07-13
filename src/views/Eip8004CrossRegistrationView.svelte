@@ -49,7 +49,7 @@
 			Source.Eip8004Scan_Rest,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.targetKind ?? prefetched.targetKind) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 cross registration')
+	const titleFallback = $derived([String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 cross registration')
 	const viewDomId = $derived('eip8004cross-registration-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eip8004CrossRegistration}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.targetKind ?? prefetched.targetKind) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 cross registration'}
+				{[String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 cross registration'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004CrossRegistration}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.targetSelectorHash ?? prefetched.targetSelectorHash) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.targetKind ?? prefetched.targetKind) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 cross registration'}
+				{[String((pendingEntity.targetSelectorHash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || title || 'EIP-8004 cross registration'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -99,7 +99,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip8004CrossRegistration}>
 			{#snippet Pending()}
-				{@const targetSelectorHashAlgorithm0 = selection.entitySelector.targetSelectorHashAlgorithm ?? prefetched.targetSelectorHashAlgorithm}
+				{@const targetSelectorHashAlgorithm0 = pendingEntity.targetSelectorHashAlgorithm}
 				{#if targetSelectorHashAlgorithm0 !== undefined && targetSelectorHashAlgorithm0 !== null}
 					<span data-text="muted">
 						<TruncatedValue value={String((targetSelectorHashAlgorithm0) ?? '')} />
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const targetKind = selection.entitySelector.targetKind ?? prefetched.targetKind}
+							{@const targetKind = pendingEntity.targetKind}
 							{#if targetKind !== undefined && targetKind !== null}
 								{String((targetKind) ?? '')}
 							{/if}
@@ -175,7 +175,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const targetSelectorHashAlgorithm = selection.entitySelector.targetSelectorHashAlgorithm ?? prefetched.targetSelectorHashAlgorithm}
+							{@const targetSelectorHashAlgorithm = pendingEntity.targetSelectorHashAlgorithm}
 							{#if targetSelectorHashAlgorithm !== undefined && targetSelectorHashAlgorithm !== null}
 								<TruncatedValue value={String((targetSelectorHashAlgorithm) ?? '')} />
 							{/if}
@@ -205,7 +205,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const targetSelectorHash = selection.entitySelector.targetSelectorHash ?? prefetched.targetSelectorHash}
+							{@const targetSelectorHash = pendingEntity.targetSelectorHash}
 							{#if targetSelectorHash !== undefined && targetSelectorHash !== null}
 								<TruncatedValue value={String((targetSelectorHash) ?? '')} />
 							{/if}
@@ -234,7 +234,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evidenceUri = prefetched.evidenceUri}
+					{@const evidenceUri = pendingEntity.evidenceUri}
 					{#if evidenceUri !== undefined && evidenceUri !== null}
 						<div>
 							<dt>Evidence URI</dt>

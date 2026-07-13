@@ -45,6 +45,28 @@
 			resolveInitializedResource = resolve
 		})
 	)
+	let showLazyResource = $state(false)
+	let lazySourceSubscriptionCount = $state(0)
+	let lazyInitializationCount = $state(0)
+	const lazyResource = new TanStackLiveQueryResource(
+		() => ({
+			data: 'Lazy getter value',
+			isLoading: false,
+			isError: false,
+			isReady: true,
+			status: 'ready',
+		}),
+		() => {
+			lazySourceSubscriptionCount += 1
+			return () => {
+				lazySourceSubscriptionCount -= 1
+			}
+		},
+		() => {
+			lazyInitializationCount += 1
+			return Promise.resolve()
+		}
+	)
 
 	const applyQuery = (
 		nextQuery: TanStackLiveQuerySnapshot<string>,
@@ -184,6 +206,24 @@
 		<dt>error</dt>
 		<dd data-testid="adapter-error">{resource.error === undefined ? '' : String(resource.error)}</dd>
 	</dl>
+</section>
+
+<section>
+	<h2>Lazy getter observation</h2>
+
+	<p data-testid="lazy-resource-source-subscription-count">{lazySourceSubscriptionCount}</p>
+	<p data-testid="lazy-resource-initialization-count">{lazyInitializationCount}</p>
+
+	<button
+		data-testid="show-lazy-resource-getter"
+		onclick={() => showLazyResource = true}
+	>
+		Show lazy resource getter
+	</button>
+
+	{#if showLazyResource}
+		<p data-testid="lazy-resource-current">{lazyResource.current ?? ''}</p>
+	{/if}
 </section>
 
 <section>

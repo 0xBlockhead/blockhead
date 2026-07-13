@@ -18,7 +18,7 @@ export const getContents = (): Promise<ZcashZipsGithubContents> => (
 	getGithubContents({
 		endpoints: zcashZipsBindings[0].endpoints,
 		target: zcashZipsGithubRepo,
-	}) as Promise<ZcashZipsGithubContents>
+	})
 )
 
 export const getProposalRstText = ({ number }: { number: number }) => (

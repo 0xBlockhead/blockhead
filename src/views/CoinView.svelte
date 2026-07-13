@@ -52,11 +52,10 @@
 		],
 		fields: {
 			symbol: true,
-			$logo: true,
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Coin')
+	const titleFallback = $derived([String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Coin')
 	const viewDomId = $derived('coin-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -82,7 +81,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
+		href ?? (pendingEntity.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
 			coinId: String(pendingEntity.coinId ?? ''),
 		}) : undefined)
 	}
@@ -186,10 +185,10 @@
 										})
 									}
 									href={
-										(coinTimestamp[EntityMetaKey.Selector].$coin !== undefined && coinTimestamp[EntityMetaKey.Selector].$coin.coinId !== undefined && coinTimestamp[EntityMetaKey.Selector].timestampMs !== undefined && coinTimestamp[EntityMetaKey.Selector].source !== undefined ? resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-											coinId: String(coinTimestamp[EntityMetaKey.Selector].$coin.coinId ?? ''),
+										(coinTimestamp[EntityMetaKey.Selector].timestampMs !== undefined && coinTimestamp[EntityMetaKey.Selector].source !== undefined && coinTimestamp[EntityMetaKey.Selector].$coin !== undefined && coinTimestamp[EntityMetaKey.Selector].$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 											timestampMs: String(coinTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
 											source: String(coinTimestamp[EntityMetaKey.Selector].source ?? ''),
+											coinId: String(coinTimestamp[EntityMetaKey.Selector].$coin.coinId ?? ''),
 										}) : undefined)
 									}
 									prefetched={{ ...coinTimestampSelector, ...coinTimestamp }}
@@ -218,7 +217,7 @@
 							}
 						>
 							{#snippet Pending()}
-								{@const coinId = selection.entitySelector.coinId ?? prefetched.coinId}
+								{@const coinId = pendingEntity.coinId}
 								{#if coinId !== undefined && coinId !== null}
 									{String((coinId) ?? '')}
 								{/if}
@@ -251,7 +250,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const decimals = prefetched.decimals}
+							{@const decimals = pendingEntity.decimals}
 							{#if decimals !== undefined && decimals !== null}
 								{String((decimals) ?? '')}
 							{/if}
@@ -368,7 +367,7 @@
 					{@const catalogUsdMarket = seededCoinSpotUsdMarkets.find((market) => market.baseCoinId === selection.entitySelector.coinId)}
 					{#if catalogUsdMarket}
 						<div data-row="wrap align-center gap-2">
-							<a href={resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
+							<a href={resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
 								marketVenue: catalogUsdMarket.marketVenueId,
 								baseKind: 'coin',
 								base: catalogUsdMarket.baseCoinId,
@@ -404,8 +403,16 @@
 
 				{#snippet SectionMarketsWithCoinAsBase({ id, label, open })}
 					<MarketsView
-						selection={selection.$$marketsWithCoinAsBase}
-						href={resolve('/(assets)/markets')}
+						selection={
+							selection.$$marketsWithCoinAsBase({
+								sources: [
+									Source.Constants_Internal,
+									Source.Coingecko_OpenApi,
+									Source.Coinpaprika_OpenApi,
+								],
+							})
+						}
+						href={resolve('/markets')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -415,8 +422,14 @@
 
 				{#snippet SectionMarketsWithCoinAsQuote({ id, label, open })}
 					<MarketsView
-						selection={selection.$$marketsWithCoinAsQuote}
-						href={resolve('/(assets)/markets')}
+						selection={
+							selection.$$marketsWithCoinAsQuote({
+								sources: [
+									Source.Constants_Internal,
+								],
+							})
+						}
+						href={resolve('/markets')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}

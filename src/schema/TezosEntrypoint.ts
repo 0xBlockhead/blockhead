@@ -9,8 +9,10 @@ export enum TezosEntrypointSelector {
 }
 export const TezosEntrypoint = entity({
 	entityType: EntityType.TezosEntrypoint,
-	label: 'tezos entrypoint',
-	labelPlural: 'tezos entrypoints',
+	labels: {
+		singular: 'tezos entrypoint',
+		plural: 'tezos entrypoints',
+	},
 })({
 	$contract: {
 		label: 'contract',

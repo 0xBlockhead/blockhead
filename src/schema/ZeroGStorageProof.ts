@@ -9,8 +9,10 @@ export enum ZeroGStorageProofSelector {
 }
 export const ZeroGStorageProof = entity({
 	entityType: EntityType.ZeroGStorageProof,
-	label: 'zero g storage proof',
-	labelPlural: 'zero g storage proofs',
+	labels: {
+		singular: 'zero g storage proof',
+		plural: 'zero g storage proofs',
+	},
 })({
 	$storageNode: {
 		label: 'storage node',

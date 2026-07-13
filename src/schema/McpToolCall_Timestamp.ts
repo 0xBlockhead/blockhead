@@ -9,8 +9,10 @@ export enum McpToolCall_TimestampSelector {
 }
 export const McpToolCall_Timestamp = entity({
 	entityType: EntityType.McpToolCall_Timestamp,
-	label: 'mcp tool call timestamp',
-	labelPlural: 'mcp tool call observations',
+	labels: {
+		singular: 'mcp tool call timestamp',
+		plural: 'mcp tool call observations',
+	},
 })({
 	$toolCall: {
 		label: 'tool call',

@@ -49,7 +49,7 @@
 			authority: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.authorizationIndex ?? prefetched.authorizationIndex) ?? '')].filter(Boolean).join(' ') || 'eip7702 authorization')
+	const titleFallback = $derived([String((pendingEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || 'eip7702 authorization')
 	const viewDomId = $derived('eip7702authorization-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={eip7702Authorization}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.authorizationIndex ?? prefetched.authorizationIndex) ?? '')].filter(Boolean).join(' ') || title || 'eip7702 authorization'}
+				{[String((pendingEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || title || 'eip7702 authorization'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={eip7702Authorization}>
 			{#snippet Pending()}
-				{[String((prefetched.delegationAddress) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.authorizationIndex ?? prefetched.authorizationIndex) ?? '')].filter(Boolean).join(' ') || title || 'eip7702 authorization'}
+				{[String((pendingEntity.delegationAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.authorizationIndex) ?? '')].filter(Boolean).join(' ') || title || 'eip7702 authorization'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip7702Authorization}>
 			{#snippet Pending()}
-				{@const authority0 = prefetched.authority}
+				{@const authority0 = pendingEntity.authority}
 				{#if authority0 !== undefined && authority0 !== null}
 					<span data-text="muted">
 						{String((authority0) ?? '')}
@@ -130,8 +130,8 @@
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction, {})}
 						href={
-							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${String(selection.entitySelector.$transaction.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$transaction.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined && selection.entitySelector.$transaction.txHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
 								transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
 							}) : undefined)
 						}
@@ -154,7 +154,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const authorizationIndex = selection.entitySelector.authorizationIndex ?? prefetched.authorizationIndex}
+							{@const authorizationIndex = pendingEntity.authorizationIndex}
 							{#if authorizationIndex !== undefined && authorizationIndex !== null}
 								{String((authorizationIndex) ?? '')}
 							{/if}
@@ -184,7 +184,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const chainId = prefetched.chainId}
+							{@const chainId = pendingEntity.chainId}
 							{#if chainId !== undefined && chainId !== null}
 								{String((chainId) ?? '')}
 							{/if}
@@ -216,7 +216,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const delegationAddress = prefetched.delegationAddress}
+							{@const delegationAddress = pendingEntity.delegationAddress}
 							{#if delegationAddress !== undefined && delegationAddress !== null}
 								<TruncatedValue value={String((delegationAddress) ?? '')} />
 							{/if}
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const authority = prefetched.authority}
+					{@const authority = pendingEntity.authority}
 					{#if authority !== undefined && authority !== null}
 						<div>
 							<dt>authority</dt>
@@ -281,7 +281,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const nonce = prefetched.nonce}
+							{@const nonce = pendingEntity.nonce}
 							{#if nonce !== undefined && nonce !== null}
 								{String((nonce) ?? '')}
 							{/if}
@@ -311,7 +311,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const yParity = prefetched.yParity}
+							{@const yParity = pendingEntity.yParity}
 							{#if yParity !== undefined && yParity !== null}
 								{String((yParity) ?? '')}
 							{/if}
@@ -343,7 +343,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const r = prefetched.r}
+							{@const r = pendingEntity.r}
 							{#if r !== undefined && r !== null}
 								{String((r) ?? '')}
 							{/if}
@@ -373,7 +373,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const s = prefetched.s}
+							{@const s = pendingEntity.s}
 							{#if s !== undefined && s !== null}
 								{String((s) ?? '')}
 							{/if}
@@ -400,7 +400,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verificationStatus = prefetched.verificationStatus}
+					{@const verificationStatus = pendingEntity.verificationStatus}
 					{#if verificationStatus !== undefined && verificationStatus !== null}
 						<div>
 							<dt>verification status</dt>
@@ -435,7 +435,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedAtMs = prefetched.verifiedAtMs}
+					{@const verifiedAtMs = pendingEntity.verifiedAtMs}
 					{#if verifiedAtMs !== undefined && verifiedAtMs !== null}
 						<div>
 							<dt>verified AT ms</dt>
@@ -465,6 +465,8 @@
 			<ResourceBoundary
 				resource={selection.$authorityAccount}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null && evmNetworkAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -485,6 +487,8 @@
 			<ResourceBoundary
 				resource={selection.$delegationContract}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
@@ -494,8 +498,8 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmContract[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}

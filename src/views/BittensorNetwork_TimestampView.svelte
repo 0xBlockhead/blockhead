@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -53,7 +53,7 @@
 			runtimeSpecName: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Bittensor network observation')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Bittensor network observation')
 	const viewDomId = $derived('bittensor-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -79,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bittensorNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -98,7 +98,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bittensorNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const finalizedBlockNumber0 = prefetched.finalizedBlockNumber}
+				{@const finalizedBlockNumber0 = pendingEntity.finalizedBlockNumber}
 				{#if finalizedBlockNumber0 !== undefined && finalizedBlockNumber0 !== null}
 					<NumberValue value={Number(finalizedBlockNumber0)} />
 				{/if}
@@ -117,7 +117,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bittensorNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const runtimeSpecName0 = prefetched.runtimeSpecName}
+				{@const runtimeSpecName0 = pendingEntity.runtimeSpecName}
 				{#if runtimeSpecName0 !== undefined && runtimeSpecName0 !== null}
 					<span data-text="muted">
 						{String((runtimeSpecName0) ?? '')}
@@ -151,22 +151,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -188,7 +176,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -218,7 +206,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -245,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const finalizedBlockNumber = prefetched.finalizedBlockNumber}
+					{@const finalizedBlockNumber = pendingEntity.finalizedBlockNumber}
 					{#if finalizedBlockNumber !== undefined && finalizedBlockNumber !== null}
 						<div>
 							<dt>Finalized block number</dt>
@@ -280,7 +268,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const finalizedBlockHash = prefetched.finalizedBlockHash}
+					{@const finalizedBlockHash = pendingEntity.finalizedBlockHash}
 					{#if finalizedBlockHash !== undefined && finalizedBlockHash !== null}
 						<div>
 							<dt>Finalized block hash</dt>
@@ -317,7 +305,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const runtimeSpecName = prefetched.runtimeSpecName}
+					{@const runtimeSpecName = pendingEntity.runtimeSpecName}
 					{#if runtimeSpecName !== undefined && runtimeSpecName !== null}
 						<div>
 							<dt>Runtime spec</dt>
@@ -352,7 +340,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const runtimeSpecVersion = prefetched.runtimeSpecVersion}
+					{@const runtimeSpecVersion = pendingEntity.runtimeSpecVersion}
 					{#if runtimeSpecVersion !== undefined && runtimeSpecVersion !== null}
 						<div>
 							<dt>Runtime spec version</dt>
@@ -387,7 +375,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const runtimeImplVersion = prefetched.runtimeImplVersion}
+					{@const runtimeImplVersion = pendingEntity.runtimeImplVersion}
 					{#if runtimeImplVersion !== undefined && runtimeImplVersion !== null}
 						<div>
 							<dt>Runtime implementation version</dt>
@@ -422,7 +410,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerCount = prefetched.peerCount}
+					{@const peerCount = pendingEntity.peerCount}
 					{#if peerCount !== undefined && peerCount !== null}
 						<div>
 							<dt>Peers</dt>
@@ -457,7 +445,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isSyncing = prefetched.isSyncing}
+					{@const isSyncing = pendingEntity.isSyncing}
 					{#if isSyncing !== undefined && isSyncing !== null}
 						<div>
 							<dt>Syncing</dt>
@@ -492,7 +480,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const shouldHavePeers = prefetched.shouldHavePeers}
+					{@const shouldHavePeers = pendingEntity.shouldHavePeers}
 					{#if shouldHavePeers !== undefined && shouldHavePeers !== null}
 						<div>
 							<dt>Should have peers</dt>
@@ -529,7 +517,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subnetCount = prefetched.subnetCount}
+					{@const subnetCount = pendingEntity.subnetCount}
 					{#if subnetCount !== undefined && subnetCount !== null}
 						<div>
 							<dt>Subnets</dt>
@@ -564,7 +552,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subnetsInfoByteLength = prefetched.subnetsInfoByteLength}
+					{@const subnetsInfoByteLength = pendingEntity.subnetsInfoByteLength}
 					{#if subnetsInfoByteLength !== undefined && subnetsInfoByteLength !== null}
 						<div>
 							<dt>Subnet info bytes</dt>
@@ -599,7 +587,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dynamicInfoByteLength = prefetched.dynamicInfoByteLength}
+					{@const dynamicInfoByteLength = pendingEntity.dynamicInfoByteLength}
 					{#if dynamicInfoByteLength !== undefined && dynamicInfoByteLength !== null}
 						<div>
 							<dt>Dynamic info bytes</dt>
@@ -634,7 +622,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metagraphsByteLength = prefetched.metagraphsByteLength}
+					{@const metagraphsByteLength = pendingEntity.metagraphsByteLength}
 					{#if metagraphsByteLength !== undefined && metagraphsByteLength !== null}
 						<div>
 							<dt>Metagraph bytes</dt>

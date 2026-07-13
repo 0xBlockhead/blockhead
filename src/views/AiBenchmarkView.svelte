@@ -49,7 +49,7 @@
 			metricName: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((prefetched.benchmarkId) ?? ''), String((prefetched.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark')
+	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.benchmarkId) ?? ''), String((pendingEntity.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark')
 	const viewDomId = $derived('ai-benchmark-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -74,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiBenchmark}>
 			{#snippet Pending()}
-				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.benchmarkId) ?? ''), String((prefetched.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
+				{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.benchmarkId) ?? ''), String((pendingEntity.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +87,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiBenchmark}>
 			{#snippet Pending()}
-				{[String((prefetched.taskType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.benchmarkId) ?? ''), String((prefetched.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
+				{[String((pendingEntity.taskType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.benchmarkId) ?? ''), String((pendingEntity.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -100,7 +100,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiBenchmark}>
 			{#snippet Pending()}
-				{@const metricName0 = prefetched.metricName}
+				{@const metricName0 = pendingEntity.metricName}
 				{#if metricName0 !== undefined && metricName0 !== null}
 					<span data-text="muted">
 						{String((metricName0) ?? '')}
@@ -132,7 +132,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const benchmarkId = prefetched.benchmarkId}
+					{@const benchmarkId = pendingEntity.benchmarkId}
 					{#if benchmarkId !== undefined && benchmarkId !== null}
 						<div>
 							<dt>benchmark ID</dt>
@@ -167,7 +167,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const benchmarkUri = prefetched.benchmarkUri}
+					{@const benchmarkUri = pendingEntity.benchmarkUri}
 					{#if benchmarkUri !== undefined && benchmarkUri !== null}
 						<div>
 							<dt>benchmark URI</dt>
@@ -216,7 +216,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const source = prefetched.source}
+					{@const source = pendingEntity.source}
 					{#if source !== undefined && source !== null}
 						<div>
 							<dt>Source</dt>
@@ -251,7 +251,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceBenchmarkId = prefetched.sourceBenchmarkId}
+					{@const sourceBenchmarkId = pendingEntity.sourceBenchmarkId}
 					{#if sourceBenchmarkId !== undefined && sourceBenchmarkId !== null}
 						<div>
 							<dt>source benchmark ID</dt>
@@ -286,7 +286,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -323,7 +323,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const taskType = prefetched.taskType}
+					{@const taskType = pendingEntity.taskType}
 					{#if taskType !== undefined && taskType !== null}
 						<div>
 							<dt>task type</dt>
@@ -358,7 +358,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metricName = prefetched.metricName}
+					{@const metricName = pendingEntity.metricName}
 					{#if metricName !== undefined && metricName !== null}
 						<div>
 							<dt>metric name</dt>
@@ -393,7 +393,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metricType = prefetched.metricType}
+					{@const metricType = pendingEntity.metricType}
 					{#if metricType !== undefined && metricType !== null}
 						<div>
 							<dt>metric type</dt>
@@ -428,7 +428,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const license = prefetched.license}
+					{@const license = pendingEntity.license}
 					{#if license !== undefined && license !== null}
 						<div>
 							<dt>license</dt>
@@ -456,6 +456,8 @@
 			<ResourceBoundary
 				resource={selection.$dataset}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aiDataset)}
 					{#if aiDataset != null && aiDataset[EntityMetaKey.Selector] != null}
 						<div>

@@ -49,6 +49,8 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import YoutubeChannelsView from '$/views/YoutubeChannelsView.svelte'
 	import YoutubeVideosView from '$/views/YoutubeVideosView.svelte'
@@ -94,7 +96,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const scope = selection.entitySelector.scope ?? prefetched.scope}
+							{@const scope = pendingEntity.scope}
 							{#if scope !== undefined && scope !== null}
 								{String(('YouTube') ?? '')}
 							{/if}
@@ -115,47 +117,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<YoutubeChannelsView
-				selection={
-						selection.$$observedChannels({
-							sources: [
-								Source.Constants_Internal,
-								Source.Youtube_Rest,
-							],
-						})
-					}
-				title='Channels'
-				href={resolve('/(social)/(youtube)/youtube/channels')}
-				id='YoutubeChannelsView-observed-channels'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-youtube-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'youtube-channels',
+							label: 'Channels',
+						},
+						{
+							id: 'youtube-videos',
+							label: 'Videos',
+						},
+						{
+							id: 'youtube-playlists',
+							label: 'Playlists',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Directory</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<YoutubeVideosView
-				selection={
-						selection.$$observedVideos({
-							sources: [
-								Source.Constants_Internal,
-								Source.Youtube_Rest,
-							],
-						})
-					}
-				title='Videos'
-				href={resolve('/(social)/(youtube)/youtube/videos')}
-				id='YoutubeVideosView-observed-videos'
-			/>
+				{#snippet SectionYoutubeChannels({ id, label, open })}
+					<YoutubeChannelsView
+						selection={
+							selection.$$observedChannels({
+								sources: [
+									Source.Constants_Internal,
+									Source.Youtube_Rest,
+								],
+							})
+						}
+						href={resolve('/youtube/channels')}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<YoutubePlaylistsView
-				selection={
-						selection.$$observedPlaylists({
-							sources: [
-								Source.Constants_Internal,
-								Source.Youtube_Rest,
-							],
-						})
-					}
-				title='Playlists'
-				href={resolve('/(social)/(youtube)/youtube/playlists')}
-				id='YoutubePlaylistsView-observed-playlists'
-			/>
+				{#snippet SectionYoutubeVideos({ id, label, open })}
+					<YoutubeVideosView
+						selection={
+							selection.$$observedVideos({
+								sources: [
+									Source.Constants_Internal,
+									Source.Youtube_Rest,
+								],
+							})
+						}
+						href={resolve('/youtube/videos')}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionYoutubePlaylists({ id, label, open })}
+					<YoutubePlaylistsView
+						selection={
+							selection.$$observedPlaylists({
+								sources: [
+									Source.Constants_Internal,
+									Source.Youtube_Rest,
+								],
+							})
+						}
+						href={resolve('/youtube/playlists')}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

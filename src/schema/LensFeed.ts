@@ -10,8 +10,10 @@ export enum LensFeedSelector {
 }
 export const LensFeed = entity({
 	entityType: EntityType.LensFeed,
-	label: 'Lens feed',
-	labelPlural: 'Lens feeds',
+	labels: {
+		singular: 'Lens feed',
+		plural: 'Lens feeds',
+	},
 })({
 	address: {
 		label: 'Address',

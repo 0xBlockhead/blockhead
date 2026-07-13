@@ -191,7 +191,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -221,7 +221,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatedShares = prefetched.delegatedShares}
+					{@const delegatedShares = pendingEntity.delegatedShares}
 					{#if delegatedShares !== undefined && delegatedShares !== null}
 						<div>
 							<dt>delegated shares</dt>
@@ -285,7 +285,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const underlyingTokenAmount = prefetched.underlyingTokenAmount}
+					{@const underlyingTokenAmount = pendingEntity.underlyingTokenAmount}
 					{#if underlyingTokenAmount !== undefined && underlyingTokenAmount !== null}
 						<div>
 							<dt>underlying token amount</dt>
@@ -320,7 +320,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const depositRoot = prefetched.depositRoot}
+					{@const depositRoot = pendingEntity.depositRoot}
 					{#if depositRoot !== undefined && depositRoot !== null}
 						<div>
 							<dt>deposit root</dt>
@@ -355,7 +355,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const withdrawalRoot = prefetched.withdrawalRoot}
+					{@const withdrawalRoot = pendingEntity.withdrawalRoot}
 					{#if withdrawalRoot !== undefined && withdrawalRoot !== null}
 						<div>
 							<dt>withdrawal root</dt>
@@ -390,7 +390,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const withdrawalQueued = prefetched.withdrawalQueued}
+					{@const withdrawalQueued = pendingEntity.withdrawalQueued}
 					{#if withdrawalQueued !== undefined && withdrawalQueued !== null}
 						<div>
 							<dt>withdrawal queued</dt>
@@ -425,7 +425,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const withdrawalCompleted = prefetched.withdrawalCompleted}
+					{@const withdrawalCompleted = pendingEntity.withdrawalCompleted}
 					{#if withdrawalCompleted !== undefined && withdrawalCompleted !== null}
 						<div>
 							<dt>withdrawal completed</dt>

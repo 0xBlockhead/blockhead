@@ -11,8 +11,10 @@ export enum LensUsernameSelector {
 }
 export const LensUsername = entity({
 	entityType: EntityType.LensUsername,
-	label: 'Lens username',
-	labelPlural: 'Lens usernames',
+	labels: {
+		singular: 'Lens username',
+		plural: 'Lens usernames',
+	},
 })({
 	namespace: {
 		label: 'Namespace',

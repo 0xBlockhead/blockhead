@@ -9,8 +9,10 @@ export enum BlockheadQuilibriumPendingTransactionSelector {
 }
 export const BlockheadQuilibriumPendingTransaction = entity({
 	entityType: EntityType.BlockheadQuilibriumPendingTransaction,
-	label: 'blockhead quilibrium pending transaction',
-	labelPlural: 'blockhead quilibrium pending transactions',
+	labels: {
+		singular: 'blockhead quilibrium pending transaction',
+		plural: 'blockhead quilibrium pending transactions',
+	},
 })({
 	$accountState: {
 		label: 'account state',

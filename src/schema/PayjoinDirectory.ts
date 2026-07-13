@@ -10,8 +10,10 @@ export enum PayjoinDirectorySelector {
 }
 export const PayjoinDirectory = entity({
 	entityType: EntityType.PayjoinDirectory,
-	label: 'payjoin directory',
-	labelPlural: 'payjoin directories',
+	labels: {
+		singular: 'payjoin directory',
+		plural: 'payjoin directories',
+	},
 })({
 	directoryUrl: {
 		label: 'directory URL',

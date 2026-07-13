@@ -9,8 +9,10 @@ export enum QuilibriumProverSelector {
 }
 export const QuilibriumProver = entity({
 	entityType: EntityType.QuilibriumProver,
-	label: 'quilibrium prover',
-	labelPlural: 'quilibrium provers',
+	labels: {
+		singular: 'quilibrium prover',
+		plural: 'quilibrium provers',
+	},
 })({
 	$network: {
 		label: 'network',

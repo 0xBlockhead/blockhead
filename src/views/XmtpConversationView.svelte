@@ -49,7 +49,7 @@
 			consentState: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.topic) ?? ''), String((prefetched.peerInboxId) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation')
+	const titleFallback = $derived([String((pendingEntity.topic) ?? ''), String((pendingEntity.peerInboxId) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation')
 	const viewDomId = $derived('xmtp-conversation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={xmtpConversation}>
 			{#snippet Pending()}
-				{[String((prefetched.topic) ?? ''), String((prefetched.peerInboxId) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'XMTP conversation'}
+				{[String((pendingEntity.topic) ?? ''), String((pendingEntity.peerInboxId) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || 'XMTP conversation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={xmtpConversation}>
 			{#snippet Pending()}
-				{@const id0 = selection.entitySelector.id ?? prefetched.id}
+				{@const id0 = pendingEntity.id}
 				{#if id0 !== undefined && id0 !== null}
 					<TruncatedValue value={String((id0) ?? '')} />
 				{/if}
@@ -105,7 +105,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={xmtpConversation}>
 			{#snippet Pending()}
-				{@const createdAtMs0 = prefetched.createdAtMs}
+				{@const createdAtMs0 = pendingEntity.createdAtMs}
 				{#if createdAtMs0 !== undefined && createdAtMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAtMs0)} />
@@ -137,7 +137,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const consentState = prefetched.consentState}
+					{@const consentState = pendingEntity.consentState}
 					{#if consentState !== undefined && consentState !== null}
 						<div>
 							<dt>Consent</dt>
@@ -174,7 +174,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerInboxId = prefetched.peerInboxId}
+					{@const peerInboxId = pendingEntity.peerInboxId}
 					{#if peerInboxId !== undefined && peerInboxId !== null}
 						<div>
 							<dt>Peer inbox ID</dt>
@@ -211,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const topic = prefetched.topic}
+					{@const topic = pendingEntity.topic}
 					{#if topic !== undefined && topic !== null}
 						<div>
 							<dt>Topic</dt>
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAtMs = prefetched.createdAtMs}
+					{@const createdAtMs = pendingEntity.createdAtMs}
 					{#if createdAtMs !== undefined && createdAtMs !== null}
 						<div>
 							<dt>Created</dt>
@@ -288,7 +288,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{@const id = pendingEntity.id}
 							{#if id !== undefined && id !== null}
 								<TruncatedValue value={String((id) ?? '')} />
 							{/if}

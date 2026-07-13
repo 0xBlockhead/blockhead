@@ -9,8 +9,10 @@ export enum EnsNameSelector {
 }
 export const EnsName = entity({
 	entityType: EntityType.EnsName,
-	label: 'ENS name',
-	labelPlural: 'ENS names',
+	labels: {
+		singular: 'ENS name',
+		plural: 'ENS names',
+	},
 })({
 	name: {
 		label: 'Name',

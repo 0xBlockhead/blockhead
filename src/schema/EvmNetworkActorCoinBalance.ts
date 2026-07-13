@@ -10,8 +10,10 @@ export enum EvmNetworkActorCoinBalanceSelector {
 }
 export const EvmNetworkActorCoinBalance = entity({
 	entityType: EntityType.EvmNetworkActorCoinBalance,
-	label: 'balance',
-	labelPlural: 'balances',
+	labels: {
+		singular: 'balance',
+		plural: 'balances',
+	},
 })({
 	$actor: {
 		label: 'Actor',

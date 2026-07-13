@@ -54,7 +54,7 @@
 			paramsHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation')
+	const titleFallback = $derived([String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation')
 	const viewDomId = $derived('blockhead-session-simulation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -82,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadSessionSimulation}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session simulation'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || 'blockhead session simulation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -95,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSessionSimulation}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<Timestamp timestamp={Number(createdAt0)} />
 				{/if}
@@ -159,7 +159,7 @@
 						resource={selection.$session}
 					>
 						{#snippet children(blockheadSession)}
-							{#if blockheadSession[EntityMetaKey.Selector] != null}
+							{#if blockheadSession != null && blockheadSession[EntityMetaKey.Selector] != null}
 								<BlockheadSessionView
 									selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
 									prefetched={blockheadSession}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -215,7 +215,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}
@@ -242,7 +242,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const completedAt = prefetched.completedAt}
+					{@const completedAt = pendingEntity.completedAt}
 					{#if completedAt !== undefined && completedAt !== null}
 						<div>
 							<dt>completed AT</dt>
@@ -280,7 +280,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const paramsHash = prefetched.paramsHash}
+							{@const paramsHash = pendingEntity.paramsHash}
 							{#if paramsHash !== undefined && paramsHash !== null}
 								<TruncatedValue value={String((paramsHash) ?? '')} />
 							{/if}
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const forkBlockNumber = prefetched.forkBlockNumber}
+					{@const forkBlockNumber = pendingEntity.forkBlockNumber}
 					{#if forkBlockNumber !== undefined && forkBlockNumber !== null}
 						<div>
 							<dt>fork block number</dt>
@@ -344,7 +344,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const actionCount = prefetched.actionCount}
+					{@const actionCount = pendingEntity.actionCount}
 					{#if actionCount !== undefined && actionCount !== null}
 						<div>
 							<dt>action count</dt>
@@ -379,7 +379,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasUsed = prefetched.gasUsed}
+					{@const gasUsed = pendingEntity.gasUsed}
 					{#if gasUsed !== undefined && gasUsed !== null}
 						<div>
 							<dt>gas used</dt>
@@ -414,7 +414,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resultPayloadHash = prefetched.resultPayloadHash}
+					{@const resultPayloadHash = pendingEntity.resultPayloadHash}
 					{#if resultPayloadHash !== undefined && resultPayloadHash !== null}
 						<div>
 							<dt>result payload hash</dt>
@@ -449,7 +449,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>

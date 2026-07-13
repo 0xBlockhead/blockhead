@@ -9,8 +9,10 @@ export enum Erc4626Vault_BlockSelector {
 }
 export const Erc4626Vault_Block = entity({
 	entityType: EntityType.Erc4626Vault_Block,
-	label: 'erc4626 vault block',
-	labelPlural: 'erc4626 vault blocks',
+	labels: {
+		singular: 'erc4626 vault block',
+		plural: 'erc4626 vault blocks',
+	},
 })({
 	$vault: {
 		label: 'Vault',

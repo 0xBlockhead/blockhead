@@ -56,6 +56,13 @@ export default {
 			resolve: {
 				[EvmTopicSelector.Hex]: async ({ hex }) => {
 					const { getEventEntries } = await import('$/sources/Openchain/Rest/queries.ts')
+					const topicObservation = await getEventEntries({ hex })
+						.then((signatureEntries) => ({
+							signatures: signatureEntries.map((signatureEntry) => signatureEntry.name),
+						}))
+						.catch(() => ({
+							signatures: [] as string[],
+						}))
 					return [
 						{
 							[EntityMetaKey.Selector]: {
@@ -63,7 +70,7 @@ export default {
 								timestampMs: Date.now(),
 								source: Source.Openchain_Rest,
 							},
-							signatures: (await getEventEntries({ hex })).map((signatureEntry) => signatureEntry.name),
+							...topicObservation,
 						},
 					]
 				},
@@ -78,13 +85,22 @@ export default {
 			resolve: {
 				[EvmTopic_TimestampSelector.TopicTimestampMsSource]: async ({ $topic }) => {
 					const { getEventEntries } = await import('$/sources/Openchain/Rest/queries.ts')
-					return {
-						signatures: (await getEventEntries({ hex: $topic.hex })).map((signatureEntry) => signatureEntry.name),
-					}
+					return getEventEntries({ hex: $topic.hex })
+						.then((signatureEntries) => ({
+							signatures: signatureEntries.map((signatureEntry) => signatureEntry.name),
+							reachable: true,
+						}))
+						.catch(() => ({
+							signatures: [] as string[],
+							reachable: false,
+						}))
 				},
 			},
 		})({
 				signatures: (snapshot) => snapshot.signatures,
+				filteredSignatureCount: () => undefined,
+				verifiedCandidateCount: () => undefined,
+				reachable: (snapshot) => snapshot.reachable,
 			}),
 
 		defineResolver(Source.Openchain_Rest, {

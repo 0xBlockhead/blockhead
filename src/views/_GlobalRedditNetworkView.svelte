@@ -49,6 +49,8 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RedditSubredditsView from '$/views/RedditSubredditsView.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
@@ -94,7 +96,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const scope = selection.entitySelector.scope ?? prefetched.scope}
+							{@const scope = pendingEntity.scope}
 							{#if scope !== undefined && scope !== null}
 								{String(('Reddit') ?? '')}
 							{/if}
@@ -115,40 +117,106 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<RedditSubredditsView
-				selection={
-						selection.$$observedSubreddits({
-							sources: [
-								Source.Constants_Internal,
-								Source.Reddit_PublicJson,
-							],
-						})
-					}
-				title='Subreddits'
-				href={resolve('/(social)/(reddit)/reddit/subreddits')}
-				id='RedditSubredditsView-observed-subreddits'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-reddit-directory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'reddit-subreddits',
+							label: 'Subreddits',
+						},
+						{
+							id: 'reddit-links',
+							label: 'Links',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-directory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Directory</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<RedditLinksView
-				selection={
-						selection.$$observedLinks({
-							sources: [
-								Source.Constants_Internal,
-								Source.Reddit_PublicJson,
-							],
-						})
-					}
-				title='Popular submissions'
-				href={resolve('/(social)/(reddit)/reddit/links')}
-				id='RedditLinksView-observed-links'
-			/>
+				{#snippet SectionRedditSubreddits({ id, label, open })}
+					<RedditSubredditsView
+						selection={
+							selection.$$observedSubreddits({
+								sources: [
+									Source.Constants_Internal,
+									Source.Reddit_PublicJson,
+								],
+							})
+						}
+						href={resolve('/reddit/subreddits')}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<GlobalRedditNetwork_TimestampsView
-				selection={selection.$$timestamps}
-				title='Observations'
-				emptyText='No Reddit network observations.'
-				id='_GlobalRedditNetwork_TimestampsView-timestamps'
-			/>
+				{#snippet SectionRedditLinks({ id, label, open })}
+					<RedditLinksView
+						selection={
+							selection.$$observedLinks({
+								sources: [
+									Source.Constants_Internal,
+									Source.Reddit_PublicJson,
+								],
+							})
+						}
+						href={resolve('/reddit/links')}
+						CollapsibleProps={{ canToggle: false }}
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-reddit-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'reddit-hub-observations',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRedditHubObservations({ id, label, open })}
+					<GlobalRedditNetwork_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Reddit network observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

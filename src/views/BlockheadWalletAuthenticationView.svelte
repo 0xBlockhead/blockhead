@@ -51,7 +51,7 @@
 			verified: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.authenticationId ?? prefetched.authenticationId) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet authentication')
+	const titleFallback = $derived([String((pendingEntity.authenticationId) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet authentication')
 	const viewDomId = $derived('blockhead-wallet-authentication-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadWalletAuthentication}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.authenticationId ?? prefetched.authenticationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet authentication'}
+				{[String((pendingEntity.authenticationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet authentication'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletAuthentication}>
 			{#snippet Pending()}
-				{[String((prefetched.protocol) ?? ''), String((prefetched.verified) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.authenticationId ?? prefetched.authenticationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet authentication'}
+				{[String((pendingEntity.protocol) ?? ''), String((pendingEntity.verified) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.authenticationId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead wallet authentication'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -115,7 +115,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const authenticationId = selection.entitySelector.authenticationId ?? prefetched.authenticationId}
+							{@const authenticationId = pendingEntity.authenticationId}
 							{#if authenticationId !== undefined && authenticationId !== null}
 								{String((authenticationId) ?? '')}
 							{/if}
@@ -135,6 +135,8 @@
 			<ResourceBoundary
 				resource={selection.$connection}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWalletConnection)}
 					{#if blockheadWalletConnection != null && blockheadWalletConnection[EntityMetaKey.Selector] != null}
 						<div>
@@ -155,6 +157,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWalletAccount)}
 					{#if blockheadWalletAccount != null && blockheadWalletAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -185,7 +189,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocol = prefetched.protocol}
+							{@const protocol = pendingEntity.protocol}
 							{#if protocol !== undefined && protocol !== null}
 								{String((protocol) ?? '')}
 							{/if}
@@ -215,7 +219,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const verified = prefetched.verified}
+							{@const verified = pendingEntity.verified}
 							{#if verified !== undefined && verified !== null}
 								{verified ? 'Yes' : 'No'}
 							{/if}
@@ -242,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>
@@ -279,7 +283,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const statement = prefetched.statement}
+					{@const statement = pendingEntity.statement}
 					{#if statement !== undefined && statement !== null}
 						<div>
 							<dt>statement</dt>
@@ -314,7 +318,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const domain = prefetched.domain}
+					{@const domain = pendingEntity.domain}
 					{#if domain !== undefined && domain !== null}
 						<div>
 							<dt>domain</dt>
@@ -349,7 +353,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uri = prefetched.uri}
+					{@const uri = pendingEntity.uri}
 					{#if uri !== undefined && uri !== null}
 						<div>
 							<dt>URI</dt>
@@ -398,7 +402,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nonce = prefetched.nonce}
+					{@const nonce = pendingEntity.nonce}
 					{#if nonce !== undefined && nonce !== null}
 						<div>
 							<dt>nonce</dt>
@@ -433,7 +437,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const chainId = prefetched.chainId}
+					{@const chainId = pendingEntity.chainId}
 					{#if chainId !== undefined && chainId !== null}
 						<div>
 							<dt>Chain ID</dt>
@@ -468,7 +472,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const signature = prefetched.signature}
+					{@const signature = pendingEntity.signature}
 					{#if signature !== undefined && signature !== null}
 						<div>
 							<dt>signature</dt>
@@ -505,7 +509,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const issuedAt = prefetched.issuedAt}
+					{@const issuedAt = pendingEntity.issuedAt}
 					{#if issuedAt !== undefined && issuedAt !== null}
 						<div>
 							<dt>issued AT</dt>
@@ -540,7 +544,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const expirationTime = prefetched.expirationTime}
+					{@const expirationTime = pendingEntity.expirationTime}
 					{#if expirationTime !== undefined && expirationTime !== null}
 						<div>
 							<dt>expiration time</dt>
@@ -575,7 +579,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const notBefore = prefetched.notBefore}
+					{@const notBefore = pendingEntity.notBefore}
 					{#if notBefore !== undefined && notBefore !== null}
 						<div>
 							<dt>not before</dt>
@@ -610,7 +614,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedAt = prefetched.verifiedAt}
+					{@const verifiedAt = pendingEntity.verifiedAt}
 					{#if verifiedAt !== undefined && verifiedAt !== null}
 						<div>
 							<dt>verified AT</dt>

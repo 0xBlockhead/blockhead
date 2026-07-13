@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetTransactionTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -119,7 +119,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={starknetTransactionTimestamp}>
 			{#snippet Pending()}
-				{@const executionStatus0 = prefetched.executionStatus}
+				{@const executionStatus0 = pendingEntity.executionStatus}
 				{#if executionStatus0 !== undefined && executionStatus0 !== null}
 					<span data-text="muted">
 						{String((executionStatus0) ?? '')}
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -195,7 +195,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -222,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockNumber = prefetched.blockNumber}
+					{@const blockNumber = pendingEntity.blockNumber}
 					{#if blockNumber !== undefined && blockNumber !== null}
 						<div>
 							<dt>Block number</dt>
@@ -257,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const finalityStatus = prefetched.finalityStatus}
+					{@const finalityStatus = pendingEntity.finalityStatus}
 					{#if finalityStatus !== undefined && finalityStatus !== null}
 						<div>
 							<dt>finality status</dt>
@@ -294,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const executionStatus = prefetched.executionStatus}
+					{@const executionStatus = pendingEntity.executionStatus}
 					{#if executionStatus !== undefined && executionStatus !== null}
 						<div>
 							<dt>execution status</dt>
@@ -329,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const actualFee = prefetched.actualFee}
+					{@const actualFee = pendingEntity.actualFee}
 					{#if actualFee !== undefined && actualFee !== null}
 						<div>
 							<dt>actual fee</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const revertReason = prefetched.revertReason}
+					{@const revertReason = pendingEntity.revertReason}
 					{#if revertReason !== undefined && revertReason !== null}
 						<div>
 							<dt>revert reason</dt>
@@ -402,7 +402,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const messagesSent = prefetched.messagesSent}
+							{@const messagesSent = pendingEntity.messagesSent}
 							{#if messagesSent !== undefined && messagesSent !== null}
 								{messagesSent.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -429,7 +429,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const eventsCount = prefetched.eventsCount}
+					{@const eventsCount = pendingEntity.eventsCount}
 					{#if eventsCount !== undefined && eventsCount !== null}
 						<div>
 							<dt>events count</dt>

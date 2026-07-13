@@ -54,7 +54,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.userPrompt) ?? '')].filter(Boolean).join(' ') || 'agent conversation turn')
+	const titleFallback = $derived([String((pendingEntity.userPrompt) ?? '')].filter(Boolean).join(' ') || 'agent conversation turn')
 	const viewDomId = $derived('blockhead-agent-conversation-turn-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,9 +73,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$conversation !== undefined && pendingEntity.$conversation.id !== undefined && pendingEntity.id !== undefined ? resolve('/~/agents/conversation/[conversationId]/turn/[turnId]', {
-			conversationId: String(pendingEntity.$conversation.id ?? ''),
+		href ?? (pendingEntity.id !== undefined && pendingEntity.$conversation !== undefined && pendingEntity.$conversation.id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {
 			turnId: String(pendingEntity.id ?? ''),
+			conversationId: String(pendingEntity.$conversation.id ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -85,7 +85,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAgentConversationTurn}>
 			{#snippet Pending()}
-				{@const userPrompt0 = prefetched.userPrompt}
+				{@const userPrompt0 = pendingEntity.userPrompt}
 				{#if userPrompt0 !== undefined && userPrompt0 !== null}
 					<TruncatedValue value={String((userPrompt0) ?? '')} />
 				{/if}
@@ -104,7 +104,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentConversationTurn}>
 			{#snippet Pending()}
-				{@const createdAt0 = prefetched.createdAt}
+				{@const createdAt0 = pendingEntity.createdAt}
 				{#if createdAt0 !== undefined && createdAt0 !== null}
 					<Timestamp timestamp={Number(createdAt0)} />
 				{/if}
@@ -129,7 +129,7 @@
 						resource={selection.$conversation}
 					>
 						{#snippet children(blockheadAgentConversation)}
-							{#if blockheadAgentConversation[EntityMetaKey.Selector] != null}
+							{#if blockheadAgentConversation != null && blockheadAgentConversation[EntityMetaKey.Selector] != null}
 								<BlockheadAgentConversationView
 									selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConversation}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const status = prefetched.status}
+							{@const status = pendingEntity.status}
 							{#if status !== undefined && status !== null}
 								{String((status) ?? '')}
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt}
+							{@const createdAt = pendingEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}
@@ -214,7 +214,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const providerId = prefetched.providerId}
+					{@const providerId = pendingEntity.providerId}
 					{#if providerId !== undefined && providerId !== null}
 						<div>
 							<dt>Provider</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const promptVersion = prefetched.promptVersion}
+					{@const promptVersion = pendingEntity.promptVersion}
 					{#if promptVersion !== undefined && promptVersion !== null}
 						<div>
 							<dt>Prompt version</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const parentId = prefetched.parentId}
+					{@const parentId = pendingEntity.parentId}
 					{#if parentId !== undefined && parentId !== null}
 						<div>
 							<dt>Parent turn ID</dt>
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>Error</dt>

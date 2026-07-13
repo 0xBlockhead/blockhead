@@ -9,8 +9,10 @@ export enum HyperliquidVaultEquity_TimestampSelector {
 }
 export const HyperliquidVaultEquity_Timestamp = entity({
 	entityType: EntityType.HyperliquidVaultEquity_Timestamp,
-	label: 'hyperliquid vault equity timestamp',
-	labelPlural: 'hyperliquid vault equity observations',
+	labels: {
+		singular: 'hyperliquid vault equity timestamp',
+		plural: 'hyperliquid vault equity observations',
+	},
 })({
 	$account: {
 		label: 'account',

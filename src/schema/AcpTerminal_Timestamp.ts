@@ -9,8 +9,10 @@ export enum AcpTerminal_TimestampSelector {
 }
 export const AcpTerminal_Timestamp = entity({
 	entityType: EntityType.AcpTerminal_Timestamp,
-	label: 'acp terminal timestamp',
-	labelPlural: 'acp terminal observations',
+	labels: {
+		singular: 'acp terminal timestamp',
+		plural: 'acp terminal observations',
+	},
 })({
 	$terminal: {
 		label: 'terminal',

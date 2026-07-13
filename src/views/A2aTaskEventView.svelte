@@ -51,7 +51,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '')].filter(Boolean).join(' ') || 'A2A task event')
+	const titleFallback = $derived([String((pendingEntity.sequence) ?? '')].filter(Boolean).join(' ') || 'A2A task event')
 	const viewDomId = $derived('a2a-task-event-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={a2aTaskEvent}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '')].filter(Boolean).join(' ') || title || 'A2A task event'}
+				{[String((pendingEntity.sequence) ?? '')].filter(Boolean).join(' ') || title || 'A2A task event'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aTaskEvent}>
 			{#snippet Pending()}
-				{[String((prefetched.eventKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '')].filter(Boolean).join(' ') || title || 'A2A task event'}
+				{[String((pendingEntity.eventKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.sequence) ?? '')].filter(Boolean).join(' ') || title || 'A2A task event'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aTaskEvent}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -148,7 +148,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const sequence = selection.entitySelector.sequence ?? prefetched.sequence}
+							{@const sequence = pendingEntity.sequence}
 							{#if sequence !== undefined && sequence !== null}
 								{String((sequence) ?? '')}
 							{/if}
@@ -178,7 +178,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventKind = prefetched.eventKind}
+							{@const eventKind = pendingEntity.eventKind}
 							{#if eventKind !== undefined && eventKind !== null}
 								{String((eventKind) ?? '')}
 							{/if}
@@ -205,7 +205,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -240,7 +240,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const state = prefetched.state}
+					{@const state = pendingEntity.state}
 					{#if state !== undefined && state !== null}
 						<div>
 							<dt>state</dt>
@@ -275,7 +275,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const final = prefetched.final}
+					{@const final = pendingEntity.final}
 					{#if final !== undefined && final !== null}
 						<div>
 							<dt>final</dt>
@@ -303,6 +303,8 @@
 			<ResourceBoundary
 				resource={selection.$artifact}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(a2aArtifact)}
 					{#if a2aArtifact != null && a2aArtifact[EntityMetaKey.Selector] != null}
 						<div>

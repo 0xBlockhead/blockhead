@@ -10,8 +10,10 @@ export enum BlockheadQuilibriumNodeStateSelector {
 }
 export const BlockheadQuilibriumNodeState = entity({
 	entityType: EntityType.BlockheadQuilibriumNodeState,
-	label: 'blockhead quilibrium node state',
-	labelPlural: 'blockhead quilibrium node states',
+	labels: {
+		singular: 'blockhead quilibrium node state',
+		plural: 'blockhead quilibrium node states',
+	},
 })({
 	connectionId: {
 		label: 'connection ID',

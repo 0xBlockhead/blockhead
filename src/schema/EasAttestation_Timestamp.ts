@@ -10,8 +10,10 @@ export enum EasAttestation_TimestampSelector {
 }
 export const EasAttestation_Timestamp = entity({
 	entityType: EntityType.EasAttestation_Timestamp,
-	label: 'EAS attestation timestamp',
-	labelPlural: 'EAS attestation observations',
+	labels: {
+		singular: 'EAS attestation timestamp',
+		plural: 'EAS attestation observations',
+	},
 })({
 	$attestation: {
 		label: 'Attestation',

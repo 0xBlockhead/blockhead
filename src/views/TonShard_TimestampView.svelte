@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const shardPrefix = selection.entitySelector.shardPrefix ?? prefetched.shardPrefix}
+							{@const shardPrefix = pendingEntity.shardPrefix}
 							{#if shardPrefix !== undefined && shardPrefix !== null}
 								{String((shardPrefix) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const seqno = selection.entitySelector.seqno ?? prefetched.seqno}
+							{@const seqno = pendingEntity.seqno}
 							{#if seqno !== undefined && seqno !== null}
 								{String((seqno) ?? '')}
 							{/if}
@@ -162,7 +162,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -189,7 +189,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -224,7 +224,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const startLt = prefetched.startLt}
+					{@const startLt = pendingEntity.startLt}
 					{#if startLt !== undefined && startLt !== null}
 						<div>
 							<dt>start lt</dt>
@@ -259,7 +259,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endLt = prefetched.endLt}
+					{@const endLt = pendingEntity.endLt}
 					{#if endLt !== undefined && endLt !== null}
 						<div>
 							<dt>end lt</dt>
@@ -294,7 +294,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minRefMcSeqno = prefetched.minRefMcSeqno}
+					{@const minRefMcSeqno = pendingEntity.minRefMcSeqno}
 					{#if minRefMcSeqno !== undefined && minRefMcSeqno !== null}
 						<div>
 							<dt>min ref mc seqno</dt>
@@ -329,7 +329,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rootHash = prefetched.rootHash}
+					{@const rootHash = pendingEntity.rootHash}
 					{#if rootHash !== undefined && rootHash !== null}
 						<div>
 							<dt>root hash</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fileHash = prefetched.fileHash}
+					{@const fileHash = pendingEntity.fileHash}
 					{#if fileHash !== undefined && fileHash !== null}
 						<div>
 							<dt>file hash</dt>

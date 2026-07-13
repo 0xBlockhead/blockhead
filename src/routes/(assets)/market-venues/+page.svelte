@@ -23,7 +23,7 @@
 
 <Page>
 	<MarketVenuesView
-		href={resolve('/(assets)/market-venues')}
+		href={resolve('/market-venues')}
 		title='Market venues'
 		selection={
 			select(EntityType._Global, {

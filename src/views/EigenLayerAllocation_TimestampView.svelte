@@ -190,7 +190,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -220,7 +220,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const allocationMagnitude = prefetched.allocationMagnitude}
+					{@const allocationMagnitude = pendingEntity.allocationMagnitude}
 					{#if allocationMagnitude !== undefined && allocationMagnitude !== null}
 						<div>
 							<dt>allocation magnitude</dt>
@@ -282,7 +282,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const allocatedShares = prefetched.allocatedShares}
+					{@const allocatedShares = pendingEntity.allocatedShares}
 					{#if allocatedShares !== undefined && allocatedShares !== null}
 						<div>
 							<dt>allocated shares</dt>
@@ -322,7 +322,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const quorumNumbers = prefetched.quorumNumbers}
+							{@const quorumNumbers = pendingEntity.quorumNumbers}
 							{#if quorumNumbers !== undefined && quorumNumbers !== null}
 								{quorumNumbers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -349,7 +349,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const registrationStatus = prefetched.registrationStatus}
+					{@const registrationStatus = pendingEntity.registrationStatus}
 					{#if registrationStatus !== undefined && registrationStatus !== null}
 						<div>
 							<dt>registration status</dt>
@@ -384,7 +384,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const slashableUntilMs = prefetched.slashableUntilMs}
+					{@const slashableUntilMs = pendingEntity.slashableUntilMs}
 					{#if slashableUntilMs !== undefined && slashableUntilMs !== null}
 						<div>
 							<dt>slashable until ms</dt>
@@ -419,7 +419,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const operatorSetId = prefetched.operatorSetId}
+					{@const operatorSetId = pendingEntity.operatorSetId}
 					{#if operatorSetId !== undefined && operatorSetId !== null}
 						<div>
 							<dt>operator set ID</dt>

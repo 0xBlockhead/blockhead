@@ -115,7 +115,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -145,7 +145,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -172,7 +172,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>Block height</dt>
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const standard = prefetched.standard}
+					{@const standard = pendingEntity.standard}
 					{#if standard !== undefined && standard !== null}
 						<div>
 							<dt>Standard</dt>
@@ -248,7 +248,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>Balance</dt>
@@ -286,7 +286,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const ownedSerialNumbers = prefetched.ownedSerialNumbers}
+							{@const ownedSerialNumbers = pendingEntity.ownedSerialNumbers}
 							{#if ownedSerialNumbers !== undefined && ownedSerialNumbers !== null}
 								{ownedSerialNumbers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -316,7 +316,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenId = prefetched.tokenId}
+					{@const tokenId = pendingEntity.tokenId}
 					{#if tokenId !== undefined && tokenId !== null}
 						<div>
 							<dt>Token ID</dt>
@@ -354,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenName = prefetched.tokenName}
+					{@const tokenName = pendingEntity.tokenName}
 					{#if tokenName !== undefined && tokenName !== null}
 						<div>
 							<dt>Token name</dt>
@@ -392,7 +392,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenSymbol = prefetched.tokenSymbol}
+					{@const tokenSymbol = pendingEntity.tokenSymbol}
 					{#if tokenSymbol !== undefined && tokenSymbol !== null}
 						<div>
 							<dt>Token symbol</dt>
@@ -427,7 +427,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const frozenBalance = prefetched.frozenBalance}
+					{@const frozenBalance = pendingEntity.frozenBalance}
 					{#if frozenBalance !== undefined && frozenBalance !== null}
 						<div>
 							<dt>Frozen balance</dt>
@@ -462,7 +462,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const delegatedBalance = prefetched.delegatedBalance}
+					{@const delegatedBalance = pendingEntity.delegatedBalance}
 					{#if delegatedBalance !== undefined && delegatedBalance !== null}
 						<div>
 							<dt>Delegated balance</dt>

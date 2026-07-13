@@ -9,8 +9,10 @@ export enum CardanoDRepSelector {
 }
 export const CardanoDRep = entity({
 	entityType: EntityType.CardanoDRep,
-	label: 'cardano d rep',
-	labelPlural: 'cardano d reps',
+	labels: {
+		singular: 'cardano d rep',
+		plural: 'cardano d reps',
+	},
 })({
 	$network: {
 		label: 'network',

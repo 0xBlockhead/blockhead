@@ -9,8 +9,10 @@ export enum AiProviderCatalogEntry_TimestampSelector {
 }
 export const AiProviderCatalogEntry_Timestamp = entity({
 	entityType: EntityType.AiProviderCatalogEntry_Timestamp,
-	label: 'AI provider catalog entry timestamp',
-	labelPlural: 'AI provider catalog entry observations',
+	labels: {
+		singular: 'AI provider catalog entry timestamp',
+		plural: 'AI provider catalog entry observations',
+	},
 })({
 	$entry: {
 		label: 'entry',

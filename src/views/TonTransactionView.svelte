@@ -105,7 +105,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const lt = selection.entitySelector.lt ?? prefetched.lt}
+							{@const lt = pendingEntity.lt}
 							{#if lt !== undefined && lt !== null}
 								{String((lt) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const hash = prefetched.hash}
+					{@const hash = pendingEntity.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>
@@ -167,7 +167,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nowMs = prefetched.nowMs}
+					{@const nowMs = pendingEntity.nowMs}
 					{#if nowMs !== undefined && nowMs !== null}
 						<div>
 							<dt>now ms</dt>
@@ -202,7 +202,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const origStatus = prefetched.origStatus}
+					{@const origStatus = pendingEntity.origStatus}
 					{#if origStatus !== undefined && origStatus !== null}
 						<div>
 							<dt>orig status</dt>
@@ -237,7 +237,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const endStatus = prefetched.endStatus}
+					{@const endStatus = pendingEntity.endStatus}
 					{#if endStatus !== undefined && endStatus !== null}
 						<div>
 							<dt>end status</dt>
@@ -272,7 +272,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionKind = prefetched.transactionKind}
+					{@const transactionKind = pendingEntity.transactionKind}
 					{#if transactionKind !== undefined && transactionKind !== null}
 						<div>
 							<dt>transaction kind</dt>
@@ -307,7 +307,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const outMessageCount = prefetched.outMessageCount}
+					{@const outMessageCount = pendingEntity.outMessageCount}
 					{#if outMessageCount !== undefined && outMessageCount !== null}
 						<div>
 							<dt>out message count</dt>
@@ -342,7 +342,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalFeesNano = prefetched.totalFeesNano}
+					{@const totalFeesNano = pendingEntity.totalFeesNano}
 					{#if totalFeesNano !== undefined && totalFeesNano !== null}
 						<div>
 							<dt>total fees nano</dt>
@@ -377,7 +377,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousTransactionHash = prefetched.previousTransactionHash}
+					{@const previousTransactionHash = pendingEntity.previousTransactionHash}
 					{#if previousTransactionHash !== undefined && previousTransactionHash !== null}
 						<div>
 							<dt>previous transaction hash</dt>
@@ -412,7 +412,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const previousTransactionLt = prefetched.previousTransactionLt}
+					{@const previousTransactionLt = pendingEntity.previousTransactionLt}
 					{#if previousTransactionLt !== undefined && previousTransactionLt !== null}
 						<div>
 							<dt>previous transaction lt</dt>
@@ -440,6 +440,8 @@
 			<ResourceBoundary
 				resource={selection.$block}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonBlock)}
 					{#if tonBlock != null && tonBlock[EntityMetaKey.Selector] != null}
 						<div>
@@ -460,6 +462,8 @@
 			<ResourceBoundary
 				resource={selection.$trace}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonTrace)}
 					{#if tonTrace != null && tonTrace[EntityMetaKey.Selector] != null}
 						<div>
@@ -480,6 +484,8 @@
 			<ResourceBoundary
 				resource={selection.$inMessage}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(tonMessage)}
 					{#if tonMessage != null && tonMessage[EntityMetaKey.Selector] != null}
 						<div>

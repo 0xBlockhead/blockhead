@@ -2,6 +2,7 @@
 
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
 export enum ActivityPubNoteSelector {
@@ -10,13 +11,15 @@ export enum ActivityPubNoteSelector {
 }
 export const ActivityPubNote = entity({
 	entityType: EntityType.ActivityPubNote,
-	label: 'ActivityPub note',
-	labelPlural: 'ActivityPub notes',
+	labels: {
+		singular: 'ActivityPub note',
+		plural: 'ActivityPub notes',
+	},
 })({
 	instanceOrigin: {
 		label: 'Instance origin',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: (UrlString),
 		cardinality: EntityFieldCardinality.One,
 	},
 	localStatusId: {

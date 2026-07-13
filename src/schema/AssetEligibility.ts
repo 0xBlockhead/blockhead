@@ -9,8 +9,10 @@ export enum AssetEligibilitySelector {
 }
 export const AssetEligibility = entity({
 	entityType: EntityType.AssetEligibility,
-	label: 'asset eligibility',
-	labelPlural: 'asset eligibilities',
+	labels: {
+		singular: 'asset eligibility',
+		plural: 'asset eligibilities',
+	},
 })({
 	$assetInstance: {
 		label: 'asset instance',

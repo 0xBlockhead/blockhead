@@ -48,7 +48,7 @@
 			protocolName: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol')
+	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol')
 	const viewDomId = $derived('-global-atproto-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={globalAtprotoNetwork}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol'}
+				{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || [String(('AT Protocol') ?? '')].filter(Boolean).join(' ') || 'AT Protocol'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -107,7 +107,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const protocolName = prefetched.protocolName}
+							{@const protocolName = pendingEntity.protocolName}
 							{#if protocolName !== undefined && protocolName !== null}
 								{String((protocolName) ?? '')}
 							{/if}
@@ -135,7 +135,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const relationshipModel = prefetched.relationshipModel}
+						{@const relationshipModel = pendingEntity.relationshipModel}
 						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
 								<dt>Connection model</dt>
@@ -175,7 +175,7 @@
 							}
 						>
 							{#snippet Pending()}
-								{@const homeUrl = prefetched.homeUrl}
+								{@const homeUrl = pendingEntity.homeUrl}
 								{#if homeUrl !== undefined && homeUrl !== null}
 									<svelte:element
 										this={'a'}
@@ -218,7 +218,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const docsUrl = prefetched.docsUrl}
+						{@const docsUrl = pendingEntity.docsUrl}
 						{#if docsUrl !== undefined && docsUrl !== null}
 							<div>
 								<dt>Documentation</dt>
@@ -310,7 +310,7 @@
 								],
 							})
 						}
-						href={resolve('/(social)/(atproto)/atproto/actors')}
+						href={resolve('/atproto/actors')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -328,7 +328,7 @@
 								],
 							})
 						}
-						href={resolve('/(social)/(atproto)/atproto/posts')}
+						href={resolve('/atproto/posts')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}

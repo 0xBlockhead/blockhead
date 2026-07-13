@@ -93,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalEvmAbiCatalogTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceReportedSelectorCount = prefetched.sourceReportedSelectorCount}
+					{@const sourceReportedSelectorCount = pendingEntity.sourceReportedSelectorCount}
 					{#if sourceReportedSelectorCount !== undefined && sourceReportedSelectorCount !== null}
 						<div>
 							<dt>source reported selector count</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceReportedTopicCount = prefetched.sourceReportedTopicCount}
+					{@const sourceReportedTopicCount = pendingEntity.sourceReportedTopicCount}
 					{#if sourceReportedTopicCount !== undefined && sourceReportedTopicCount !== null}
 						<div>
 							<dt>source reported topic count</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceReportedErrorCount = prefetched.sourceReportedErrorCount}
+					{@const sourceReportedErrorCount = pendingEntity.sourceReportedErrorCount}
 					{#if sourceReportedErrorCount !== undefined && sourceReportedErrorCount !== null}
 						<div>
 							<dt>source reported error count</dt>
@@ -301,7 +301,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededSelectorCount = prefetched.seededSelectorCount}
+					{@const seededSelectorCount = pendingEntity.seededSelectorCount}
 					{#if seededSelectorCount !== undefined && seededSelectorCount !== null}
 						<div>
 							<dt>seeded selector count</dt>
@@ -336,7 +336,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededTopicCount = prefetched.seededTopicCount}
+					{@const seededTopicCount = pendingEntity.seededTopicCount}
 					{#if seededTopicCount !== undefined && seededTopicCount !== null}
 						<div>
 							<dt>seeded topic count</dt>
@@ -371,7 +371,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const seededErrorCount = prefetched.seededErrorCount}
+					{@const seededErrorCount = pendingEntity.seededErrorCount}
 					{#if seededErrorCount !== undefined && seededErrorCount !== null}
 						<div>
 							<dt>seeded error count</dt>
@@ -408,7 +408,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable}
+					{@const reachable = pendingEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>reachable</dt>
@@ -443,7 +443,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rateLimitRemaining = prefetched.rateLimitRemaining}
+					{@const rateLimitRemaining = pendingEntity.rateLimitRemaining}
 					{#if rateLimitRemaining !== undefined && rateLimitRemaining !== null}
 						<div>
 							<dt>rate limit remaining</dt>

@@ -10,7 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -53,7 +53,7 @@
 			paymentRequest: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.paymentHash ?? prefetched.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment')
+	const titleFallback = $derived([String((pendingEntity.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment')
 	const viewDomId = $derived('blockhead-lightning-payment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,8 +75,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.paymentHash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/payments/[paymentHash]', {
-			networkSlug: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.paymentHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			paymentHash: String(pendingEntity.paymentHash ?? ''),
 		}) : undefined)
 	}
@@ -87,7 +87,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLightningPayment}>
 			{#snippet Pending()}
-				{@const paymentHash0 = selection.entitySelector.paymentHash ?? prefetched.paymentHash}
+				{@const paymentHash0 = pendingEntity.paymentHash}
 				{#if paymentHash0 !== undefined && paymentHash0 !== null}
 					<TruncatedValue value={String((paymentHash0) ?? '')} />
 				{/if}
@@ -106,7 +106,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLightningPayment}>
 			{#snippet Pending()}
-				{@const valueMsat0 = prefetched.valueMsat}
+				{@const valueMsat0 = pendingEntity.valueMsat}
 				{#if valueMsat0 !== undefined && valueMsat0 !== null}
 					<NumberValue value={Number(valueMsat0)} />
 				{/if}
@@ -137,7 +137,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const paymentHash = selection.entitySelector.paymentHash ?? prefetched.paymentHash}
+							{@const paymentHash = pendingEntity.paymentHash}
 							{#if paymentHash !== undefined && paymentHash !== null}
 								<TruncatedValue value={String((paymentHash) ?? '')} />
 							{/if}
@@ -160,22 +160,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
-							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -194,7 +182,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const valueMsat = prefetched.valueMsat}
+					{@const valueMsat = pendingEntity.valueMsat}
 					{#if valueMsat !== undefined && valueMsat !== null}
 						<div>
 							<dt>Value msat</dt>
@@ -231,7 +219,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAtMs = prefetched.createdAtMs}
+					{@const createdAtMs = pendingEntity.createdAtMs}
 					{#if createdAtMs !== undefined && createdAtMs !== null}
 						<div>
 							<dt>Created</dt>
@@ -266,7 +254,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paymentIndex = prefetched.paymentIndex}
+					{@const paymentIndex = pendingEntity.paymentIndex}
 					{#if paymentIndex !== undefined && paymentIndex !== null}
 						<div>
 							<dt>Payment index</dt>
@@ -294,6 +282,8 @@
 			<ResourceBoundary
 				resource={selection.$localNodeState}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadLightningNodeState)}
 					{#if blockheadLightningNodeState != null && blockheadLightningNodeState[EntityMetaKey.Selector] != null}
 						<div>
@@ -314,6 +304,8 @@
 			<ResourceBoundary
 				resource={selection.$invoice}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadLightningInvoice)}
 					{#if blockheadLightningInvoice != null && blockheadLightningInvoice[EntityMetaKey.Selector] != null}
 						<div>
@@ -323,8 +315,8 @@
 									selection={select(EntityType.BlockheadLightningInvoice, blockheadLightningInvoice[EntityMetaKey.Selector])}
 									prefetched={blockheadLightningInvoice}
 									href={
-										(blockheadLightningInvoice[EntityMetaKey.Selector].$network !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/invoices/[paymentHash]', {
-											networkSlug: String(blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug ?? ''),
+										(blockheadLightningInvoice[EntityMetaKey.Selector].$network !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
+											network: String(blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug ?? ''),
 											paymentHash: String(blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash ?? ''),
 										}) : undefined)
 									}
@@ -349,7 +341,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const paymentRequest = prefetched.paymentRequest}
+					{@const paymentRequest = pendingEntity.paymentRequest}
 					{#if paymentRequest !== undefined && paymentRequest !== null}
 						<div>
 							<dt>Payment request</dt>

@@ -9,8 +9,10 @@ export enum AssetSupply_LedgerCoordinateSelector {
 }
 export const AssetSupply_LedgerCoordinate = entity({
 	entityType: EntityType.AssetSupply_LedgerCoordinate,
-	label: 'asset supply ledger coordinate',
-	labelPlural: 'asset supply ledger coordinates',
+	labels: {
+		singular: 'asset supply ledger coordinate',
+		plural: 'asset supply ledger coordinates',
+	},
 })({
 	$assetInstance: {
 		label: 'asset instance',

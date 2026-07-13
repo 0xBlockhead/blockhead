@@ -119,7 +119,7 @@
 						selection={select(EntityType.FarcasterVerifiedAddress, farcasterVerifiedAddress[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={farcasterVerifiedAddressFields}
 						href={
-							(farcasterVerifiedAddressHrefFields.fid !== undefined && farcasterVerifiedAddressHrefFields.protocol !== undefined && farcasterVerifiedAddressHrefFields.address !== undefined ? resolve('/(social)/(farcaster)/farcaster/user/[userId=farcasterFid]/(user)/verified-address/[protocol]/[address]', {
+							(farcasterVerifiedAddressHrefFields.fid !== undefined && farcasterVerifiedAddressHrefFields.protocol !== undefined && farcasterVerifiedAddressHrefFields.address !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]/verified-address/[protocol=stringSegment]/[address=stringSegment]', {
 								userId: String(farcasterVerifiedAddressHrefFields.fid ?? ''),
 								protocol: String(farcasterVerifiedAddressHrefFields.protocol ?? ''),
 								address: String(farcasterVerifiedAddressHrefFields.address ?? ''),

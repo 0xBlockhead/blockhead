@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountValue = prefetched.accountValue}
+					{@const accountValue = pendingEntity.accountValue}
 					{#if accountValue !== undefined && accountValue !== null}
 						<div>
 							<dt>account value</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalNtlPos = prefetched.totalNtlPos}
+					{@const totalNtlPos = pendingEntity.totalNtlPos}
 					{#if totalNtlPos !== undefined && totalNtlPos !== null}
 						<div>
 							<dt>total ntl pos</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalRawUsd = prefetched.totalRawUsd}
+					{@const totalRawUsd = pendingEntity.totalRawUsd}
 					{#if totalRawUsd !== undefined && totalRawUsd !== null}
 						<div>
 							<dt>total raw usd</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalMarginUsed = prefetched.totalMarginUsed}
+					{@const totalMarginUsed = pendingEntity.totalMarginUsed}
 					{#if totalMarginUsed !== undefined && totalMarginUsed !== null}
 						<div>
 							<dt>total margin used</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const withdrawable = prefetched.withdrawable}
+					{@const withdrawable = pendingEntity.withdrawable}
 					{#if withdrawable !== undefined && withdrawable !== null}
 						<div>
 							<dt>withdrawable</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const crossMaintenanceMarginUsed = prefetched.crossMaintenanceMarginUsed}
+					{@const crossMaintenanceMarginUsed = pendingEntity.crossMaintenanceMarginUsed}
 					{#if crossMaintenanceMarginUsed !== undefined && crossMaintenanceMarginUsed !== null}
 						<div>
 							<dt>cross maintenance margin used</dt>

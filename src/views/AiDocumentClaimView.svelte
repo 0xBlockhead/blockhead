@@ -53,7 +53,7 @@
 			confidence: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.claimPath ?? prefetched.claimPath) ?? '')].filter(Boolean).join(' ') || 'AI document claim')
+	const titleFallback = $derived([String((pendingEntity.claimPath) ?? '')].filter(Boolean).join(' ') || 'AI document claim')
 	const viewDomId = $derived('ai-document-claim-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiDocumentClaim}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.claimPath ?? prefetched.claimPath) ?? '')].filter(Boolean).join(' ') || title || 'AI document claim'}
+				{[String((pendingEntity.claimPath) ?? '')].filter(Boolean).join(' ') || title || 'AI document claim'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiDocumentClaim}>
 			{#snippet Pending()}
-				{[String((prefetched.claimKind) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.claimPath ?? prefetched.claimPath) ?? '')].filter(Boolean).join(' ') || title || 'AI document claim'}
+				{[String((pendingEntity.claimKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.claimPath) ?? '')].filter(Boolean).join(' ') || title || 'AI document claim'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -103,7 +103,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiDocumentClaim}>
 			{#snippet Pending()}
-				{@const confidence0 = prefetched.confidence}
+				{@const confidence0 = pendingEntity.confidence}
 				{#if confidence0 !== undefined && confidence0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(confidence0)} />
@@ -149,7 +149,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const extractorId = selection.entitySelector.extractorId ?? prefetched.extractorId}
+							{@const extractorId = pendingEntity.extractorId}
 							{#if extractorId !== undefined && extractorId !== null}
 								{String((extractorId) ?? '')}
 							{/if}
@@ -179,7 +179,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const claimPath = selection.entitySelector.claimPath ?? prefetched.claimPath}
+							{@const claimPath = pendingEntity.claimPath}
 							{#if claimPath !== undefined && claimPath !== null}
 								{String((claimPath) ?? '')}
 							{/if}
@@ -209,7 +209,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const claimKind = prefetched.claimKind}
+							{@const claimKind = pendingEntity.claimKind}
 							{#if claimKind !== undefined && claimKind !== null}
 								{String((claimKind) ?? '')}
 							{/if}
@@ -238,7 +238,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const subjectKind = prefetched.subjectKind}
+					{@const subjectKind = pendingEntity.subjectKind}
 					{#if subjectKind !== undefined && subjectKind !== null}
 						<div>
 							<dt>subject kind</dt>
@@ -273,7 +273,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metadataKey = prefetched.metadataKey}
+					{@const metadataKey = pendingEntity.metadataKey}
 					{#if metadataKey !== undefined && metadataKey !== null}
 						<div>
 							<dt>metadata key</dt>
@@ -308,7 +308,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const formatObjectId = prefetched.formatObjectId}
+					{@const formatObjectId = pendingEntity.formatObjectId}
 					{#if formatObjectId !== undefined && formatObjectId !== null}
 						<div>
 							<dt>format object ID</dt>
@@ -343,7 +343,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const formatObjectKind = prefetched.formatObjectKind}
+					{@const formatObjectKind = pendingEntity.formatObjectKind}
 					{#if formatObjectKind !== undefined && formatObjectKind !== null}
 						<div>
 							<dt>format object kind</dt>
@@ -380,7 +380,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const checksumAlgorithm = prefetched.checksumAlgorithm}
+					{@const checksumAlgorithm = pendingEntity.checksumAlgorithm}
 					{#if checksumAlgorithm !== undefined && checksumAlgorithm !== null}
 						<div>
 							<dt>checksum algorithm</dt>
@@ -415,7 +415,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const checksumValue = prefetched.checksumValue}
+					{@const checksumValue = pendingEntity.checksumValue}
 					{#if checksumValue !== undefined && checksumValue !== null}
 						<div>
 							<dt>checksum value</dt>
@@ -450,7 +450,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const relationshipKind = prefetched.relationshipKind}
+					{@const relationshipKind = pendingEntity.relationshipKind}
 					{#if relationshipKind !== undefined && relationshipKind !== null}
 						<div>
 							<dt>relationship kind</dt>
@@ -485,7 +485,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const confidence = prefetched.confidence}
+					{@const confidence = pendingEntity.confidence}
 					{#if confidence !== undefined && confidence !== null}
 						<div>
 							<dt>confidence</dt>

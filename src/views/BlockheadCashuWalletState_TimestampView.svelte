@@ -46,7 +46,7 @@
 			balance: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu wallet state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu wallet state timestamp')
 	const viewDomId = $derived('blockhead-cashu-wallet-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadCashuWalletStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -90,7 +90,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuWalletStateTimestamp}>
 			{#snippet Pending()}
-				{@const balance0 = prefetched.balance}
+				{@const balance0 = pendingEntity.balance}
 				{#if balance0 !== undefined && balance0 !== null}
 					<NumberValue value={Number(balance0)} />
 				{/if}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadCashuWalletStateTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const balance = prefetched.balance}
+					{@const balance = pendingEntity.balance}
 					{#if balance !== undefined && balance !== null}
 						<div>
 							<dt>balance</dt>
@@ -249,7 +249,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const proofCount = prefetched.proofCount}
+					{@const proofCount = pendingEntity.proofCount}
 					{#if proofCount !== undefined && proofCount !== null}
 						<div>
 							<dt>proof count</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unspentProofCount = prefetched.unspentProofCount}
+					{@const unspentProofCount = pendingEntity.unspentProofCount}
 					{#if unspentProofCount !== undefined && unspentProofCount !== null}
 						<div>
 							<dt>unspent proof count</dt>
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingProofCount = prefetched.pendingProofCount}
+					{@const pendingProofCount = pendingEntity.pendingProofCount}
 					{#if pendingProofCount !== undefined && pendingProofCount !== null}
 						<div>
 							<dt>pending proof count</dt>
@@ -354,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spentProofCount = prefetched.spentProofCount}
+					{@const spentProofCount = pendingEntity.spentProofCount}
 					{#if spentProofCount !== undefined && spentProofCount !== null}
 						<div>
 							<dt>spent proof count</dt>
@@ -391,7 +391,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const activeKeysetCount = prefetched.activeKeysetCount}
+					{@const activeKeysetCount = pendingEntity.activeKeysetCount}
 					{#if activeKeysetCount !== undefined && activeKeysetCount !== null}
 						<div>
 							<dt>active keyset count</dt>
@@ -426,7 +426,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingMintQuoteCount = prefetched.pendingMintQuoteCount}
+					{@const pendingMintQuoteCount = pendingEntity.pendingMintQuoteCount}
 					{#if pendingMintQuoteCount !== undefined && pendingMintQuoteCount !== null}
 						<div>
 							<dt>pending mint quote count</dt>
@@ -461,7 +461,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const pendingMeltQuoteCount = prefetched.pendingMeltQuoteCount}
+					{@const pendingMeltQuoteCount = pendingEntity.pendingMeltQuoteCount}
 					{#if pendingMeltQuoteCount !== undefined && pendingMeltQuoteCount !== null}
 						<div>
 							<dt>pending melt quote count</dt>
@@ -496,7 +496,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenCount = prefetched.tokenCount}
+					{@const tokenCount = pendingEntity.tokenCount}
 					{#if tokenCount !== undefined && tokenCount !== null}
 						<div>
 							<dt>token count</dt>
@@ -531,7 +531,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastSyncedAt = prefetched.lastSyncedAt}
+					{@const lastSyncedAt = pendingEntity.lastSyncedAt}
 					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
 						<div>
 							<dt>last synced AT</dt>

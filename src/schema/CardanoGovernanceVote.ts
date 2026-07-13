@@ -9,8 +9,10 @@ export enum CardanoGovernanceVoteSelector {
 }
 export const CardanoGovernanceVote = entity({
 	entityType: EntityType.CardanoGovernanceVote,
-	label: 'cardano governance vote',
-	labelPlural: 'cardano governance votes',
+	labels: {
+		singular: 'cardano governance vote',
+		plural: 'cardano governance votes',
+	},
 })({
 	$proposal: {
 		label: 'proposal',

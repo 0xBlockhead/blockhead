@@ -9,8 +9,10 @@ export enum BridgeRouteQuoteStepSelector {
 }
 export const BridgeRouteQuoteStep = entity({
 	entityType: EntityType.BridgeRouteQuoteStep,
-	label: 'bridge route quote step',
-	labelPlural: 'bridge route quote steps',
+	labels: {
+		singular: 'bridge route quote step',
+		plural: 'bridge route quote steps',
+	},
 })({
 	$quote: {
 		label: 'quote',

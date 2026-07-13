@@ -50,7 +50,7 @@
 			size: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.artifactType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.ociDigest) ?? ''), String((prefetched.ipfsCid) ?? ''), String((prefetched.arweaveId) ?? ''), String((prefetched.gitObject) ?? ''), String((prefetched.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact')
+	const titleFallback = $derived([String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact')
 	const viewDomId = $derived('ai-artifact-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiArtifact}>
 			{#snippet Pending()}
-				{[String((prefetched.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.ociDigest) ?? ''), String((prefetched.ipfsCid) ?? ''), String((prefetched.arweaveId) ?? ''), String((prefetched.gitObject) ?? ''), String((prefetched.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+				{[String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiArtifact}>
 			{#snippet Pending()}
-				{[String((prefetched.mediaType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.ociDigest) ?? ''), String((prefetched.ipfsCid) ?? ''), String((prefetched.arweaveId) ?? ''), String((prefetched.gitObject) ?? ''), String((prefetched.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+				{[String((pendingEntity.mediaType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -102,7 +102,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiArtifact}>
 			{#snippet Pending()}
-				{@const size0 = prefetched.size}
+				{@const size0 = pendingEntity.size}
 				{#if size0 !== undefined && size0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(size0)} />
@@ -134,7 +134,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const digestAlgorithm = prefetched.digestAlgorithm}
+					{@const digestAlgorithm = pendingEntity.digestAlgorithm}
 					{#if digestAlgorithm !== undefined && digestAlgorithm !== null}
 						<div>
 							<dt>digest algorithm</dt>
@@ -169,7 +169,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const digest = prefetched.digest}
+					{@const digest = pendingEntity.digest}
 					{#if digest !== undefined && digest !== null}
 						<div>
 							<dt>digest</dt>
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ociDigest = prefetched.ociDigest}
+					{@const ociDigest = pendingEntity.ociDigest}
 					{#if ociDigest !== undefined && ociDigest !== null}
 						<div>
 							<dt>OCI digest</dt>
@@ -239,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ipfsCid = prefetched.ipfsCid}
+					{@const ipfsCid = pendingEntity.ipfsCid}
 					{#if ipfsCid !== undefined && ipfsCid !== null}
 						<div>
 							<dt>IPFS CID</dt>
@@ -274,7 +274,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const arweaveId = prefetched.arweaveId}
+					{@const arweaveId = pendingEntity.arweaveId}
 					{#if arweaveId !== undefined && arweaveId !== null}
 						<div>
 							<dt>Arweave ID</dt>
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gitObject = prefetched.gitObject}
+					{@const gitObject = pendingEntity.gitObject}
 					{#if gitObject !== undefined && gitObject !== null}
 						<div>
 							<dt>Git object</dt>
@@ -346,7 +346,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uri = prefetched.uri}
+					{@const uri = pendingEntity.uri}
 					{#if uri !== undefined && uri !== null}
 						<div>
 							<dt>URI</dt>
@@ -395,7 +395,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mediaType = prefetched.mediaType}
+					{@const mediaType = pendingEntity.mediaType}
 					{#if mediaType !== undefined && mediaType !== null}
 						<div>
 							<dt>media type</dt>
@@ -430,7 +430,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const artifactType = prefetched.artifactType}
+					{@const artifactType = pendingEntity.artifactType}
 					{#if artifactType !== undefined && artifactType !== null}
 						<div>
 							<dt>artifact type</dt>
@@ -465,7 +465,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const size = prefetched.size}
+					{@const size = pendingEntity.size}
 					{#if size !== undefined && size !== null}
 						<div>
 							<dt>size</dt>

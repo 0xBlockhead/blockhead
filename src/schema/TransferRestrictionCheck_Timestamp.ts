@@ -9,8 +9,10 @@ export enum TransferRestrictionCheck_TimestampSelector {
 }
 export const TransferRestrictionCheck_Timestamp = entity({
 	entityType: EntityType.TransferRestrictionCheck_Timestamp,
-	label: 'transfer restriction check timestamp',
-	labelPlural: 'transfer restriction check observations',
+	labels: {
+		singular: 'transfer restriction check timestamp',
+		plural: 'transfer restriction check observations',
+	},
 })({
 	$restriction: {
 		label: 'restriction',

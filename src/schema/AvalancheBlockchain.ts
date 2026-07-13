@@ -9,8 +9,10 @@ export enum AvalancheBlockchainSelector {
 }
 export const AvalancheBlockchain = entity({
 	entityType: EntityType.AvalancheBlockchain,
-	label: 'avalanche blockchain',
-	labelPlural: 'avalanche blockchains',
+	labels: {
+		singular: 'avalanche blockchain',
+		plural: 'avalanche blockchains',
+	},
 })({
 	blockchainId: {
 		label: 'blockchain ID',

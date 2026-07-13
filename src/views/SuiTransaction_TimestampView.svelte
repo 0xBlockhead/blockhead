@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const checkpointSequence = selection.entitySelector.checkpointSequence ?? prefetched.checkpointSequence}
+							{@const checkpointSequence = pendingEntity.checkpointSequence}
 							{#if checkpointSequence !== undefined && checkpointSequence !== null}
 								{String((checkpointSequence) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasBudget = prefetched.gasBudget}
+					{@const gasBudget = pendingEntity.gasBudget}
 					{#if gasBudget !== undefined && gasBudget !== null}
 						<div>
 							<dt>gas budget</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const gasPrice = prefetched.gasPrice}
+					{@const gasPrice = pendingEntity.gasPrice}
 					{#if gasPrice !== undefined && gasPrice !== null}
 						<div>
 							<dt>gas price</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const effectsDigest = prefetched.effectsDigest}
+					{@const effectsDigest = pendingEntity.effectsDigest}
 					{#if effectsDigest !== undefined && effectsDigest !== null}
 						<div>
 							<dt>effects digest</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const confirmedLocalExecution = prefetched.confirmedLocalExecution}
+					{@const confirmedLocalExecution = pendingEntity.confirmedLocalExecution}
 					{#if confirmedLocalExecution !== undefined && confirmedLocalExecution !== null}
 						<div>
 							<dt>confirmed local execution</dt>

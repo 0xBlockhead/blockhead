@@ -47,17 +47,19 @@
 			tokenType: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.symbol ?? prefetched.symbol) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token')
+	const titleFallback = $derived([String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token')
 	const viewDomId = $derived('bnb-beacon-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import BnbBeaconToken_TimestampsView from '$/views/BnbBeaconToken_TimestampsView.svelte'
+	import BnbBeaconNetworkView from '$/views/BnbBeaconNetworkView.svelte'
 	import BnbBeaconTokenTransfersView from '$/views/BnbBeaconTokenTransfersView.svelte'
 	import BnbBeaconTokenMigrationsView from '$/views/BnbBeaconTokenMigrationsView.svelte'
-	import BnbBeaconNetworkView from '$/views/BnbBeaconNetworkView.svelte'
+	import BnbBeaconToken_TimestampsView from '$/views/BnbBeaconToken_TimestampsView.svelte'
 </script>
 
 
@@ -74,7 +76,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bnbBeaconToken}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.symbol ?? prefetched.symbol) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token'}
+				{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -87,7 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconToken}>
 			{#snippet Pending()}
-				{[String((prefetched.tokenName) ?? ''), String((prefetched.tokenType) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.symbol ?? prefetched.symbol) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token'}
+				{[String((pendingEntity.tokenName) ?? ''), String((pendingEntity.tokenType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || 'bnb beacon token'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -123,7 +125,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const symbol = selection.entitySelector.symbol ?? prefetched.symbol}
+							{@const symbol = pendingEntity.symbol}
 							{#if symbol !== undefined && symbol !== null}
 								{String((symbol) ?? '')}
 							{/if}
@@ -150,7 +152,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const originalSymbol = prefetched.originalSymbol}
+					{@const originalSymbol = pendingEntity.originalSymbol}
 					{#if originalSymbol !== undefined && originalSymbol !== null}
 						<div>
 							<dt>original symbol</dt>
@@ -185,7 +187,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenName = prefetched.tokenName}
+					{@const tokenName = pendingEntity.tokenName}
 					{#if tokenName !== undefined && tokenName !== null}
 						<div>
 							<dt>token name</dt>
@@ -220,7 +222,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tokenType = prefetched.tokenType}
+					{@const tokenType = pendingEntity.tokenType}
 					{#if tokenType !== undefined && tokenType !== null}
 						<div>
 							<dt>token type</dt>
@@ -255,7 +257,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownerAddress = prefetched.ownerAddress}
+					{@const ownerAddress = pendingEntity.ownerAddress}
 					{#if ownerAddress !== undefined && ownerAddress !== null}
 						<div>
 							<dt>owner address</dt>
@@ -284,26 +286,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BnbBeaconToken_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No observations yet.'
-				id='BnbBeaconToken_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-bnb-beacon-token-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'bnb-beacon-token-transfers',
+							label: 'Transfers',
+						},
+						{
+							id: 'bnb-beacon-token-migrations',
+							label: 'Migrations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BnbBeaconTokenTransfersView
-				selection={selection.$$transfers}
-				title='transfers'
-				emptyText='No transfers found.'
-				id='BnbBeaconTokenTransfersView-transfers'
-			/>
+				{#snippet SectionBnbBeaconTokenTransfers({ id, label, open })}
+					<BnbBeaconTokenTransfersView
+						selection={selection.$$transfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BnbBeaconTokenMigrationsView
-				selection={selection.$$migrations}
-				title='migrations'
-				emptyText='No migrations found.'
-				id='BnbBeaconTokenMigrationsView-migrations'
-			/>
+				{#snippet SectionBnbBeaconTokenMigrations({ id, label, open })}
+					<BnbBeaconTokenMigrationsView
+						selection={selection.$$migrations}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No migrations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-bnb-beacon-token-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'bnb-beacon-token-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionBnbBeaconTokenTimestamps({ id, label, open })}
+					<BnbBeaconToken_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

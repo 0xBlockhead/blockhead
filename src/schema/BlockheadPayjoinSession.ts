@@ -9,8 +9,10 @@ export enum BlockheadPayjoinSessionSelector {
 }
 export const BlockheadPayjoinSession = entity({
 	entityType: EntityType.BlockheadPayjoinSession,
-	label: 'blockhead payjoin session',
-	labelPlural: 'blockhead payjoin sessions',
+	labels: {
+		singular: 'blockhead payjoin session',
+		plural: 'blockhead payjoin sessions',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

@@ -215,7 +215,7 @@ export const getCall = ({
 			{
 				to,
 				data,
-			} satisfies JsonValue as JsonValue,
+			} satisfies JsonValue,
 			blockTag,
 		],
 	})

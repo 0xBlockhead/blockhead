@@ -129,11 +129,11 @@
 						selection={select(EntityType.EvmTokenTransfer, evmTokenTransfer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmTokenTransferFields}
 						href={
-							(evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2 !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2.namespace !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2 !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2.reference !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.indexInLog !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/token-transfer/[indexInTransaction=nonNegativeInteger]/[indexInLog=nonNegativeInteger]', {
-								caip2: `${String(evmTokenTransferHrefFields.$log.$transaction.$network.caip2.namespace ?? '')}:${String(evmTokenTransferHrefFields.$log.$transaction.$network.caip2.reference ?? '')}`,
+							(evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.slug !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.indexInLog !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
+								network: String(evmTokenTransferHrefFields.$log.$transaction.$network.slug ?? ''),
 								transactionId: String(evmTokenTransferHrefFields.$log.$transaction.txHash ?? ''),
 								indexInTransaction: String(evmTokenTransferHrefFields.$log.indexInTransaction ?? ''),
-								indexInLog: String(evmTokenTransferHrefFields.indexInLog ?? ''),
+								transferIndex: String(evmTokenTransferHrefFields.indexInLog ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

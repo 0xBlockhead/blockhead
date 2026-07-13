@@ -47,7 +47,7 @@
 			Source.DogecoinCore_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.branchKind ?? prefetched.branchKind) ?? '')].filter(Boolean).join(' ') || 'dogecoin aux pow merkle branch')
+	const titleFallback = $derived([String((pendingEntity.branchKind) ?? '')].filter(Boolean).join(' ') || 'dogecoin aux pow merkle branch')
 	const viewDomId = $derived('dogecoin-aux-pow-merkle-branch-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={dogecoinAuxPowMerkleBranch}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.branchKind ?? prefetched.branchKind) ?? '')].filter(Boolean).join(' ') || title || 'dogecoin aux pow merkle branch'}
+				{[String((pendingEntity.branchKind) ?? '')].filter(Boolean).join(' ') || title || 'dogecoin aux pow merkle branch'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -129,7 +129,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const branchKind = selection.entitySelector.branchKind ?? prefetched.branchKind}
+							{@const branchKind = pendingEntity.branchKind}
 							{#if branchKind !== undefined && branchKind !== null}
 								{String((branchKind) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const branchHashes = prefetched.branchHashes}
+							{@const branchHashes = pendingEntity.branchHashes}
 							{#if branchHashes !== undefined && branchHashes !== null}
 								<TruncatedValue value={branchHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
@@ -186,7 +186,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const index = prefetched.index}
+					{@const index = pendingEntity.index}
 					{#if index !== undefined && index !== null}
 						<div>
 							<dt>Index</dt>

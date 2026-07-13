@@ -10,8 +10,10 @@ export enum AlgorandApplication_TimestampSelector {
 }
 export const AlgorandApplication_Timestamp = entity({
 	entityType: EntityType.AlgorandApplication_Timestamp,
-	label: 'algorand application timestamp',
-	labelPlural: 'algorand application observations',
+	labels: {
+		singular: 'algorand application timestamp',
+		plural: 'algorand application observations',
+	},
 })({
 	$application: {
 		label: 'application',

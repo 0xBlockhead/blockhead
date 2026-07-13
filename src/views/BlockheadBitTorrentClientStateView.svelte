@@ -43,7 +43,7 @@
 			peerId: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.clientName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.clientId ?? prefetched.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state')
+	const titleFallback = $derived([String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state')
 	const viewDomId = $derived('blockhead-bit-torrent-client-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -67,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadBitTorrentClientState}>
 			{#snippet Pending()}
-				{[String((prefetched.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.clientId ?? prefetched.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state'}
+				{[String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -80,7 +80,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadBitTorrentClientState}>
 			{#snippet Pending()}
-				{[String((prefetched.peerId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.clientId ?? prefetched.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state'}
+				{[String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -105,7 +105,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const clientId = selection.entitySelector.clientId ?? prefetched.clientId}
+							{@const clientId = pendingEntity.clientId}
 							{#if clientId !== undefined && clientId !== null}
 								{String((clientId) ?? '')}
 							{/if}
@@ -132,7 +132,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const clientName = prefetched.clientName}
+					{@const clientName = pendingEntity.clientName}
 					{#if clientName !== undefined && clientName !== null}
 						<div>
 							<dt>client name</dt>
@@ -167,7 +167,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const peerId = prefetched.peerId}
+					{@const peerId = pendingEntity.peerId}
 					{#if peerId !== undefined && peerId !== null}
 						<div>
 							<dt>peer ID</dt>
@@ -202,7 +202,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dhtNodeId = prefetched.dhtNodeId}
+					{@const dhtNodeId = pendingEntity.dhtNodeId}
 					{#if dhtNodeId !== undefined && dhtNodeId !== null}
 						<div>
 							<dt>DHT node ID</dt>

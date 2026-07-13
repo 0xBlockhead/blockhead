@@ -47,9 +47,18 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CardanoNetworkView from '$/views/CardanoNetworkView.svelte'
+	import CardanoTxInputsView from '$/views/CardanoTxInputsView.svelte'
+	import CardanoTxOutputsView from '$/views/CardanoTxOutputsView.svelte'
+	import CardanoCertificatesView from '$/views/CardanoCertificatesView.svelte'
+	import CardanoScriptWitnessesView from '$/views/CardanoScriptWitnessesView.svelte'
+	import CardanoGovernanceProposalsView from '$/views/CardanoGovernanceProposalsView.svelte'
+	import CardanoGovernanceVotesView from '$/views/CardanoGovernanceVotesView.svelte'
+	import CardanoNativeAssetsView from '$/views/CardanoNativeAssetsView.svelte'
 </script>
 
 
@@ -102,7 +111,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hash = selection.entitySelector.hash ?? prefetched.hash}
+							{@const hash = pendingEntity.hash}
 							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
 							{/if}
@@ -129,7 +138,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockSlot = prefetched.blockSlot}
+					{@const blockSlot = pendingEntity.blockSlot}
 					{#if blockSlot !== undefined && blockSlot !== null}
 						<div>
 							<dt>block slot</dt>
@@ -164,7 +173,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const fee = prefetched.fee}
+					{@const fee = pendingEntity.fee}
 					{#if fee !== undefined && fee !== null}
 						<div>
 							<dt>fee</dt>
@@ -199,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deposit = prefetched.deposit}
+					{@const deposit = pendingEntity.deposit}
 					{#if deposit !== undefined && deposit !== null}
 						<div>
 							<dt>deposit</dt>
@@ -234,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sizeBytes = prefetched.sizeBytes}
+					{@const sizeBytes = pendingEntity.sizeBytes}
 					{#if sizeBytes !== undefined && sizeBytes !== null}
 						<div>
 							<dt>size bytes</dt>
@@ -269,7 +278,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validityStartSlot = prefetched.validityStartSlot}
+					{@const validityStartSlot = pendingEntity.validityStartSlot}
 					{#if validityStartSlot !== undefined && validityStartSlot !== null}
 						<div>
 							<dt>validity start slot</dt>
@@ -304,7 +313,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ttlSlot = prefetched.ttlSlot}
+					{@const ttlSlot = pendingEntity.ttlSlot}
 					{#if ttlSlot !== undefined && ttlSlot !== null}
 						<div>
 							<dt>ttl slot</dt>
@@ -329,5 +338,156 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-cardano-transaction-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'cardano-transaction-inputs',
+							label: 'Inputs',
+						},
+						{
+							id: 'cardano-transaction-outputs',
+							label: 'Outputs',
+						},
+						{
+							id: 'cardano-transaction-certificates',
+							label: 'Certificates',
+						},
+						{
+							id: 'cardano-transaction-scripts',
+							label: 'Scripts',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionCardanoTransactionInputs({ id, label, open })}
+					<CardanoTxInputsView
+						selection={selection.$$inputs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No inputs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionCardanoTransactionOutputs({ id, label, open })}
+					<CardanoTxOutputsView
+						selection={selection.$$outputs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No outputs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionCardanoTransactionCertificates({ id, label, open })}
+					<CardanoCertificatesView
+						selection={selection.$$certificates}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No certificates.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionCardanoTransactionScripts({ id, label, open })}
+					<CardanoScriptWitnessesView
+						selection={selection.$$scripts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No scripts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-cardano-transaction-related'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'cardano-transaction-governance-proposals',
+							label: 'Governance Proposals',
+						},
+						{
+							id: 'cardano-transaction-governance-votes',
+							label: 'Governance Votes',
+						},
+						{
+							id: 'cardano-transaction-assets',
+							label: 'Assets',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-related'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Related</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionCardanoTransactionGovernanceProposals({ id, label, open })}
+					<CardanoGovernanceProposalsView
+						selection={selection.$$governanceProposals}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No governance proposals.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionCardanoTransactionGovernanceVotes({ id, label, open })}
+					<CardanoGovernanceVotesView
+						selection={selection.$$governanceVotes}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No governance votes.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionCardanoTransactionAssets({ id, label, open })}
+					<CardanoNativeAssetsView
+						selection={selection.$$assets}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No assets.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

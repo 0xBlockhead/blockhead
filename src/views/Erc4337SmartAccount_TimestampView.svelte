@@ -47,7 +47,7 @@
 			userOperationsCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account timestamp')
 	const viewDomId = $derived('erc4337smart-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -66,8 +66,8 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$account !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.caip2 !== undefined && pendingEntity.$account.$network.caip2.namespace !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.caip2 !== undefined && pendingEntity.$account.$network.caip2.reference !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(pendingEntity.$account.$network.caip2.namespace ?? '')}:${String(pendingEntity.$account.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$account !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.slug !== undefined && pendingEntity.$account.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			network: String(pendingEntity.$account.$network.slug ?? ''),
 			address: String(pendingEntity.$account.address ?? ''),
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
@@ -80,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={erc4337SmartAccountTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -99,7 +99,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={erc4337SmartAccountTimestamp}>
 			{#snippet Pending()}
-				{@const userOperationsCount0 = prefetched.userOperationsCount}
+				{@const userOperationsCount0 = pendingEntity.userOperationsCount}
 				{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
 					<NumberValue value={Number(userOperationsCount0)} />
 				{/if}
@@ -118,7 +118,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={erc4337SmartAccountTimestamp}>
 			{#snippet Pending()}
-				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{@const source0 = pendingEntity.source}
 				{#if source0 !== undefined && source0 !== null}
 					<span data-text="muted">
 						{String((source0) ?? '')}
@@ -153,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -183,7 +183,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const userOperationsCount = prefetched.userOperationsCount}
+					{@const userOperationsCount = pendingEntity.userOperationsCount}
 					{#if userOperationsCount !== undefined && userOperationsCount !== null}
 						<div>
 							<dt>User operations</dt>
@@ -243,8 +243,8 @@
 					<Erc4337SmartAccountView
 						selection={select(EntityType.Erc4337SmartAccount, selection.entitySelector.$account, {})}
 						href={
-							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$account.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$account.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined && selection.entitySelector.$account.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
+								network: String(selection.entitySelector.$account.$network.slug ?? ''),
 								address: String(selection.entitySelector.$account.address ?? ''),
 							}) : undefined)
 						}

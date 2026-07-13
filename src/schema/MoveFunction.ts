@@ -9,8 +9,10 @@ export enum MoveFunctionSelector {
 }
 export const MoveFunction = entity({
 	entityType: EntityType.MoveFunction,
-	label: 'move function',
-	labelPlural: 'move functions',
+	labels: {
+		singular: 'move function',
+		plural: 'move functions',
+	},
 })({
 	$module: {
 		label: 'module',

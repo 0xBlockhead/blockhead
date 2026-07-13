@@ -47,20 +47,22 @@
 			standard: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.standard) ?? '')].filter(Boolean).join(' ') || 'regulated asset profile')
+	const titleFallback = $derived([String((pendingEntity.standard) ?? '')].filter(Boolean).join(' ') || 'regulated asset profile')
 	const viewDomId = $derived('regulated-asset-profile-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import RegulatedAssetProfile_TimestampsView from '$/views/RegulatedAssetProfile_TimestampsView.svelte'
-	import IssuerPowersView from '$/views/IssuerPowersView.svelte'
+	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import ClaimTopicRequirementsView from '$/views/ClaimTopicRequirementsView.svelte'
 	import TrustedIssuersView from '$/views/TrustedIssuersView.svelte'
 	import ComplianceModulesView from '$/views/ComplianceModulesView.svelte'
+	import IssuerPowersView from '$/views/IssuerPowersView.svelte'
 	import TransferRestrictionsView from '$/views/TransferRestrictionsView.svelte'
-	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
+	import RegulatedAssetProfile_TimestampsView from '$/views/RegulatedAssetProfile_TimestampsView.svelte'
 </script>
 
 
@@ -77,7 +79,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={regulatedAssetProfile}>
 			{#snippet Pending()}
-				{[String((prefetched.standard) ?? '')].filter(Boolean).join(' ') || title || 'regulated asset profile'}
+				{[String((pendingEntity.standard) ?? '')].filter(Boolean).join(' ') || title || 'regulated asset profile'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,8 +95,8 @@
 				<AssetInstanceView
 					selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 					href={
-						(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-							caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+						(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+							network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 							kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 							assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 						}) : undefined)
@@ -109,8 +111,8 @@
 				<AssetInstanceView
 					selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 					href={
-						(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-							caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+						(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+							network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 							kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 							assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 						}) : undefined)
@@ -130,8 +132,8 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
 						href={
-							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.slug !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+								network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
 								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)
@@ -155,7 +157,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const standard = prefetched.standard}
+							{@const standard = pendingEntity.standard}
 							{#if standard !== undefined && standard !== null}
 								{String((standard) ?? '')}
 							{/if}
@@ -176,47 +178,158 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<RegulatedAssetProfile_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No regulated asset profile observations.'
-				id='RegulatedAssetProfile_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-regulated-asset-compliance'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'regulated-asset-claim-requirements',
+							label: 'Claim requirements',
+						},
+						{
+							id: 'regulated-asset-trusted-issuers',
+							label: 'Trusted issuers',
+						},
+						{
+							id: 'regulated-asset-compliance-modules',
+							label: 'Compliance modules',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-compliance'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Compliance</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<IssuerPowersView
-				selection={selection.$$issuerPowers}
-				title='issuer powers'
-				emptyText='No issuer powers.'
-				id='IssuerPowersView-issuer-powers'
-			/>
+				{#snippet SectionRegulatedAssetClaimRequirements({ id, label, open })}
+					<ClaimTopicRequirementsView
+						selection={selection.$$claimRequirements}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No claim topic requirements.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<ClaimTopicRequirementsView
-				selection={selection.$$claimRequirements}
-				title='claim requirements'
-				emptyText='No claim topic requirements.'
-				id='ClaimTopicRequirementsView-claim-requirements'
-			/>
+				{#snippet SectionRegulatedAssetTrustedIssuers({ id, label, open })}
+					<TrustedIssuersView
+						selection={selection.$$trustedIssuers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No trusted issuers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<TrustedIssuersView
-				selection={selection.$$trustedIssuers}
-				title='trusted issuers'
-				emptyText='No trusted issuers.'
-				id='TrustedIssuersView-trusted-issuers'
-			/>
+				{#snippet SectionRegulatedAssetComplianceModules({ id, label, open })}
+					<ComplianceModulesView
+						selection={selection.$$complianceModules}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No compliance modules.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<ComplianceModulesView
-				selection={selection.$$complianceModules}
-				title='compliance modules'
-				emptyText='No compliance modules.'
-				id='ComplianceModulesView-compliance-modules'
-			/>
+			</CollapsibleTabs>
 
-			<TransferRestrictionsView
-				selection={selection.$$restrictions}
-				title='restrictions'
-				emptyText='No transfer restrictions.'
-				id='TransferRestrictionsView-restrictions'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-regulated-asset-controls'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'regulated-asset-issuer-powers',
+							label: 'Issuer powers',
+						},
+						{
+							id: 'regulated-asset-restrictions',
+							label: 'Transfer restrictions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-controls'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Controls</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRegulatedAssetIssuerPowers({ id, label, open })}
+					<IssuerPowersView
+						selection={selection.$$issuerPowers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No issuer powers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionRegulatedAssetRestrictions({ id, label, open })}
+					<TransferRestrictionsView
+						selection={selection.$$restrictions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transfer restrictions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-regulated-asset-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'regulated-asset-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionRegulatedAssetTimestamps({ id, label, open })}
+					<RegulatedAssetProfile_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No regulated asset profile observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

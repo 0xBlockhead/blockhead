@@ -47,9 +47,14 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SuiNetworkView from '$/views/SuiNetworkView.svelte'
+	import SuiCoinBalance_TimestampsView from '$/views/SuiCoinBalance_TimestampsView.svelte'
+	import SuiObjectsView from '$/views/SuiObjectsView.svelte'
+	import SuiTransactionsView from '$/views/SuiTransactionsView.svelte'
 </script>
 
 
@@ -102,7 +107,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{@const address = pendingEntity.address}
 							{#if address !== undefined && address !== null}
 								<TruncatedValue value={String((address) ?? '')} />
 							{/if}
@@ -119,5 +124,96 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-sui-account-activity-a'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'sui-account-balances',
+							label: 'Balances',
+						},
+						{
+							id: 'sui-account-objects',
+							label: 'Objects',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-a'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionSuiAccountBalances({ id, label, open })}
+					<SuiCoinBalance_TimestampsView
+						selection={selection.$$balances}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No balances.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionSuiAccountObjects({ id, label, open })}
+					<SuiObjectsView
+						selection={selection.$$objects}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No objects.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-sui-account-activity-b'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'sui-account-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-b'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity continued</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionSuiAccountTransactions({ id, label, open })}
+					<SuiTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

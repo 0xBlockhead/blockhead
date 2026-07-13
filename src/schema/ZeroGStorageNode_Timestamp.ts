@@ -9,8 +9,10 @@ export enum ZeroGStorageNode_TimestampSelector {
 }
 export const ZeroGStorageNode_Timestamp = entity({
 	entityType: EntityType.ZeroGStorageNode_Timestamp,
-	label: 'zero g storage node timestamp',
-	labelPlural: 'zero g storage node observations',
+	labels: {
+		singular: 'zero g storage node timestamp',
+		plural: 'zero g storage node observations',
+	},
 })({
 	$storageNode: {
 		label: 'storage node',

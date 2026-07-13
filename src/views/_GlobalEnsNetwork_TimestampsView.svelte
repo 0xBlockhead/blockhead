@@ -119,7 +119,7 @@
 						selection={select(EntityType._GlobalEnsNetwork_Timestamp, globalEnsNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalEnsNetworkTimestampFields}
 						href={
-							(globalEnsNetworkTimestampHrefFields.timestampMs !== undefined && globalEnsNetworkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(ens)/ens/observations/[timestampMs=nonNegativeInteger]/[source]', {
+							(globalEnsNetworkTimestampHrefFields.timestampMs !== undefined && globalEnsNetworkTimestampHrefFields.source !== undefined ? resolve('/ens/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(globalEnsNetworkTimestampHrefFields.timestampMs ?? ''),
 								source: String(globalEnsNetworkTimestampHrefFields.source ?? ''),
 							}) : undefined)

@@ -9,8 +9,10 @@ export enum BlockheadAvalancheNodeState_TimestampSelector {
 }
 export const BlockheadAvalancheNodeState_Timestamp = entity({
 	entityType: EntityType.BlockheadAvalancheNodeState_Timestamp,
-	label: 'blockhead avalanche node state timestamp',
-	labelPlural: 'blockhead avalanche node state observations',
+	labels: {
+		singular: 'blockhead avalanche node state timestamp',
+		plural: 'blockhead avalanche node state observations',
+	},
 })({
 	$nodeState: {
 		label: 'node state',

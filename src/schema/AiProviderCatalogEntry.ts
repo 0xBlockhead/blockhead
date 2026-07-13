@@ -9,8 +9,10 @@ export enum AiProviderCatalogEntrySelector {
 }
 export const AiProviderCatalogEntry = entity({
 	entityType: EntityType.AiProviderCatalogEntry,
-	label: 'AI provider catalog entry',
-	labelPlural: 'AI provider catalog entries',
+	labels: {
+		singular: 'AI provider catalog entry',
+		plural: 'AI provider catalog entries',
+	},
 })({
 	$provider: {
 		label: 'provider',

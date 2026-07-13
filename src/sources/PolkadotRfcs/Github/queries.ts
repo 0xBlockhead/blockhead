@@ -16,7 +16,7 @@ export const getContents = (): Promise<PolkadotRfcsGithubContents> => (
 	getGithubContents({
 		endpoints: polkadotRfcsBindings[0].endpoints,
 		target: polkadotRfcsGithubRepo,
-	}) as Promise<PolkadotRfcsGithubContents>
+	})
 )
 
 export const getMarkdownText = ({ number }: { number: number }) => (

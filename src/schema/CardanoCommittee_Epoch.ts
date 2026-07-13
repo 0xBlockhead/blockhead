@@ -9,8 +9,10 @@ export enum CardanoCommittee_EpochSelector {
 }
 export const CardanoCommittee_Epoch = entity({
 	entityType: EntityType.CardanoCommittee_Epoch,
-	label: 'cardano committee epoch',
-	labelPlural: 'cardano committee epoches',
+	labels: {
+		singular: 'cardano committee epoch',
+		plural: 'cardano committee epoches',
+	},
 })({
 	$network: {
 		label: 'network',

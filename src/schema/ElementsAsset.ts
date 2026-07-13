@@ -10,8 +10,10 @@ export enum ElementsAssetSelector {
 }
 export const ElementsAsset = entity({
 	entityType: EntityType.ElementsAsset,
-	label: 'Elements asset',
-	labelPlural: 'Elements assets',
+	labels: {
+		singular: 'Elements asset',
+		plural: 'Elements assets',
+	},
 })({
 	$network: {
 		label: 'Network',

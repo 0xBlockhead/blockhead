@@ -9,8 +9,10 @@ export enum AvalanchePChainTransaction_TimestampSelector {
 }
 export const AvalanchePChainTransaction_Timestamp = entity({
 	entityType: EntityType.AvalanchePChainTransaction_Timestamp,
-	label: 'avalanche p chain transaction timestamp',
-	labelPlural: 'avalanche p chain transaction observations',
+	labels: {
+		singular: 'avalanche p chain transaction timestamp',
+		plural: 'avalanche p chain transaction observations',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

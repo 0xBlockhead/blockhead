@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const entrypointName = selection.entitySelector.entrypointName ?? prefetched.entrypointName}
+							{@const entrypointName = pendingEntity.entrypointName}
 							{#if entrypointName !== undefined && entrypointName !== null}
 								{String((entrypointName) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const annotations = prefetched.annotations}
+							{@const annotations = pendingEntity.annotations}
 							{#if annotations !== undefined && annotations !== null}
 								{annotations.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}

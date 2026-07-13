@@ -17,19 +17,21 @@ export enum BridgeRouteSelector {
 }
 export const BridgeRoute = entity({
 	entityType: EntityType.BridgeRoute,
-	label: 'bridge route',
-	labelPlural: 'bridge routes',
+	labels: {
+		singular: 'bridge route',
+		plural: 'bridge routes',
+	},
 })({
 	fromChainId: {
 		label: 'From chain ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	toChainId: {
 		label: 'To chain ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fromToken: {
@@ -47,7 +49,7 @@ export const BridgeRoute = entity({
 	fromAmount: {
 		label: 'From amount',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fromAddress: {
@@ -59,7 +61,7 @@ export const BridgeRoute = entity({
 	slippage: {
 		label: 'Slippage',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	toAddress: {

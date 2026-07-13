@@ -9,8 +9,10 @@ export enum RegulatedAssetProfile_TimestampSelector {
 }
 export const RegulatedAssetProfile_Timestamp = entity({
 	entityType: EntityType.RegulatedAssetProfile_Timestamp,
-	label: 'regulated asset profile timestamp',
-	labelPlural: 'regulated asset profile observations',
+	labels: {
+		singular: 'regulated asset profile timestamp',
+		plural: 'regulated asset profile observations',
+	},
 })({
 	$profile: {
 		label: 'profile',

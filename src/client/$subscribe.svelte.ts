@@ -41,13 +41,6 @@ import type {
 } from '$/client/$client.svelte.ts'
 
 
-enum FieldConditionState {
-	Active = 'active',
-	Inactive = 'inactive',
-	Unconditional = 'unconditional',
-	Unknown = 'unknown',
-}
-
 export type EntityResourceData<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -269,75 +262,14 @@ const selectorFieldValue = (
 	fieldName: string
 ) => Object.getOwnPropertyDescriptor(entitySelector, fieldName)?.value
 
-const fieldConditionValue = <
-	const _Schema extends Schema
->(
-	entitySelector: object,
-	rows: readonly EntityFieldCollectionItem<_Schema>[],
-	condition: NonNullable<EntityFieldDefinition['when']>
-) => {
-	const selectorValue = selectorFieldValue(entitySelector, condition.fieldName)
-	if (selectorValue !== undefined)
-		return (
-			condition.itemIndex === undefined ?
-				selectorValue
-			:
-				Object(selectorValue)[condition.itemIndex]
-		)
-
-	for (const row of rows.toReversed()) {
-		if (condition.itemIndex === undefined)
-			return row[EntityMetaKey.Value]
-
-		if (row.valueIndex === condition.itemIndex)
-			return row[EntityMetaKey.Value]
-	}
-
-	return undefined
-}
-
-const fieldConditionState = <
-	const _Schema extends Schema
->(
-	entitySelector: object,
-	rows: readonly EntityFieldCollectionItem<_Schema>[],
+const fieldCanCompleteEmpty = (
 	definition: EntityFieldDefinition
-) => {
-	if (definition.when === undefined)
-		return FieldConditionState.Unconditional
-
-	const value = fieldConditionValue(entitySelector, rows, definition.when)
-	return (
-		value === undefined ?
-			FieldConditionState.Unknown
-		: definition.when.values.some((conditionValue) => conditionValue === value) ?
-			FieldConditionState.Active
-		:
-			FieldConditionState.Inactive
-	)
-}
-
-const fieldCanCompleteEmpty = <
-	const _Schema extends Schema
->(
-	entitySelector: object,
-	rows: readonly EntityFieldCollectionItem<_Schema>[],
-	definition: EntityFieldDefinition
-) => {
-	const conditionState = fieldConditionState(entitySelector, rows, definition)
-	return (
+) => (
 		definition.cardinality === EntityFieldCardinality.Zero
 		|| definition.cardinality === EntityFieldCardinality.ZeroOrOne
-		|| conditionState === FieldConditionState.Inactive
-		|| (
-			conditionState !== FieldConditionState.Unknown
-			&& (
-				definition.cardinality === EntityFieldCardinality.Many
-				|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
-			)
-		)
+		|| definition.cardinality === EntityFieldCardinality.Many
+		|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
 	)
-}
 
 const fieldRowParentPredicate = <
 	_Row extends {
@@ -408,7 +340,6 @@ const fieldRowsComplete = <
 	entitySelector: object,
 	definition: EntityFieldDefinition,
 	rows: readonly EntityFieldCollectionItem[],
-	conditionRows: readonly EntityFieldCollectionItem[],
 	rowsUpdated: boolean,
 	sourceDisabled: boolean
 ) => (
@@ -416,11 +347,8 @@ const fieldRowsComplete = <
 	|| selectorFieldValue(entitySelector, definition.name) !== undefined
 	|| sourceDisabled
 	|| (
-		(
-			rowsUpdated
-			|| definition.when !== undefined
-		)
-		&& fieldCanCompleteEmpty(entitySelector, conditionRows, definition)
+		rowsUpdated
+		&& fieldCanCompleteEmpty(definition)
 	)
 )
 
@@ -428,19 +356,13 @@ const fieldDataFromRows = <
 	const _Schema extends Schema,
 	const _EntityType extends EntityType<_Schema>
 >(
-	context: ClientContext<_Schema>,
 	entityType: _EntityType,
 	entitySelector: EntitySelector<_Schema, _EntityType>,
-	fieldName: EntityFieldName<_Schema, _EntityType>,
+	definition: EntityFieldDefinition,
 	rows: readonly EntityFieldCollectionItem<_Schema>[],
 	countRows: readonly EntityFieldCountCollectionItem<_Schema>[],
 	count = false
 ) => {
-	const definition = entityFieldDefinitions(context.entityDefinitionByType[entityType])
-		.find((candidate) => candidate.name === fieldName)
-	if (definition == null)
-		throw new Error(`${entityType}.${fieldName} does not exist`)
-
 	const values = (
 		entityFieldCardinalityIsMultiple(definition.cardinality) ?
 			rows.toSorted((left, right) => (left.valueIndex ?? 0) - (right.valueIndex ?? 0))
@@ -475,7 +397,7 @@ const fieldDataFromRows = <
 		return {
 			entityType,
 			entitySelector,
-			fieldName,
+			fieldName: definition.name,
 			values,
 			entities: values,
 			...(countRows.length > 0 && {
@@ -486,7 +408,7 @@ const fieldDataFromRows = <
 	if (values[0] !== undefined)
 		return values[0]
 
-	const selectorValue = selectorFieldValue(entitySelector, fieldName)
+	const selectorValue = selectorFieldValue(entitySelector, definition.name)
 	if (selectorValue !== undefined)
 		return selectorValue
 
@@ -589,7 +511,6 @@ const fieldResourceQueries = <
 		:
 			undefined
 	)
-	const condition = definition.when
 	const counts = (
 		countCollection === undefined ?
 			undefined
@@ -637,23 +558,6 @@ const fieldResourceQueries = <
 				),
 			})
 	)
-	const conditionRows = (
-		condition === undefined ?
-			undefined
-		:
-			createLiveQueryCollection({
-				startSync: true,
-				query: (query) => (
-					query
-						.from({
-							row: context.entityFieldCollections[entityType][
-								entityFieldAddressKey(entityType, [], condition.fieldName)
-							],
-						})
-						.where(({ row }) => eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey))
-				),
-			})
-	)
 	return {
 		rows: liveQuerySnapshot(rowsCollection),
 		rowsFailure: () => collectionLoadFailure(
@@ -667,9 +571,9 @@ const fieldResourceQueries = <
 			parentSelectorKey,
 			querySources
 		),
-		rowsCollection: fieldCollection,
+		rowsCollection,
+		sourceCollection: fieldCollection,
 		counts: counts === undefined ? undefined : liveQuerySnapshot(counts),
-		conditionRows: conditionRows === undefined ? undefined : liveQuerySnapshot(conditionRows),
 		countsFailure: () => collectionLoadFailure(
 			context,
 			stringify([
@@ -703,7 +607,7 @@ export const subscribeEntityField = <
 	> = {},
 	fieldDefinition?: EntityFieldDefinition
 ) => {
-	const definition = fieldDefinition ?? entityFieldDefinitions(context.entityDefinitionByType[entityType])
+	const definition = fieldDefinition ?? context.entityDefinitionByType[entityType].fields
 		.find((candidate) => candidate.name === fieldName)
 	if (definition == null)
 		throw new Error(`${entityType}.${fieldName} does not exist`)
@@ -719,14 +623,10 @@ export const subscribeEntityField = <
 
 	const liveQueries = (
 		queries.counts === undefined ?
-			[
-				queries.rows,
-				...(queries.conditionRows === undefined ? [] : [queries.conditionRows]),
-			]
+			[queries.rows]
 		:
 			[
 				queries.rows,
-				...(queries.conditionRows === undefined ? [] : [queries.conditionRows]),
 				queries.counts,
 			]
 	)
@@ -735,6 +635,26 @@ export const subscribeEntityField = <
 		{ collection: queries.rowsCollection },
 		...(queries.countCollection === undefined ? [] : [{ collection: queries.countCollection }]),
 	]
+	const parentSelectorKey = entitySelectorKey(
+		context.schema,
+		context.entityDefinitionByType[entityType],
+		entitySelector
+	)
+	const facetPathKey = stringify(entityFieldFacetPath(definition))
+
+	const sourceHasUnsyncedMatches = () => {
+		if (queries.rows.data.length > 0)
+			return false
+
+		return queries.sourceCollection.toArray.some((row) => (
+			row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+			&& row.facetPathKey === facetPathKey
+			&& (
+				queries.sources == null
+				|| queries.sources.includes(row[EntityMetaKey.Source])
+			)
+		))
+	}
 
 	return new TanStackLiveQueryResource(() => asQuerySnapshot(
 		[
@@ -742,13 +662,16 @@ export const subscribeEntityField = <
 				...queries.rows,
 				isComplete: (
 					queries.rowsFailure() !== undefined
-					|| fieldRowsComplete(
-						entitySelector,
-						definition,
-						queries.rows.data,
-						queries.conditionRows?.data ?? [],
-						queries.rows.isReady,
-						queries.sourceDisabled
+					|| (
+						!queries.sourceCollection.isLoadingSubset
+						&& !sourceHasUnsyncedMatches()
+						&& fieldRowsComplete(
+							entitySelector,
+							definition,
+							queries.rows.data,
+							queries.rows.isReady,
+							queries.sourceDisabled
+						)
 					)
 				),
 			},
@@ -763,19 +686,30 @@ export const subscribeEntityField = <
 			]),
 		],
 		fieldDataFromRows(
-			context,
 			entityType,
 			entitySelector,
-			fieldName,
+			definition,
 			queries.rows.data,
 			queries.counts?.data ?? [],
 			selection.count === true
 		)
-	), (update) => subscribeToLiveQueryCollections(
-		observedQueries,
-		update,
-		context.collectionLoadFailures.subscribe
-	), () => waitForLiveQueryCollections(observedQueries))
+	), (update) => {
+		const unsubscribeLive = subscribeToLiveQueryCollections(
+			observedQueries,
+			update,
+			context.collectionLoadFailures.subscribe
+		)
+		const sourceSubscription = queries.sourceCollection.subscribeChanges(update, {
+			includeInitialState: true,
+			onStatusChange: update,
+		})
+		const unsubscribeSourceLoading = queries.sourceCollection.on('loadingSubset:change', update)
+		return () => {
+			unsubscribeLive()
+			sourceSubscription.unsubscribe()
+			unsubscribeSourceLoading()
+		}
+	}, () => waitForLiveQueryCollections(observedQueries))
 }
 
 export const subscribeEntity = <
@@ -787,8 +721,9 @@ export const subscribeEntity = <
 	entitySelector: EntitySelector<_Schema, _EntityType>,
 	selection: SubscribeSelection<_Schema, _EntityType> = {}
 	) => {
-	const querySources = enabledSelectionSources(context, selection.sources)
-	const sourceDisabled = selectedSourcesDisabled(context, selection.sources)
+	const selectorSources = selection.selectorSources ?? selection.sources
+	const querySources = enabledSelectionSources(context, selectorSources)
+	const sourceDisabled = selectedSourcesDisabled(context, selectorSources)
 	const selectorKey = entitySelectorKey(
 		context.schema,
 		context.entityDefinitionByType[entityType],
@@ -829,12 +764,31 @@ export const subscribeEntity = <
 				}))
 		:
 			entityFieldDefinitions(context.entityDefinitionByType[entityType])
-				.filter((definition) => selection.fields?.[definition.name] !== undefined)
 				.map((definition) => ({
-					fieldName: definition.name,
 					definition,
-					fieldSelection: selection.fields?.[definition.name],
+					fieldSelection: entityFieldFacetPath(definition).reduce<Pick<
+						SubscribeSelection<
+							_Schema,
+							_EntityType,
+							Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
+						>,
+						'fields'
+					>>(
+						(fields, facetName) => {
+							const facetSelection = fields.fields?.[facetName]
+							return facetSelection === true || facetSelection === undefined ? {} : facetSelection
+						},
+						{
+							fields: selection.fields,
+						}
+					),
 				}))
+					.filter(({ definition, fieldSelection }) => fieldSelection.fields?.[definition.name] !== undefined)
+					.map((definition) => ({
+						fieldName: definition.definition.name,
+						definition: definition.definition,
+						fieldSelection: definition.fieldSelection.fields?.[definition.definition.name],
+					}))
 	)
 	const fields = selectedFields.map(({
 		fieldName,
@@ -866,14 +820,10 @@ export const subscribeEntity = <
 		entityRows,
 		...fields.flatMap(({ queries }) => (
 			queries.counts === undefined ?
-				[
-					queries.rows,
-					...(queries.conditionRows === undefined ? [] : [queries.conditionRows]),
-				]
+				[queries.rows]
 			:
 				[
 					queries.rows,
-					...(queries.conditionRows === undefined ? [] : [queries.conditionRows]),
 					queries.counts,
 				]
 		)),
@@ -892,22 +842,31 @@ export const subscribeEntity = <
 			string,
 			EntityFieldResourceData<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
 		> = {}
+		const fieldValuesByAddress: Record<
+			string,
+			EntityFieldResourceData<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
+		> = {}
 		for (const {
 			fieldName,
+			definition,
 			fieldSelection,
 			queries,
-		} of fields)
-			fieldValues[fieldName] = fieldDataFromRows(
-				context,
+		} of fields) {
+			const fieldData = fieldDataFromRows(
 				entityType,
 				entitySelector,
-				fieldName,
+				definition,
 				queries.rows.data,
 				queries.counts?.data ?? [],
 				fieldSelection !== true
 				&& fieldSelection !== undefined
 				&& fieldSelection.count === true
 			)
+			if (entityFieldFacetPath(definition).length === 0)
+				fieldValues[fieldName] = fieldData
+
+			fieldValuesByAddress[entityFieldAddressKey(entityType, entityFieldFacetPath(definition), fieldName)] = fieldData
+		}
 
 		return asQuerySnapshot(
 			[
@@ -935,7 +894,6 @@ export const subscribeEntity = <
 									entitySelector,
 									definition,
 									queries.rows.data,
-									queries.conditionRows?.data ?? [],
 									queries.rows.isReady,
 									queries.sourceDisabled
 								)
@@ -951,7 +909,6 @@ export const subscribeEntity = <
 										entitySelector,
 										definition,
 										queries.rows.data,
-										queries.conditionRows?.data ?? [],
 										queries.rows.isReady,
 										queries.sourceDisabled
 									)
@@ -971,6 +928,7 @@ export const subscribeEntity = <
 				entityType,
 				entitySelector,
 				fields: fieldValues,
+				fieldValuesByAddress,
 				errors: [],
 				...fieldValues,
 			}

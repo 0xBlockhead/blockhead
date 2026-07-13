@@ -9,8 +9,10 @@ export enum AssetSupply_TimestampSelector {
 }
 export const AssetSupply_Timestamp = entity({
 	entityType: EntityType.AssetSupply_Timestamp,
-	label: 'asset supply timestamp',
-	labelPlural: 'asset supply observations',
+	labels: {
+		singular: 'asset supply timestamp',
+		plural: 'asset supply observations',
+	},
 })({
 	$assetInstance: {
 		label: 'Asset instance',

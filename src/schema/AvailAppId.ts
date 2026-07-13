@@ -9,8 +9,10 @@ export enum AvailAppIdSelector {
 }
 export const AvailAppId = entity({
 	entityType: EntityType.AvailAppId,
-	label: 'avail app ID',
-	labelPlural: 'avail app IDs',
+	labels: {
+		singular: 'avail app ID',
+		plural: 'avail app IDs',
+	},
 })({
 	$network: {
 		label: 'network',

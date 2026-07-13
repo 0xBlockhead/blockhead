@@ -47,9 +47,16 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import HederaNetworkView from '$/views/HederaNetworkView.svelte'
+	import HederaAllowancesView from '$/views/HederaAllowancesView.svelte'
+	import HederaTokenAssociationsView from '$/views/HederaTokenAssociationsView.svelte'
+	import HederaNftsView from '$/views/HederaNftsView.svelte'
+	import HederaTransactionsView from '$/views/HederaTransactionsView.svelte'
+	import HederaAccount_TimestampsView from '$/views/HederaAccount_TimestampsView.svelte'
 </script>
 
 
@@ -102,7 +109,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const accountId = selection.entitySelector.accountId ?? prefetched.accountId}
+							{@const accountId = pendingEntity.accountId}
 							{#if accountId !== undefined && accountId !== null}
 								<TruncatedValue value={String((accountId) ?? '')} />
 							{/if}
@@ -119,5 +126,147 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-account-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-account-allowances',
+							label: 'Allowances',
+						},
+						{
+							id: 'hedera-account-tokens',
+							label: 'Tokens',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaAccountAllowances({ id, label, open })}
+					<HederaAllowancesView
+						selection={selection.$$allowances}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No allowances.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHederaAccountTokens({ id, label, open })}
+					<HederaTokenAssociationsView
+						selection={selection.$$tokens}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No tokens.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-account-related'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-account-nfts',
+							label: 'Nfts',
+						},
+						{
+							id: 'hedera-account-transactions',
+							label: 'Transactions',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-related'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Related</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaAccountNfts({ id, label, open })}
+					<HederaNftsView
+						selection={selection.$$nfts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No nfts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHederaAccountTransactions({ id, label, open })}
+					<HederaTransactionsView
+						selection={selection.$$transactions}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No transactions.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-account-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-account-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaAccountTimestamps({ id, label, open })}
+					<HederaAccount_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

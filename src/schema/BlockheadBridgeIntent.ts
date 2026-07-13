@@ -10,8 +10,10 @@ export enum BlockheadBridgeIntentSelector {
 }
 export const BlockheadBridgeIntent = entity({
 	entityType: EntityType.BlockheadBridgeIntent,
-	label: 'blockhead bridge intent',
-	labelPlural: 'blockhead bridge intents',
+	labels: {
+		singular: 'blockhead bridge intent',
+		plural: 'blockhead bridge intents',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

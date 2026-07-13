@@ -9,8 +9,10 @@ export enum CardanoTxInputSelector {
 }
 export const CardanoTxInput = entity({
 	entityType: EntityType.CardanoTxInput,
-	label: 'cardano transaction input',
-	labelPlural: 'cardano transaction inputs',
+	labels: {
+		singular: 'cardano transaction input',
+		plural: 'cardano transaction inputs',
+	},
 })({
 	$transaction: {
 		label: 'transaction',

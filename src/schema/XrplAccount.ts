@@ -9,8 +9,10 @@ export enum XrplAccountSelector {
 }
 export const XrplAccount = entity({
 	entityType: EntityType.XrplAccount,
-	label: 'xrpl account',
-	labelPlural: 'xrpl accounts',
+	labels: {
+		singular: 'xrpl account',
+		plural: 'xrpl accounts',
+	},
 })({
 	$network: {
 		label: 'network',

@@ -9,8 +9,10 @@ export enum StellarNetwork_TimestampSelector {
 }
 export const StellarNetwork_Timestamp = entity({
 	entityType: EntityType.StellarNetwork_Timestamp,
-	label: 'stellar network timestamp',
-	labelPlural: 'stellar network observations',
+	labels: {
+		singular: 'stellar network timestamp',
+		plural: 'stellar network observations',
+	},
 })({
 	$network: {
 		label: 'network',

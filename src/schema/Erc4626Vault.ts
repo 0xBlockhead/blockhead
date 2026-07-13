@@ -9,8 +9,10 @@ export enum Erc4626VaultSelector {
 }
 export const Erc4626Vault = entity({
 	entityType: EntityType.Erc4626Vault,
-	label: 'erc4626 vault',
-	labelPlural: 'erc4626 vaults',
+	labels: {
+		singular: 'erc4626 vault',
+		plural: 'erc4626 vaults',
+	},
 })({
 	$contract: {
 		label: 'Contract',

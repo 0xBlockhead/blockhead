@@ -9,8 +9,10 @@ export enum BlockheadRoomSelector {
 }
 export const BlockheadRoom = entity({
 	entityType: EntityType.BlockheadRoom,
-	label: 'room',
-	labelPlural: 'rooms',
+	labels: {
+		singular: 'room',
+		plural: 'rooms',
+	},
 })({
 	id: {
 		label: 'ID',

@@ -9,8 +9,10 @@ export enum BitTorrentDhtLookup_TimestampSelector {
 }
 export const BitTorrentDhtLookup_Timestamp = entity({
 	entityType: EntityType.BitTorrentDhtLookup_Timestamp,
-	label: 'bit torrent DHT lookup timestamp',
-	labelPlural: 'bit torrent DHT lookup observations',
+	labels: {
+		singular: 'bit torrent DHT lookup timestamp',
+		plural: 'bit torrent DHT lookup observations',
+	},
 })({
 	infoHash: {
 		label: 'info hash',

@@ -51,7 +51,7 @@
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'near contract timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'near contract timestamp')
 	const viewDomId = $derived('near-contract-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearContractTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearContractTimestamp}>
 			{#snippet Pending()}
-				{@const codeHash0 = prefetched.codeHash}
+				{@const codeHash0 = pendingEntity.codeHash}
 				{#if codeHash0 !== undefined && codeHash0 !== null}
 					<TruncatedValue value={String((codeHash0) ?? '')} />
 				{/if}
@@ -115,7 +115,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearContractTimestamp}>
 			{#snippet Pending()}
-				{@const blockHeight0 = prefetched.blockHeight}
+				{@const blockHeight0 = pendingEntity.blockHeight}
 				{#if blockHeight0 !== undefined && blockHeight0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(blockHeight0)} />
@@ -161,7 +161,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -191,7 +191,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -218,7 +218,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHeight = prefetched.blockHeight}
+					{@const blockHeight = pendingEntity.blockHeight}
 					{#if blockHeight !== undefined && blockHeight !== null}
 						<div>
 							<dt>Block height</dt>
@@ -253,7 +253,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const blockHash = prefetched.blockHash}
+					{@const blockHash = pendingEntity.blockHash}
 					{#if blockHash !== undefined && blockHash !== null}
 						<div>
 							<dt>Block hash</dt>
@@ -291,7 +291,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const codeHash = prefetched.codeHash}
+					{@const codeHash = pendingEntity.codeHash}
 					{#if codeHash !== undefined && codeHash !== null}
 						<div>
 							<dt>Code hash</dt>
@@ -326,7 +326,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const codeSizeBytes = prefetched.codeSizeBytes}
+					{@const codeSizeBytes = pendingEntity.codeSizeBytes}
 					{#if codeSizeBytes !== undefined && codeSizeBytes !== null}
 						<div>
 							<dt>Code size bytes</dt>
@@ -361,7 +361,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const codeBase64 = prefetched.codeBase64}
+					{@const codeBase64 = pendingEntity.codeBase64}
 					{#if codeBase64 !== undefined && codeBase64 !== null}
 						<div>
 							<dt>Code base64</dt>
@@ -396,7 +396,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const deployerTransactionHash = prefetched.deployerTransactionHash}
+					{@const deployerTransactionHash = pendingEntity.deployerTransactionHash}
 					{#if deployerTransactionHash !== undefined && deployerTransactionHash !== null}
 						<div>
 							<dt>Deployer transaction hash</dt>

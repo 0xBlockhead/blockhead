@@ -9,8 +9,10 @@ export enum TonTrace_TimestampSelector {
 }
 export const TonTrace_Timestamp = entity({
 	entityType: EntityType.TonTrace_Timestamp,
-	label: 'ton trace timestamp',
-	labelPlural: 'ton trace observations',
+	labels: {
+		singular: 'ton trace timestamp',
+		plural: 'ton trace observations',
+	},
 })({
 	$trace: {
 		label: 'trace',

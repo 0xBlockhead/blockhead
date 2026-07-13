@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -11,23 +12,33 @@
 	import { select } from '$/routes/+layout.svelte'
 
 
+	// State
+	let {
+		data,
+	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType._GlobalYoutubeNetwork, data.selector, {
+		sources: [
+			Source.Constants_Internal,
+		],
+	}))
+	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? ['YouTube'].filter(Boolean).join(' ') || 'YouTube network' : ['YouTube'].filter(Boolean).join(' ') || 'YouTube network')))
+
+
 	// Components
 	import Page from '$/components/Page.svelte'
 	import GlobalYoutubeNetworkView from '$/views/_GlobalYoutubeNetworkView.svelte'
 </script>
 
 
+<svelte:head>
+	<title>{pageEntityTitle} • YouTube network • Blockhead</title>
+</svelte:head>
+
+
 <Page>
 	<GlobalYoutubeNetworkView
-		href={resolve('/(social)/(youtube)/youtube')}
-		selection={
-			select(EntityType._GlobalYoutubeNetwork, {
-				scope: '_GlobalYoutubeNetwork',
-			}, {
-				sources: [
-					Source.Constants_Internal,
-				],
-			})
-		}
+		href={resolve('/youtube')}
+		selection={pageSelection}
 	/>
 </Page>

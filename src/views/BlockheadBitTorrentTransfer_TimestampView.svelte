@@ -46,7 +46,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent transfer timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent transfer timestamp')
 	const viewDomId = $derived('blockhead-bit-torrent-transfer-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadBitTorrentTransferTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadBitTorrentTransferTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.status) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead bit torrent transfer timestamp'}
+				{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead bit torrent transfer timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -190,7 +190,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const status = prefetched.status}
+					{@const status = pendingEntity.status}
 					{#if status !== undefined && status !== null}
 						<div>
 							<dt>status</dt>
@@ -225,7 +225,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const error = prefetched.error}
+					{@const error = pendingEntity.error}
 					{#if error !== undefined && error !== null}
 						<div>
 							<dt>error</dt>
@@ -262,7 +262,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const savePath = prefetched.savePath}
+					{@const savePath = pendingEntity.savePath}
 					{#if savePath !== undefined && savePath !== null}
 						<div>
 							<dt>save path</dt>
@@ -300,7 +300,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const selectedFileIndexes = prefetched.selectedFileIndexes}
+							{@const selectedFileIndexes = pendingEntity.selectedFileIndexes}
 							{#if selectedFileIndexes !== undefined && selectedFileIndexes !== null}
 								{selectedFileIndexes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
@@ -327,7 +327,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const connectedPeerCount = prefetched.connectedPeerCount}
+					{@const connectedPeerCount = pendingEntity.connectedPeerCount}
 					{#if connectedPeerCount !== undefined && connectedPeerCount !== null}
 						<div>
 							<dt>connected peer count</dt>
@@ -364,7 +364,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const downloadedBytes = prefetched.downloadedBytes}
+					{@const downloadedBytes = pendingEntity.downloadedBytes}
 					{#if downloadedBytes !== undefined && downloadedBytes !== null}
 						<div>
 							<dt>downloaded bytes</dt>
@@ -399,7 +399,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uploadedBytes = prefetched.uploadedBytes}
+					{@const uploadedBytes = pendingEntity.uploadedBytes}
 					{#if uploadedBytes !== undefined && uploadedBytes !== null}
 						<div>
 							<dt>uploaded bytes</dt>
@@ -434,7 +434,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const downloadRate = prefetched.downloadRate}
+					{@const downloadRate = pendingEntity.downloadRate}
 					{#if downloadRate !== undefined && downloadRate !== null}
 						<div>
 							<dt>download rate</dt>
@@ -469,7 +469,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const uploadRate = prefetched.uploadRate}
+					{@const uploadRate = pendingEntity.uploadRate}
 					{#if uploadRate !== undefined && uploadRate !== null}
 						<div>
 							<dt>upload rate</dt>
@@ -506,7 +506,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const verifiedPieces = prefetched.verifiedPieces}
+					{@const verifiedPieces = pendingEntity.verifiedPieces}
 					{#if verifiedPieces !== undefined && verifiedPieces !== null}
 						<div>
 							<dt>verified pieces</dt>
@@ -541,7 +541,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const failedPieces = prefetched.failedPieces}
+					{@const failedPieces = pendingEntity.failedPieces}
 					{#if failedPieces !== undefined && failedPieces !== null}
 						<div>
 							<dt>failed pieces</dt>

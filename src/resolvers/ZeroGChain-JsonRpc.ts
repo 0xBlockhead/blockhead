@@ -304,10 +304,14 @@ export default {
 			gasUsed: (transaction) => transaction.gasUsed,
 			cumulativeGasUsed: (transaction) => transaction.cumulativeGasUsed,
 			effectiveGasPrice: (transaction) => transaction.effectiveGasPrice,
-			maxFeePerGas: (transaction) => transaction.maxFeePerGas,
-			maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
-			blobGasUsed: (transaction) => transaction.blobGasUsed,
+			FeeMarket: {
+				maxFeePerGas: (transaction) => transaction.maxFeePerGas,
+				maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
+			},
+			Blob: {
+				blobGasUsed: (transaction) => transaction.blobGasUsed,
 				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
+			},
 			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {

@@ -9,8 +9,10 @@ export enum SwapQuoteStepSelector {
 }
 export const SwapQuoteStep = entity({
 	entityType: EntityType.SwapQuoteStep,
-	label: 'swap quote step',
-	labelPlural: 'swap quote steps',
+	labels: {
+		singular: 'swap quote step',
+		plural: 'swap quote steps',
+	},
 })({
 	$quote: {
 		label: 'quote',

@@ -10,8 +10,10 @@ export enum BlockheadActionOutcomeSelector {
 }
 export const BlockheadActionOutcome = entity({
 	entityType: EntityType.BlockheadActionOutcome,
-	label: 'blockhead action outcome',
-	labelPlural: 'blockhead action outcomes',
+	labels: {
+		singular: 'blockhead action outcome',
+		plural: 'blockhead action outcomes',
+	},
 })({
 	sessionId: {
 		label: 'session ID',

@@ -9,8 +9,10 @@ export enum MoveModule_TimestampSelector {
 }
 export const MoveModule_Timestamp = entity({
 	entityType: EntityType.MoveModule_Timestamp,
-	label: 'move module timestamp',
-	labelPlural: 'move module observations',
+	labels: {
+		singular: 'move module timestamp',
+		plural: 'move module observations',
+	},
 })({
 	$module: {
 		label: 'module',

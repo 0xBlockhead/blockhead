@@ -10,8 +10,10 @@ export enum MarketPriceSelector {
 }
 export const MarketPrice = entity({
 	entityType: EntityType.MarketPrice,
-	label: 'Market price',
-	labelPlural: 'market prices',
+	labels: {
+		singular: 'Market price',
+		plural: 'market prices',
+	},
 })({
 	$market: {
 		type: EntityFieldType.EntityReference,

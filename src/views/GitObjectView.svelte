@@ -47,7 +47,7 @@
 			objectKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || 'Git object')
+	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git object')
 	const viewDomId = $derived('git-object-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitObject}>
 			{#snippet Pending()}
-				{@const objectId0 = selection.entitySelector.objectId ?? prefetched.objectId}
+				{@const objectId0 = pendingEntity.objectId}
 				{#if objectId0 !== undefined && objectId0 !== null}
 					<TruncatedValue value={String((objectId0) ?? '')} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitObject}>
 			{#snippet Pending()}
-				{[String((prefetched.objectKind) ?? ''), String((selection.entitySelector.objectFormat ?? prefetched.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git object'}
+				{[String((pendingEntity.objectKind) ?? ''), String((pendingEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || title || 'Git object'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -116,7 +116,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectId = selection.entitySelector.objectId ?? prefetched.objectId}
+							{@const objectId = pendingEntity.objectId}
 							{#if objectId !== undefined && objectId !== null}
 								<TruncatedValue value={String((objectId) ?? '')} />
 							{/if}
@@ -146,7 +146,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectFormat = selection.entitySelector.objectFormat ?? prefetched.objectFormat}
+							{@const objectFormat = pendingEntity.objectFormat}
 							{#if objectFormat !== undefined && objectFormat !== null}
 								{String((objectFormat) ?? '')}
 							{/if}
@@ -176,7 +176,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectKind = prefetched.objectKind}
+							{@const objectKind = pendingEntity.objectKind}
 							{#if objectKind !== undefined && objectKind !== null}
 								{String((objectKind) ?? '')}
 							{/if}
@@ -203,7 +203,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sizeBytes = prefetched.sizeBytes}
+					{@const sizeBytes = pendingEntity.sizeBytes}
 					{#if sizeBytes !== undefined && sizeBytes !== null}
 						<div>
 							<dt>size bytes</dt>
@@ -231,6 +231,8 @@
 			<ResourceBoundary
 				resource={selection.$repository}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitRepository)}
 					{#if gitRepository != null && gitRepository[EntityMetaKey.Selector] != null}
 						<div>

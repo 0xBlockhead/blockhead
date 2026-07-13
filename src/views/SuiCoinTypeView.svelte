@@ -48,12 +48,17 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SuiNetworkView from '$/views/SuiNetworkView.svelte'
 	import MoveStructView from '$/views/MoveStructView.svelte'
 	import SuiObjectView from '$/views/SuiObjectView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
+	import SuiCoinBalance_TimestampsView from '$/views/SuiCoinBalance_TimestampsView.svelte'
+	import SuiObjectsView from '$/views/SuiObjectsView.svelte'
+	import SuiRegulatedCoinState_TimestampsView from '$/views/SuiRegulatedCoinState_TimestampsView.svelte'
 </script>
 
 
@@ -106,7 +111,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const coinType = selection.entitySelector.coinType ?? prefetched.coinType}
+							{@const coinType = pendingEntity.coinType}
 							{#if coinType !== undefined && coinType !== null}
 								{String((coinType) ?? '')}
 							{/if}
@@ -126,6 +131,8 @@
 			<ResourceBoundary
 				resource={selection.$definingStruct}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(moveStruct)}
 					{#if moveStruct != null && moveStruct[EntityMetaKey.Selector] != null}
 						<div>
@@ -146,6 +153,8 @@
 			<ResourceBoundary
 				resource={selection.$treasuryCap}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(suiObject)}
 					{#if suiObject != null && suiObject[EntityMetaKey.Selector] != null}
 						<div>
@@ -166,6 +175,8 @@
 			<ResourceBoundary
 				resource={selection.$assetInstance}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(assetInstance)}
 					{#if assetInstance != null && assetInstance[EntityMetaKey.Selector] != null}
 						<div>
@@ -175,8 +186,8 @@
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									href={
-										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
-											caip2: `${String(assetInstance[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(assetInstance[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.slug !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+											network: String(assetInstance[EntityMetaKey.Selector].$network.slug ?? ''),
 											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
 											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
 										}) : undefined)
@@ -200,7 +211,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -235,7 +246,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const symbol = prefetched.symbol}
+					{@const symbol = pendingEntity.symbol}
 					{#if symbol !== undefined && symbol !== null}
 						<div>
 							<dt>Symbol</dt>
@@ -270,7 +281,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const name = prefetched.name}
+					{@const name = pendingEntity.name}
 					{#if name !== undefined && name !== null}
 						<div>
 							<dt>Name</dt>
@@ -305,7 +316,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const description = prefetched.description}
+					{@const description = pendingEntity.description}
 					{#if description !== undefined && description !== null}
 						<div>
 							<dt>Description</dt>
@@ -340,7 +351,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const iconUrl = prefetched.iconUrl}
+					{@const iconUrl = pendingEntity.iconUrl}
 					{#if iconUrl !== undefined && iconUrl !== null}
 						<div>
 							<dt>icon URL</dt>
@@ -379,5 +390,96 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-sui-coin-type-activity-a'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'sui-coin-type-balances',
+							label: 'Balances',
+						},
+						{
+							id: 'sui-coin-type-objects',
+							label: 'Objects',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-a'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionSuiCoinTypeBalances({ id, label, open })}
+					<SuiCoinBalance_TimestampsView
+						selection={selection.$$balances}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No balances.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionSuiCoinTypeObjects({ id, label, open })}
+					<SuiObjectsView
+						selection={selection.$$objects}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No objects.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-sui-coin-type-activity-b'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'sui-coin-type-regulated-states',
+							label: 'Regulated States',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity-b'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity continued</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionSuiCoinTypeRegulatedStates({ id, label, open })}
+					<SuiRegulatedCoinState_TimestampsView
+						selection={selection.$$regulatedStates}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No regulated states.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

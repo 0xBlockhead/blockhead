@@ -126,8 +126,8 @@
 						selection={select(EntityType.EvmUserOperation, evmUserOperation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmUserOperationFields}
 						href={
-							(evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined && evmUserOperationHrefFields.$network.caip2.namespace !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined && evmUserOperationHrefFields.$network.caip2.reference !== undefined && evmUserOperationHrefFields.hash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/user-operation/[userOperationHash=userOperationHash]', {
-								caip2: `${String(evmUserOperationHrefFields.$network.caip2.namespace ?? '')}:${String(evmUserOperationHrefFields.$network.caip2.reference ?? '')}`,
+							(evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.slug !== undefined && evmUserOperationHrefFields.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
+								network: String(evmUserOperationHrefFields.$network.slug ?? ''),
 								userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
 							}) : undefined)
 						}

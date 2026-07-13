@@ -64,7 +64,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.hex !== undefined ? resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
+		href ?? (pendingEntity.hex !== undefined ? resolve('/evm/error/[hex=zeroExHex]', {
 			hex: String(pendingEntity.hex ?? ''),
 		}) : undefined)
 	}
@@ -108,7 +108,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hex = selection.entitySelector.hex ?? prefetched.hex}
+							{@const hex = pendingEntity.hex}
 							{#if hex !== undefined && hex !== null}
 								<TruncatedValue value={String((hex) ?? '')} />
 							{/if}

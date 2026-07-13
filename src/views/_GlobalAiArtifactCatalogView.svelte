@@ -43,6 +43,8 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AiArtifactsView from '$/views/AiArtifactsView.svelte'
 	import AiDocumentsView from '$/views/AiDocumentsView.svelte'
@@ -88,7 +90,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const catalogId = selection.entitySelector.catalogId ?? prefetched.catalogId}
+							{@const catalogId = pendingEntity.catalogId}
 							{#if catalogId !== undefined && catalogId !== null}
 								{String((catalogId) ?? '')}
 							{/if}
@@ -115,7 +117,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const label = prefetched.label}
+					{@const label = pendingEntity.label}
 					{#if label !== undefined && label !== null}
 						<div>
 							<dt>Label</dt>
@@ -150,7 +152,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const catalogKind = prefetched.catalogKind}
+					{@const catalogKind = pendingEntity.catalogKind}
 					{#if catalogKind !== undefined && catalogKind !== null}
 						<div>
 							<dt>catalog kind</dt>
@@ -179,26 +181,92 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<AiArtifactsView
-				selection={selection.$$artifacts}
-				title='artifacts'
-				emptyText='No AI artifacts.'
-				id='AiArtifactsView-artifacts'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ai-artifact-catalog-inventory'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ai-artifact-catalog-artifacts',
+							label: 'Artifacts',
+						},
+						{
+							id: 'ai-artifact-catalog-documents',
+							label: 'Documents',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-inventory'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Artifacts and documents</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<AiDocumentsView
-				selection={selection.$$documents}
-				title='documents'
-				emptyText='No AI documents.'
-				id='AiDocumentsView-documents'
-			/>
+				{#snippet SectionAiArtifactCatalogArtifacts({ id, label, open })}
+					<AiArtifactsView
+						selection={selection.$$artifacts}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI artifacts.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<GlobalAiArtifactCatalog_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No AI artifact catalog observations.'
-				id='_GlobalAiArtifactCatalog_TimestampsView-timestamps'
-			/>
+				{#snippet SectionAiArtifactCatalogDocuments({ id, label, open })}
+					<AiDocumentsView
+						selection={selection.$$documents}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI documents.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-ai-artifact-catalog-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'ai-artifact-catalog-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionAiArtifactCatalogTimestamps({ id, label, open })}
+					<GlobalAiArtifactCatalog_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No AI artifact catalog observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

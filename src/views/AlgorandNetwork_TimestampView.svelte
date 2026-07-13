@@ -104,7 +104,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -134,7 +134,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -163,7 +163,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const latestRound = prefetched.latestRound}
+					{@const latestRound = pendingEntity.latestRound}
 					{#if latestRound !== undefined && latestRound !== null}
 						<div>
 							<dt>latest round</dt>
@@ -198,7 +198,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const catchpoint = prefetched.catchpoint}
+					{@const catchpoint = pendingEntity.catchpoint}
 					{#if catchpoint !== undefined && catchpoint !== null}
 						<div>
 							<dt>catchpoint</dt>
@@ -233,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const genesisHash = prefetched.genesisHash}
+					{@const genesisHash = pendingEntity.genesisHash}
 					{#if genesisHash !== undefined && genesisHash !== null}
 						<div>
 							<dt>genesis hash</dt>
@@ -268,7 +268,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>

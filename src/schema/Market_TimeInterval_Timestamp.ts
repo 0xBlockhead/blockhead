@@ -10,8 +10,10 @@ export enum Market_TimeInterval_TimestampSelector {
 }
 export const Market_TimeInterval_Timestamp = entity({
 	entityType: EntityType.Market_TimeInterval_Timestamp,
-	label: 'OHLC candle',
-	labelPlural: 'OHLC candles',
+	labels: {
+		singular: 'OHLC candle',
+		plural: 'OHLC candles',
+	},
 })({
 	$market: {
 		type: EntityFieldType.EntityReference,
@@ -27,7 +29,7 @@ export const Market_TimeInterval_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$parentMarket: {

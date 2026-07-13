@@ -9,8 +9,10 @@ export enum CardanoNativeAsset_TimestampSelector {
 }
 export const CardanoNativeAsset_Timestamp = entity({
 	entityType: EntityType.CardanoNativeAsset_Timestamp,
-	label: 'cardano native asset timestamp',
-	labelPlural: 'cardano native asset observations',
+	labels: {
+		singular: 'cardano native asset timestamp',
+		plural: 'cardano native asset observations',
+	},
 })({
 	$asset: {
 		label: 'asset',

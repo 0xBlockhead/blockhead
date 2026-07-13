@@ -67,9 +67,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$user !== undefined && pendingEntity.$user.id !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(x)/x/user/[userId]/observations/[timestampMs=nonNegativeInteger]', {
-			userId: String(pendingEntity.$user.id ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.$user !== undefined && pendingEntity.$user.id !== undefined ? resolve('/x/user/[userId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			userId: String(pendingEntity.$user.id ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -100,7 +100,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={xUserTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -144,7 +144,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -173,7 +173,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followerCount = prefetched.followerCount}
+					{@const followerCount = pendingEntity.followerCount}
 					{#if followerCount !== undefined && followerCount !== null}
 						<div>
 							<dt>Followers</dt>
@@ -210,7 +210,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const followingCount = prefetched.followingCount}
+					{@const followingCount = pendingEntity.followingCount}
 					{#if followingCount !== undefined && followingCount !== null}
 						<div>
 							<dt>Following</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tweetCount = prefetched.tweetCount}
+					{@const tweetCount = pendingEntity.tweetCount}
 					{#if tweetCount !== undefined && tweetCount !== null}
 						<div>
 							<dt>Tweets</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const listedCount = prefetched.listedCount}
+					{@const listedCount = pendingEntity.listedCount}
 					{#if listedCount !== undefined && listedCount !== null}
 						<div>
 							<dt>Listed</dt>

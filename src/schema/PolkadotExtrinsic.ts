@@ -9,8 +9,10 @@ export enum PolkadotExtrinsicSelector {
 }
 export const PolkadotExtrinsic = entity({
 	entityType: EntityType.PolkadotExtrinsic,
-	label: 'Polkadot extrinsic',
-	labelPlural: 'Polkadot extrinsics',
+	labels: {
+		singular: 'Polkadot extrinsic',
+		plural: 'Polkadot extrinsics',
+	},
 })({
 	$block: {
 		label: 'Block',
@@ -21,7 +23,7 @@ export const PolkadotExtrinsic = entity({
 	indexInBlock: {
 		label: 'Index in block',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {

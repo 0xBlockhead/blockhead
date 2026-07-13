@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -50,7 +49,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.slot ?? prefetched.slot) ?? '')].filter(Boolean).join(' ') || 'solana account timestamp')
+	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana account timestamp')
 	const viewDomId = $derived('solana-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -76,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={solanaAccountTimestamp}>
 			{#snippet Pending()}
-				{@const slot0 = selection.entitySelector.slot ?? prefetched.slot}
+				{@const slot0 = pendingEntity.slot}
 				{#if slot0 !== undefined && slot0 !== null}
 					<NumberValue value={Number(slot0)} />
 				{/if}
@@ -95,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaAccountTimestamp}>
 			{#snippet Pending()}
-				{@const lamports0 = prefetched.lamports}
+				{@const lamports0 = pendingEntity.lamports}
 				{#if lamports0 !== undefined && lamports0 !== null}
 					<NumberValue value={Number(lamports0)} />
 				{/if}
@@ -114,7 +113,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaAccountTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -142,9 +141,9 @@
 					<SolanaAccountView
 						selection={select(EntityType.SolanaAccount, selection.entitySelector.$account, {})}
 						href={
-							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.pubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/account/[pubkey]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$account.$network.caip2.namespace) + ':' + String(selection.entitySelector.$account.$network.caip2.reference))].slug ?? ''),
-								pubkey: String(selection.entitySelector.$account.pubkey ?? ''),
+							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined && selection.entitySelector.$account.pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
+								network: String(selection.entitySelector.$account.$network.slug ?? ''),
+								accountId: String(selection.entitySelector.$account.pubkey ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -166,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -196,7 +195,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ownerProgramId = prefetched.ownerProgramId}
+					{@const ownerProgramId = pendingEntity.ownerProgramId}
 					{#if ownerProgramId !== undefined && ownerProgramId !== null}
 						<div>
 							<dt>Owner program ID</dt>
@@ -234,7 +233,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const executable = prefetched.executable}
+					{@const executable = pendingEntity.executable}
 					{#if executable !== undefined && executable !== null}
 						<div>
 							<dt>Executable</dt>
@@ -272,7 +271,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rentEpoch = prefetched.rentEpoch}
+					{@const rentEpoch = pendingEntity.rentEpoch}
 					{#if rentEpoch !== undefined && rentEpoch !== null}
 						<div>
 							<dt>Rent epoch</dt>
@@ -307,7 +306,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spaceBytes = prefetched.spaceBytes}
+					{@const spaceBytes = pendingEntity.spaceBytes}
 					{#if spaceBytes !== undefined && spaceBytes !== null}
 						<div>
 							<dt>Space bytes</dt>
@@ -345,7 +344,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const dataEncoding = prefetched.dataEncoding}
+					{@const dataEncoding = pendingEntity.dataEncoding}
 					{#if dataEncoding !== undefined && dataEncoding !== null}
 						<div>
 							<dt>Data encoding</dt>

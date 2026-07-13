@@ -9,8 +9,10 @@ export enum BittensorNeuronSelector {
 }
 export const BittensorNeuron = entity({
 	entityType: EntityType.BittensorNeuron,
-	label: 'Bittensor neuron',
-	labelPlural: 'Bittensor neurons',
+	labels: {
+		singular: 'Bittensor neuron',
+		plural: 'Bittensor neurons',
+	},
 })({
 	$subnet: {
 		label: 'Subnet',

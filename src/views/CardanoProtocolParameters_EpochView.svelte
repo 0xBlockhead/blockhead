@@ -101,7 +101,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const epoch = selection.entitySelector.epoch ?? prefetched.epoch}
+							{@const epoch = pendingEntity.epoch}
 							{#if epoch !== undefined && epoch !== null}
 								{String((epoch) ?? '')}
 							{/if}
@@ -131,7 +131,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -158,7 +158,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minFeeA = prefetched.minFeeA}
+					{@const minFeeA = pendingEntity.minFeeA}
 					{#if minFeeA !== undefined && minFeeA !== null}
 						<div>
 							<dt>min fee a</dt>
@@ -193,7 +193,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minFeeB = prefetched.minFeeB}
+					{@const minFeeB = pendingEntity.minFeeB}
 					{#if minFeeB !== undefined && minFeeB !== null}
 						<div>
 							<dt>min fee b</dt>
@@ -228,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxBlockBodySize = prefetched.maxBlockBodySize}
+					{@const maxBlockBodySize = pendingEntity.maxBlockBodySize}
 					{#if maxBlockBodySize !== undefined && maxBlockBodySize !== null}
 						<div>
 							<dt>max block body size</dt>
@@ -263,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxTxSize = prefetched.maxTxSize}
+					{@const maxTxSize = pendingEntity.maxTxSize}
 					{#if maxTxSize !== undefined && maxTxSize !== null}
 						<div>
 							<dt>max transaction size</dt>
@@ -298,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxBlockHeaderSize = prefetched.maxBlockHeaderSize}
+					{@const maxBlockHeaderSize = pendingEntity.maxBlockHeaderSize}
 					{#if maxBlockHeaderSize !== undefined && maxBlockHeaderSize !== null}
 						<div>
 							<dt>max block header size</dt>
@@ -333,7 +333,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const keyDeposit = prefetched.keyDeposit}
+					{@const keyDeposit = pendingEntity.keyDeposit}
 					{#if keyDeposit !== undefined && keyDeposit !== null}
 						<div>
 							<dt>key deposit</dt>
@@ -368,7 +368,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const poolDeposit = prefetched.poolDeposit}
+					{@const poolDeposit = pendingEntity.poolDeposit}
 					{#if poolDeposit !== undefined && poolDeposit !== null}
 						<div>
 							<dt>pool deposit</dt>
@@ -403,7 +403,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxEpoch = prefetched.maxEpoch}
+					{@const maxEpoch = pendingEntity.maxEpoch}
 					{#if maxEpoch !== undefined && maxEpoch !== null}
 						<div>
 							<dt>max epoch</dt>
@@ -438,7 +438,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const nOpt = prefetched.nOpt}
+					{@const nOpt = pendingEntity.nOpt}
 					{#if nOpt !== undefined && nOpt !== null}
 						<div>
 							<dt>n opt</dt>
@@ -473,7 +473,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const rho = prefetched.rho}
+					{@const rho = pendingEntity.rho}
 					{#if rho !== undefined && rho !== null}
 						<div>
 							<dt>rho</dt>
@@ -508,7 +508,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const tau = prefetched.tau}
+					{@const tau = pendingEntity.tau}
 					{#if tau !== undefined && tau !== null}
 						<div>
 							<dt>tau</dt>
@@ -543,7 +543,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decentralisation = prefetched.decentralisation}
+					{@const decentralisation = pendingEntity.decentralisation}
 					{#if decentralisation !== undefined && decentralisation !== null}
 						<div>
 							<dt>decentralisation</dt>
@@ -578,7 +578,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolMajor = prefetched.protocolMajor}
+					{@const protocolMajor = pendingEntity.protocolMajor}
 					{#if protocolMajor !== undefined && protocolMajor !== null}
 						<div>
 							<dt>protocol major</dt>
@@ -613,7 +613,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolMinor = prefetched.protocolMinor}
+					{@const protocolMinor = pendingEntity.protocolMinor}
 					{#if protocolMinor !== undefined && protocolMinor !== null}
 						<div>
 							<dt>protocol minor</dt>
@@ -648,7 +648,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const minPoolCost = prefetched.minPoolCost}
+					{@const minPoolCost = pendingEntity.minPoolCost}
 					{#if minPoolCost !== undefined && minPoolCost !== null}
 						<div>
 							<dt>min pool cost</dt>
@@ -683,7 +683,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const coinsPerUtxoByte = prefetched.coinsPerUtxoByte}
+					{@const coinsPerUtxoByte = pendingEntity.coinsPerUtxoByte}
 					{#if coinsPerUtxoByte !== undefined && coinsPerUtxoByte !== null}
 						<div>
 							<dt>coins per UTXO byte</dt>
@@ -718,7 +718,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxValueSize = prefetched.maxValueSize}
+					{@const maxValueSize = pendingEntity.maxValueSize}
 					{#if maxValueSize !== undefined && maxValueSize !== null}
 						<div>
 							<dt>max value size</dt>
@@ -753,7 +753,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const collateralPercentage = prefetched.collateralPercentage}
+					{@const collateralPercentage = pendingEntity.collateralPercentage}
 					{#if collateralPercentage !== undefined && collateralPercentage !== null}
 						<div>
 							<dt>collateral percentage</dt>
@@ -788,7 +788,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxCollateralInputs = prefetched.maxCollateralInputs}
+					{@const maxCollateralInputs = pendingEntity.maxCollateralInputs}
 					{#if maxCollateralInputs !== undefined && maxCollateralInputs !== null}
 						<div>
 							<dt>max collateral inputs</dt>

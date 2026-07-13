@@ -47,7 +47,7 @@
 			objectFormat: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.packHash ?? prefetched.packHash) ?? '')].filter(Boolean).join(' ') || 'Git packfile')
+	const titleFallback = $derived([String((pendingEntity.packHash) ?? '')].filter(Boolean).join(' ') || 'Git packfile')
 	const viewDomId = $derived('git-packfile-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitPackfile}>
 			{#snippet Pending()}
-				{@const packHash0 = selection.entitySelector.packHash ?? prefetched.packHash}
+				{@const packHash0 = pendingEntity.packHash}
 				{#if packHash0 !== undefined && packHash0 !== null}
 					<TruncatedValue value={String((packHash0) ?? '')} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitPackfile}>
 			{#snippet Pending()}
-				{[String((prefetched.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.packHash ?? prefetched.packHash) ?? '')].filter(Boolean).join(' ') || title || 'Git packfile'}
+				{[String((pendingEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.packHash) ?? '')].filter(Boolean).join(' ') || title || 'Git packfile'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -116,7 +116,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const packHash = selection.entitySelector.packHash ?? prefetched.packHash}
+							{@const packHash = pendingEntity.packHash}
 							{#if packHash !== undefined && packHash !== null}
 								<TruncatedValue value={String((packHash) ?? '')} />
 							{/if}
@@ -146,7 +146,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const objectFormat = prefetched.objectFormat}
+							{@const objectFormat = pendingEntity.objectFormat}
 							{#if objectFormat !== undefined && objectFormat !== null}
 								{String((objectFormat) ?? '')}
 							{/if}
@@ -173,7 +173,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const objectCount = prefetched.objectCount}
+					{@const objectCount = pendingEntity.objectCount}
 					{#if objectCount !== undefined && objectCount !== null}
 						<div>
 							<dt>object count</dt>
@@ -208,7 +208,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const packSizeBytes = prefetched.packSizeBytes}
+					{@const packSizeBytes = pendingEntity.packSizeBytes}
 					{#if packSizeBytes !== undefined && packSizeBytes !== null}
 						<div>
 							<dt>pack size bytes</dt>
@@ -243,7 +243,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const indexHash = prefetched.indexHash}
+					{@const indexHash = pendingEntity.indexHash}
 					{#if indexHash !== undefined && indexHash !== null}
 						<div>
 							<dt>index hash</dt>
@@ -271,6 +271,8 @@
 			<ResourceBoundary
 				resource={selection.$repository}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(gitRepository)}
 					{#if gitRepository != null && gitRepository[EntityMetaKey.Selector] != null}
 						<div>

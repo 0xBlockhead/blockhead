@@ -9,8 +9,10 @@ export enum BlockheadWakuNodeState_TimestampSelector {
 }
 export const BlockheadWakuNodeState_Timestamp = entity({
 	entityType: EntityType.BlockheadWakuNodeState_Timestamp,
-	label: 'blockhead waku node state timestamp',
-	labelPlural: 'blockhead waku node state observations',
+	labels: {
+		singular: 'blockhead waku node state timestamp',
+		plural: 'blockhead waku node state observations',
+	},
 })({
 	$nodeState: {
 		label: 'node state',

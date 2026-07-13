@@ -47,9 +47,15 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import HederaNetworkView from '$/views/HederaNetworkView.svelte'
+	import HederaContractResultsView from '$/views/HederaContractResultsView.svelte'
+	import HederaContractLogsView from '$/views/HederaContractLogsView.svelte'
+	import HederaContractState_TimestampsView from '$/views/HederaContractState_TimestampsView.svelte'
+	import HederaContract_TimestampsView from '$/views/HederaContract_TimestampsView.svelte'
 </script>
 
 
@@ -102,7 +108,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const contractId = selection.entitySelector.contractId ?? prefetched.contractId}
+							{@const contractId = pendingEntity.contractId}
 							{#if contractId !== undefined && contractId !== null}
 								{String((contractId) ?? '')}
 							{/if}
@@ -129,7 +135,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const evmAddress = prefetched.evmAddress}
+					{@const evmAddress = pendingEntity.evmAddress}
 					{#if evmAddress !== undefined && evmAddress !== null}
 						<div>
 							<dt>EVM address</dt>
@@ -164,7 +170,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdTimestamp = prefetched.createdTimestamp}
+					{@const createdTimestamp = pendingEntity.createdTimestamp}
 					{#if createdTimestamp !== undefined && createdTimestamp !== null}
 						<div>
 							<dt>created timestamp</dt>
@@ -189,5 +195,111 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-contract-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-contract-results',
+							label: 'Results',
+						},
+						{
+							id: 'hedera-contract-logs',
+							label: 'Logs',
+						},
+						{
+							id: 'hedera-contract-state',
+							label: 'State',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaContractResults({ id, label, open })}
+					<HederaContractResultsView
+						selection={selection.$$results}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No results.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHederaContractLogs({ id, label, open })}
+					<HederaContractLogsView
+						selection={selection.$$logs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No logs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionHederaContractState({ id, label, open })}
+					<HederaContractState_TimestampsView
+						selection={selection.$$state}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No state.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-hedera-contract-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'hedera-contract-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHederaContractTimestamps({ id, label, open })}
+					<HederaContract_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

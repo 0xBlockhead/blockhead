@@ -10,8 +10,10 @@ export enum A2aPushNotificationConfigSelector {
 }
 export const A2aPushNotificationConfig = entity({
 	entityType: EntityType.A2aPushNotificationConfig,
-	label: 'a2a push notification config',
-	labelPlural: 'a2a push notification configs',
+	labels: {
+		singular: 'a2a push notification config',
+		plural: 'a2a push notification configs',
+	},
 })({
 	$task: {
 		label: 'task',

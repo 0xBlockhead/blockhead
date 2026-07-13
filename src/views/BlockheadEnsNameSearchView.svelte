@@ -48,7 +48,7 @@
 			resultLimit: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.query ?? prefetched.query) ?? '')].filter(Boolean).join(' ') || 'blockhead ENS name search')
+	const titleFallback = $derived([String((pendingEntity.query) ?? '')].filter(Boolean).join(' ') || 'blockhead ENS name search')
 	const viewDomId = $derived('blockhead-ens-name-search-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadEnsNameSearch}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.query ?? prefetched.query) ?? '')].filter(Boolean).join(' ') || title || 'blockhead ENS name search'}
+				{[String((pendingEntity.query) ?? '')].filter(Boolean).join(' ') || title || 'blockhead ENS name search'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadEnsNameSearch}>
 			{#snippet Pending()}
-				{[String((prefetched.resultLimit) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.query ?? prefetched.query) ?? '')].filter(Boolean).join(' ') || title || 'blockhead ENS name search'}
+				{[String((pendingEntity.resultLimit) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.query) ?? '')].filter(Boolean).join(' ') || title || 'blockhead ENS name search'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -110,7 +110,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const query = selection.entitySelector.query ?? prefetched.query}
+							{@const query = pendingEntity.query}
 							{#if query !== undefined && query !== null}
 								{String((query) ?? '')}
 							{/if}
@@ -137,7 +137,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const createdAt = prefetched.createdAt}
+					{@const createdAt = pendingEntity.createdAt}
 					{#if createdAt !== undefined && createdAt !== null}
 						<div>
 							<dt>Created</dt>
@@ -172,7 +172,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resultLimit = prefetched.resultLimit}
+					{@const resultLimit = pendingEntity.resultLimit}
 					{#if resultLimit !== undefined && resultLimit !== null}
 						<div>
 							<dt>result limit</dt>

@@ -105,7 +105,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const tokenId = selection.entitySelector.tokenId ?? prefetched.tokenId}
+							{@const tokenId = pendingEntity.tokenId}
 							{#if tokenId !== undefined && tokenId !== null}
 								{String((tokenId) ?? '')}
 							{/if}
@@ -135,7 +135,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const accountId = selection.entitySelector.accountId ?? prefetched.accountId}
+							{@const accountId = pendingEntity.accountId}
 							{#if accountId !== undefined && accountId !== null}
 								<TruncatedValue value={String((accountId) ?? '')} />
 							{/if}
@@ -165,7 +165,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transferIndex = selection.entitySelector.transferIndex ?? prefetched.transferIndex}
+							{@const transferIndex = pendingEntity.transferIndex}
 							{#if transferIndex !== undefined && transferIndex !== null}
 								{String((transferIndex) ?? '')}
 							{/if}
@@ -192,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const amount = prefetched.amount}
+					{@const amount = pendingEntity.amount}
 					{#if amount !== undefined && amount !== null}
 						<div>
 							<dt>amount</dt>
@@ -227,7 +227,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const serialNumber = prefetched.serialNumber}
+					{@const serialNumber = pendingEntity.serialNumber}
 					{#if serialNumber !== undefined && serialNumber !== null}
 						<div>
 							<dt>serial number</dt>
@@ -262,7 +262,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isApproval = prefetched.isApproval}
+					{@const isApproval = pendingEntity.isApproval}
 					{#if isApproval !== undefined && isApproval !== null}
 						<div>
 							<dt>is approval</dt>
@@ -290,6 +290,8 @@
 			<ResourceBoundary
 				resource={selection.$token}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaToken)}
 					{#if hederaToken != null && hederaToken[EntityMetaKey.Selector] != null}
 						<div>
@@ -310,6 +312,8 @@
 			<ResourceBoundary
 				resource={selection.$account}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaAccount)}
 					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
 						<div>
@@ -330,6 +334,8 @@
 			<ResourceBoundary
 				resource={selection.$nft}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(hederaNft)}
 					{#if hederaNft != null && hederaNft[EntityMetaKey.Selector] != null}
 						<div>

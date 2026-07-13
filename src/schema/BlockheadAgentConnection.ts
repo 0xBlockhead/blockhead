@@ -10,8 +10,10 @@ export enum BlockheadAgentConnectionSelector {
 }
 export const BlockheadAgentConnection = entity({
 	entityType: EntityType.BlockheadAgentConnection,
-	label: 'blockhead agent connection',
-	labelPlural: 'blockhead agent connections',
+	labels: {
+		singular: 'blockhead agent connection',
+		plural: 'blockhead agent connections',
+	},
 })({
 	connectionId: {
 		label: 'connection ID',

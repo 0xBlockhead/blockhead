@@ -10,8 +10,10 @@ export enum GitObjectVerification_TimestampSelector {
 }
 export const GitObjectVerification_Timestamp = entity({
 	entityType: EntityType.GitObjectVerification_Timestamp,
-	label: 'Git object verification timestamp',
-	labelPlural: 'Git object verification observations',
+	labels: {
+		singular: 'Git object verification timestamp',
+		plural: 'Git object verification observations',
+	},
 })({
 	objectId: {
 		label: 'object ID',

@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -50,7 +49,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.slot ?? prefetched.slot) ?? '')].filter(Boolean).join(' ') || 'solana token mint timestamp')
+	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana token mint timestamp')
 	const viewDomId = $derived('solana-token-mint-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -75,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={solanaTokenMintTimestamp}>
 			{#snippet Pending()}
-				{@const slot0 = selection.entitySelector.slot ?? prefetched.slot}
+				{@const slot0 = pendingEntity.slot}
 				{#if slot0 !== undefined && slot0 !== null}
 					<NumberValue value={Number(slot0)} />
 				{/if}
@@ -94,7 +93,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaTokenMintTimestamp}>
 			{#snippet Pending()}
-				{@const supply0 = prefetched.supply}
+				{@const supply0 = pendingEntity.supply}
 				{#if supply0 !== undefined && supply0 !== null}
 					<NumberValue value={Number(supply0)} />
 				{/if}
@@ -113,7 +112,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaTokenMintTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(timestampMs0)} />
@@ -141,8 +140,8 @@
 					<SolanaTokenMintView
 						selection={select(EntityType.SolanaTokenMint, selection.entitySelector.$mint, {})}
 						href={
-							(selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.caip2 !== undefined && selection.entitySelector.$mint.$network.caip2.namespace !== undefined && selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.caip2 !== undefined && selection.entitySelector.$mint.$network.caip2.reference !== undefined && selection.entitySelector.$mint.mintAddress !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/token-mint/[mintAddress]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$mint.$network.caip2.namespace) + ':' + String(selection.entitySelector.$mint.$network.caip2.reference))].slug ?? ''),
+							(selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.slug !== undefined && selection.entitySelector.$mint.mintAddress !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+								network: String(selection.entitySelector.$mint.$network.slug ?? ''),
 								mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
 							}) : undefined)
 						}
@@ -165,7 +164,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -195,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals}
+					{@const decimals = pendingEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -233,7 +232,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const mintAuthorityPubkey = prefetched.mintAuthorityPubkey}
+					{@const mintAuthorityPubkey = pendingEntity.mintAuthorityPubkey}
 					{#if mintAuthorityPubkey !== undefined && mintAuthorityPubkey !== null}
 						<div>
 							<dt>Mint authority public key</dt>
@@ -271,7 +270,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const freezeAuthorityPubkey = prefetched.freezeAuthorityPubkey}
+					{@const freezeAuthorityPubkey = pendingEntity.freezeAuthorityPubkey}
 					{#if freezeAuthorityPubkey !== undefined && freezeAuthorityPubkey !== null}
 						<div>
 							<dt>Freeze authority public key</dt>
@@ -309,7 +308,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const isInitialized = prefetched.isInitialized}
+					{@const isInitialized = pendingEntity.isInitialized}
 					{#if isInitialized !== undefined && isInitialized !== null}
 						<div>
 							<dt>Initialized</dt>

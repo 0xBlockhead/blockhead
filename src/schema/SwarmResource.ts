@@ -10,8 +10,10 @@ export enum SwarmResourceSelector {
 }
 export const SwarmResource = entity({
 	entityType: EntityType.SwarmResource,
-	label: 'Swarm resource',
-	labelPlural: 'Swarm resources',
+	labels: {
+		singular: 'Swarm resource',
+		plural: 'Swarm resources',
+	},
 })({
 	reference: {
 		label: 'Reference',

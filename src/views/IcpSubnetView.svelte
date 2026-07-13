@@ -47,8 +47,13 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpNetworkView from '$/views/IcpNetworkView.svelte'
+	import IcpSubnetCanisterRange_TimestampsView from '$/views/IcpSubnetCanisterRange_TimestampsView.svelte'
+	import IcpCanistersView from '$/views/IcpCanistersView.svelte'
+	import IcpSubnet_TimestampsView from '$/views/IcpSubnet_TimestampsView.svelte'
 </script>
 
 
@@ -101,7 +106,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const subnetId = selection.entitySelector.subnetId ?? prefetched.subnetId}
+							{@const subnetId = pendingEntity.subnetId}
 							{#if subnetId !== undefined && subnetId !== null}
 								{String((subnetId) ?? '')}
 							{/if}
@@ -118,5 +123,96 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-icp-subnet-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'icp-subnet-canister-ranges',
+							label: 'Canister Ranges',
+						},
+						{
+							id: 'icp-subnet-canisters',
+							label: 'Canisters',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionIcpSubnetCanisterRanges({ id, label, open })}
+					<IcpSubnetCanisterRange_TimestampsView
+						selection={selection.$$canisterRanges}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No canister ranges.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionIcpSubnetCanisters({ id, label, open })}
+					<IcpCanistersView
+						selection={selection.$$canisters}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No canisters.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-icp-subnet-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'icp-subnet-timestamps',
+							label: 'Timestamps',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionIcpSubnetTimestamps({ id, label, open })}
+					<IcpSubnet_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No timestamps.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

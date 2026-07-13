@@ -46,7 +46,7 @@
 			eventType: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.eventType) ?? '')].filter(Boolean).join(' ') || 'aptos event')
+	const titleFallback = $derived([String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || 'aptos event')
 	const viewDomId = $derived('aptos-event-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosEvent}>
 			{#snippet Pending()}
-				{[String((prefetched.eventType) ?? '')].filter(Boolean).join(' ') || title || 'aptos event'}
+				{[String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || title || 'aptos event'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -85,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosEvent}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.transactionVersion ?? prefetched.transactionVersion) ?? ''), String((selection.entitySelector.eventIndex ?? prefetched.eventIndex) ?? '')].filter(Boolean).join(' ') || [String((prefetched.eventType) ?? '')].filter(Boolean).join(' ') || title || 'aptos event'}
+				{[String((pendingEntity.transactionVersion) ?? ''), String((pendingEntity.eventIndex) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || title || 'aptos event'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -111,6 +111,8 @@
 			<ResourceBoundary
 				resource={selection.$transaction}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(aptosTransaction)}
 					{#if aptosTransaction != null && aptosTransaction[EntityMetaKey.Selector] != null}
 						<div>
@@ -141,7 +143,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventType = prefetched.eventType}
+							{@const eventType = pendingEntity.eventType}
 							{#if eventType !== undefined && eventType !== null}
 								{String((eventType) ?? '')}
 							{/if}
@@ -171,7 +173,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const transactionVersion = selection.entitySelector.transactionVersion ?? prefetched.transactionVersion}
+							{@const transactionVersion = pendingEntity.transactionVersion}
 							{#if transactionVersion !== undefined && transactionVersion !== null}
 								<NumberValue value={Number(transactionVersion)} />
 							{/if}
@@ -201,7 +203,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const eventIndex = selection.entitySelector.eventIndex ?? prefetched.eventIndex}
+							{@const eventIndex = pendingEntity.eventIndex}
 							{#if eventIndex !== undefined && eventIndex !== null}
 								<NumberValue value={Number(eventIndex)} />
 							{/if}
@@ -230,7 +232,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountAddress = prefetched.accountAddress}
+					{@const accountAddress = pendingEntity.accountAddress}
 					{#if accountAddress !== undefined && accountAddress !== null}
 						<div>
 							<dt>account address</dt>
@@ -265,7 +267,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const creationNumber = prefetched.creationNumber}
+					{@const creationNumber = pendingEntity.creationNumber}
 					{#if creationNumber !== undefined && creationNumber !== null}
 						<div>
 							<dt>creation number</dt>
@@ -300,7 +302,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const sequenceNumber = prefetched.sequenceNumber}
+					{@const sequenceNumber = pendingEntity.sequenceNumber}
 					{#if sequenceNumber !== undefined && sequenceNumber !== null}
 						<div>
 							<dt>sequence number</dt>

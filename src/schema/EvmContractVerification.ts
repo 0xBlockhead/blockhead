@@ -9,8 +9,10 @@ export enum EvmContractVerificationSelector {
 }
 export const EvmContractVerification = entity({
 	entityType: EntityType.EvmContractVerification,
-	label: 'EVM contract verification',
-	labelPlural: 'EVM contract verifications',
+	labels: {
+		singular: 'EVM contract verification',
+		plural: 'EVM contract verifications',
+	},
 })({
 	$contract: {
 		label: 'Contract',

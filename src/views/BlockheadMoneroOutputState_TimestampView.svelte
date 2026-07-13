@@ -52,7 +52,7 @@
 			confirmations: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead monero output state timestamp')
+	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead monero output state timestamp')
 	const viewDomId = $derived('blockhead-monero-output-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -77,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadMoneroOutputStateTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -96,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroOutputStateTimestamp}>
 			{#snippet Pending()}
-				{[String((prefetched.spent) ?? ''), String((prefetched.unlocked) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero output state timestamp'}
+				{[String((pendingEntity.spent) ?? ''), String((pendingEntity.unlocked) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero output state timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -109,7 +109,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadMoneroOutputStateTimestamp}>
 			{#snippet Pending()}
-				{@const confirmations0 = prefetched.confirmations}
+				{@const confirmations0 = pendingEntity.confirmations}
 				{#if confirmations0 !== undefined && confirmations0 !== null}
 					<span data-text="muted">
 						<NumberValue value={Number(confirmations0)} />
@@ -155,7 +155,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -185,7 +185,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -212,7 +212,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spent = prefetched.spent}
+					{@const spent = pendingEntity.spent}
 					{#if spent !== undefined && spent !== null}
 						<div>
 							<dt>spent</dt>
@@ -247,7 +247,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const unlocked = prefetched.unlocked}
+					{@const unlocked = pendingEntity.unlocked}
 					{#if unlocked !== undefined && unlocked !== null}
 						<div>
 							<dt>unlocked</dt>
@@ -284,7 +284,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const confirmations = prefetched.confirmations}
+					{@const confirmations = pendingEntity.confirmations}
 					{#if confirmations !== undefined && confirmations !== null}
 						<div>
 							<dt>confirmations</dt>
@@ -319,7 +319,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const exportHeight = prefetched.exportHeight}
+					{@const exportHeight = pendingEntity.exportHeight}
 					{#if exportHeight !== undefined && exportHeight !== null}
 						<div>
 							<dt>export height</dt>
@@ -354,7 +354,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastCheckedAt = prefetched.lastCheckedAt}
+					{@const lastCheckedAt = pendingEntity.lastCheckedAt}
 					{#if lastCheckedAt !== undefined && lastCheckedAt !== null}
 						<div>
 							<dt>last checked AT</dt>

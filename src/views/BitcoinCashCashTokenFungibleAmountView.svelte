@@ -10,7 +10,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -50,10 +49,9 @@
 		],
 		fields: {
 			amount: true,
-			$category: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.amount) ?? '')].filter(Boolean).join(' ') || 'Bitcoin Cash CashToken fungible amount')
+	const titleFallback = $derived([String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || 'Bitcoin Cash CashToken fungible amount')
 	const viewDomId = $derived('bitcoin-cash-cash-token-fungible-amount-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -71,9 +69,9 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$output !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.caip2 !== undefined && pendingEntity.$output.$transaction.$network.caip2.namespace !== undefined && pendingEntity.$output !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.caip2 !== undefined && pendingEntity.$output.$transaction.$network.caip2.reference !== undefined && pendingEntity.$output !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output !== undefined && pendingEntity.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-			networkSlug: String(networkByCaip2[String(String(pendingEntity.$output.$transaction.$network.caip2.namespace) + ':' + String(pendingEntity.$output.$transaction.$network.caip2.reference))].slug ?? ''),
-			txId: String(pendingEntity.$output.$transaction.txId ?? ''),
+		href ?? (pendingEntity.$output !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.slug !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
+			network: String(pendingEntity.$output.$transaction.$network.slug ?? ''),
+			transactionId: String(pendingEntity.$output.$transaction.txId ?? ''),
 			outputIndex: String(pendingEntity.$output.indexInTransaction ?? ''),
 		}) : undefined)
 	}
@@ -84,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bitcoinCashCashTokenFungibleAmount}>
 			{#snippet Pending()}
-				{@const amount0 = prefetched.amount}
+				{@const amount0 = pendingEntity.amount}
 				{#if amount0 !== undefined && amount0 !== null}
 					<NumberValue value={Number(amount0)} />
 				{/if}
@@ -103,7 +101,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bitcoinCashCashTokenFungibleAmount}>
 			{#snippet Pending()}
-				{@const amount0 = prefetched.amount}
+				{@const amount0 = pendingEntity.amount}
 				{#if amount0 !== undefined && amount0 !== null}
 					<NumberValue value={Number(amount0)} />
 				{/if}
@@ -188,7 +186,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const amount = prefetched.amount}
+							{@const amount = pendingEntity.amount}
 							{#if amount !== undefined && amount !== null}
 								<NumberValue value={Number(amount)} />
 							{/if}
@@ -218,7 +216,7 @@
 						}
 					>
 						{#snippet children(bitcoinCashCashTokenCategory)}
-							{#if bitcoinCashCashTokenCategory[EntityMetaKey.Selector] != null}
+							{#if bitcoinCashCashTokenCategory != null && bitcoinCashCashTokenCategory[EntityMetaKey.Selector] != null}
 								<BitcoinCashCashTokenCategoryView
 									selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenCategory}
@@ -237,9 +235,9 @@
 					<UtxoOutputView
 						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output, {})}
 						href={
-							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$output.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$output.$transaction.$network.caip2.reference))].slug ?? ''),
-								txId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
+							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.slug !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+								network: String(selection.entitySelector.$output.$transaction.$network.slug ?? ''),
+								transactionId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
 								outputIndex: String(selection.entitySelector.$output.indexInTransaction ?? ''),
 							}) : undefined)
 						}

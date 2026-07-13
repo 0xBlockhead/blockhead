@@ -13,8 +13,10 @@ export enum FarcasterFeedSelector {
 }
 export const FarcasterFeed = entity({
 	entityType: EntityType.FarcasterFeed,
-	label: 'Farcaster feed',
-	labelPlural: 'Farcaster feeds',
+	labels: {
+		singular: 'Farcaster feed',
+		plural: 'Farcaster feeds',
+	},
 })({
 	variant: {
 		label: 'Variant',
@@ -25,7 +27,7 @@ export const FarcasterFeed = entity({
 	fid: {
 		label: 'FID',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	channelId: {
@@ -37,7 +39,7 @@ export const FarcasterFeed = entity({
 	viewerFid: {
 		label: 'Viewer FID',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	label: {

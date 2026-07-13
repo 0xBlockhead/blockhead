@@ -9,8 +9,10 @@ export enum BlockheadZcashViewingKeySelector {
 }
 export const BlockheadZcashViewingKey = entity({
 	entityType: EntityType.BlockheadZcashViewingKey,
-	label: 'blockhead zcash viewing key',
-	labelPlural: 'blockhead zcash viewing keys',
+	labels: {
+		singular: 'blockhead zcash viewing key',
+		plural: 'blockhead zcash viewing keys',
+	},
 })({
 	walletId: {
 		label: 'wallet ID',

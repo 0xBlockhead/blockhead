@@ -10,8 +10,10 @@ export enum AlgorandTransactionGroupSelector {
 }
 export const AlgorandTransactionGroup = entity({
 	entityType: EntityType.AlgorandTransactionGroup,
-	label: 'algorand transaction group',
-	labelPlural: 'algorand transaction groups',
+	labels: {
+		singular: 'algorand transaction group',
+		plural: 'algorand transaction groups',
+	},
 })({
 	$network: {
 		label: 'network',

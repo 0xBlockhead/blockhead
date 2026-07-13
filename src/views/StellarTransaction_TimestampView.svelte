@@ -102,7 +102,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const timestampMs = pendingEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
@@ -132,7 +132,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{@const source = pendingEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -159,7 +159,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerSequence = prefetched.ledgerSequence}
+					{@const ledgerSequence = pendingEntity.ledgerSequence}
 					{#if ledgerSequence !== undefined && ledgerSequence !== null}
 						<div>
 							<dt>ledger sequence</dt>
@@ -194,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const successful = prefetched.successful}
+					{@const successful = pendingEntity.successful}
 					{#if successful !== undefined && successful !== null}
 						<div>
 							<dt>successful</dt>
@@ -229,7 +229,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resultCode = prefetched.resultCode}
+					{@const resultCode = pendingEntity.resultCode}
 					{#if resultCode !== undefined && resultCode !== null}
 						<div>
 							<dt>result code</dt>
@@ -264,7 +264,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeCharged = prefetched.feeCharged}
+					{@const feeCharged = pendingEntity.feeCharged}
 					{#if feeCharged !== undefined && feeCharged !== null}
 						<div>
 							<dt>fee charged</dt>
@@ -299,7 +299,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const maxFee = prefetched.maxFee}
+					{@const maxFee = pendingEntity.maxFee}
 					{#if maxFee !== undefined && maxFee !== null}
 						<div>
 							<dt>max fee</dt>
@@ -334,7 +334,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const envelopeXdr = prefetched.envelopeXdr}
+					{@const envelopeXdr = pendingEntity.envelopeXdr}
 					{#if envelopeXdr !== undefined && envelopeXdr !== null}
 						<div>
 							<dt>envelope xdr</dt>
@@ -369,7 +369,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const resultXdr = prefetched.resultXdr}
+					{@const resultXdr = pendingEntity.resultXdr}
 					{#if resultXdr !== undefined && resultXdr !== null}
 						<div>
 							<dt>result xdr</dt>
@@ -404,7 +404,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const metaXdr = prefetched.metaXdr}
+					{@const metaXdr = pendingEntity.metaXdr}
 					{#if metaXdr !== undefined && metaXdr !== null}
 						<div>
 							<dt>meta xdr</dt>
@@ -439,7 +439,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const feeMetaXdr = prefetched.feeMetaXdr}
+					{@const feeMetaXdr = pendingEntity.feeMetaXdr}
 					{#if feeMetaXdr !== undefined && feeMetaXdr !== null}
 						<div>
 							<dt>fee meta xdr</dt>
@@ -477,7 +477,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const signatures = prefetched.signatures}
+							{@const signatures = pendingEntity.signatures}
 							{#if signatures !== undefined && signatures !== null}
 								<TruncatedValue value={signatures.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}

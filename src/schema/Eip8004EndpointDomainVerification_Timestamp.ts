@@ -9,8 +9,10 @@ export enum Eip8004EndpointDomainVerification_TimestampSelector {
 }
 export const Eip8004EndpointDomainVerification_Timestamp = entity({
 	entityType: EntityType.Eip8004EndpointDomainVerification_Timestamp,
-	label: 'EIP-8004 endpoint domain verification timestamp',
-	labelPlural: 'EIP-8004 endpoint domain verification observations',
+	labels: {
+		singular: 'EIP-8004 endpoint domain verification timestamp',
+		plural: 'EIP-8004 endpoint domain verification observations',
+	},
 })({
 	endpointUrl: {
 		label: 'Endpoint URL',

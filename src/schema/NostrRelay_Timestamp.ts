@@ -9,8 +9,10 @@ export enum NostrRelay_TimestampSelector {
 }
 export const NostrRelay_Timestamp = entity({
 	entityType: EntityType.NostrRelay_Timestamp,
-	label: 'Nostr relay timestamp',
-	labelPlural: 'Nostr relay observations',
+	labels: {
+		singular: 'Nostr relay timestamp',
+		plural: 'Nostr relay observations',
+	},
 })({
 	$relay: {
 		label: 'Relay',

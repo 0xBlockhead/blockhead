@@ -9,8 +9,10 @@ export enum BlockheadQuilibriumAccountStateSelector {
 }
 export const BlockheadQuilibriumAccountState = entity({
 	entityType: EntityType.BlockheadQuilibriumAccountState,
-	label: 'blockhead quilibrium account state',
-	labelPlural: 'blockhead quilibrium account states',
+	labels: {
+		singular: 'blockhead quilibrium account state',
+		plural: 'blockhead quilibrium account states',
+	},
 })({
 	connectionId: {
 		label: 'connection ID',

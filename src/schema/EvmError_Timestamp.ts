@@ -9,8 +9,10 @@ export enum EvmError_TimestampSelector {
 }
 export const EvmError_Timestamp = entity({
 	entityType: EntityType.EvmError_Timestamp,
-	label: 'EVM error observation',
-	labelPlural: 'EVM error observations',
+	labels: {
+		singular: 'EVM error observation',
+		plural: 'EVM error observations',
+	},
 })({
 	$error: {
 		label: 'Error',
@@ -22,7 +24,7 @@ export const EvmError_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

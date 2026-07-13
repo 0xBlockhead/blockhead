@@ -46,7 +46,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((prefetched.height) ?? '')].filter(Boolean).join(' ') || [String((prefetched.containsVersion) ?? '')].filter(Boolean).join(' ') || 'aptos block')
+	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.containsVersion) ?? '')].filter(Boolean).join(' ') || 'aptos block')
 	const viewDomId = $derived('aptos-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosBlock}>
 			{#snippet Pending()}
-				{@const height0 = prefetched.height}
+				{@const height0 = pendingEntity.height}
 				{#if height0 !== undefined && height0 !== null}
 					<NumberValue value={Number(height0)} />
 				{/if}
@@ -91,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosBlock}>
 			{#snippet Pending()}
-				{@const timestampMs0 = prefetched.timestampMs}
+				{@const timestampMs0 = pendingEntity.timestampMs}
 				{#if timestampMs0 !== undefined && timestampMs0 !== null}
 					<Timestamp timestamp={Number(timestampMs0)} />
 				{/if}
@@ -133,7 +133,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const height = prefetched.height}
+							{@const height = pendingEntity.height}
 							{#if height !== undefined && height !== null}
 								<NumberValue value={Number(height)} />
 							{/if}
@@ -163,7 +163,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const containsVersion = prefetched.containsVersion}
+							{@const containsVersion = pendingEntity.containsVersion}
 							{#if containsVersion !== undefined && containsVersion !== null}
 								<NumberValue value={Number(containsVersion)} />
 							{/if}
@@ -192,7 +192,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const firstVersion = prefetched.firstVersion}
+					{@const firstVersion = pendingEntity.firstVersion}
 					{#if firstVersion !== undefined && firstVersion !== null}
 						<div>
 							<dt>first version</dt>
@@ -227,7 +227,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const lastVersion = prefetched.lastVersion}
+					{@const lastVersion = pendingEntity.lastVersion}
 					{#if lastVersion !== undefined && lastVersion !== null}
 						<div>
 							<dt>last version</dt>
@@ -262,7 +262,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs}
+					{@const timestampMs = pendingEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>

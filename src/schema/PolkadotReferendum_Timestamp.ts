@@ -9,8 +9,10 @@ export enum PolkadotReferendum_TimestampSelector {
 }
 export const PolkadotReferendum_Timestamp = entity({
 	entityType: EntityType.PolkadotReferendum_Timestamp,
-	label: 'Polkadot referendum timestamp',
-	labelPlural: 'Polkadot referendum observations',
+	labels: {
+		singular: 'Polkadot referendum timestamp',
+		plural: 'Polkadot referendum observations',
+	},
 })({
 	$referendum: {
 		label: 'Referendum',

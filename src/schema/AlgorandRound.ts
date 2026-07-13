@@ -10,8 +10,10 @@ export enum AlgorandRoundSelector {
 }
 export const AlgorandRound = entity({
 	entityType: EntityType.AlgorandRound,
-	label: 'algorand round',
-	labelPlural: 'algorand rounds',
+	labels: {
+		singular: 'algorand round',
+		plural: 'algorand rounds',
+	},
 })({
 	$network: {
 		label: 'network',

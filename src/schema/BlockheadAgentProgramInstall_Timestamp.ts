@@ -10,8 +10,10 @@ export enum BlockheadAgentProgramInstall_TimestampSelector {
 }
 export const BlockheadAgentProgramInstall_Timestamp = entity({
 	entityType: EntityType.BlockheadAgentProgramInstall_Timestamp,
-	label: 'blockhead agent program install timestamp',
-	labelPlural: 'blockhead agent program install observations',
+	labels: {
+		singular: 'blockhead agent program install timestamp',
+		plural: 'blockhead agent program install observations',
+	},
 })({
 	$install: {
 		label: 'install',

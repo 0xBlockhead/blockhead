@@ -9,8 +9,10 @@ export enum BeaconSyncCommitteeSelector {
 }
 export const BeaconSyncCommittee = entity({
 	entityType: EntityType.BeaconSyncCommittee,
-	label: 'beacon sync committee',
-	labelPlural: 'Beacon sync committees',
+	labels: {
+		singular: 'beacon sync committee',
+		plural: 'Beacon sync committees',
+	},
 })({
 	$network: {
 		label: 'Network',
@@ -21,7 +23,7 @@ export const BeaconSyncCommittee = entity({
 	period: {
 		label: 'Period',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	validatorIndices: {

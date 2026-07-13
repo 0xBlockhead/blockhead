@@ -9,8 +9,10 @@ export enum YoutubeComment_TimestampSelector {
 }
 export const YoutubeComment_Timestamp = entity({
 	entityType: EntityType.YoutubeComment_Timestamp,
-	label: 'YouTube comment observation',
-	labelPlural: 'YouTube comment observations',
+	labels: {
+		singular: 'YouTube comment observation',
+		plural: 'YouTube comment observations',
+	},
 })({
 	$comment: {
 		label: 'Comment',
@@ -21,7 +23,7 @@ export const YoutubeComment_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	likeCount: {

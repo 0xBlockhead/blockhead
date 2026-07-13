@@ -119,9 +119,9 @@
 						selection={select(EntityType.Currency_Timestamp, currencyTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={currencyTimestampFields}
 						href={
-							(currencyTimestampHrefFields.$currency !== undefined && currencyTimestampHrefFields.$currency.iso4217 !== undefined && currencyTimestampHrefFields.timestampMs !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
-								iso4217: String(currencyTimestampHrefFields.$currency.iso4217 ?? ''),
+							(currencyTimestampHrefFields.timestampMs !== undefined && currencyTimestampHrefFields.$currency !== undefined && currencyTimestampHrefFields.$currency.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
 								timestampMs: String(currencyTimestampHrefFields.timestampMs ?? ''),
+								iso4217: String(currencyTimestampHrefFields.$currency.iso4217 ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

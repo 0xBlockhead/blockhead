@@ -10,8 +10,10 @@ export enum HyperliquidOrderSelector {
 }
 export const HyperliquidOrder = entity({
 	entityType: EntityType.HyperliquidOrder,
-	label: 'hyperliquid order',
-	labelPlural: 'hyperliquid orders',
+	labels: {
+		singular: 'hyperliquid order',
+		plural: 'hyperliquid orders',
+	},
 })({
 	$account: {
 		label: 'account',

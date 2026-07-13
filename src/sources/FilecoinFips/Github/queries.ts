@@ -24,7 +24,7 @@ export const getContents = (): Promise<FilecoinFipsGithubContents> => (
 	getGithubContents({
 		endpoints: filecoinFipsBindings[0].endpoints,
 		target: filecoinFipsGithubRepo,
-	}) as Promise<FilecoinFipsGithubContents>
+	})
 )
 
 export const getMarkdownText = ({ number }: { number: number }) => (

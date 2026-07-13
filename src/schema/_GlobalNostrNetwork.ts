@@ -11,8 +11,10 @@ export enum _GlobalNostrNetworkSelector {
 }
 export const _GlobalNostrNetwork = entity({
 	entityType: EntityType._GlobalNostrNetwork,
-	label: 'Nostr',
-	labelPlural: 'Nostr',
+	labels: {
+		singular: 'Nostr',
+		plural: 'Nostr',
+	},
 	description: 'Nostr is a relay-based social protocol for signed events. Profiles, notes, reposts, and articles are event kinds; relays are transport endpoints and are not global proof that an event exists everywhere.',
 })({
 	scope: {

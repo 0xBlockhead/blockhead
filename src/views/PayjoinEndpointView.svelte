@@ -44,10 +44,9 @@
 	const payjoinEndpoint = $derived(selection({
 		fields: {
 			protocolVersion: true,
-			$directory: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'payjoin endpoint')
+	const titleFallback = $derived([String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'payjoin endpoint')
 	const viewDomId = $derived('payjoin-endpoint-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -73,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={payjoinEndpoint}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin endpoint'}
+				{[String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin endpoint'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -86,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={payjoinEndpoint}>
 			{#snippet Pending()}
-				{[String((prefetched.protocolVersion) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.endpointUrl ?? prefetched.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin endpoint'}
+				{[String((pendingEntity.protocolVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || 'payjoin endpoint'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -154,7 +153,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const endpointUrl = selection.entitySelector.endpointUrl ?? prefetched.endpointUrl}
+							{@const endpointUrl = pendingEntity.endpointUrl}
 							{#if endpointUrl !== undefined && endpointUrl !== null}
 								<svelte:element
 									this={'a'}
@@ -195,7 +194,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const protocolVersion = prefetched.protocolVersion}
+					{@const protocolVersion = pendingEntity.protocolVersion}
 					{#if protocolVersion !== undefined && protocolVersion !== null}
 						<div>
 							<dt>protocol version</dt>
@@ -223,6 +222,8 @@
 			<ResourceBoundary
 				resource={selection.$directory}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(payjoinDirectory)}
 					{#if payjoinDirectory != null && payjoinDirectory[EntityMetaKey.Selector] != null}
 						<div>

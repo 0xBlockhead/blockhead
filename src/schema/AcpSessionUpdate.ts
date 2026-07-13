@@ -9,8 +9,10 @@ export enum AcpSessionUpdateSelector {
 }
 export const AcpSessionUpdate = entity({
 	entityType: EntityType.AcpSessionUpdate,
-	label: 'acp session update',
-	labelPlural: 'acp session updates',
+	labels: {
+		singular: 'acp session update',
+		plural: 'acp session updates',
+	},
 })({
 	$session: {
 		label: 'session',

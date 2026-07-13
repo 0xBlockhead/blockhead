@@ -53,7 +53,7 @@
 			transactionCount: true,
 		},
 	}))
-	const titleFallback = $derived((String((prefetched.blockNumber) ?? '') ? 'Block #' + String((prefetched.blockNumber) ?? '') : '') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'EVM block')
+	const titleFallback = $derived((String((pendingEntity.blockNumber) ?? '') ? 'Block #' + String((pendingEntity.blockNumber) ?? '') : '') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'EVM block')
 	const viewDomId = $derived('evm-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,10 +72,10 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(prefetched.blockNumber ?? '')}
+	idDragPlainText={String(pendingEntity.blockNumber ?? '')}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+			network: String(pendingEntity.$network.slug ?? ''),
 			blockNumber: String(pendingEntity.blockNumber ?? ''),
 		}) : undefined)
 	}
@@ -84,7 +84,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = prefetched.blockNumber}
+		{@const serialValue = pendingEntity.blockNumber}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Block </span>
@@ -93,18 +93,18 @@
 				</span>
 			</span>
 		{:else}
-			{[String((prefetched.hash) ?? '')].filter(Boolean).join(' ')}
+			{[String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ')}
 		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = prefetched.blockNumber}
+		{@const serialValue = pendingEntity.blockNumber}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
 			</span>
 		{:else}
-			{[String((prefetched.hash) ?? '')].filter(Boolean).join(' ')}
+			{[String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ')}
 		{/if}
 	{/snippet}
 
@@ -129,7 +129,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const hash = prefetched.hash}
+							{@const hash = pendingEntity.hash}
 							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
 							{/if}
@@ -156,7 +156,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount}
+					{@const transactionCount = pendingEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>Transactions</dt>
@@ -191,7 +191,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const timestamp = prefetched.timestamp}
+					{@const timestamp = pendingEntity.timestamp}
 					{#if timestamp !== undefined && timestamp !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -229,7 +229,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const gasUsed = prefetched.gasUsed}
+						{@const gasUsed = pendingEntity.gasUsed}
 						{#if gasUsed !== undefined && gasUsed !== null}
 							<div>
 								<dt>Gas used</dt>
@@ -266,7 +266,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const gasLimit = prefetched.gasLimit}
+						{@const gasLimit = pendingEntity.gasLimit}
 						{#if gasLimit !== undefined && gasLimit !== null}
 							<div>
 								<dt>Gas limit</dt>
@@ -303,7 +303,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const baseFeePerGas = prefetched.baseFeePerGas}
+						{@const baseFeePerGas = pendingEntity.baseFeePerGas}
 						{#if baseFeePerGas !== undefined && baseFeePerGas !== null}
 							<div>
 								<dt>Base fee</dt>
@@ -340,7 +340,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const blobGasUsed = prefetched.blobGasUsed}
+						{@const blobGasUsed = pendingEntity.blobGasUsed}
 						{#if blobGasUsed !== undefined && blobGasUsed !== null}
 							<div>
 								<dt>Blob gas used</dt>
@@ -377,7 +377,7 @@
 					}
 				>
 					{#snippet Pending()}
-						{@const excessBlobGas = prefetched.excessBlobGas}
+						{@const excessBlobGas = pendingEntity.excessBlobGas}
 						{#if excessBlobGas !== undefined && excessBlobGas !== null}
 							<div>
 								<dt>Excess blob gas</dt>
@@ -409,6 +409,8 @@
 				<ResourceBoundary
 					resource={selection.$parent}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(evmBlock)}
 						{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
 							<div>
@@ -418,8 +420,8 @@
 										selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 										prefetched={evmBlock}
 										href={
-											(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-												caip2: `${String(evmBlock[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmBlock[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+												network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
 												blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
 											}) : undefined)
 										}
@@ -437,6 +439,8 @@
 				<ResourceBoundary
 					resource={selection.$miner}
 				>
+					{#snippet Pending()}{/snippet}
+
 					{#snippet children(evmAccount)}
 						{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 							<div>
@@ -446,7 +450,7 @@
 										selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 										prefetched={evmAccount}
 										href={
-											(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+											(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
 												address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 											}) : undefined)
 										}

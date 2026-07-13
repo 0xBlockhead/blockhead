@@ -9,8 +9,10 @@ export enum StarknetAccount_TimestampSelector {
 }
 export const StarknetAccount_Timestamp = entity({
 	entityType: EntityType.StarknetAccount_Timestamp,
-	label: 'starknet account timestamp',
-	labelPlural: 'starknet account observations',
+	labels: {
+		singular: 'starknet account timestamp',
+		plural: 'starknet account observations',
+	},
 })({
 	$contract: {
 		label: 'contract',

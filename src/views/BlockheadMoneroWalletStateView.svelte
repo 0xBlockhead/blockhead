@@ -51,19 +51,21 @@
 			primaryAddress: true,
 		},
 	}))
-	const titleFallback = $derived([String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead monero wallet state')
+	const titleFallback = $derived([String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead monero wallet state')
 	const viewDomId = $derived('blockhead-monero-wallet-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import BlockheadMoneroWalletState_TimestampsView from '$/views/BlockheadMoneroWalletState_TimestampsView.svelte'
+	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
+	import MoneroNetworkView from '$/views/MoneroNetworkView.svelte'
 	import BlockheadMoneroSubaddressStatesView from '$/views/BlockheadMoneroSubaddressStatesView.svelte'
 	import BlockheadMoneroOutputStatesView from '$/views/BlockheadMoneroOutputStatesView.svelte'
 	import BlockheadMoneroTransferStatesView from '$/views/BlockheadMoneroTransferStatesView.svelte'
-	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
-	import MoneroNetworkView from '$/views/MoneroNetworkView.svelte'
+	import BlockheadMoneroWalletState_TimestampsView from '$/views/BlockheadMoneroWalletState_TimestampsView.svelte'
 </script>
 
 
@@ -80,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadMoneroWalletState}>
 			{#snippet Pending()}
-				{[String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero wallet state'}
+				{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero wallet state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -93,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroWalletState}>
 			{#snippet Pending()}
-				{[String((prefetched.primaryAddress) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero wallet state'}
+				{[String((pendingEntity.primaryAddress) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || 'blockhead monero wallet state'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -157,7 +159,7 @@
 						}
 					>
 						{#snippet Pending()}
-							{@const walletId = selection.entitySelector.walletId ?? prefetched.walletId}
+							{@const walletId = pendingEntity.walletId}
 							{#if walletId !== undefined && walletId !== null}
 								{String((walletId) ?? '')}
 							{/if}
@@ -177,6 +179,8 @@
 			<ResourceBoundary
 				resource={selection.$wallet}
 			>
+				{#snippet Pending()}{/snippet}
+
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
 						<div>
@@ -201,7 +205,7 @@
 						resource={selection.$network}
 					>
 						{#snippet children(moneroNetwork)}
-							{#if moneroNetwork[EntityMetaKey.Selector] != null}
+							{#if moneroNetwork != null && moneroNetwork[EntityMetaKey.Selector] != null}
 								<MoneroNetworkView
 									selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 									prefetched={moneroNetwork}
@@ -224,7 +228,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const primaryAddress = prefetched.primaryAddress}
+					{@const primaryAddress = pendingEntity.primaryAddress}
 					{#if primaryAddress !== undefined && primaryAddress !== null}
 						<div>
 							<dt>primary address</dt>
@@ -259,7 +263,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const viewOnly = prefetched.viewOnly}
+					{@const viewOnly = pendingEntity.viewOnly}
 					{#if viewOnly !== undefined && viewOnly !== null}
 						<div>
 							<dt>view only</dt>
@@ -294,7 +298,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const trustedDaemon = prefetched.trustedDaemon}
+					{@const trustedDaemon = pendingEntity.trustedDaemon}
 					{#if trustedDaemon !== undefined && trustedDaemon !== null}
 						<div>
 							<dt>trusted daemon</dt>
@@ -331,7 +335,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const viewKeyFingerprint = prefetched.viewKeyFingerprint}
+					{@const viewKeyFingerprint = pendingEntity.viewKeyFingerprint}
 					{#if viewKeyFingerprint !== undefined && viewKeyFingerprint !== null}
 						<div>
 							<dt>view key fingerprint</dt>
@@ -366,7 +370,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const spendKeyAvailable = prefetched.spendKeyAvailable}
+					{@const spendKeyAvailable = pendingEntity.spendKeyAvailable}
 					{#if spendKeyAvailable !== undefined && spendKeyAvailable !== null}
 						<div>
 							<dt>spend key available</dt>
@@ -395,33 +399,107 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<BlockheadMoneroWalletState_TimestampsView
-				selection={selection.$$timestamps}
-				title='timestamps'
-				emptyText='No Monero wallet observations.'
-				id='BlockheadMoneroWalletState_TimestampsView-timestamps'
-			/>
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-monero-wallet-addresses'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'monero-subaddresses',
+							label: 'Subaddresses',
+						},
+						{
+							id: 'monero-outputs',
+							label: 'Outputs',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-addresses'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Addresses and outputs</HeadingComponent>
+					</header>
+				{/snippet}
 
-			<BlockheadMoneroSubaddressStatesView
-				selection={selection.$$subaddresses}
-				title='subaddresses'
-				emptyText='No Monero subaddresses.'
-				id='BlockheadMoneroSubaddressStatesView-subaddresses'
-			/>
+				{#snippet SectionMoneroSubaddresses({ id, label, open })}
+					<BlockheadMoneroSubaddressStatesView
+						selection={selection.$$subaddresses}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Monero subaddresses.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadMoneroOutputStatesView
-				selection={selection.$$outputs}
-				title='outputs'
-				emptyText='No Monero outputs.'
-				id='BlockheadMoneroOutputStatesView-outputs'
-			/>
+				{#snippet SectionMoneroOutputs({ id, label, open })}
+					<BlockheadMoneroOutputStatesView
+						selection={selection.$$outputs}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Monero outputs.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 
-			<BlockheadMoneroTransferStatesView
-				selection={selection.$$transfers}
-				title='transfers'
-				emptyText='No Monero transfers.'
-				id='BlockheadMoneroTransferStatesView-transfers'
-			/>
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-monero-wallet-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'monero-transfers',
+							label: 'Transfers',
+						},
+						{
+							id: 'monero-wallet-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Transfers and observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionMoneroTransfers({ id, label, open })}
+					<BlockheadMoneroTransferStatesView
+						selection={selection.$$transfers}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Monero transfers.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionMoneroWalletTimestamps({ id, label, open })}
+					<BlockheadMoneroWalletState_TimestampsView
+						selection={selection.$$timestamps}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No Monero wallet observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>

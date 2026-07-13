@@ -9,8 +9,10 @@ export enum BlockheadAgentCredentialStateSelector {
 }
 export const BlockheadAgentCredentialState = entity({
 	entityType: EntityType.BlockheadAgentCredentialState,
-	label: 'blockhead agent credential state',
-	labelPlural: 'blockhead agent credential states',
+	labels: {
+		singular: 'blockhead agent credential state',
+		plural: 'blockhead agent credential states',
+	},
 })({
 	credentialId: {
 		label: 'credential ID',

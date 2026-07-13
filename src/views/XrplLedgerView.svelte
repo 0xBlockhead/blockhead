@@ -99,7 +99,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerIndex = prefetched.ledgerIndex}
+					{@const ledgerIndex = pendingEntity.ledgerIndex}
 					{#if ledgerIndex !== undefined && ledgerIndex !== null}
 						<div>
 							<dt>ledger index</dt>
@@ -134,7 +134,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const ledgerHash = prefetched.ledgerHash}
+					{@const ledgerHash = pendingEntity.ledgerHash}
 					{#if ledgerHash !== undefined && ledgerHash !== null}
 						<div>
 							<dt>ledger hash</dt>
@@ -169,7 +169,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const closeTimeMs = prefetched.closeTimeMs}
+					{@const closeTimeMs = pendingEntity.closeTimeMs}
 					{#if closeTimeMs !== undefined && closeTimeMs !== null}
 						<div>
 							<dt>close time ms</dt>
@@ -204,7 +204,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const validated = prefetched.validated}
+					{@const validated = pendingEntity.validated}
 					{#if validated !== undefined && validated !== null}
 						<div>
 							<dt>validated</dt>
@@ -239,7 +239,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const totalCoinsDrops = prefetched.totalCoinsDrops}
+					{@const totalCoinsDrops = pendingEntity.totalCoinsDrops}
 					{#if totalCoinsDrops !== undefined && totalCoinsDrops !== null}
 						<div>
 							<dt>total coins drops</dt>
@@ -274,7 +274,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const parentHash = prefetched.parentHash}
+					{@const parentHash = pendingEntity.parentHash}
 					{#if parentHash !== undefined && parentHash !== null}
 						<div>
 							<dt>parent hash</dt>
@@ -309,7 +309,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const accountHash = prefetched.accountHash}
+					{@const accountHash = pendingEntity.accountHash}
 					{#if accountHash !== undefined && accountHash !== null}
 						<div>
 							<dt>account hash</dt>
@@ -344,7 +344,7 @@
 				}
 			>
 				{#snippet Pending()}
-					{@const transactionHash = prefetched.transactionHash}
+					{@const transactionHash = pendingEntity.transactionHash}
 					{#if transactionHash !== undefined && transactionHash !== null}
 						<div>
 							<dt>transaction hash</dt>

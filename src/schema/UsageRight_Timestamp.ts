@@ -10,8 +10,10 @@ export enum UsageRight_TimestampSelector {
 }
 export const UsageRight_Timestamp = entity({
 	entityType: EntityType.UsageRight_Timestamp,
-	label: 'usage right timestamp',
-	labelPlural: 'usage right observations',
+	labels: {
+		singular: 'usage right timestamp',
+		plural: 'usage right observations',
+	},
 })({
 	subjectKey: {
 		label: 'subject key',
