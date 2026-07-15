@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -40,6 +41,15 @@ export const SolanaValidator_Timestamp = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	nodePubkey: {
+		label: 'Node public key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	activatedStakeLamports: {
 		label: 'Activated stake',

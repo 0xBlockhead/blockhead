@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'AT Protocol',
 		typeAnnotationParagraphs = ['AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from declared Bluesky-compatible appview sources, not a claim about every repository on the network.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalAtprotoNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalAtprotoNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,11 +111,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: globalAtprotoNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalAtprotoNetwork> })}
+				{#snippet Item({ item: globalAtprotoNetwork })}
 					{@const globalAtprotoNetworkFields = { ...globalAtprotoNetwork[EntityMetaKey.Selector], ...globalAtprotoNetwork }}
+					{@const selection = select(EntityType._GlobalAtprotoNetwork, globalAtprotoNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const globalAtprotoNetworkHrefFields = { ...globalAtprotoNetwork, ...globalAtprotoNetwork[EntityMetaKey.Selector] }}
 					<GlobalAtprotoNetworkView
-						selection={select(EntityType._GlobalAtprotoNetwork, globalAtprotoNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={globalAtprotoNetworkFields}
+						href={(globalAtprotoNetwork[EntityMetaKey.Selector].scope === '_GlobalAtprotoNetwork' ? resolve('/atproto') : undefined)}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

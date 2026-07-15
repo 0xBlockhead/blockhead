@@ -1,7 +1,7 @@
 import { getJson } from '$/lib/http.ts'
-import { tradingViewOrigins } from '$/sources/TradingView/index.ts'
 import {
 	baseUrl,
+	tradingViewOrigins,
 	tradingViewCryptoScannerPath,
 } from '$/sources/TradingView/Rest/constants.ts'
 import type {

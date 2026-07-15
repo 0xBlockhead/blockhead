@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Kaspa addresses',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.KaspaAddress>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.KaspaAddress>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: kaspaAddress }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.KaspaAddress> })}
+				{#snippet Item({ item: kaspaAddress })}
 					{@const kaspaAddressFields = { ...kaspaAddress[EntityMetaKey.Selector], ...kaspaAddress }}
+					{@const selection = select(EntityType.KaspaAddress, kaspaAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<KaspaAddressView
-						selection={select(EntityType.KaspaAddress, kaspaAddress[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={kaspaAddressFields}
 						layout={EntityLayout.Summary}
 						open={false}

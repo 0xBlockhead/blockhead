@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'EVM protocols',
 		typeAnnotationParagraphs = ['Catalog surface for EVM signature, topic, and error registries.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmProtocol>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmProtocol>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -69,6 +69,7 @@
 				fields: {
 					protocolName: true,
 					registryName: true,
+					scope: true,
 				},
 			})
 		}
@@ -111,13 +112,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmProtocol }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmProtocol> })}
+				{#snippet Item({ item: evmProtocol })}
 					{@const evmProtocolFields = { ...evmProtocol[EntityMetaKey.Selector], ...evmProtocol }}
+					{@const selection = select(EntityType.EvmProtocol, evmProtocol[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmProtocolHrefFields = { ...evmProtocol, ...evmProtocol[EntityMetaKey.Selector] }}
 					<EvmProtocolView
-						selection={select(EntityType.EvmProtocol, evmProtocol[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmProtocolFields}
-						href={resolve('/evm')}
+						href={(evmProtocol[EntityMetaKey.Selector].scope === 'EvmProtocol' ? resolve('/evm') : undefined)}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

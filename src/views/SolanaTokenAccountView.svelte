@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.SolanaTokenAccount>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.SolanaTokenAccount>>
+			selection: RegisteredEntityProxyResource<EntityType.SolanaTokenAccount>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SolanaTokenAccount>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -63,9 +62,12 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.tokenAccountPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-			network: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.tokenAccountPubkey !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
 			tokenAccountPubkey: String(pendingEntity.tokenAccountPubkey ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.tokenAccountPubkey !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
+			tokenAccountPubkey: String(pendingEntity.tokenAccountPubkey ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -122,9 +124,12 @@
 								selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
 								prefetched={solanaTokenMint}
 								href={
-									(solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined && solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-										network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
+									(solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
 										mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+										network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
+									}) : solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+										mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+										network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -146,9 +151,12 @@
 								selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
 								prefetched={solanaTokenMint}
 								href={
-									(solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined && solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-										network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
+									(solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
 										mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+										network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
+									}) : solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+										mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+										network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -205,9 +213,12 @@
 									selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
 									prefetched={solanaTokenMint}
 									href={
-										(solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined && solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-											network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
+										(solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
 											mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+											network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : solanaTokenMint[EntityMetaKey.Selector].mintAddress !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network !== undefined && solanaTokenMint[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+											mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
+											network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -233,9 +244,12 @@
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
 									href={
-										(solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined && solanaAccount[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
-											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										(solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -261,9 +275,12 @@
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
 									href={
-										(solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined && solanaAccount[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
-											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										(solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -291,9 +308,12 @@
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
 									href={
-										(solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined && solanaAccount[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
-											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										(solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -319,9 +339,12 @@
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
 									href={
-										(solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined && solanaAccount[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
-											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										(solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

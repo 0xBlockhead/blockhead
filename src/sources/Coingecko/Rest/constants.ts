@@ -5,6 +5,13 @@ import { MarketVenueId } from '$/constants/MarketVenue.ts'
 export const demoOrigin = 'https://api.coingecko.com' as const
 export const proOrigin = 'https://pro-api.coingecko.com' as const
 
+export const coingeckoOrigins = [
+	{
+		origin: demoOrigin,
+		corsEnabled: false,
+	},
+] as const
+
 export const pathPrefix = '/api/v3' as const
 
 export const demoBaseUrl = `${demoOrigin}${pathPrefix}` as const
@@ -47,7 +54,6 @@ const catalog: readonly {
 	{
 		coinId: CoinId.TRX,
 		wireId: 'tron',
-		decimals: 6,
 	},
 	{
 		coinId: CoinId.DOGE,
@@ -2049,16 +2055,6 @@ export const coinIdByWireId: Partial<Record<string, CoinId>> = Object.fromEntrie
 				[]
 			:
 				[[entry.wireId, entry.coinId] as const]
-		))
-)
-
-export const decimalsByCoinId: Partial<Record<CoinId, number>> = Object.fromEntries(
-	catalog
-		.flatMap((entry) => (
-			entry.decimals == null ?
-				[]
-			:
-				[[entry.coinId, entry.decimals] as const]
 		))
 )
 

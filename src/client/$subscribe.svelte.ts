@@ -10,12 +10,12 @@ import {
 import { stringify } from 'devalue'
 
 import {
-	EntityFieldCardinality,
-	EntityFieldType,
 	EntityMetaKey,
+	type EntityFacetPath,
 	type EntityFieldDefinition,
 	type EntityFieldDefinitionByName,
 	type EntityFieldName,
+	type EntityProjectionDefinition,
 	type EntitySelector,
 	type EntityType,
 	type Schema,
@@ -26,10 +26,16 @@ import {
 	entitySelectorKey,
 } from '$/schema/$schema.ts'
 import {
+	EntityFieldCardinality,
+	EntityFieldType,
+} from '$/schema/EntityField.ts'
+import {
 	TanStackLiveQueryResource,
+	type SvelteKitResource,
 	type TanStackLiveQuerySnapshot,
 } from '$/lib/db/queryResource.svelte.ts'
 import type {
+	CheckedSubscribeSelection,
 	ClientContext,
 	DeclarativeOrderBy,
 	EntityFieldCollectionItem,
@@ -47,10 +53,25 @@ export type EntityResourceData<
 	_Selection extends SubscribeSelection<_Schema, _EntityType> = SubscribeSelection<_Schema, _EntityType>,
 > = SubscribeResult<_Schema, _EntityType, _Selection>
 
+type EntityFieldSelectionEntityType<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FieldName extends EntityFieldName<_Schema, _EntityType>,
+> = (
+	EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+		readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+	} ?
+		_ReferencedEntityType
+	:
+		_EntityType
+)
+
 export type EntityFieldResourceData<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_FieldName extends EntityFieldName<_Schema, _EntityType>,
+	_FieldSelection = true,
 > = (
 	EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
 		readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
@@ -59,12 +80,12 @@ export type EntityFieldResourceData<
 			entityType: _EntityType
 			entitySelector: EntitySelector<_Schema, _EntityType>
 			fieldName: _FieldName
-			values: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName>[]
-			entities: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName>[]
+			values: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName, _FieldSelection>[]
+			entities: readonly SubscribeFieldSingleResult<_Schema, _EntityType, _FieldName, _FieldSelection>[]
 			totalCount?: number
 		}
 	:
-		SubscribeFieldResult<_Schema, _EntityType, _FieldName>
+		SubscribeFieldResult<_Schema, _EntityType, _FieldName, _FieldSelection>
 	| undefined
 )
 
@@ -119,6 +140,7 @@ const asQuerySnapshot = <Data>(
 
 const subscribeToLiveQueryCollections = (
 	queries: readonly {
+		initialSnapshot?: boolean
 		collection: {
 			readonly status: CollectionStatus
 			readonly isLoadingSubset: boolean
@@ -130,10 +152,14 @@ const subscribeToLiveQueryCollections = (
 			preload(): Promise<void>
 			subscribeChanges(
 				update: () => void,
-				options: {
-					includeInitialState: true
-					onStatusChange: () => void
-				}
+				options:
+					| {
+						includeInitialState: true
+						onStatusChange: () => void
+					}
+					| {
+						onStatusChange: () => void
+					}
 			): {
 				unsubscribe(): void
 			}
@@ -148,16 +174,23 @@ const subscribeToLiveQueryCollections = (
 
 	for (const query of queries) {
 		query.collection.onFirstReady(update)
-		const subscription = query.collection.subscribeChanges(update, {
-			includeInitialState: true,
-			onStatusChange: update,
-		})
+		const subscription = (
+			query.initialSnapshot === false ?
+				query.collection.subscribeChanges(update, {
+					onStatusChange: update,
+				})
+			:
+				query.collection.subscribeChanges(update, {
+					includeInitialState: true,
+					onStatusChange: update,
+				})
+		)
 		subscriptions.push(() => subscription.unsubscribe())
 	}
 
 	void (async () => {
 		for (const query of queries) {
-			if (query.collection.status === 'idle')
+			if (query.initialSnapshot !== false && query.collection.status === 'idle')
 				await query.collection.preload().catch(update)
 		}
 	})()
@@ -170,6 +203,7 @@ const subscribeToLiveQueryCollections = (
 
 const waitForLiveQueryCollections = (
 	queries: readonly {
+		initialSnapshot?: boolean
 		collection: {
 			readonly status: CollectionStatus
 			readonly isLoadingSubset: boolean
@@ -186,8 +220,11 @@ const waitForLiveQueryCollections = (
 		const subscriptions: (() => void)[] = []
 		const done = () => (
 			queries.every((query) => (
-				query.collection.status === 'ready'
-				&& !query.collection.isLoadingSubset
+				query.initialSnapshot === false
+				|| (
+					query.collection.status === 'ready'
+					&& !query.collection.isLoadingSubset
+				)
 			))
 		)
 		const complete = () => {
@@ -200,12 +237,15 @@ const waitForLiveQueryCollections = (
 		}
 
 		for (const query of queries) {
+			if (query.initialSnapshot === false)
+				continue
+
 			query.collection.onFirstReady(complete)
 			subscriptions.push(query.collection.on('loadingSubset:change', complete))
 		}
 		void (async () => {
 			for (const query of queries) {
-				if (query.collection.status === 'idle')
+				if (query.initialSnapshot !== false && query.collection.status === 'idle')
 					await query.collection.preload().catch(complete)
 			}
 		})()
@@ -271,25 +311,6 @@ const fieldCanCompleteEmpty = (
 		|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
 	)
 
-const fieldRowParentPredicate = <
-	_Row extends {
-		[EntityMetaKey.ParentSelectorKey]: string
-		[EntityMetaKey.Source]: string
-	}
->(
-	row: _Row,
-	parentSelectorKey: string,
-	querySources: readonly string[] | undefined
-) => (
-	querySources == null ?
-		eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
-	:
-		and(
-			eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-			inArray(row[EntityMetaKey.Source], [...querySources])
-		)
-)
-
 const enabledSelectionSources = <
 	const _Schema extends Schema
 >(
@@ -309,6 +330,79 @@ const selectedSourcesDisabled = <
 	&& sources.length > 0
 	&& enabledSelectionSources(context, sources)?.length === 0
 )
+
+type UncheckedSubscribeSelection = {
+	readonly fields?: Readonly<Record<string, true | UncheckedSubscribeSelection | undefined>>
+}
+
+type SubscribeMaterializedFields = Record<
+	string,
+	| EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>
+	| { fields: SubscribeMaterializedFields }
+>
+
+const validateSubscribeSelection = (
+	context: {
+		entityFieldDefinitionByEntityTypePathAndName: Record<string, Record<string, EntityFieldDefinition | undefined>>
+		projectionDefinitionByEntityTypeAndPath: Record<string, EntityProjectionDefinition | undefined>
+	},
+	entityType: string,
+	selection: UncheckedSubscribeSelection,
+	facetPath: EntityFacetPath = []
+) => {
+	if (selection.fields === undefined)
+		return
+
+	for (const fieldOrFacetName of Object.keys(selection.fields)) {
+		const nestedSelection = selection.fields[fieldOrFacetName]
+		const fieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[entityType][
+			entityFieldAddressKey(entityType, facetPath, fieldOrFacetName)
+		]
+		if (fieldDefinition !== undefined) {
+			if (
+				nestedSelection !== undefined
+				&& nestedSelection !== true
+				&& 'fields' in nestedSelection
+				&& nestedSelection.fields !== undefined
+			) {
+				if (
+					fieldDefinition.type !== EntityFieldType.EntityReference
+					&& fieldDefinition.type !== EntityFieldType.EntitiesReference
+				)
+					throw new Error(`${entityType}.${[...facetPath, fieldOrFacetName].join('.')} does not reference an entity`)
+
+				validateSubscribeSelection(
+					context,
+					fieldDefinition.entityType,
+					nestedSelection
+				)
+			}
+
+			continue
+		}
+
+		const nestedFacetPath = [
+			...facetPath,
+			fieldOrFacetName,
+		]
+		if (
+			context.projectionDefinitionByEntityTypeAndPath[
+				entityFieldAddressKey(entityType, nestedFacetPath, '')
+			] === undefined
+		)
+			throw new Error(`${entityType}.${nestedFacetPath.join('.')} does not exist`)
+
+		if (nestedSelection === undefined || nestedSelection === true)
+			throw new Error(`${entityType}.${nestedFacetPath.join('.')} must be selected with a projection selection`)
+
+		validateSubscribeSelection(
+			context,
+			entityType,
+			nestedSelection,
+			nestedFacetPath
+		)
+	}
+}
 
 const collectionLoadFailure = <
 	const _Schema extends Schema
@@ -458,54 +552,38 @@ const fieldResourceQueries = <
 					row: fieldCollection,
 				})
 				.where(({ row }) => (
-					selection.where == null ?
-						querySources == null ?
-							and(
-								eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-								eq(row.facetPathKey, facetPathKey)
-							)
-						:
-							and(
-								eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-								eq(row.facetPathKey, facetPathKey),
-								inArray(row[EntityMetaKey.Source], [...querySources])
-							)
+					querySources == null ?
+						eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
 					:
 						and(
-							querySources == null ?
-								and(
-									eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-									eq(row.facetPathKey, facetPathKey)
-								)
-							:
-								and(
-									eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-									eq(row.facetPathKey, facetPathKey),
-									inArray(row[EntityMetaKey.Source], [...querySources])
-								),
-							selection.where
+							eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+							inArray(row[EntityMetaKey.Source], [...querySources])
 						)
 				))
-				if (selection.orderBy != null)
-					for (const [
-						accessor,
-						direction,
-					] of selection.orderBy)
-						built = built.orderBy(
-							({ row }) => accessor({ fieldRow: row }),
-							typeof direction === 'string' ?
-								direction
-							:
-								direction.direction
-						)
-				else if (
-					selection.limit != null
-					|| selection.offset != null
-					|| selection.cursor != null
-				)
-					built = built
-						.orderBy(({ row }) => row.valueIndex, 'asc')
-						.orderBy(({ row }) => row.valueKey, 'asc')
+				.where(({ row }) => eq(row.facetPathKey, facetPathKey))
+			if (selection.where != null)
+				built = built.where(() => selection.where)
+
+			if (selection.orderBy != null)
+				for (const [
+					accessor,
+					direction,
+				] of selection.orderBy)
+					built = built.orderBy(
+						({ row }) => accessor({ fieldRow: row }),
+						typeof direction === 'string' ?
+							direction
+						:
+							direction.direction
+					)
+			else if (
+				selection.limit != null
+				|| selection.offset != null
+				|| selection.cursor != null
+			)
+				built = built
+					.orderBy(({ row }) => row.valueIndex, 'asc')
+					.orderBy(({ row }) => row.valueKey, 'asc')
 
 			if (selection.offset != null)
 				built = built.offset(selection.offset)
@@ -528,45 +606,27 @@ const fieldResourceQueries = <
 		:
 			createLiveQueryCollection({
 				startSync: true,
-				query: (query) => (
-					query
+				query: (query) => {
+					let built = query
 						.from({
 							row: countCollection,
 						})
 						.where(({ row }) => (
-							selection.where == null ?
-								and(
-									querySources == null ?
-										and(
-											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-											eq(row.facetPathKey, facetPathKey)
-										)
-									:
-										and(
-											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-											eq(row.facetPathKey, facetPathKey),
-											inArray(row[EntityMetaKey.Source], [...querySources])
-										),
-									eq(row.filterKey, stringify({}))
-								)
+							querySources == null ?
+								eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
 							:
 								and(
-									querySources == null ?
-										and(
-											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-											eq(row.facetPathKey, facetPathKey)
-										)
-									:
-										and(
-											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
-											eq(row.facetPathKey, facetPathKey),
-											inArray(row[EntityMetaKey.Source], [...querySources])
-										),
-									eq(row.filterKey, stringify({})),
-									selection.where
+									eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+									inArray(row[EntityMetaKey.Source], [...querySources])
 								)
 						))
-				),
+						.where(({ row }) => eq(row.facetPathKey, facetPathKey))
+						.where(({ row }) => eq(row.filterKey, stringify({})))
+					if (selection.where != null)
+						built = built.where(() => selection.where)
+
+					return built
+				},
 			})
 	)
 	return {
@@ -607,7 +667,35 @@ const fieldResourceQueries = <
 	}
 }
 
-export const subscribeEntityField = <
+export function subscribeEntityField<
+	const _Schema extends Schema,
+	const _EntityType extends EntityType<_Schema>,
+	const _FieldName extends EntityFieldName<_Schema, _EntityType>,
+	const _Selection extends SubscribeSelection<
+		_Schema,
+		EntityFieldSelectionEntityType<_Schema, _EntityType, _FieldName>
+	> = SubscribeSelection<
+		_Schema,
+		EntityFieldSelectionEntityType<_Schema, _EntityType, _FieldName>
+	>,
+>(
+	context: ClientContext<_Schema>,
+	entityType: _EntityType,
+	entitySelector: EntitySelector<_Schema, _EntityType>,
+	fieldName: _FieldName,
+	selection?: _Selection & (
+		Schema extends _Schema ?
+			_Selection
+		:
+			CheckedSubscribeSelection<
+				_Schema,
+				EntityFieldSelectionEntityType<_Schema, _EntityType, _FieldName>,
+				_Selection
+			>
+	),
+	fieldDefinition?: EntityFieldDefinition
+): SvelteKitResource<EntityFieldResourceData<_Schema, _EntityType, _FieldName, _Selection>>
+export function subscribeEntityField<
 	const _Schema extends Schema,
 	const _EntityType extends EntityType<_Schema>,
 	const _FieldName extends EntityFieldName<_Schema, _EntityType>
@@ -622,7 +710,7 @@ export const subscribeEntityField = <
 		Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
 	> = {},
 	fieldDefinition?: EntityFieldDefinition
-) => {
+) {
 	const definition = fieldDefinition ?? context.entityDefinitionByType[entityType].fields
 		.find((candidate) => candidate.name === fieldName)
 	if (definition == null)
@@ -646,10 +734,16 @@ export const subscribeEntityField = <
 				queries.counts,
 			]
 	)
-	const observedQueries = [
+	const observedQueries: Parameters<typeof subscribeToLiveQueryCollections>[0][number][] = [
 		...liveQueries,
-		{ collection: queries.rowsCollection },
-		...(queries.countCollection === undefined ? [] : [{ collection: queries.countCollection }]),
+		{
+			collection: queries.rowsCollection,
+			initialSnapshot: false,
+		},
+		...(queries.countCollection === undefined ? [] : [{
+			collection: queries.countCollection,
+			initialSnapshot: false,
+		}]),
 	]
 	const parentSelectorKey = entitySelectorKey(
 		context.schema,
@@ -715,20 +809,30 @@ export const subscribeEntityField = <
 			update,
 			context.collectionLoadFailures.subscribe
 		)
-		const sourceSubscription = queries.sourceCollection.subscribeChanges(update, {
-			includeInitialState: true,
-			onStatusChange: update,
-		})
 		const unsubscribeSourceLoading = queries.sourceCollection.on('loadingSubset:change', update)
 		return () => {
 			unsubscribeLive()
-			sourceSubscription.unsubscribe()
 			unsubscribeSourceLoading()
 		}
 	}, () => waitForLiveQueryCollections(observedQueries))
 }
 
-export const subscribeEntity = <
+export function subscribeEntity<
+	const _Schema extends Schema,
+	const _EntityType extends EntityType<_Schema>,
+	const _Selection extends SubscribeSelection<_Schema, _EntityType> = SubscribeSelection<_Schema, _EntityType>,
+>(
+	context: ClientContext<_Schema>,
+	entityType: _EntityType,
+	entitySelector: EntitySelector<_Schema, _EntityType>,
+	selection?: _Selection & (
+		Schema extends _Schema ?
+			_Selection
+		:
+			CheckedSubscribeSelection<_Schema, _EntityType, _Selection>
+	)
+): SvelteKitResource<EntityResourceData<_Schema, _EntityType, _Selection>>
+export function subscribeEntity<
 	const _Schema extends Schema,
 	const _EntityType extends EntityType<_Schema>
 >(
@@ -736,7 +840,13 @@ export const subscribeEntity = <
 	entityType: _EntityType,
 	entitySelector: EntitySelector<_Schema, _EntityType>,
 	selection: SubscribeSelection<_Schema, _EntityType> = {}
-	) => {
+) {
+	validateSubscribeSelection(
+		context,
+		entityType,
+		selection
+	)
+
 	const selectorSources = selection.selectorSources ?? selection.sources
 	const querySources = enabledSelectionSources(context, selectorSources)
 	const sourceDisabled = selectedSourcesDisabled(context, selectorSources)
@@ -782,16 +892,12 @@ export const subscribeEntity = <
 			entityFieldDefinitions(context.entityDefinitionByType[entityType])
 				.map((definition) => ({
 					definition,
-					fieldSelection: entityFieldFacetPath(definition).reduce<Pick<
-						SubscribeSelection<
-							_Schema,
-							_EntityType,
-							Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
-						>,
-						'fields'
-					>>(
+					fieldSelection: entityFieldFacetPath(definition).reduce<UncheckedSubscribeSelection>(
 						(fields, facetName) => {
-							const facetSelection = fields.fields?.[facetName]
+							const facetSelection = Object.getOwnPropertyDescriptor(
+								fields.fields ?? {},
+								facetName
+							)?.value
 							return facetSelection === true || facetSelection === undefined ? {} : facetSelection
 						},
 						{
@@ -799,11 +905,17 @@ export const subscribeEntity = <
 						}
 					),
 				}))
-					.filter(({ definition, fieldSelection }) => fieldSelection.fields?.[definition.name] !== undefined)
+					.filter(({ definition, fieldSelection }) => Object.getOwnPropertyDescriptor(
+						fieldSelection.fields ?? {},
+						definition.name
+					)?.value !== undefined)
 					.map((definition) => ({
 						fieldName: definition.definition.name,
 						definition: definition.definition,
-						fieldSelection: definition.fieldSelection.fields?.[definition.definition.name],
+						fieldSelection: Object.getOwnPropertyDescriptor(
+							definition.fieldSelection.fields ?? {},
+							definition.definition.name
+						)?.value,
 					}))
 	)
 	const fields = selectedFields.map(({
@@ -844,31 +956,124 @@ export const subscribeEntity = <
 				]
 		)),
 	]
-	const observedQueries = [
+	const observedQueries: Parameters<typeof subscribeToLiveQueryCollections>[0][number][] = [
 		...liveQueries,
-		{ collection: context.entityCollections[entityType] },
+		{
+			collection: context.entityCollections[entityType],
+			initialSnapshot: false,
+		},
 		...fields.flatMap(({ queries }) => [
-			{ collection: queries.rowsCollection },
-			...(queries.countCollection === undefined ? [] : [{ collection: queries.countCollection }]),
+			{
+				collection: queries.rowsCollection,
+				initialSnapshot: false,
+			},
+			...(queries.countCollection === undefined ? [] : [{
+				collection: queries.countCollection,
+				initialSnapshot: false,
+			}]),
 		]),
 	]
+	const observedNestedCollections = new Set<object>()
+	const nestedSelections: {
+		entityType: EntityType<_Schema>
+		facetPath: EntityFacetPath
+		selection: UncheckedSubscribeSelection
+	}[] = fields.flatMap(({
+		definition,
+		fieldSelection,
+	}) => (
+		(
+			definition.type === EntityFieldType.EntityReference
+			|| definition.type === EntityFieldType.EntitiesReference
+		)
+		&& fieldSelection !== undefined
+		&& fieldSelection !== true ?
+			[{
+				entityType: definition.entityType,
+				facetPath: [],
+				selection: fieldSelection,
+			}]
+		:
+			[]
+	))
+	for (let nestedSelection = nestedSelections.pop(); nestedSelection !== undefined; nestedSelection = nestedSelections.pop()) {
+		const entityCollection = context.entityCollections[nestedSelection.entityType]
+		if (!observedNestedCollections.has(entityCollection)) {
+			observedNestedCollections.add(entityCollection)
+			observedQueries.push({
+				collection: entityCollection,
+				initialSnapshot: false,
+			})
+		}
+
+		for (const fieldOrFacetName of Object.keys(nestedSelection.selection.fields ?? {})) {
+			const childSelection = Object.getOwnPropertyDescriptor(
+				nestedSelection.selection.fields ?? {},
+				fieldOrFacetName
+			)?.value
+			const nestedFieldAddressKey = entityFieldAddressKey(
+				nestedSelection.entityType,
+				nestedSelection.facetPath,
+				fieldOrFacetName
+			)
+			const nestedFieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[nestedSelection.entityType][
+				nestedFieldAddressKey
+			]
+			if (nestedFieldDefinition !== undefined) {
+				const nestedFieldCollection = context.entityFieldCollections[nestedSelection.entityType][
+					nestedFieldAddressKey
+				]
+				if (!observedNestedCollections.has(nestedFieldCollection)) {
+					observedNestedCollections.add(nestedFieldCollection)
+					observedQueries.push({
+						collection: nestedFieldCollection,
+						initialSnapshot: false,
+					})
+				}
+				if (
+					(
+						nestedFieldDefinition.type === EntityFieldType.EntityReference
+						|| nestedFieldDefinition.type === EntityFieldType.EntitiesReference
+					)
+					&& childSelection !== undefined
+					&& childSelection !== true
+				)
+					nestedSelections.push({
+						entityType: nestedFieldDefinition.entityType,
+						facetPath: [],
+						selection: childSelection,
+					})
+
+				continue
+			}
+
+			if (childSelection !== undefined && childSelection !== true)
+				nestedSelections.push({
+					entityType: nestedSelection.entityType,
+					facetPath: [
+						...nestedSelection.facetPath,
+						fieldOrFacetName,
+					],
+					selection: childSelection,
+				})
+		}
+	}
+	const nestedResourceBySelectorKey = new Map<string, SvelteKitResource<EntityResourceData<Schema, EntityType<Schema>>>>()
 
 	return new TanStackLiveQueryResource(() => {
-		const fieldValues: Record<
-			string,
-			EntityFieldResourceData<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
-		> = {}
+		const fieldValues: SubscribeMaterializedFields = {}
 		const fieldValuesByAddress: Record<
 			string,
 			EntityFieldResourceData<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>>
 		> = {}
+		const nestedResources: SvelteKitResource<EntityResourceData<Schema, EntityType<Schema>>>[] = []
 		for (const {
 			fieldName,
 			definition,
 			fieldSelection,
 			queries,
 		} of fields) {
-			const fieldData = fieldDataFromRows(
+			let fieldData = fieldDataFromRows(
 				entityType,
 				entitySelector,
 				definition,
@@ -876,10 +1081,79 @@ export const subscribeEntity = <
 				queries.counts?.data ?? [],
 				queries.countSourcePriority
 			)
-			if (entityFieldFacetPath(definition).length === 0)
-				fieldValues[fieldName] = fieldData
+			if (
+				(
+					definition.type === EntityFieldType.EntityReference
+					|| definition.type === EntityFieldType.EntitiesReference
+				)
+				&& fieldSelection !== undefined
+				&& fieldSelection !== true
+			) {
+				const selectedReference = (reference: object) => {
+					const referencedEntitySelector = Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
+					const nestedResourceKey = stringify([
+						definition.entityType,
+						referencedEntitySelector,
+						fieldSelection,
+					])
+					if (!nestedResourceBySelectorKey.has(nestedResourceKey))
+						nestedResourceBySelectorKey.set(
+							nestedResourceKey,
+							subscribeEntity(
+								context,
+								definition.entityType,
+								referencedEntitySelector,
+								fieldSelection
+							)
+						)
 
-			fieldValuesByAddress[entityFieldAddressKey(entityType, entityFieldFacetPath(definition), fieldName)] = fieldData
+					const nestedResource = nestedResourceBySelectorKey.get(nestedResourceKey)
+					if (nestedResource === undefined)
+						return reference
+
+					nestedResources.push(nestedResource)
+					return {
+						...reference,
+						...nestedResource.current?.fields,
+					}
+				}
+				if (
+					fieldData !== undefined
+					&& fieldData !== null
+					&& typeof fieldData === 'object'
+					&& 'values' in fieldData
+					&& Array.isArray(fieldData.values)
+				)
+				{
+					const selectedReferences = fieldData.values.map(selectedReference)
+					fieldData = {
+						...fieldData,
+						values: selectedReferences,
+						entities: selectedReferences,
+					}
+				}
+				else if (fieldData !== undefined && fieldData !== null && typeof fieldData === 'object')
+					fieldData = selectedReference(fieldData)
+			}
+			const facetPath = entityFieldFacetPath(definition)
+			if (facetPath.length === 0)
+				fieldValues[fieldName] = fieldData
+			else {
+				let fieldsAtPath = fieldValues
+				for (const facetName of facetPath) {
+					const facetResult: { fields: SubscribeMaterializedFields } = Object.getOwnPropertyDescriptor(
+						fieldsAtPath,
+						facetName
+					)?.value ?? {
+						fields: {},
+					}
+					fieldsAtPath[facetName] = facetResult
+					fieldsAtPath = facetResult.fields
+				}
+				fieldsAtPath[fieldName] = fieldData
+			}
+
+			fieldValuesByAddress[entityFieldAddressKey(entityType, facetPath, fieldName)] = fieldData
 		}
 
 		return asQuerySnapshot(
@@ -937,6 +1211,19 @@ export const subscribeEntity = <
 							},
 						]
 				)),
+				...nestedResources.map((nestedResource): {
+					isError: boolean
+					isLoading: boolean
+					isReady: boolean
+					status: CollectionStatus
+					error: object | string | undefined
+				} => ({
+					isError: nestedResource.error !== undefined,
+					isLoading: nestedResource.loading,
+					isReady: nestedResource.ready,
+					status: (nestedResource.ready ? 'ready' : 'loading') satisfies CollectionStatus,
+					error: nestedResource.error,
+				})),
 			],
 			{
 				entityType,

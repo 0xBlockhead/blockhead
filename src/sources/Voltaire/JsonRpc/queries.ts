@@ -1,12 +1,11 @@
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
 import {
-	SourceEndpointKind,
 	SourceOperationGroup,
-	SourceTargetKind,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import { voltaireBindings } from '$/sources/Voltaire/bindings.ts'
+import { sourceProviders } from '$/sources/$sourceProviders.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	getBlockByHash as getEvmBlockByHash,
 	getBlockByNumber as getEvmBlockByNumber,
@@ -31,27 +30,10 @@ import {
 	type VoltaireTxRpc,
 } from '$/sources/Voltaire/JsonRpc/types.ts'
 
-const voltaireJsonRpcTransportCandidates = voltaireBindings.flatMap((binding) => (
-	binding.target.kind === SourceTargetKind.Eip155Chain ?
-		binding.endpoints.flatMap((endpoint) => (
-			endpoint.endpointKind === SourceEndpointKind.HttpUrl
-			|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
-				[{
-					chainId: Number(binding.target.key),
-					rpcUrl: endpoint.locator,
-					transportType: (
-						endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
-							TransportType.WebSocket
-						:
-							TransportType.Http
-					),
-				}]
-			:
-				[]
-		))
-	:
-		[]
-))
+import {
+	voltaireJsonRpcOriginsByChainId,
+	voltaireJsonRpcTransportCandidates,
+} from '$/sources/Voltaire/JsonRpc/executionEndpoints.ts'
 
 const voltaireJsonRpcTransportCandidatesByChainId = Object.groupBy(
 	voltaireJsonRpcTransportCandidates,
@@ -60,25 +42,11 @@ const voltaireJsonRpcTransportCandidatesByChainId = Object.groupBy(
 
 export const voltaireJsonRpcTransportsWithOriginsByChainId = Object.fromEntries(
 	Object.entries(voltaireJsonRpcTransportCandidatesByChainId)
-			.map(([chainId, entries]) => [
-				Number(chainId),
-				entries.map((entry) => ({
+		.map(([chainId, entries]) => [
+			Number(chainId),
+			entries.map((entry) => ({
 				...entry,
-				origins: voltaireBindings.flatMap((binding) => (
-					binding.target.kind === SourceTargetKind.Eip155Chain
-					&& binding.target.key === chainId ?
-						binding.endpoints.flatMap((endpoint) => (
-							endpoint.origin == null ?
-								[]
-							:
-								[{
-									origin: endpoint.origin,
-									corsEnabled: endpoint.corsEnabled === true,
-								}]
-						))
-					:
-						[]
-				)),
+				origins: voltaireJsonRpcOriginsByChainId[Number(chainId)],
 			})),
 		])
 )
@@ -97,6 +65,10 @@ export const voltaireJsonRpcTransportWithOriginsByChainId = Object.fromEntries(
 				]]
 		})
 )
+
+const voltaireBindings = sourceProviders
+	.filter((sourceProvider) => sourceProvider.provider === SourceProvider.Voltaire)
+	.flatMap((sourceProvider) => sourceProvider.bindings)
 
 export type Provider = {
 	request: (request: {

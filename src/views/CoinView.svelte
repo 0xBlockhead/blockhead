@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { CoinId } from '$/constants/Coin.ts'
 	import { MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
 	import { seededCoinSpotUsdMarkets } from '$/constants/MarketCatalog.ts'
@@ -31,8 +30,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.Coin>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.Coin>>
+			selection: RegisteredEntityProxyResource<EntityType.Coin>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Coin>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -130,8 +129,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			A logical <strong>CAIP-19 asset</strong>
-			id groups every on-chain deployment, time-stamped fundamentals snapshots, and market quote streams for the same asset so duplicate tickers from rival data vendors stay separable by catalog key and vendor attribution.
+			A catalog coin identity groups time-stamped fundamentals snapshots and market quote streams for the same asset so duplicate tickers from rival data vendors stay separable by catalog key and vendor attribution.
 		</p>
 
 		<p>
@@ -234,38 +232,6 @@
 					</dd>
 				</div>
 			{/if}
-		</dl>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>Decimals</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									decimals: true,
-								},
-							})
-						}
-					>
-						{#snippet Pending()}
-							{@const decimals = pendingEntity.decimals}
-							{#if decimals !== undefined && decimals !== null}
-								{String((decimals) ?? '')}
-							{/if}
-						{/snippet}
-
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const decimals = resolvedEntity.decimals}
-							{#if decimals !== undefined && decimals !== null}
-								{String((decimals) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 		</dl>
 	{/snippet}
 

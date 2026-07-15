@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'UTXO address observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.UtxoAddress_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.UtxoAddress_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,18 +114,24 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: utxoAddressTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoAddress_Timestamp> })}
+				{#snippet Item({ item: utxoAddressTimestamp })}
 					{@const utxoAddressTimestampFields = { ...utxoAddressTimestamp[EntityMetaKey.Selector], ...utxoAddressTimestamp }}
+					{@const selection = select(EntityType.UtxoAddress_Timestamp, utxoAddressTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const utxoAddressTimestampHrefFields = { ...utxoAddressTimestamp, ...utxoAddressTimestamp[EntityMetaKey.Selector] }}
 					<UtxoAddress_TimestampView
-						selection={select(EntityType.UtxoAddress_Timestamp, utxoAddressTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={utxoAddressTimestampFields}
 						href={
-							(utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.$network !== undefined && utxoAddressTimestampHrefFields.$address.$network.slug !== undefined && utxoAddressTimestampHrefFields.$address.address !== undefined && utxoAddressTimestampHrefFields.timestampMs !== undefined && utxoAddressTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								network: String(utxoAddressTimestampHrefFields.$address.$network.slug ?? ''),
-								address: String(utxoAddressTimestampHrefFields.$address.address ?? ''),
+							(utxoAddressTimestampHrefFields.timestampMs !== undefined && utxoAddressTimestampHrefFields.source !== undefined && utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.address !== undefined && utxoAddressTimestampHrefFields.$address.$network !== undefined && utxoAddressTimestampHrefFields.$address.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(utxoAddressTimestampHrefFields.timestampMs ?? ''),
 								source: String(utxoAddressTimestampHrefFields.source ?? ''),
+								address: String(utxoAddressTimestampHrefFields.$address.address ?? ''),
+								network: String(caip2StringFromValue(utxoAddressTimestampHrefFields.$address.$network.caip2) ?? ''),
+							}) : utxoAddressTimestampHrefFields.timestampMs !== undefined && utxoAddressTimestampHrefFields.source !== undefined && utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.address !== undefined && utxoAddressTimestampHrefFields.$address.$network !== undefined && utxoAddressTimestampHrefFields.$address.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								timestampMs: String(utxoAddressTimestampHrefFields.timestampMs ?? ''),
+								source: String(utxoAddressTimestampHrefFields.source ?? ''),
+								address: String(utxoAddressTimestampHrefFields.$address.address ?? ''),
+								network: String(utxoAddressTimestampHrefFields.$address.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

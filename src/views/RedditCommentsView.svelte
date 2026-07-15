@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Reddit comments',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditComment>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.RedditComment>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -115,11 +116,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: redditComment }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditComment> })}
+				{#snippet Item({ item: redditComment })}
 					{@const redditCommentFields = { ...redditComment[EntityMetaKey.Selector], ...redditComment }}
+					{@const selection = select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const redditCommentHrefFields = { ...redditComment, ...redditComment[EntityMetaKey.Selector] }}
 					<RedditCommentView
-						selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={redditCommentFields}
+						href={
+							(redditCommentHrefFields.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]', {
+								fullname: String(redditCommentHrefFields.fullname ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

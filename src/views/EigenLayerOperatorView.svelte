@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
@@ -31,8 +30,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EigenLayerOperator>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EigenLayerOperator>>
+			selection: RegisteredEntityProxyResource<EntityType.EigenLayerOperator>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EigenLayerOperator>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -437,6 +436,15 @@
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									prefetched={evmNetworkAccount}
+									href={
+										(evmNetworkAccount[EntityMetaKey.Selector].$actor !== undefined && evmNetworkAccount[EntityMetaKey.Selector].$actor.address !== undefined && evmNetworkAccount[EntityMetaKey.Selector].$network !== undefined && evmNetworkAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(evmNetworkAccount[EntityMetaKey.Selector].$actor.address ?? ''),
+											network: String(caip2StringFromValue(evmNetworkAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : evmNetworkAccount[EntityMetaKey.Selector].$actor !== undefined && evmNetworkAccount[EntityMetaKey.Selector].$actor.address !== undefined && evmNetworkAccount[EntityMetaKey.Selector].$network !== undefined && evmNetworkAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(evmNetworkAccount[EntityMetaKey.Selector].$actor.address ?? ''),
+											network: String(evmNetworkAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

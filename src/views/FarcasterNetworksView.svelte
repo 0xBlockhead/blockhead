@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Farcaster',
 		typeAnnotationParagraphs = ['Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from declared Farcaster sources.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FarcasterNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.FarcasterNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -67,6 +68,7 @@
 			selection({
 				fields: {
 					protocolName: true,
+					scope: true,
 				},
 			})
 		}
@@ -109,11 +111,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: farcasterNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterNetwork> })}
+				{#snippet Item({ item: farcasterNetwork })}
 					{@const farcasterNetworkFields = { ...farcasterNetwork[EntityMetaKey.Selector], ...farcasterNetwork }}
+					{@const selection = select(EntityType.FarcasterNetwork, farcasterNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const farcasterNetworkHrefFields = { ...farcasterNetwork, ...farcasterNetwork[EntityMetaKey.Selector] }}
 					<FarcasterNetworkView
-						selection={select(EntityType.FarcasterNetwork, farcasterNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={farcasterNetworkFields}
+						href={(farcasterNetwork[EntityMetaKey.Selector].scope === 'FarcasterNetwork' ? resolve('/farcaster') : undefined)}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

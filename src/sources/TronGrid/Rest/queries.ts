@@ -3,7 +3,6 @@ import {
 	getJson,
 	throwHttpError,
 } from '$/lib/http.ts'
-import { tronGridBindings } from '$/sources/TronGrid/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	TronGridAccountTransactions,
@@ -21,23 +20,16 @@ import type {
 export const tronGridRestEndpoints = [
 	{
 		slug: 'trongrid',
-		restBaseUrl: tronGridBindings[0].endpoints[0].locator,
+		restBaseUrl: 'https://api.trongrid.io',
 	},
 ] as const
 
 export const tronGridOrigins = [
-	...new Map(
-		tronGridBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: 'https://api.trongrid.io',
+		corsEnabled: false,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

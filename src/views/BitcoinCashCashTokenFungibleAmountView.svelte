@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BitcoinCashCashTokenFungibleAmount>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BitcoinCashCashTokenFungibleAmount>>
+			selection: RegisteredEntityProxyResource<EntityType.BitcoinCashCashTokenFungibleAmount>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BitcoinCashCashTokenFungibleAmount>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -69,10 +69,14 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$output !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.slug !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-			network: String(pendingEntity.$output.$transaction.$network.slug ?? ''),
-			transactionId: String(pendingEntity.$output.$transaction.txId ?? ''),
+		href ?? (pendingEntity.$output !== undefined && pendingEntity.$output.indexInTransaction !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
 			outputIndex: String(pendingEntity.$output.indexInTransaction ?? ''),
+			transactionId: String(pendingEntity.$output.$transaction.txId ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$output.$transaction.$network.caip2) ?? ''),
+		}) : pendingEntity.$output !== undefined && pendingEntity.$output.indexInTransaction !== undefined && pendingEntity.$output.$transaction !== undefined && pendingEntity.$output.$transaction.txId !== undefined && pendingEntity.$output.$transaction.$network !== undefined && pendingEntity.$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
+			outputIndex: String(pendingEntity.$output.indexInTransaction ?? ''),
+			transactionId: String(pendingEntity.$output.$transaction.txId ?? ''),
+			network: String(pendingEntity.$output.$transaction.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -235,10 +239,14 @@
 					<UtxoOutputView
 						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output, {})}
 						href={
-							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.slug !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-								network: String(selection.entitySelector.$output.$transaction.$network.slug ?? ''),
-								transactionId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
+							(selection.entitySelector.$output.indexInTransaction !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
 								outputIndex: String(selection.entitySelector.$output.indexInTransaction ?? ''),
+								transactionId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$output.$transaction.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$output.indexInTransaction !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+								outputIndex: String(selection.entitySelector.$output.indexInTransaction ?? ''),
+								transactionId: String(selection.entitySelector.$output.$transaction.txId ?? ''),
+								network: String(selection.entitySelector.$output.$transaction.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Beacon validator observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BeaconValidator_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconValidator_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -69,8 +70,8 @@
 				fields: {
 					slot: true,
 					status: true,
-					$validator: true,
 					source: true,
+					$validator: true,
 				},
 			})
 		}
@@ -113,18 +114,24 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: beaconValidatorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconValidator_Timestamp> })}
+				{#snippet Item({ item: beaconValidatorTimestamp })}
 					{@const beaconValidatorTimestampFields = { ...beaconValidatorTimestamp[EntityMetaKey.Selector], ...beaconValidatorTimestamp }}
+					{@const selection = select(EntityType.BeaconValidator_Timestamp, beaconValidatorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const beaconValidatorTimestampHrefFields = { ...beaconValidatorTimestamp, ...beaconValidatorTimestamp[EntityMetaKey.Selector] }}
 					<BeaconValidator_TimestampView
-						selection={select(EntityType.BeaconValidator_Timestamp, beaconValidatorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={beaconValidatorTimestampFields}
 						href={
-							(beaconValidatorTimestampHrefFields.$validator !== undefined && beaconValidatorTimestampHrefFields.$validator.$network !== undefined && beaconValidatorTimestampHrefFields.$validator.$network.slug !== undefined && beaconValidatorTimestampHrefFields.$validator.indexInNetwork !== undefined && beaconValidatorTimestampHrefFields.slot !== undefined && beaconValidatorTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
-								network: String(beaconValidatorTimestampHrefFields.$validator.$network.slug ?? ''),
-								validatorId: String(beaconValidatorTimestampHrefFields.$validator.indexInNetwork ?? ''),
+							(beaconValidatorTimestampHrefFields.slot !== undefined && beaconValidatorTimestampHrefFields.source !== undefined && beaconValidatorTimestampHrefFields.$validator !== undefined && beaconValidatorTimestampHrefFields.$validator.indexInNetwork !== undefined && beaconValidatorTimestampHrefFields.$validator.$network !== undefined && beaconValidatorTimestampHrefFields.$validator.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
 								slot: String(beaconValidatorTimestampHrefFields.slot ?? ''),
 								source: String(beaconValidatorTimestampHrefFields.source ?? ''),
+								validatorId: String(beaconValidatorTimestampHrefFields.$validator.indexInNetwork ?? ''),
+								network: String(caip2StringFromValue(beaconValidatorTimestampHrefFields.$validator.$network.caip2) ?? ''),
+							}) : beaconValidatorTimestampHrefFields.slot !== undefined && beaconValidatorTimestampHrefFields.source !== undefined && beaconValidatorTimestampHrefFields.$validator !== undefined && beaconValidatorTimestampHrefFields.$validator.indexInNetwork !== undefined && beaconValidatorTimestampHrefFields.$validator.$network !== undefined && beaconValidatorTimestampHrefFields.$validator.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
+								slot: String(beaconValidatorTimestampHrefFields.slot ?? ''),
+								source: String(beaconValidatorTimestampHrefFields.source ?? ''),
+								validatorId: String(beaconValidatorTimestampHrefFields.$validator.indexInNetwork ?? ''),
+								network: String(beaconValidatorTimestampHrefFields.$validator.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

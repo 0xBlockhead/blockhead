@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.Erc4337Paymaster_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.Erc4337Paymaster_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.Erc4337Paymaster_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Erc4337Paymaster_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -65,11 +65,16 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$paymaster !== undefined && pendingEntity.$paymaster.$network !== undefined && pendingEntity.$paymaster.$network.slug !== undefined && pendingEntity.$paymaster.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			network: String(pendingEntity.$paymaster.$network.slug ?? ''),
-			address: String(pendingEntity.$paymaster.address ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$paymaster !== undefined && pendingEntity.$paymaster.address !== undefined && pendingEntity.$paymaster.$network !== undefined && pendingEntity.$paymaster.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			address: String(pendingEntity.$paymaster.address ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$paymaster.$network.caip2) ?? ''),
+		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$paymaster !== undefined && pendingEntity.$paymaster.address !== undefined && pendingEntity.$paymaster.$network !== undefined && pendingEntity.$paymaster.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			address: String(pendingEntity.$paymaster.address ?? ''),
+			network: String(pendingEntity.$paymaster.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -242,9 +247,12 @@
 					<Erc4337PaymasterView
 						selection={select(EntityType.Erc4337Paymaster, selection.entitySelector.$paymaster, {})}
 						href={
-							(selection.entitySelector.$paymaster.$network !== undefined && selection.entitySelector.$paymaster.$network.slug !== undefined && selection.entitySelector.$paymaster.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
-								network: String(selection.entitySelector.$paymaster.$network.slug ?? ''),
+							(selection.entitySelector.$paymaster.address !== undefined && selection.entitySelector.$paymaster.$network !== undefined && selection.entitySelector.$paymaster.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
 								address: String(selection.entitySelector.$paymaster.address ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$paymaster.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$paymaster.address !== undefined && selection.entitySelector.$paymaster.$network !== undefined && selection.entitySelector.$paymaster.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
+								address: String(selection.entitySelector.$paymaster.address ?? ''),
+								network: String(selection.entitySelector.$paymaster.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

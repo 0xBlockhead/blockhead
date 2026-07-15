@@ -5,6 +5,8 @@ import { defineConfig } from 'vitest/config'
 import { playwright } from '@vitest/browser-playwright'
 import { sveltekit } from '@sveltejs/kit/vite'
 
+import { e2eProbeVitePlugin } from './tests/e2e/_e2eProbeVitePlugin.ts'
+
 const tanstackBrowserSqliteSrc = fileURLToPath(new URL(
 	'node_modules/@tanstack/browser-db-sqlite-persistence/src/index.ts',
 	import.meta.url
@@ -27,7 +29,6 @@ const referenceFolderTestExcludes = [
 export default defineConfig({
 	resolve: {
 		alias: {
-			'$': resolve(import.meta.dirname, 'src'),
 			'bun:ffi': resolve(import.meta.dirname, 'shims/bun-ffi.js'),
 			'@tanstack/browser-db-sqlite-persistence': tanstackBrowserSqliteSrc,
 			'satteri-browser': satteriBrowserEntry,
@@ -36,7 +37,11 @@ export default defineConfig({
 	optimizeDeps: {
 		exclude: ['@tanstack/browser-db-sqlite-persistence'],
 	},
-	plugins: [sveltekit(), devtoolsJson()],
+	plugins: [
+		...(process.env.VITE_BLOCKHEAD_E2E_PROBE === '1' ? [e2eProbeVitePlugin()] : []),
+		sveltekit(),
+		devtoolsJson(),
+	],
 	server: {
 		strictPort: true,
 		watch: {

@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'XRPL ledgers',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.XrplLedger>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.XrplLedger>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: xrplLedger }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XrplLedger> })}
+				{#snippet Item({ item: xrplLedger })}
 					{@const xrplLedgerFields = { ...xrplLedger[EntityMetaKey.Selector], ...xrplLedger }}
+					{@const selection = select(EntityType.XrplLedger, xrplLedger[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<XrplLedgerView
-						selection={select(EntityType.XrplLedger, xrplLedger[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={xrplLedgerFields}
 						layout={EntityLayout.Summary}
 						open={false}

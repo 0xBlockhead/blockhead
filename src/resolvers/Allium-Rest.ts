@@ -86,12 +86,14 @@ export default {
 				},
 			},
 		})({
-				coinId: (coinInstance) => coinInstance.coinId,
-				name: (coinInstance) => coinInstance.name,
-				symbol: (coinInstance) => coinInstance.symbol,
-				decimals: (coinInstance) => coinInstance.decimals,
-				caip19: (coinInstance) => coinInstance.caip19,
-				$icon: (coinInstance) => coinInstance.$icon,
+				Erc20Token: {
+					coinId: (coinInstance) => coinInstance.coinId,
+					name: (coinInstance) => coinInstance.name,
+					symbol: (coinInstance) => coinInstance.symbol,
+					decimals: (coinInstance) => coinInstance.decimals,
+					caip19: (coinInstance) => coinInstance.caip19,
+					$icon: (coinInstance) => coinInstance.$icon,
+				},
 			}),
 
 		defineResolver(Source.Allium_Rest, {

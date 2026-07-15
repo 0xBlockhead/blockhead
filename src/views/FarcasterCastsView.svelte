@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Farcaster casts',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FarcasterCast>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.FarcasterCast>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -71,6 +71,8 @@
 					hash: true,
 					fid: true,
 					timestamp: true,
+					username: true,
+					hashPrefix: true,
 				},
 			})
 		}
@@ -113,16 +115,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: farcasterCast }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterCast> })}
+				{#snippet Item({ item: farcasterCast })}
 					{@const farcasterCastFields = { ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }}
+					{@const selection = select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const farcasterCastHrefFields = { ...farcasterCast, ...farcasterCast[EntityMetaKey.Selector] }}
 					<FarcasterCastView
-						selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={farcasterCastFields}
 						href={
 							(farcasterCastHrefFields.fid !== undefined && farcasterCastHrefFields.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 								fid: String(farcasterCastHrefFields.fid ?? ''),
 								hash: String(farcasterCastHrefFields.hash ?? ''),
+							}) : farcasterCastHrefFields.username !== undefined && farcasterCastHrefFields.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+								fname: String(farcasterCastHrefFields.username ?? ''),
+								hash: String(farcasterCastHrefFields.hashPrefix ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

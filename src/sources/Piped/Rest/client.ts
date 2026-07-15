@@ -1,6 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import Piped from '$/sources/Piped/index.ts'
-import { pipedApiDefaultOrigin } from '$/sources/Piped/Rest/constants.ts'
+import {
+	pipedApiDefaultOrigin,
+	pipedApiOrigins,
+} from '$/sources/Piped/Rest/constants.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 const toQuery = (params: Record<string, string | undefined>) => {
@@ -20,6 +22,6 @@ export const pipedApiGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${pipedApiDefaultOrigin}${path}${toQuery(params ?? {})}`,
-		{ origins: Piped.origins }
+		{ origins: pipedApiOrigins }
 	)
 )

@@ -4,13 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { EvmInternalCallType } from '$/constants/Evm.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -29,8 +29,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmInternalTransfer>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmInternalTransfer>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmInternalTransfer>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmInternalTransfer>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -52,8 +52,6 @@
 			value: true,
 			callType: true,
 			success: true,
-			$from: true,
-			$to: true,
 		},
 	}))
 	const titleFallback = $derived((String((pendingEntity.indexInTransaction) ?? '') ? 'Internal #' + String((pendingEntity.indexInTransaction) ?? '') : '') || 'EVM internal transfer')
@@ -76,10 +74,14 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInTransaction ?? '')}
 	href={
-		href ?? (pendingEntity.$transaction !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.slug !== undefined && pendingEntity.$transaction.txHash !== undefined && pendingEntity.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
-			network: String(pendingEntity.$transaction.$network.slug ?? ''),
-			transactionId: String(pendingEntity.$transaction.txHash ?? ''),
+		href ?? (pendingEntity.indexInTransaction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.txHash !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
 			indexInTransaction: String(pendingEntity.indexInTransaction ?? ''),
+			transactionId: String(pendingEntity.$transaction.txHash ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$transaction.$network.caip2) ?? ''),
+		}) : pendingEntity.indexInTransaction !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.txHash !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
+			indexInTransaction: String(pendingEntity.indexInTransaction ?? ''),
+			transactionId: String(pendingEntity.$transaction.txHash ?? ''),
+			network: String(pendingEntity.$transaction.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -154,9 +156,12 @@
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction, {})}
 						href={
-							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined && selection.entitySelector.$transaction.txHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+							(selection.entitySelector.$transaction.txHash !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 								transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$transaction.txHash !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
+								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -331,9 +336,12 @@
 										selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 										prefetched={evmContract}
 										href={
-											(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-												network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
+											(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+												network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											}) : evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+												network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}

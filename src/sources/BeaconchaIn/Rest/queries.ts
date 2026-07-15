@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import { beaconchaInOrigins } from '$/sources/BeaconchaIn/index.ts'
+import { beaconchaInOrigins } from '$/sources/BeaconchaIn/Rest/constants.ts'
 import type {
 	BeaconchaInEpoch,
 	BeaconchaInResponse,

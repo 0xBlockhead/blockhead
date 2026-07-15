@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { CoinId } from '$/constants/Coin.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import Heading from '$/components/Heading.svelte'
@@ -29,7 +27,7 @@
 		selection,
 		title = 'Coins',
 		typeAnnotationParagraphs = ['A market-facing coin or crypto asset identity used across price, market, and network contexts.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -38,7 +36,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Coin>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Coin>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -54,6 +52,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -121,18 +121,19 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: coin }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Coin> })}
+				{#snippet Item({ item: coin })}
 					{@const coinFields = { ...coin[EntityMetaKey.Selector], ...coin }}
+					{@const selection = select(EntityType.Coin, coin[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const coinHrefFields = { ...coin, ...coin[EntityMetaKey.Selector] }}
 					<CoinView
-						selection={select(EntityType.Coin, coin[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={coinFields}
 						href={
 							(coinHrefFields.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]', {
 								coinId: String(coinHrefFields.coinId ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Summary}
 						open={false}
 					/>
 				{/snippet}
@@ -334,7 +335,7 @@
 				{ coinId: CoinId.ETH }
 			).$$coinInstances}
 			{id}
-			open
+			open={false}
 			title={label}
 		/>
 	{/snippet}

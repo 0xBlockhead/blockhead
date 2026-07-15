@@ -8,10 +8,10 @@
  */
 
 import { getJson } from '$/lib/http.ts'
-import { threeXplOrigins } from '$/sources/ThreeXpl/index.ts'
 import {
 	productionBaseUrl,
 	sandboxBaseUrl,
+	threeXplOrigins,
 } from '$/sources/ThreeXpl/Rest/constants.ts'
 import type {
 	ThreeXplClientOptions,

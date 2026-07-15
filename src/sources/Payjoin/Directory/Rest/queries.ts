@@ -1,7 +1,28 @@
 import { corsFetch, throwIfHttpNotOk } from '$/lib/http.ts'
-import { payjoinOrigins } from '$/sources/Payjoin/index.ts'
 
 const base = (directoryUrl: string) => directoryUrl.replace(/\/$/, '')
+const payjoinOrigins = [
+	{
+		origin: 'https://{payjoin-ohttp-relay-host}',
+		corsEnabled: false,
+	},
+	{
+		origin: 'https://{payjoin-receiver-host}',
+		corsEnabled: false,
+	},
+	{
+		origin: 'https://payjo.in',
+		corsEnabled: false,
+	},
+	{
+		origin: 'http://127.0.0.1:8080',
+		corsEnabled: false,
+	},
+	{
+		origin: 'http://localhost:8080',
+		corsEnabled: false,
+	},
+] as const
 
 export const ohttpGatewayUrlForDirectory = (directoryUrl: string) => (
 	`${base(directoryUrl)}/.well-known/ohttp-gateway`

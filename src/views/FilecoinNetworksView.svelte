@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Filecoin networks',
 		typeAnnotationParagraphs = ['Filecoin-specific view over a canonical Network row, including Lotus endpoints, chain head observations, and tipsets.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FilecoinNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,10 +113,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: filecoinNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinNetwork> })}
+				{#snippet Item({ item: filecoinNetwork })}
 					{@const filecoinNetworkFields = { ...filecoinNetwork[EntityMetaKey.Selector], ...filecoinNetwork }}
+					{@const selection = select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<FilecoinNetworkView
-						selection={select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={filecoinNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

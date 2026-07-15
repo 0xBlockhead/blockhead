@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,7 @@
 		selection,
 		title = 'EVM blobs',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -31,7 +30,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmBlob>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmBlob>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,6 +46,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -122,17 +123,22 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmBlob }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmBlob> })}
+				{#snippet Item({ item: evmBlob })}
 					{@const evmBlobFields = { ...evmBlob[EntityMetaKey.Selector], ...evmBlob }}
+					{@const selection = select(EntityType.EvmBlob, evmBlob[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmBlobHrefFields = { ...evmBlob, ...evmBlob[EntityMetaKey.Selector] }}
 					<EvmBlobView
-						selection={select(EntityType.EvmBlob, evmBlob[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmBlobFields}
 						href={
-							(evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.slug !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
-								network: String(evmBlobHrefFields.$transaction.$network.slug ?? ''),
+							(evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
 								transactionId: String(evmBlobHrefFields.$transaction.txHash ?? ''),
 								indexInTransaction: String(evmBlobHrefFields.indexInTransaction ?? ''),
+								network: String(caip2StringFromValue(evmBlobHrefFields.$transaction.$network.caip2) ?? ''),
+							}) : evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
+								transactionId: String(evmBlobHrefFields.$transaction.txHash ?? ''),
+								indexInTransaction: String(evmBlobHrefFields.indexInTransaction ?? ''),
+								network: String(evmBlobHrefFields.$transaction.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

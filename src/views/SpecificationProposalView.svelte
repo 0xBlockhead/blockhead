@@ -4,14 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { defaultSpecificationProposalSources, specificationProposalSourceSelectionByKey } from '$/sources/$sourceSelections.ts'
 	import { proposalCategoryById, specificationRealmById } from '$/constants/SpecificationProposal.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -25,8 +24,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.SpecificationProposal>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.SpecificationProposal>>
+			selection: RegisteredEntityProxyResource<EntityType.SpecificationProposal>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SpecificationProposal>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -39,72 +38,7 @@
 		>
 	> = $props()
 
-	const selectedViewSources = $derived({
-		'Bitcoin:Bip': [
-			Source.BitcoinBips_Github,
-		],
-		'BitcoinCash:Chip': [
-			Source.BitcoinCashChips_Gitlab,
-		],
-		'ChainAgnostic:Caip': [
-			Source.Caips_Github,
-		],
-		'Cosmos:Adr': [
-			Source.CosmosAdrs_Github,
-		],
-		'Dogecoin:Dip': [
-			Source.DogecoinDips_Github,
-		],
-		'Ens:Ensip': [
-			Source.Ensips_Github,
-		],
-		'Ethereum:Eip': [
-			Source.EthereumEips_Github,
-		],
-		'Ethereum:Erc': [
-			Source.EthereumEips_Github,
-		],
-		'Filecoin:Fip': [
-			Source.FilecoinFips_Github,
-		],
-		'Hyperliquid:Hip': [
-			Source.HyperliquidDocs_Rest,
-		],
-		'Litecoin:Lip': [
-			Source.LitecoinLips_Github,
-		],
-		'Near:Nep': [
-			Source.NearNeps_Github,
-		],
-		'Polkadot:Rfc': [
-			Source.PolkadotRfcs_Github,
-		],
-		'Quilibrium:ProtocolDocument': [
-			Source.QuilibriumDocs_Rest,
-		],
-		'Solana:Simd': [
-			Source.SolanaSimds_Github,
-		],
-		'Zcash:Zip': [
-			Source.ZcashZips_Github,
-		],
-	}[[String(selection.entitySelector.realm), String(selection.entitySelector.category)].join(':')] ?? [
-		Source.BitcoinBips_Github,
-		Source.BitcoinCashChips_Gitlab,
-		Source.Caips_Github,
-		Source.CosmosAdrs_Github,
-		Source.DogecoinDips_Github,
-		Source.Ensips_Github,
-		Source.EthereumEips_Github,
-		Source.FilecoinFips_Github,
-		Source.HyperliquidDocs_Rest,
-		Source.LitecoinLips_Github,
-		Source.NearNeps_Github,
-		Source.PolkadotRfcs_Github,
-		Source.QuilibriumDocs_Rest,
-		Source.SolanaSimds_Github,
-		Source.ZcashZips_Github,
-	])
+	const selectedViewSources = $derived(specificationProposalSourceSelectionByKey[[String(selection.entitySelector.realm), String(selection.entitySelector.category)].join(':')] ?? defaultSpecificationProposalSources)
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const specificationProposal = $derived(selection({

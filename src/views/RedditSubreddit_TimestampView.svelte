@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -27,8 +26,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.RedditSubreddit_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.RedditSubreddit_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.RedditSubreddit_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RedditSubreddit_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -292,6 +291,11 @@
 				<dd>
 					<RedditSubredditView
 						selection={select(EntityType.RedditSubreddit, selection.entitySelector.$subreddit, {})}
+						href={
+							(selection.entitySelector.$subreddit.name !== undefined ? resolve('/reddit/r/[name=stringSegment]', {
+								name: String(selection.entitySelector.$subreddit.name ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

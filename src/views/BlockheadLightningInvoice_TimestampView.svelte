@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BlockheadLightningInvoice_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BlockheadLightningInvoice_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningInvoice_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLightningInvoice_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -111,9 +111,12 @@
 					<BlockheadLightningInvoiceView
 						selection={select(EntityType.BlockheadLightningInvoice, selection.entitySelector.$invoice, {})}
 						href={
-							(selection.entitySelector.$invoice.$network !== undefined && selection.entitySelector.$invoice.$network.slug !== undefined && selection.entitySelector.$invoice.paymentHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
-								network: String(selection.entitySelector.$invoice.$network.slug ?? ''),
+							(selection.entitySelector.$invoice.paymentHash !== undefined && selection.entitySelector.$invoice.$network !== undefined && selection.entitySelector.$invoice.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
 								paymentHash: String(selection.entitySelector.$invoice.paymentHash ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$invoice.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$invoice.paymentHash !== undefined && selection.entitySelector.$invoice.$network !== undefined && selection.entitySelector.$invoice.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
+								paymentHash: String(selection.entitySelector.$invoice.paymentHash ?? ''),
+								network: String(selection.entitySelector.$invoice.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

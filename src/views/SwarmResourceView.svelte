@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.SwarmResource>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.SwarmResource>>
+			selection: RegisteredEntityProxyResource<EntityType.SwarmResource>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SwarmResource>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -78,8 +77,11 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.reference !== undefined ? resolve('/swarm/[reference=stringSegment]', {
+		href ?? (pendingEntity.contentPath === '' && pendingEntity.reference !== undefined ? resolve('/swarm/[reference=stringSegment]', {
 			reference: String(pendingEntity.reference ?? ''),
+		}) : pendingEntity.contentPath !== '' && pendingEntity.reference !== undefined && pendingEntity.contentPath !== undefined ? resolve('/swarm/[reference=stringSegment]/path/[...contentPath=stringSegment]', {
+			reference: String(pendingEntity.reference ?? ''),
+			contentPath: String(pendingEntity.contentPath ?? ''),
 		}) : undefined)
 	}
 	{layout}

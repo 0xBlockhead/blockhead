@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -34,7 +35,7 @@ export const LensUsername = entity({
 		description: 'The identifier assigned by the source domain.',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	value: {
 		label: 'Value',

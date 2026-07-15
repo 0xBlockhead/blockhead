@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Hedera network supply observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.HederaNetworkSupply_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.HederaNetworkSupply_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: hederaNetworkSupplyTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaNetworkSupply_Timestamp> })}
+				{#snippet Item({ item: hederaNetworkSupplyTimestamp })}
 					{@const hederaNetworkSupplyTimestampFields = { ...hederaNetworkSupplyTimestamp[EntityMetaKey.Selector], ...hederaNetworkSupplyTimestamp }}
+					{@const selection = select(EntityType.HederaNetworkSupply_Timestamp, hederaNetworkSupplyTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<HederaNetworkSupply_TimestampView
-						selection={select(EntityType.HederaNetworkSupply_Timestamp, hederaNetworkSupplyTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={hederaNetworkSupplyTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.ZeroGConsensusNetwork>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.ZeroGConsensusNetwork>>
+			selection: RegisteredEntityProxyResource<EntityType.ZeroGConsensusNetwork>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ZeroGConsensusNetwork>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -55,6 +54,7 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ZeroGConsensusNetwork_TimestampsView from '$/views/ZeroGConsensusNetwork_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -167,5 +167,23 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<ZeroGConsensusNetwork_TimestampsView
+				selection={
+						selection.$$timestamps({
+							sources: [
+								Source.ZeroGChainScan_Rest,
+							],
+							count: true,
+						})
+					}
+				title='timestamps'
+				emptyText='No 0G consensus network observations.'
+				id='ZeroGConsensusNetwork_TimestampsView-timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

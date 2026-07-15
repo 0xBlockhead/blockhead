@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.TonTransaction>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.TonTransaction>>
+			selection: RegisteredEntityProxyResource<EntityType.TonTransaction>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TonTransaction>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -86,6 +87,15 @@
 				<dd>
 					<TonAccountView
 						selection={select(EntityType.TonAccount, selection.entitySelector.$account, {})}
+						href={
+							(selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+								accountId: String(selection.entitySelector.$account.address ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+								accountId: String(selection.entitySelector.$account.address ?? ''),
+								network: String(selection.entitySelector.$account.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -122,40 +132,35 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							hash: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const hash = pendingEntity.hash}
-					{#if hash !== undefined && hash !== null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
+			<div>
+				<dt>Hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									hash: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const hash = pendingEntity.hash}
+							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hash = resolvedEntity.hash}
-					{#if hash !== undefined && hash !== null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const hash = resolvedEntity.hash}
+							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={

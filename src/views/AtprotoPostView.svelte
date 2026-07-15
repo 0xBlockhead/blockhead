@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.AtprotoPost>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.AtprotoPost>>
+			selection: RegisteredEntityProxyResource<EntityType.AtprotoPost>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AtprotoPost>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -179,6 +178,8 @@
 										href={
 											(atprotoActor[EntityMetaKey.Selector].did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
 												did: String(atprotoActor[EntityMetaKey.Selector].did ?? ''),
+											}) : atprotoActor[EntityMetaKey.Selector].handle !== undefined ? resolve('/atproto/actor/handle/[handle=stringSegment]', {
+												handle: String(atprotoActor[EntityMetaKey.Selector].handle ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}

@@ -4,9 +4,10 @@ import { fileURLToPath } from 'node:url'
 
 import {
 	e2eRouteFixtureMetadataByNodeId,
+	e2eRouteParamMatcherByName,
 	type E2eRouteFixtureMetadata,
 } from './_generatedRouteFixtureMetadata.ts'
-import * as routeParamFixtures from './_routeParamFixtures.ts'
+import { e2eRouteProbeAtomValueById } from './_routeParamFixtures.ts'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..')
 
@@ -14,265 +15,65 @@ const routesDir = join(repoRoot, 'src', 'routes')
 
 const includeTestRoutes = process.env.E2E_INCLUDE_TEST_ROUTES === '1'
 
-const getRouteParamFixtures = () => {
-	return routeParamFixtures
-}
-
 const isRouteGroup = (segment: string) => (
 	segment.startsWith('(')
 	&& segment.endsWith(')')
 )
 
-const encodeUrlSegment = (segment: string) => (
-	segment === '~' ?
-		'~'
-	:
-		encodeURIComponent(segment)
-)
-
-const encodeDynamicUrlSegment = (
-	segment: string,
-	matcherKey?: string
-) => (
-	matcherKey === 'networkCaip2'
-	|| matcherKey === 'eip155NetworkCaip2'
-	|| matcherKey === 'networkCaip2OrNetworkSlug' ?
-		segment
-	: matcherKey === 'absoluteUrl' ?
-		encodeUrlSegment(segment)
-	:
-	(
-		segment.includes('/')
-		|| segment.includes(':')
-	) ?
-		encodeURIComponent(encodeURIComponent(segment))
-	:
-		encodeUrlSegment(segment)
-)
-
-const bracketSegmentToParamKey = (segment: string) => (
-	segment.startsWith('[...') ?
-		`...${segment.slice(4, -1).split('=', 1)[0]}`
-	:
-	segment.startsWith('[') && segment.endsWith(']') ?
-		((inner) => (
-			(() => {
-				const eq = inner.indexOf('=')
-				return eq === -1 ? inner : inner.slice(0, eq)
-			})()
-		))(segment.slice(1, -1))
-	:
-		segment
-)
-
-const bracketSegmentToMatcherKey = (segment: string) => (
-	segment.startsWith('[') && segment.endsWith(']') ?
-		((inner) => (
-			inner.includes('=') ? inner.slice(inner.indexOf('=') + 1) : undefined
-		))(segment.slice(1, -1))
-	:
-		undefined
-)
-
-const bracketExpressionToParamKey = (expression: string) => (
-	expression.startsWith('...') ?
-		`...${expression.slice(3)}`
-	:
-		expression.includes('=') ?
-		expression.slice(0, expression.indexOf('='))
-	:
-		expression
-)
-
-const bracketExpressionToMatcherKey = (expression: string) => (
-	expression.includes('=') ? expression.slice(expression.indexOf('=') + 1) : undefined
-)
-
-const unique = <_Value>(values: readonly _Value[]) => [...new Set(values)]
-
-const routeParamNames = (href: string) => unique(
-	Array.from(href.matchAll(/\[(?:\.\.\.)?([^=\]]+)(?:=[^\]]+)?\]/g))
-		.map((match) => match[1])
-)
+const routeIdFromSegments = (segments: readonly string[]) => `/${segments.join('/')}`.replaceAll('//', '/')
 
 const publicRouteIdFromSegments = (segments: readonly string[]) => `/${segments
 	.filter((segment) => !isRouteGroup(segment))
 	.join('/')}`.replaceAll('//', '/')
 
-const generatedRouteFixtureMetadata = (routeId: string) => (
-	Object.values(e2eRouteFixtureMetadataByNodeId)
-		.find((fixture) => fixture.publicPath === routeId.replaceAll(
-			/\[((?:\.\.\.)?[^=\]]+)=[^\]]+\]/g,
-			'[$1]'
-		))
-)
+const routeParamNames = (routeId: string) => [
+	...new Set([...routeId.matchAll(/\[(?:\.\.\.)?([^=\]]+)(?:=[^\]]+)?\]/g)].map((match) => match[1])),
+]
 
-const dynamicFixture = (
-	routeId: string,
-	routeFixtureMetadata: E2eRouteFixtureMetadata | undefined,
-	paramKey: string,
-	_matcherKey: string | undefined
-) => {
-	if (paramKey.startsWith('...'))
-		return (
-			getRouteParamFixtures().e2eRouteRestSegmentFixtures[paramKey.slice(3)]
-			?? getRouteParamFixtures().e2eRouteParamFixtureForMetadata(
-				routeId,
-				routeFixtureMetadata,
-				paramKey.slice(3)
-			)
-		)
+const generatedRouteFixtureMetadata = (routeId: string): E2eRouteFixtureMetadata => {
+	const matches = Object.values(e2eRouteFixtureMetadataByNodeId)
+		.filter((metadata) => metadata.routeId === routeId)
+	if (matches.length !== 1)
+		throw new Error(`${routeId} has ${matches.length} generated fixture metadata owners`)
 
-	return getRouteParamFixtures().e2eRouteParamFixtureForMetadata(
-		routeId,
-		routeFixtureMetadata,
-		paramKey
-	)
+	return matches[0]
 }
 
-const expandMixedSegment = (
-	routeId: string,
-	routeFixtureMetadata: E2eRouteFixtureMetadata | undefined,
-	segment: string,
-	contexts: {
-		urlSegments: string[]
-		params: Record<string, string>
-	}[]
-) => {
-	const parts = [...segment.matchAll(/\[([^\]]+)\]/g)]
-	let expandedContexts = contexts.map((context) => ({
-		context,
-		urlSegment: '',
-		offset: 0,
-	}))
+const pathnamesFromMetadata = (metadata: E2eRouteFixtureMetadata) => {
+	const probeCases = metadata.mappings.flatMap((mapping) => mapping.probeCases)
+	const selectedCases = process.env.E2E_ROUTE_VARIANTS === 'all' ? probeCases : probeCases.slice(0, 1)
+	if (selectedCases.length === 0)
+		throw new Error(`${metadata.nodeId} has no generated route probe cases`)
 
-	for (const part of parts) {
-		const expression = part[1]
-		const paramKey = bracketExpressionToParamKey(expression)
-		const matcherKey = bracketExpressionToMatcherKey(expression)
-		expandedContexts = expandedContexts.flatMap((expandedContext) => (
-			getRouteParamFixtures().e2eRouteParamFixtureVariantsForMetadata(
-				routeId,
-				routeFixtureMetadata,
-				paramKey,
-				expandedContext.context.params
-			).map((fixture) => ({
-				context: {
-					...expandedContext.context,
-					params: {
-						...expandedContext.context.params,
-						[paramKey]: fixture,
-					},
-				},
-				urlSegment: (
-					expandedContext.urlSegment
-					+ segment.slice(expandedContext.offset, part.index)
-					+ encodeDynamicUrlSegment(fixture, matcherKey)
-				),
-				offset: part.index + part[0].length,
-			}))
-		))
-	}
+	return selectedCases.map((probeCase) => {
+		const expectedParams = routeParamNames(metadata.routeId)
+		const caseParams = Object.keys(probeCase.params)
+		if (
+			expectedParams.some((param) => !caseParams.includes(param))
+			|| caseParams.some((param) => !expectedParams.includes(param))
+		)
+			throw new Error(`${metadata.nodeId} probe case ${probeCase.id} is not a complete route parameter record`)
 
-	return expandedContexts.map((expandedContext) => ({
-		...expandedContext.context,
-		urlSegments: [
-			...expandedContext.context.urlSegments,
-			encodeUrlSegment(
-				expandedContext.urlSegment
-				+ segment.slice(expandedContext.offset)
-			),
-		],
-	}))
+		const params = Object.fromEntries(Object.entries(probeCase.params).map(([param, atom]) => {
+				const value = new Map<string, string>(Object.entries(e2eRouteProbeAtomValueById)).get(atom)
+			if (value == null)
+				throw new Error(`${metadata.nodeId} probe case ${probeCase.id} references missing atom ${atom}`)
+			const matchers = metadata.parameterMatchers[param]
+			if (!matchers.some((matcher) => e2eRouteParamMatcherByName[matcher](value)))
+				throw new Error(`${metadata.nodeId} probe case ${probeCase.id} value for ${param} fails its generated matcher`)
+
+			return [param, value]
+		}))
+		return metadata.resolve(params)
+	})
 }
 
 const pageFileToPathname = (absPath: string) => {
 	const rel = relative(routesDir, absPath).replaceAll('\\', '/')
 	const dir = rel.replace(/(\/+)?\+page\.svelte$/, '')
 	const segments = dir === '' ? [] : dir.split('/').filter(Boolean)
-	const routeId = publicRouteIdFromSegments(segments)
-	const routeFixtureMetadata = routeParamNames(routeId).length === 0 ? undefined : generatedRouteFixtureMetadata(routeId)
-	let contexts: {
-		urlSegments: string[]
-		params: Record<string, string>
-	}[] = [
-		{
-			urlSegments: [],
-			params: {},
-		},
-	]
-
-	for (const segment of segments) {
-		if (isRouteGroup(segment)) continue
-
-		if (segment.startsWith('[...')) {
-			contexts = contexts.map((context) => ({
-				...context,
-				urlSegments: [
-					...context.urlSegments,
-					...dynamicFixture(
-						routeId,
-						routeFixtureMetadata,
-						bracketSegmentToParamKey(segment),
-						bracketSegmentToMatcherKey(segment)
-					)
-						.split('/')
-						.filter(Boolean)
-						.map(encodeUrlSegment),
-				],
-			}))
-			continue
-		}
-
-		if (/^\[[^\]]+\]$/.test(segment)) {
-			const paramKey = bracketSegmentToParamKey(segment)
-			const matcherKey = bracketSegmentToMatcherKey(segment)
-			contexts = contexts.flatMap((context) => (
-				getRouteParamFixtures().e2eRouteParamFixtureVariantsForMetadata(
-					routeId,
-					routeFixtureMetadata,
-					paramKey,
-					context.params
-				)
-			).map((fixture) => ({
-				...context,
-				urlSegments: [
-					...context.urlSegments,
-					encodeDynamicUrlSegment(fixture, matcherKey),
-				],
-				params: {
-					...context.params,
-					[paramKey]: fixture,
-				},
-			})))
-			continue
-		}
-
-		if (segment.includes('[') && segment.includes(']')) {
-			contexts = expandMixedSegment(
-				routeId,
-				routeFixtureMetadata,
-				segment,
-				contexts
-			)
-			continue
-		}
-
-		contexts = contexts.map((context) => ({
-			...context,
-			urlSegments: [
-				...context.urlSegments,
-				encodeUrlSegment(segment),
-			],
-		}))
-	}
-
-	return contexts.map((context) => (
-		context.urlSegments.length === 0 ?
-			'/'
-		:
-			`/${context.urlSegments.join('/')}`
-	))
+	const routeId = routeIdFromSegments(segments)
+	return routeId.includes('[') ? pathnamesFromMetadata(generatedRouteFixtureMetadata(routeId)) : [publicRouteIdFromSegments(segments)]
 }
 
 const walkFiles = async function* (dir: string): AsyncGenerator<string> {

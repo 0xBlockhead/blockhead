@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Bnb beacon token migrations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BnbBeaconTokenMigration>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BnbBeaconTokenMigration>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: bnbBeaconTokenMigration }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BnbBeaconTokenMigration> })}
+				{#snippet Item({ item: bnbBeaconTokenMigration })}
 					{@const bnbBeaconTokenMigrationFields = { ...bnbBeaconTokenMigration[EntityMetaKey.Selector], ...bnbBeaconTokenMigration }}
+					{@const selection = select(EntityType.BnbBeaconTokenMigration, bnbBeaconTokenMigration[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<BnbBeaconTokenMigrationView
-						selection={select(EntityType.BnbBeaconTokenMigration, bnbBeaconTokenMigration[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={bnbBeaconTokenMigrationFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -8,3 +8,10 @@ export const origin = 'https://sourcify.dev' as const
 export const serverPathPrefix = '/server/v2' as const
 
 export const baseUrl = `${origin}${serverPathPrefix}` as const
+
+export const sourcifyOrigins = [
+	{
+		origin,
+		corsEnabled: false,
+	},
+] as const

@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.DydxChainSubaccount>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.DydxChainSubaccount>>
+			selection: RegisteredEntityProxyResource<EntityType.DydxChainSubaccount>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.DydxChainSubaccount>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -81,6 +82,15 @@
 			{#snippet Pending()}
 				<CosmosAccountView
 					selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
+					href={
+						(selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(selection.entitySelector.$account.address ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(selection.entitySelector.$account.address ?? ''),
+							network: String(selection.entitySelector.$account.$network.slug ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -90,6 +100,15 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<CosmosAccountView
 					selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
+					href={
+						(selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(selection.entitySelector.$account.address ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(selection.entitySelector.$account.address ?? ''),
+							network: String(selection.entitySelector.$account.$network.slug ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -134,6 +153,15 @@
 				<dd>
 					<CosmosAccountView
 						selection={select(EntityType.CosmosAccount, selection.entitySelector.$account, {})}
+						href={
+							(selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+								accountId: String(selection.entitySelector.$account.address ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+								accountId: String(selection.entitySelector.$account.address ?? ''),
+								network: String(selection.entitySelector.$account.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

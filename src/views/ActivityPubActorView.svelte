@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.ActivityPubActor>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.ActivityPubActor>>
+			selection: RegisteredEntityProxyResource<EntityType.ActivityPubActor>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ActivityPubActor>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -52,7 +51,6 @@
 			username: true,
 			profileUrl: true,
 			createdAt: true,
-			$icon: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')
@@ -64,6 +62,8 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
+	import ActivityPubActor_TimestampsView from '$/views/ActivityPubActor_TimestampsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
 
@@ -333,5 +333,35 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<ActivityPubNotesView
+				selection={
+						selection.$$notes({
+							sources: [
+								Source.Mastodon_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Notes'
+				href={resolve('/activitypub/notes')}
+				emptyText='No ActivityPub notes for this actor.'
+				id='ActivityPubNotesView-notes'
+			/>
+
+			<ActivityPubActor_TimestampsView
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
+				title='Observations'
+				emptyText='No ActivityPub actor observations yet.'
+				id='ActivityPubActor_TimestampsView-timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Events',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.PolkadotEvent>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.PolkadotEvent>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,18 +114,24 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: polkadotEvent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotEvent> })}
+				{#snippet Item({ item: polkadotEvent })}
 					{@const polkadotEventFields = { ...polkadotEvent[EntityMetaKey.Selector], ...polkadotEvent }}
+					{@const selection = select(EntityType.PolkadotEvent, polkadotEvent[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const polkadotEventHrefFields = { ...polkadotEvent, ...polkadotEvent[EntityMetaKey.Selector] }}
 					<PolkadotEventView
-						selection={select(EntityType.PolkadotEvent, polkadotEvent[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={polkadotEventFields}
 						href={
-							(polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.slug !== undefined && polkadotEventHrefFields.$block.blockNumber !== undefined && polkadotEventHrefFields.$block.hash !== undefined && polkadotEventHrefFields.indexInBlock !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/event/[eventIndex=nonNegativeInteger]', {
-								network: String(polkadotEventHrefFields.$block.$network.slug ?? ''),
+							(polkadotEventHrefFields.indexInBlock !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.blockNumber !== undefined && polkadotEventHrefFields.$block.hash !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/event/[eventIndex=nonNegativeInteger]', {
+								eventIndex: String(polkadotEventHrefFields.indexInBlock ?? ''),
 								blockNumber: String(polkadotEventHrefFields.$block.blockNumber ?? ''),
 								hash: String(polkadotEventHrefFields.$block.hash ?? ''),
+								network: String(caip2StringFromValue(polkadotEventHrefFields.$block.$network.caip2) ?? ''),
+							}) : polkadotEventHrefFields.indexInBlock !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.blockNumber !== undefined && polkadotEventHrefFields.$block.hash !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/event/[eventIndex=nonNegativeInteger]', {
 								eventIndex: String(polkadotEventHrefFields.indexInBlock ?? ''),
+								blockNumber: String(polkadotEventHrefFields.$block.blockNumber ?? ''),
+								hash: String(polkadotEventHrefFields.$block.hash ?? ''),
+								network: String(polkadotEventHrefFields.$block.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

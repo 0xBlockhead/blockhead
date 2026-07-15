@@ -4,5 +4,7 @@
  */
 export const schemaSource = {
 	schemaUrl: 'https://api.mainnet.aptoslabs.com/v1/graphql',
-	schemaFile: './introspection.json',
+	schemaFile: './schema.graphql',
+	outputFile: './graphql-env.d.ts',
+	verifySchemaFromUrl: true,
 } as const

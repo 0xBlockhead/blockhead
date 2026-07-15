@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'EVM accounts',
 		typeAnnotationParagraphs = ['An account address in the EVM address space, independent of any one chain.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmAccount>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmAccount>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,11 +110,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmAccount> })}
+				{#snippet Item({ item: evmAccount })}
 					{@const evmAccountFields = { ...evmAccount[EntityMetaKey.Selector], ...evmAccount }}
+					{@const selection = select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmAccountHrefFields = { ...evmAccount, ...evmAccount[EntityMetaKey.Selector] }}
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmAccountFields}
 						href={
 							(evmAccountHrefFields.address !== undefined ? resolve('/account/[address=evmAddress]', {

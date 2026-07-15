@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -19,8 +20,10 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.Erc4337SmartAccount, data.selector, {
+		sources: [
+			Source.Blockscout_Rest,
+		],
 		fields: {
-			userOperationsCount: true,
 			$contract: true,
 			$factory: true,
 		},

@@ -114,3 +114,18 @@ export const coinsBaseUrl = coinsOrigin
 export const proOrigin = 'https://pro-api.llama.fi' as const
 
 export const proBaseUrl = proOrigin
+
+export const defillamaOrigins = [
+	{
+		origin: coinsOrigin,
+		corsEnabled: false,
+	},
+	{
+		origin: iconsOrigin,
+		corsEnabled: false,
+	},
+	{
+		origin: proOrigin,
+		corsEnabled: false,
+	},
+] as const

@@ -1,6 +1,5 @@
 import { getJson } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
-import { lightningLndBindings } from '$/sources/LightningLnd/bindings.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	LndGetInfoResponse,
@@ -10,10 +9,16 @@ import type {
 } from '$/sources/LightningLnd/Rest/types.ts'
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
-const restBaseUrl = lightningLndBindings[1].endpoints[0].locator
-const lightningLndOrigins = lightningLndBindings[1].endpoints.map((endpoint) => ({
-	origin: endpoint.origin,
-	corsEnabled: endpoint.corsEnabled,
+const lightningLndEndpointOrigins = [
+	'https://127.0.0.1:8080',
+	'http://127.0.0.1:8080',
+	'https://localhost:8080',
+	'http://localhost:8080',
+] as const
+const restBaseUrl = lightningLndEndpointOrigins[0]
+const lightningLndOrigins = lightningLndEndpointOrigins.map((origin) => ({
+	origin,
+	corsEnabled: false,
 }))
 
 const lndHeaders = (macaroonHex: string) => ({

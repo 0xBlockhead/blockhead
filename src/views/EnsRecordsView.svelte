@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'ENS records',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EnsRecord>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EnsRecord>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,11 +111,19 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: ensRecord }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EnsRecord> })}
+				{#snippet Item({ item: ensRecord })}
 					{@const ensRecordFields = { ...ensRecord[EntityMetaKey.Selector], ...ensRecord }}
+					{@const selection = select(EntityType.EnsRecord, ensRecord[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const ensRecordHrefFields = { ...ensRecord, ...ensRecord[EntityMetaKey.Selector] }}
 					<EnsRecordView
-						selection={select(EntityType.EnsRecord, ensRecord[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={ensRecordFields}
+						href={
+							(ensRecordHrefFields.recordKey !== undefined && ensRecordHrefFields.$name !== undefined && ensRecordHrefFields.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
+								recordId: String(ensRecordHrefFields.recordKey ?? ''),
+								ensName: String(ensRecordHrefFields.$name.name ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

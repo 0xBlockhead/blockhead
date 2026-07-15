@@ -15,33 +15,47 @@ import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
 import type { SourceProviderDefinition } from '$/sources/$sources.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { executionEndpoints } from '$/sources/Voltaire/JsonRpc/executionEndpoints.ts'
 import {
 	beaconOrigins,
-} from '$/sources/Beacon/index.ts'
-import { beaconRestEndpoints } from '$/sources/Beacon/bindings.ts'
-import Piped from '$/sources/Piped/index.ts'
-import { pipedApiDefaultOrigin } from '$/sources/Piped/Rest/constants.ts'
+	beaconRestEndpoints,
+} from '$/sources/Beacon/Rest/constants.ts'
+import { pipedApiOrigins } from '$/sources/Piped/Rest/constants.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
-	quilibriumDocsBindings,
-	quilibriumDocsEndpoints,
-} from '$/sources/QuilibriumDocs/bindings.ts'
+	evmExecutionOpenRpcArtifactFailures,
+	providerLocalBindingImportFailures,
+} from '$/sources/validateSourceRegistry.ts'
 import {
 	getRpcTx,
 	narrowRpcLog,
 	narrowTxRpc,
 } from '$/sources/Voltaire/JsonRpc/types.ts'
-import Voltaire, {
+
+import {
+	executionEndpoints,
 	voltaireJsonRpcTransportCandidates,
+} from '$/sources/Voltaire/JsonRpc/executionEndpoints.ts'
+import {
 	voltaireJsonRpcTransportsWithOriginsByChainId,
 	voltaireJsonRpcTransportWithOriginsByChainId,
-} from '$/sources/Voltaire/index.ts'
-import { zeroGOrigins } from '$/sources/ZeroG/index.ts'
+} from '$/sources/Voltaire/JsonRpc/queries.ts'
 import { SourceArtifactKind } from '$/sources/SourceBinding.ts'
-import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/endpoints.ts'
-import { zeroGMainnetExplorerEndpoints } from '$/sources/ZeroG/ChainScan/Rest/endpoints.ts'
-import { zeroGStorageNodeRpcEndpoints } from '$/sources/ZeroG/StorageNode/JsonRpc/endpoints.ts'
-import { zeroGMainnetStorageEndpoints } from '$/sources/ZeroG/StorageScan/Rest/endpoints.ts'
+import {
+	zeroGMainnetRpcEndpoints,
+	zeroGOrigins as zeroGChainOrigins,
+} from '$/sources/ZeroG/Chain/JsonRpc/endpoints.ts'
+import {
+	zeroGMainnetExplorerEndpoints,
+	zeroGOrigins as zeroGChainScanOrigins,
+} from '$/sources/ZeroG/ChainScan/Rest/endpoints.ts'
+import {
+	zeroGOrigins as zeroGStorageNodeOrigins,
+	zeroGStorageNodeRpcEndpoints,
+} from '$/sources/ZeroG/StorageNode/JsonRpc/endpoints.ts'
+import {
+	zeroGMainnetStorageEndpoints,
+	zeroGOrigins as zeroGStorageScanOrigins,
+} from '$/sources/ZeroG/StorageScan/Rest/endpoints.ts'
 import { sourceProviders as appSourceProviders } from '$/sources/index.ts'
 
 const sourceBindingArtifacts = sourceProviderDefinitions.flatMap((provider) => provider.bindings)
@@ -114,6 +128,22 @@ const fixtureSourceProviders = [
 ] as const satisfies readonly SourceProviderDefinition<string, string>[]
 
 describe('source provider registry', () => {
+	it('names every EVM execution binding missing OpenRPC authority', () => {
+		expect(evmExecutionOpenRpcArtifactFailures(sourceProviderDefinitions
+			.flatMap((provider) => provider.bindings)
+			.filter((binding) => (
+				binding.source === 'EnvioHyperRpc_JsonRpc'
+				|| binding.source === 'GetBlockRpc_JsonRpc'
+			))
+			.map((binding) => ({
+				...binding,
+				artifacts: [],
+			})))).toEqual([
+			'EnvioHyperRpc_JsonRpc / Eip155Chain:1: EVM execution JSON-RPC binding lacks OpenRPC artifact',
+			'GetBlockRpc_JsonRpc / Eip155Chain:1: EVM execution JSON-RPC binding lacks OpenRPC artifact',
+		])
+	})
+
 	it('gates providers and sources by env schemas and rejects empty strings', () => {
 		const indexed = indexSourceProviders(
 			fixtureSourceProviders,
@@ -296,6 +326,12 @@ describe('source provider registry', () => {
 
 			for (const provider of source.matchAll(/\borigins:\s*([A-Za-z0-9_]+)\.origins\b/g))
 				expect(providersWithOrigins, `${filePath}: ${provider[1]}.origins`).toContain(provider[1])
+
+			for (const origins of source.matchAll(/\borigins:\s*([A-Za-z0-9_]+Origins)\b/g))
+				expect(
+					source,
+					`${filePath}: ${origins[1]}`
+				).toMatch(new RegExp(`(?:import\\s*\\{[^}]*\\b${origins[1]}\\b[^}]*\\}\\s*from\\s*'\\$/sources/[^']+\\.ts'|(?:export\\s+)?const\\s+${origins[1]}\\s*=)`))
 		}
 	})
 
@@ -317,7 +353,7 @@ describe('source provider registry', () => {
 				).toContain(origin)
 	})
 
-	it('keeps source modules from bypassing source-aware browser fetch routing', () => {
+	it('keeps source modules from bypassing source-aware browser fetch routing or importing provider-local bindings', () => {
 		for (const filePath of globSync('src/sources/**/*.ts')) {
 			if (
 				filePath.endsWith('.spec.ts')
@@ -329,6 +365,32 @@ describe('source provider registry', () => {
 
 			expect(readFileSync(filePath, 'utf8'), filePath).not.toMatch(/\bfetch\s*\(/)
 		}
+
+		expect(providerLocalBindingImportFailures({
+			'src/sources/Fixture/bindings.ts': 'export const fixtureBindings = []',
+			'src/sources/Fixture/index.ts': "export { fixtureBindings } from './bindings.ts'",
+			'src/sources/Fixture/Binary/client.ts': "export const fixtureBindings = import('../' + 'bindings.ts')",
+			'src/sources/Fixture/Identifier/client.ts': "const bindingModule = '../bindings.ts'\nexport const fixtureBindings = import(bindingModule)",
+			'src/sources/Fixture/Rest/index.ts': "import { fixtureBindings } from '../bindings.ts'",
+			'src/sources/Fixture/Rest/v1/client.ts': "import { fixtureBindings } from '../../bindings.ts'",
+			'src/sources/Fixture/Graphql/client.ts': 'import { fixtureBindings } from "$/sources/Fixture/bindings.ts"',
+			'src/sources/Fixture/JsonRpc/queries.ts': "import { fixtureBindings } from '$/sources/Fixture/bindings.ts'",
+			'src/sources/Fixture/OpenApi/index.ts': "export { fixtureBindings } from '../bindings.ts'",
+			'src/sources/Fixture/Template/client.ts': 'const bindingFile = \'bindings.ts\'\nexport const fixtureBindings = import(`../${bindingFile}`)',
+			'src/sources/Fixture/WebSocket/index.ts': "export const fixtureBindings = import('../bindings.ts')",
+			'src/sources/Fixture/Rest/constants.ts': "import { fixtureMetadata } from './metadata.ts'",
+			'src/sources/Fixture/Rest/metadata.ts': 'export const fixtureMetadata = []',
+		})).toEqual([
+			'src/sources/Fixture/Binary/client.ts: dynamic import target must be a string literal because computed imports cannot be proven not to target provider-local bindings',
+			'src/sources/Fixture/Identifier/client.ts: dynamic import target must be a string literal because computed imports cannot be proven not to target provider-local bindings',
+			'src/sources/Fixture/Rest/index.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
+			'src/sources/Fixture/Rest/v1/client.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
+			'src/sources/Fixture/Graphql/client.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
+			'src/sources/Fixture/JsonRpc/queries.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
+			'src/sources/Fixture/OpenApi/index.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
+			'src/sources/Fixture/Template/client.ts: dynamic import target must be a string literal because computed imports cannot be proven not to target provider-local bindings',
+			'src/sources/Fixture/WebSocket/index.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
+		])
 	})
 
 	it('keeps source-aware HTTP helper calls tied to origin metadata', () => {
@@ -385,12 +447,12 @@ describe('source provider registry', () => {
 		}
 	})
 
-	it('keeps Piped origins static provider metadata instead of public-env call-site rows', () => {
-		expect(Piped.origins).toEqual([{
-			origin: pipedApiDefaultOrigin,
+	it('keeps Piped origins in static protocol metadata instead of public-env call-site rows', () => {
+		expect(pipedApiOrigins).toEqual([{
+			origin: 'https://api.piped.private.coffee',
 			corsEnabled: true,
 		}])
-		expect(readFileSync(join(process.cwd(), 'src', 'sources', 'Piped', 'Rest', 'client.ts'), 'utf8')).toMatch(/\borigins:\s*Piped\.origins\b/)
+		expect(readFileSync(join(process.cwd(), 'src', 'sources', 'Piped', 'Rest', 'client.ts'), 'utf8')).toMatch(/\borigins:\s*pipedApiOrigins\b/)
 		for (const filePath of globSync('src/sources/Piped/**/*.ts'))
 			expect(readFileSync(filePath, 'utf8'), filePath).not.toMatch(/\bOriginsForPublicEnv\b|\bPUBLIC_PIPED_API_BASE_URL\b/)
 	})
@@ -442,14 +504,36 @@ describe('source provider registry', () => {
 		})))
 	})
 
-	it('keeps Quilibrium docs origins aligned with source endpoint rows', () => {
-		expect(new Set(quilibriumDocsBindings.flatMap((binding) => binding.endpoints).map((entry) => entry.origin))).toEqual(
-			new Set(quilibriumDocsEndpoints.map((entry) => new URL(entry.url).origin))
-		)
+	it('keeps Quilibrium docs endpoints in generated APP binding metadata', () => {
+		expect(sourceProviderDefinitions
+			.filter((provider) => provider.provider === SourceProvider.QuilibriumDocs)
+			.flatMap((provider) => provider.bindings)
+			.flatMap((binding) => binding.endpoints)
+			.map((endpoint) => ({
+				locator: endpoint.locator,
+				origin: endpoint.origin,
+				corsEnabled: endpoint.corsEnabled,
+			}))).toEqual([
+			{
+				locator: 'https://docs.quilibrium.com',
+				origin: 'https://docs.quilibrium.com',
+				corsEnabled: true,
+			},
+			{
+				locator: 'https://quilibrium.com',
+				origin: 'https://quilibrium.com',
+				corsEnabled: true,
+			},
+		])
 	})
 
 	it('keeps ZeroG origins aligned with source endpoint rows', () => {
-		expect(new Set(zeroGOrigins.map((entry) => entry.origin))).toEqual(
+		expect(new Set([
+			...zeroGChainOrigins,
+			...zeroGChainScanOrigins,
+			...zeroGStorageNodeOrigins,
+			...zeroGStorageScanOrigins,
+		].map((entry) => entry.origin))).toEqual(
 			new Set([
 				...zeroGMainnetExplorerEndpoints.map((entry) => new URL(entry.url).origin),
 				...zeroGMainnetStorageEndpoints.map((entry) => new URL(entry.url).origin),

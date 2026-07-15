@@ -1,5 +1,5 @@
 export type ParsedRssFeedItem = {
-	guid: string
+	guid?: string
 	title?: string
 	link?: string
 	description?: string

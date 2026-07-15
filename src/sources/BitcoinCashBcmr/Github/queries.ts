@@ -1,8 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import { bitcoinCashBcmrBindings } from '$/sources/BitcoinCashBcmr/bindings.ts'
 import type { BcmrRegistry } from '$/sources/BitcoinCashBcmr/Github/types.ts'
+import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
 
-const origins = bitcoinCashBcmrBindings[0].endpoints.map((endpoint) => ({
+const origins = githubHttpEndpoints.map((endpoint) => ({
 	origin: endpoint.origin,
 	corsEnabled: endpoint.corsEnabled,
 }))

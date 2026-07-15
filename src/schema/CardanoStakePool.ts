@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -17,7 +18,7 @@ export const CardanoStakePool = entity({
 	$network: {
 		label: 'network',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.CardanoNetwork,
+		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	poolId: {

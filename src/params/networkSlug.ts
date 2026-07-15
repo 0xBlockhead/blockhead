@@ -1,8 +1,13 @@
 import type { ParamMatcher } from '@sveltejs/kit'
 
-import { networkBySlug } from '$/constants/Network.ts'
+import { matchSchemaPrimitiveParam } from '$/schema/$params.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 
 export const match = ((param: string) => (
-	networkBySlug[param] != null
+	matchSchemaPrimitiveParam(
+		EntityType.Network,
+		'slug',
+		param
+	)
 )) satisfies ParamMatcher

@@ -1,6 +1,5 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { lotusOrigins } from '$/sources/Lotus/index.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	LotusActor,
@@ -11,6 +10,17 @@ import type {
 	LotusTipset,
 	LotusVersion,
 } from '$/sources/Lotus/JsonRpc/types.ts'
+
+const lotusOrigins = [
+	{
+		origin: 'https://api.node.glif.io',
+		corsEnabled: true,
+	},
+	{
+		origin: 'http://127.0.0.1:1234',
+		corsEnabled: false,
+	},
+] as const
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion

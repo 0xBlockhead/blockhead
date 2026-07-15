@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -24,7 +25,7 @@ export const NostrRelay_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: (type('number.integer >= 0')),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
@@ -67,15 +68,15 @@ export const NostrRelay_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	limitation: {
-		label: 'Limitation',
+		label: 'Limitations',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('unknown'),
+		primitiveType: type({ 'maxMessageLength?': type('number'), 'maxSubscriptions?': type('number'), 'maxFilters?': type('number'), 'maxLimit?': type('number'), 'maxSubscriptionIdLength?': type('number'), 'maxEventTags?': type('number'), 'maxContentLength?': type('number'), 'minimumProofOfWorkDifficulty?': type('number'), 'authenticationRequired?': type('boolean'), 'paymentRequired?': type('boolean'), 'restrictedWrites?': type('boolean'), 'createdAtLowerLimit?': type('number'), 'createdAtUpperLimit?': type('number') }),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	fees: {
 		label: 'Fees',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('unknown'),
+		primitiveType: type({ 'admission?': type({ 'amount': type('number'), 'unit': type('string'), 'period?': type('number'), 'kinds?': type('number').array() }).array(), 'subscription?': type({ 'amount': type('number'), 'unit': type('string'), 'period?': type('number'), 'kinds?': type('number').array() }).array(), 'publication?': type({ 'amount': type('number'), 'unit': type('string'), 'period?': type('number'), 'kinds?': type('number').array() }).array() }),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	paymentsUrl: {
@@ -104,6 +105,12 @@ export const NostrRelay_Timestamp = entity({
 	},
 	pubkey: {
 		label: 'Public key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	contact: {
+		label: 'Contact',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

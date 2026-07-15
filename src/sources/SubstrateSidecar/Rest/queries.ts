@@ -1,6 +1,5 @@
 import { getJson } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { substrateSidecarBindings } from '$/sources/SubstrateSidecar/bindings.ts'
 import type {
 	SidecarAccountBalanceInfo,
 	SidecarBlock,
@@ -8,27 +7,22 @@ import type {
 	SidecarStakingValidators,
 } from '$/sources/SubstrateSidecar/Rest/types.ts'
 
+const substrateSidecarOrigin = 'http://127.0.0.1:8080' as const
+
 export const substrateSidecarRestEndpoints = [
 	{
-		url: substrateSidecarBindings[0].endpoints[0].locator,
+		url: substrateSidecarOrigin,
 		transportType: TransportType.Http,
 		providerName: 'Local Substrate Sidecar',
 	},
 ] as const
 
 export const substrateSidecarOrigins = [
-	...new Map(
-		substrateSidecarBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: substrateSidecarOrigin,
+		corsEnabled: false,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

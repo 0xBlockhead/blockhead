@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +29,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmBlock>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmBlock>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmBlock>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmBlock>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -46,6 +46,7 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmBlock = $derived(selection({
 		sources: [
+			Source.SqdPortal_RawHttp,
 			Source.Voltaire_JsonRpc,
 		],
 		fields: {
@@ -62,6 +63,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
@@ -74,9 +76,12 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.blockNumber ?? '')}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-			network: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.blockNumber !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 			blockNumber: String(pendingEntity.blockNumber ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.blockNumber !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+			blockNumber: String(pendingEntity.blockNumber ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -420,9 +425,12 @@
 										selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 										prefetched={evmBlock}
 										href={
-											(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-												network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+											(evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 												blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+												network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											}) : evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+												blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+												network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}
@@ -464,5 +472,20 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<EvmTransactionsView
+				selection={
+						selection.$$transactions({
+							count: true,
+						})
+					}
+				title='Transactions'
+				emptyText='No transactions in this block.'
+				id='EvmTransactionsView-transactions'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

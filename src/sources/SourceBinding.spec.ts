@@ -28,6 +28,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { sourceProviders as generatedSourceProviders } from '$/sources/$sourceProviders.ts'
+import { sourceBindingCompatibility } from '$/sources/$sourceBindingCompatibility.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
 import { sourceBindings as browserSourceBindings } from '$/sources/index.ts'
 import {
@@ -84,9 +85,110 @@ describe('SourceBinding validation', () => {
 		expect(validateSourceBinding(validBinding)).toBe(validBinding)
 	})
 
+	it('rejects empty endpoint and operation-group arrays', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			endpoints: [],
+		})).toThrow('source binding requires at least one endpoint')
+		expect(() => validateSourceBinding({
+			...validBinding,
+			operationGroups: [],
+		})).toThrow('source binding requires at least one operation group')
+	})
+
+	it('rejects an API family incompatible with the wire protocol', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			apiFamily: ApiFamily.GraphqlHttp,
+		})).toThrow('GraphqlHttp is incompatible with HttpRest')
+	})
+
+	it('fails closed when a compatibility policy marker is absent', () => {
+		const compatibility = sourceBindingCompatibility.find((candidate) => (
+			candidate.wireProtocol === validBinding.wireProtocol
+			&& candidate.apiFamilies.includes(validBinding.apiFamily)
+		))
+
+		expect(compatibility).toBeDefined()
+		const operationGroups = compatibility?.operationGroups
+		Reflect.deleteProperty(compatibility ?? {}, 'operationGroups')
+		try {
+			expect(() => validateSourceBinding(validBinding)).toThrow('compatibility row requires an explicit operation group policy')
+		} finally {
+			Reflect.set(compatibility ?? {}, 'operationGroups', operationGroups)
+		}
+	})
+
+	it('rejects an endpoint kind incompatible with the protocol and API family', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			endpoints: [{
+				endpointKind: SourceEndpointKind.LocalProcess,
+				locator: 'local:blockscout',
+			}],
+			delivery: SourceDelivery.LocalOnly,
+		})).toThrow('endpoint kind is incompatible with HttpRest/BlockscoutRestV2')
+	})
+
+	it('accepts GrpcService over a TCP endpoint', () => {
+		const binding = {
+			...validBinding,
+			endpoints: [{
+				endpointKind: SourceEndpointKind.TcpAddress,
+				locator: 'mainnet-public.mirrornode.hedera.com:443',
+			}],
+			wireProtocol: WireProtocol.Grpc,
+			apiFamily: ApiFamily.GrpcService,
+			delivery: SourceDelivery.RemoteQuery,
+		} as const satisfies SourceBinding
+
+		expect(validateSourceBinding(binding)).toBe(binding)
+	})
+
+	it('rejects GrpcService over a WebSocket endpoint', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			endpoints: [{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://example.test/grpc',
+			}],
+			wireProtocol: WireProtocol.Grpc,
+			apiFamily: ApiFamily.GrpcService,
+			delivery: SourceDelivery.RemoteQuery,
+		})).toThrow('endpoint kind is incompatible with Grpc/GrpcService')
+	})
+
+	it('rejects an operation group incompatible with a constrained API family', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			wireProtocol: WireProtocol.JsonRpc2,
+			apiFamily: ApiFamily.EvmExecutionJsonRpc,
+			operationGroups: [
+				SourceOperationGroup.GenericRead,
+			],
+		})).toThrow('operation group is incompatible with EvmExecutionJsonRpc')
+	})
+
+	it('rejects an artifact kind incompatible with a constrained API family', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			apiFamily: ApiFamily.OpenApiHttp,
+			artifacts: [{
+				kind: SourceArtifactKind.GraphqlSchema,
+				path: 'schema.graphql',
+				generated: false,
+			}],
+		})).toThrow('artifact kind is incompatible with OpenApiHttp')
+	})
+
 	it('rejects CORS metadata on non-HTTP endpoints', () => {
 		expect(() => validateSourceBinding({
 			...validBinding,
+			wireProtocol: WireProtocol.JsonRpc2,
+			apiFamily: ApiFamily.EvmExecutionJsonRpc,
+			operationGroups: [
+				SourceOperationGroup.EvmRpcCore,
+			],
 			endpoints: [
 				{
 					endpointKind: SourceEndpointKind.WebSocketUrl,
@@ -115,6 +217,11 @@ describe('SourceBinding validation', () => {
 	it('rejects HTTP proxy delivery for non-HTTP endpoints', () => {
 		expect(() => validateSourceBinding({
 			...validBinding,
+			wireProtocol: WireProtocol.JsonRpc2,
+			apiFamily: ApiFamily.EvmExecutionJsonRpc,
+			operationGroups: [
+				SourceOperationGroup.EvmRpcCore,
+			],
 			endpoints: [
 				{
 					endpointKind: SourceEndpointKind.WebSocketUrl,
@@ -142,12 +249,86 @@ describe('SourceBinding validation', () => {
 		expect(() => validateSourceBinding({
 			...validBinding,
 			delivery: SourceDelivery.RemoteLive,
-		})).toThrow('RemoteLive requires a WebSocket endpoint')
+		})).toThrow('RemoteLive requires WebSocket endpoints with at most one leading HTTP endpoint')
+	})
+
+	it('rejects RemoteLive endpoints outside the declared sequence', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			wireProtocol: WireProtocol.JsonRpc2,
+			apiFamily: ApiFamily.EvmExecutionJsonRpc,
+			operationGroups: [
+				SourceOperationGroup.EvmRpcCore,
+			],
+			endpoints: [
+				{
+					endpointKind: SourceEndpointKind.WebSocketUrl,
+					locator: 'wss://ethereum.publicnode.com',
+				},
+				validBinding.endpoints[0],
+			],
+			delivery: SourceDelivery.RemoteLive,
+		})).toThrow('RemoteLive requires WebSocket endpoints with at most one leading HTTP endpoint')
+	})
+
+	it('accepts managed gRPC RemoteLive over an HTTP endpoint', () => {
+		const binding = {
+			...validBinding,
+			wireProtocol: WireProtocol.Grpc,
+			apiFamily: ApiFamily.GrpcService,
+			delivery: SourceDelivery.RemoteLive,
+			credentials: [{
+				scope: SourceCredentialScope.RuntimeSecret,
+			}],
+			serverCredentialId: 'grpc-live-fixture',
+		} as const satisfies SourceBinding
+
+		expect(validateSourceBinding(binding)).toBe(binding)
+	})
+
+	it('rejects server-mediated runtime secrets without an opaque credential id', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			wireProtocol: WireProtocol.Grpc,
+			apiFamily: ApiFamily.GrpcService,
+			delivery: SourceDelivery.RemoteLive,
+			credentials: [{
+				scope: SourceCredentialScope.RuntimeSecret,
+			}],
+		})).toThrow('server-mediated runtime secret requires an opaque server credential id')
+	})
+
+	it('rejects orphaned server credential ids', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			serverCredentialId: 'orphaned-credential',
+		})).toThrow('server credential id requires a server-mediated runtime secret')
+	})
+
+	it('rejects mismatched managed gRPC RemoteLive axes', () => {
+		expect(() => validateSourceBinding({
+			...validBinding,
+			wireProtocol: WireProtocol.Grpc,
+			apiFamily: ApiFamily.GrpcService,
+			endpoints: [
+				validBinding.endpoints[0],
+				{
+					endpointKind: SourceEndpointKind.TcpAddress,
+					locator: 'mainnet-public.mirrornode.hedera.com:443',
+				},
+			],
+			delivery: SourceDelivery.RemoteLive,
+		})).toThrow('managed RemoteLive gRPC requires GrpcService over HTTP endpoints')
 	})
 
 	it('rejects browser delivery with runtime secrets', () => {
 		expect(() => validateSourceBinding({
 			...validBinding,
+			delivery: SourceDelivery.BrowserDirect,
+			endpoints: [{
+				...validBinding.endpoints[0],
+				corsEnabled: true,
+			}],
 			credentials: [
 				{
 					scope: SourceCredentialScope.RuntimeSecret,
@@ -229,6 +410,20 @@ describe('source binding indexes', () => {
 			.not.toMatch(/RemoteLive|WebSocket/)
 	})
 
+	it('keeps managed gRPC behind the server-owned RemoteLive boundary', () => {
+		const remoteSource = readFileSync('src/sources/_runtime/live.remote.ts', 'utf8')
+		const clientSource = readFileSync('src/sources/_shared/wire/Grpc/live.ts', 'utf8')
+		const serverSource = readFileSync('src/sources/_shared/wire/Grpc/live.server.ts', 'utf8')
+		const yellowstoneSource = readFileSync('src/sources/GetBlock/Yellowstone/queries.ts', 'utf8')
+
+		expect(remoteSource).toMatch(/getRequestEvent\(\)\.request\.signal/)
+		expect(clientSource).not.toContain('node:http2')
+		expect(serverSource).toContain("from 'node:http2'")
+		expect(yellowstoneSource).toContain('iterateGrpcLive')
+		expect(yellowstoneSource).not.toContain('.server.ts')
+		expect(() => statSync('src/sources/GetBlock/Yellowstone/managedGrpc.server.ts')).toThrow()
+	})
+
 	it('routes source HTTP from the binding delivery contract', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
 		vi.stubGlobal('fetch', fetchMock)
@@ -236,13 +431,14 @@ describe('source binding indexes', () => {
 		try {
 			await sourceFetch({
 				...validBinding,
+				proxyId: 'blockscout-rest-fixture',
 				endpoints: [{
 					...validBinding.endpoints[0],
 					corsEnabled: true,
 				}],
 			}, 'https://eth.blockscout.com/api')
 			expect(fetchMock).toHaveBeenCalledWith(
-				'/api-proxy/https://eth.blockscout.com/api',
+				'/api-proxy/blockscout-rest-fixture/0/https%3A%2F%2Feth.blockscout.com%2Fapi',
 				expect.objectContaining({
 					signal: expect.any(AbortSignal),
 				})

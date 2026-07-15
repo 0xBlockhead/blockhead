@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Bridge routes',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BridgeRoute>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BridgeRoute>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -119,11 +119,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: bridgeRoute }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BridgeRoute> })}
+				{#snippet Item({ item: bridgeRoute })}
 					{@const bridgeRouteFields = { ...bridgeRoute[EntityMetaKey.Selector], ...bridgeRoute }}
+					{@const selection = select(EntityType.BridgeRoute, bridgeRoute[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const bridgeRouteHrefFields = { ...bridgeRoute, ...bridgeRoute[EntityMetaKey.Selector] }}
 					<BridgeRouteView
-						selection={select(EntityType.BridgeRoute, bridgeRoute[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={bridgeRouteFields}
 						href={
 							(bridgeRouteHrefFields.fromChainId !== undefined && bridgeRouteHrefFields.toChainId !== undefined && bridgeRouteHrefFields.fromToken !== undefined && bridgeRouteHrefFields.toToken !== undefined && bridgeRouteHrefFields.fromAmount !== undefined && bridgeRouteHrefFields.fromAddress !== undefined && bridgeRouteHrefFields.slippage !== undefined && bridgeRouteHrefFields.toAddress !== undefined ? resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {

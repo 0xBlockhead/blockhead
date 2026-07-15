@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Monero networks',
 		typeAnnotationParagraphs = ['Monero-specific view over a canonical Network row, with daemon RPC endpoints, node observations, and recent blocks.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.MoneroNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.MoneroNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,10 +113,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: moneroNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoneroNetwork> })}
+				{#snippet Item({ item: moneroNetwork })}
 					{@const moneroNetworkFields = { ...moneroNetwork[EntityMetaKey.Selector], ...moneroNetwork }}
+					{@const selection = select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<MoneroNetworkView
-						selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={moneroNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

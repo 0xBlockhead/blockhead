@@ -7,6 +7,7 @@ import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
@@ -41,6 +42,38 @@ const atprotoPostFieldsFromPostView = (postView: BskyAppViewPostView) => {
 		...(selfLabelValues != null && selfLabelValues.length > 0 && { selfLabelValues }),
 		...(parentUri != null && { $parent: { [EntityMetaKey.Selector]: { uri: parentUri } } }),
 		...(rootUri != null && { $root: { [EntityMetaKey.Selector]: { uri: rootUri } } }),
+	}
+}
+
+const atprotoPostReferenceFromPostView = (postView: BskyAppViewPostView) => {
+	const fields = atprotoPostFieldsFromPostView(postView)
+	return {
+		[EntityMetaKey.Selector]: { uri: postView.uri },
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.AtprotoPost, [], 'uri')]: fields.uri,
+			[entityFieldAddressKey(EntityType.AtprotoPost, [], '$author')]: fields.$author,
+			...(fields.text != null && {
+				[entityFieldAddressKey(EntityType.AtprotoPost, [], 'text')]: fields.text,
+			}),
+			...(fields.createdAt != null && {
+				[entityFieldAddressKey(EntityType.AtprotoPost, [], 'createdAt')]: fields.createdAt,
+			}),
+			...(fields.indexedAt != null && {
+				[entityFieldAddressKey(EntityType.AtprotoPost, [], 'indexedAt')]: fields.indexedAt,
+			}),
+			...(fields.langs != null && {
+				[entityFieldAddressKey(EntityType.AtprotoPost, [], 'langs')]: fields.langs,
+			}),
+			...(fields.selfLabelValues != null && {
+				[entityFieldAddressKey(EntityType.AtprotoPost, [], 'selfLabelValues')]: fields.selfLabelValues,
+			}),
+			...(fields.$parent != null && {
+				[entityFieldAddressKey(EntityType.AtprotoPost, [], '$parent')]: fields.$parent,
+			}),
+			...(fields.$root != null && {
+				[entityFieldAddressKey(EntityType.AtprotoPost, [], '$root')]: fields.$root,
+			}),
+		},
 	}
 }
 
@@ -286,10 +319,7 @@ export default {
 						feed
 							.flatMap((feedItem) => {
 								if (feedItem.post.author.did !== did) return []
-								return [{
-									[EntityMetaKey.Selector]: { uri: feedItem.post.uri },
-									...atprotoPostFieldsFromPostView(feedItem.post),
-								}]
+				return [atprotoPostReferenceFromPostView(feedItem.post)]
 							})
 					)
 				},
@@ -305,10 +335,7 @@ export default {
 						feed
 							.flatMap((feedItem) => {
 								if (feedItem.post.author.handle !== handle) return []
-								return [{
-									[EntityMetaKey.Selector]: { uri: feedItem.post.uri },
-									...atprotoPostFieldsFromPostView(feedItem.post),
-								}]
+				return [atprotoPostReferenceFromPostView(feedItem.post)]
 							})
 					)
 				},
@@ -351,36 +378,22 @@ export default {
 					const threadPostUri = optionalNonemptyString(thread.post.uri)
 					if (threadPostUri == null)
 						throw new Error(`Atproto_Xrpc: post thread not found for ${uri}`)
-					const ancestors: {
-						[EntityMetaKey.Selector]: { uri: string }
-						uri: string
-						createdAt?: number
-					}[] = []
+					const ancestors: ReturnType<typeof atprotoPostReferenceFromPostView>[] = []
 					let parent = thread.parent
 					while (parent != null) {
 						const parentUri = optionalNonemptyString(parent.post.uri)
 						if (parentUri == null) break
 						if (parentUri !== uri) {
-							ancestors.unshift({
-								[EntityMetaKey.Selector]: { uri: parentUri },
-								...atprotoPostFieldsFromPostView(parent.post),
-							})
+							ancestors.unshift(atprotoPostReferenceFromPostView(parent.post))
 						}
 						parent = parent.parent
 					}
-					const descendants: {
-						[EntityMetaKey.Selector]: { uri: string }
-						uri: string
-						createdAt?: number
-					}[] = []
+					const descendants: ReturnType<typeof atprotoPostReferenceFromPostView>[] = []
 					const walkReplies = (node: NonNullable<typeof thread>) => {
 						for (const reply of node.replies ?? []) {
 							const replyUri = optionalNonemptyString(reply.post.uri)
 							if (replyUri != null && replyUri !== uri) {
-								descendants.push({
-									[EntityMetaKey.Selector]: { uri: replyUri },
-									...atprotoPostFieldsFromPostView(reply.post),
-								})
+								descendants.push(atprotoPostReferenceFromPostView(reply.post))
 							}
 							if (replyUri != null) walkReplies(reply)
 						}

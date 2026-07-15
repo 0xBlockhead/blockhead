@@ -1,6 +1,5 @@
 import { getJson } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { nearBlocksBindings } from '$/sources/NearBlocks/bindings.ts'
 import type {
 	NearBlocksAccountResponse,
 	NearBlocksBlockResponse,
@@ -9,25 +8,18 @@ import type {
 
 export const nearBlocksMainnetRestEndpoints = [
 	{
-		url: nearBlocksBindings[0].endpoints[0].locator,
+		url: 'https://api.nearblocks.io',
 		transportType: TransportType.Http,
 		providerName: 'NearBlocks',
 	},
 ] as const
 
 export const nearBlocksOrigins = [
-	...new Map(
-		nearBlocksBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: 'https://api.nearblocks.io',
+		corsEnabled: true,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

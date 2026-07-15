@@ -10,7 +10,7 @@ import { Market as MarketSchema } from '$/schema/Market.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.marketKind) && matchStringSegment(params.base) && matchStringSegment(params.quote) && matchMarketVenueId(params.marketVenue) && matchStringSegment(params.baseKind) && matchStringSegment(params.quoteKind))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.marketKind) && matchMarketVenueId(params.marketVenue) && matchStringSegment(params.baseKind) && matchStringSegment(params.base) && matchStringSegment(params.quoteKind) && matchStringSegment(params.quote))) error(404, 'Route mapping not applicable')
 
 	const marketBaseQuoteMarketVenueKindSelector = parseEntitySelector(
 		schema,

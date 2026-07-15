@@ -1,6 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import { openchainOrigins } from '$/sources/Openchain/index.ts'
-import { signatureBaseUrl } from '$/sources/Openchain/Rest/constants.ts'
+import {
+	openchainOrigins,
+	signatureBaseUrl,
+} from '$/sources/Openchain/Rest/constants.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export const openchainGetJson = <T = JsonValue>({ path }: { path: string }): Promise<T> => {

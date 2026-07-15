@@ -1,7 +1,9 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum HyperliquidSpotAssetSelector {
@@ -26,11 +28,43 @@ export const HyperliquidSpotAsset = entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	$$timestamps: {
-		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.HyperliquidSpotAsset_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
+	name: {
+		label: 'Name',
+		description: 'The human-readable name of the subject.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Hyperliquid_Rest,
+		],
+	},
+	szDecimals: {
+		label: 'sz decimals',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Hyperliquid_Rest,
+		],
+	},
+	weiDecimals: {
+		label: 'wei decimals',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Hyperliquid_Rest,
+		],
+	},
+	tokenId: {
+		label: 'Token ID',
+		description: 'The token identifier within its collection or contract.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Hyperliquid_Rest,
+		],
 	},
 	$$basePairs: {
 		label: 'base pairs',

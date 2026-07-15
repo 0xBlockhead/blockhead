@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'X user observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.XUser_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.XUser_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,11 +111,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: xUserTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XUser_Timestamp> })}
+				{#snippet Item({ item: xUserTimestamp })}
 					{@const xUserTimestampFields = { ...xUserTimestamp[EntityMetaKey.Selector], ...xUserTimestamp }}
+					{@const selection = select(EntityType.XUser_Timestamp, xUserTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const xUserTimestampHrefFields = { ...xUserTimestamp, ...xUserTimestamp[EntityMetaKey.Selector] }}
 					<XUser_TimestampView
-						selection={select(EntityType.XUser_Timestamp, xUserTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={xUserTimestampFields}
 						href={
 							(xUserTimestampHrefFields.timestampMs !== undefined && xUserTimestampHrefFields.$user !== undefined && xUserTimestampHrefFields.$user.id !== undefined ? resolve('/x/user/[userId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {

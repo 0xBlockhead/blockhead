@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Epochs',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BeaconEpoch>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconEpoch>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,16 +112,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: beaconEpoch }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconEpoch> })}
+				{#snippet Item({ item: beaconEpoch })}
 					{@const beaconEpochFields = { ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }}
+					{@const selection = select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const beaconEpochHrefFields = { ...beaconEpoch, ...beaconEpoch[EntityMetaKey.Selector] }}
 					<BeaconEpochView
-						selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={beaconEpochFields}
 						href={
-							(beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.slug !== undefined && beaconEpochHrefFields.epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-								network: String(beaconEpochHrefFields.$network.slug ?? ''),
+							(beaconEpochHrefFields.epoch !== undefined && beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
 								epoch: String(beaconEpochHrefFields.epoch ?? ''),
+								network: String(caip2StringFromValue(beaconEpochHrefFields.$network.caip2) ?? ''),
+							}) : beaconEpochHrefFields.epoch !== undefined && beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+								epoch: String(beaconEpochHrefFields.epoch ?? ''),
+								network: String(beaconEpochHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

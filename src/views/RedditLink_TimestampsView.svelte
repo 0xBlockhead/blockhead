@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Reddit submission observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditLink_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.RedditLink_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -114,11 +114,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: redditLinkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditLink_Timestamp> })}
+				{#snippet Item({ item: redditLinkTimestamp })}
 					{@const redditLinkTimestampFields = { ...redditLinkTimestamp[EntityMetaKey.Selector], ...redditLinkTimestamp }}
+					{@const selection = select(EntityType.RedditLink_Timestamp, redditLinkTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const redditLinkTimestampHrefFields = { ...redditLinkTimestamp, ...redditLinkTimestamp[EntityMetaKey.Selector] }}
 					<RedditLink_TimestampView
-						selection={select(EntityType.RedditLink_Timestamp, redditLinkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={redditLinkTimestampFields}
 						href={
 							(redditLinkTimestampHrefFields.timestampMs !== undefined && redditLinkTimestampHrefFields.source !== undefined && redditLinkTimestampHrefFields.$link !== undefined && redditLinkTimestampHrefFields.$link.fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {

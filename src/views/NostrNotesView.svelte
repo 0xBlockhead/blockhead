@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Nostr notes',
 		typeAnnotationParagraphs = ['A Nostr text note is a kind-1 event addressed by event id; author, reply, root, reaction, and relay facets remain separate fields.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NostrNote>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrNote>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -115,11 +116,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: nostrNote }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrNote> })}
+				{#snippet Item({ item: nostrNote })}
 					{@const nostrNoteFields = { ...nostrNote[EntityMetaKey.Selector], ...nostrNote }}
+					{@const selection = select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const nostrNoteHrefFields = { ...nostrNote, ...nostrNote[EntityMetaKey.Selector] }}
 					<NostrNoteView
-						selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={nostrNoteFields}
+						href={
+							(nostrNoteHrefFields.eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
+								eventId: String(nostrNoteHrefFields.eventId ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

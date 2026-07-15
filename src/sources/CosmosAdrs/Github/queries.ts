@@ -1,9 +1,9 @@
-import { cosmosAdrsBindings } from '$/sources/CosmosAdrs/bindings.ts'
 import type { CosmosAdrsGithubContents } from '$/sources/CosmosAdrs/Github/types.ts'
 import {
 	getGithubContents,
 	getGithubRawText,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
+import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
 
 const cosmosAdrsGithubRepo = {
 	owner: 'cosmos',
@@ -14,14 +14,14 @@ const cosmosAdrsGithubRepo = {
 
 export const getContents = (): Promise<CosmosAdrsGithubContents> => (
 	getGithubContents({
-		endpoints: cosmosAdrsBindings[0].endpoints,
+		endpoints: githubHttpEndpoints,
 		target: cosmosAdrsGithubRepo,
 	})
 )
 
 export const getMarkdownText = ({ number }: { number: number }) => (
 	getGithubRawText({
-		endpoints: cosmosAdrsBindings[0].endpoints,
+		endpoints: githubHttpEndpoints,
 		target: {
 			...cosmosAdrsGithubRepo,
 			path: `${cosmosAdrsGithubRepo.path}/adr-${number.toString().padStart(3, '0')}.md`,

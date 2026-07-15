@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { bridgeRouteTagByTag } from '$/constants/Bridge.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
@@ -32,8 +31,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BridgeRoute>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BridgeRoute>>
+			selection: RegisteredEntityProxyResource<EntityType.BridgeRoute>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BridgeRoute>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -52,8 +51,6 @@
 			Source.Lifi_Rest,
 		],
 		fields: {
-			$fromNetwork: true,
-			$toNetwork: true,
 			estimatedCostUsd: true,
 			estimatedDurationSeconds: true,
 		},

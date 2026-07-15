@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Bitcoin Cash CashToken fungible amounts',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BitcoinCashCashTokenFungibleAmount>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BitcoinCashCashTokenFungibleAmount>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,17 +113,22 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: bitcoinCashCashTokenFungibleAmount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitcoinCashCashTokenFungibleAmount> })}
+				{#snippet Item({ item: bitcoinCashCashTokenFungibleAmount })}
 					{@const bitcoinCashCashTokenFungibleAmountFields = { ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }}
+					{@const selection = select(EntityType.BitcoinCashCashTokenFungibleAmount, bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const bitcoinCashCashTokenFungibleAmountHrefFields = { ...bitcoinCashCashTokenFungibleAmount, ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector] }}
 					<BitcoinCashCashTokenFungibleAmountView
-						selection={select(EntityType.BitcoinCashCashTokenFungibleAmount, bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={bitcoinCashCashTokenFungibleAmountFields}
 						href={
-							(bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.slug !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-								network: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.slug ?? ''),
-								transactionId: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId ?? ''),
+							(bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
 								outputIndex: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction ?? ''),
+								transactionId: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId ?? ''),
+								network: String(caip2StringFromValue(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2) ?? ''),
+							}) : bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
+								outputIndex: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction ?? ''),
+								transactionId: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId ?? ''),
+								network: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

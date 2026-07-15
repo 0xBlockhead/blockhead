@@ -21,10 +21,11 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 
 	const selectorMappings: {
 		entityType: EntityType
+		selectorName: string
 		selector: EntitySelector<typeof schema, EntityType>
 	}[] = []
 
-	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')) && matchNonNegativeBigInt(params.blockNumber)) {
+	if (((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')) && projectionNetwork.namespace === 'Evm') && matchNonNegativeBigInt(params.blockNumber)) {
 		const evmBlockEvmNetworkBlockNumberSelector = parseEntitySelector(
 			schema,
 			EvmBlockSchema,
@@ -34,10 +35,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(evmBlockEvmNetworkBlockNumberSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.EvmBlock, selector: evmBlockEvmNetworkBlockNumberSelector })
+			selectorMappings.push({ entityType: EntityType.EvmBlock, selectorName: 'EvmNetworkBlockNumber', selector: evmBlockEvmNetworkBlockNumberSelector })
 	}
 
-	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')) && matchNonNegativeBigInt(params.blockNumber)) {
+	if (((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')) && projectionNetwork.namespace === 'Solana') && matchNonNegativeBigInt(params.blockNumber)) {
 		const solanaBlockSlotSelector = parseEntitySelector(
 			schema,
 			SolanaBlockSchema,
@@ -47,10 +48,18 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(solanaBlockSlotSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.SolanaBlock, selector: solanaBlockSlotSelector })
+			selectorMappings.push({ entityType: EntityType.SolanaBlock, selectorName: 'Slot', selector: solanaBlockSlotSelector })
 	}
 
-	if ((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && matchNonNegativeBigInt(params.blockNumber)) {
+	if (((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && [
+	'Bitcoin',
+	'BitcoinCash',
+	'Cardano',
+	'Dogecoin',
+	'Elements',
+	'Litecoin',
+	'Zcash',
+].includes(projectionNetwork.namespace)) && matchNonNegativeBigInt(params.blockNumber)) {
 		const utxoBlockNetworkHeightSelector = parseEntitySelector(
 			schema,
 			UtxoBlockSchema,
@@ -60,10 +69,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(utxoBlockNetworkHeightSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.UtxoBlock, selector: utxoBlockNetworkHeightSelector })
+			selectorMappings.push({ entityType: EntityType.UtxoBlock, selectorName: 'NetworkHeight', selector: utxoBlockNetworkHeightSelector })
 	}
 
-	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')) && matchNonNegativeBigInt(params.blockNumber)) {
+	if (((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')) && projectionNetwork.namespace === 'Polkadot') && matchNonNegativeBigInt(params.blockNumber)) {
 		const polkadotBlockNetworkBlockNumberSelector = parseEntitySelector(
 			schema,
 			PolkadotBlockSchema,
@@ -73,7 +82,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(polkadotBlockNetworkBlockNumberSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.PolkadotBlock, selector: polkadotBlockNetworkBlockNumberSelector })
+			selectorMappings.push({ entityType: EntityType.PolkadotBlock, selectorName: 'NetworkBlockNumber', selector: polkadotBlockNetworkBlockNumberSelector })
 	}
 
 	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')

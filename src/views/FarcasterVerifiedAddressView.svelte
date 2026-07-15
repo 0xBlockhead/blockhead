@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.FarcasterVerifiedAddress>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.FarcasterVerifiedAddress>>
+			selection: RegisteredEntityProxyResource<EntityType.FarcasterVerifiedAddress>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterVerifiedAddress>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -117,6 +117,11 @@
 								<FarcasterUserView
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
+									href={
+										(farcasterUser[EntityMetaKey.Selector].fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]', {
+											userId: String(farcasterUser[EntityMetaKey.Selector].fid ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -235,9 +240,12 @@
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
 									href={
-										(solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined && solanaAccount[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
-											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										(solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : solanaAccount[EntityMetaKey.Selector].pubkey !== undefined && solanaAccount[EntityMetaKey.Selector].$network !== undefined && solanaAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
+											network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

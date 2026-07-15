@@ -1,8 +1,8 @@
 import { getJson } from '$/lib/http.ts'
 import {
-	esploraBindings,
+	esploraOrigins,
 	esploraRestBaseUrlByNetworkKey,
-} from '$/sources/Esplora/bindings.ts'
+} from '$/sources/Esplora/Rest/constants.ts'
 import type {
 	EsploraAsset,
 	EsploraBlock,
@@ -12,20 +12,6 @@ import type {
 export {
 	esploraRestBaseUrlByNetworkKey,
 }
-
-export const esploraOrigins = [
-	...new Map(
-		esploraBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

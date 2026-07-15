@@ -1,7 +1,13 @@
 /** Raw GitHub content for Ethereum consensus + client fork metadata. */
 import { rawOrigin } from '$/sources/Github/Rest/constants.ts'
+import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
 
 export { rawOrigin as ethereumSpecsGithubRawOrigin }
+
+export const ethereumSpecsGithubOrigins = githubHttpEndpoints.map((endpoint) => ({
+	origin: endpoint.origin,
+	corsEnabled: endpoint.corsEnabled,
+}))
 
 export const consensusSpecsConfigsRef = 'master'
 

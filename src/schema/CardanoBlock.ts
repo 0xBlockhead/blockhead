@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -19,7 +20,7 @@ export const CardanoBlock = entity({
 	$network: {
 		label: 'network',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.CardanoNetwork,
+		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {
@@ -27,19 +28,19 @@ export const CardanoBlock = entity({
 		description: 'The hash that identifies this object in its protocol.',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
 		label: 'slot',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	blockNo: {
 		label: 'block no',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	epoch: {
 		label: 'epoch',

@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -28,8 +29,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EigenLayerReward_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EigenLayerReward_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.EigenLayerReward_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EigenLayerReward_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -85,6 +86,15 @@
 			{#snippet Pending()}
 				<EvmNetworkAccountView
 					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
+					href={
+						(selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$earner.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
+							network: String(selection.entitySelector.$earner.$network.slug ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -94,6 +104,15 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<EvmNetworkAccountView
 					selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
+					href={
+						(selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$earner.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+							accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
+							network: String(selection.entitySelector.$earner.$network.slug ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -144,6 +163,15 @@
 				<dd>
 					<EvmNetworkAccountView
 						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner, {})}
+						href={
+							(selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+								accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$earner.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$earner.$actor !== undefined && selection.entitySelector.$earner.$actor.address !== undefined && selection.entitySelector.$earner.$network !== undefined && selection.entitySelector.$earner.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+								accountId: String(selection.entitySelector.$earner.$actor.address ?? ''),
+								network: String(selection.entitySelector.$earner.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

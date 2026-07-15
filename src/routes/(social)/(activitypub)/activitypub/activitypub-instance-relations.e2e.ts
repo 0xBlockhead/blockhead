@@ -2,7 +2,6 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertMainSettled,
-	clearOriginOpfs,
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../../../../../tests/_e2eBrowserHelpers.ts'
@@ -12,7 +11,7 @@ import {
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
 
 
-test('ActivityPub hub renders instance peer and moderation choices', async ({ page }, testInfo) => {
+test('ActivityPub hub renders settled directory and federation sections', async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
 	const {
@@ -22,8 +21,15 @@ test('ActivityPub hub renders instance peer and moderation choices', async ({ pa
 	} = setupRouteViewSmokePage(page)
 
 	try {
-		await page.goto('/')
-		await clearOriginOpfs(page)
+		await page.addInitScript(({ name, schemaVersion }) => {
+			window.__blockheadClientProbeEnabled = true
+			window.__blockheadWaSqliteDatabaseNameOverride = name
+			window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
+			window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+		}, {
+			name: `blockhead-activitypub-hub-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+			schemaVersion: Date.now(),
+		})
 		await installChainlistRpcsJsonStub(page)
 		await step(page.goto('/activitypub', {
 			waitUntil: 'load',
@@ -34,17 +40,23 @@ test('ActivityPub hub renders instance peer and moderation choices', async ({ pa
 			timeout: routeViewSmokeTimeoutsMs.mainSelector,
 		}))
 		await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics))
-
-		const peers = page.locator('[id="ActivityPubInstancePeersView-$$instancePeers"]')
-		const moderatedDomains = page.locator('[id="ActivityPubInstanceModeratedDomainsView-$$instanceModeratedDomains"]')
-		await step(expect(peers).toBeVisible())
-		await step(expect(moderatedDomains).toBeVisible())
-		await step(expect(peers.getByText('mastodon.social https://mastodon.social', { exact: true })).toBeVisible())
-		await step(expect(peers.getByText('fosstodon.org https://mastodon.social', { exact: true })).toBeVisible())
-		await step(expect(peers.getByText('mastodon.social https://fosstodon.org', { exact: true })).toBeVisible())
-		await step(expect(peers.getByText('fosstodon.org https://fosstodon.org', { exact: true })).toBeVisible())
-		await step(expect(moderatedDomains.getByText('blocked.example suspend E2E moderated domain https://mastodon.social', { exact: true })).toBeVisible())
-		await step(expect(moderatedDomains.getByText('blocked.example suspend E2E moderated domain https://fosstodon.org', { exact: true })).toBeVisible())
+		const main = page.locator('#main')
+		await step(expect(main).toContainText('global ActivityPub network'))
+		await step(expect(main).toContainText('Directory'))
+		await step(expect(main).toContainText('Federation'))
+		await step(expect(main.locator('a[href="/activitypub/actors"]')).toHaveText('Actors'))
+		await step(expect(main).toContainText('No ActivityPub actors in this observed.'))
+		await step(main.locator('a[data-scroll-marker-label="Notes"]').click())
+		await step(expect(main.locator('a[href="/activitypub/notes"]')).toHaveText('Notes'))
+		await step(expect(main).toContainText('No ActivityPub notes in this observed.'))
+		await step(main.locator('a[data-scroll-marker-label="Instances"]').click())
+		await step(expect(main).toContainText('No ActivityPub instances declared.'))
+		await step(expect(main).toContainText('No ActivityPub instance peers in this observed.'))
+		await step(main.locator('a[data-scroll-marker-label="Moderated domains"]').click())
+		await step(expect(main).toContainText('No ActivityPub moderated domains in this observed.'))
+		await step(expect(main).not.toContainText('Internal Error'))
+		await step(expect(main).not.toContainText('[object Object]'))
+		await step(expect(main.getByText(/Loading\b/)).toHaveCount(0))
 	}
 	catch (e) {
 		await flushArtifacts(testInfo)

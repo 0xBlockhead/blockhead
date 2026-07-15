@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.FarcasterCast>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.FarcasterCast>>
+			selection: RegisteredEntityProxyResource<EntityType.FarcasterCast>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterCast>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -63,6 +62,8 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import FarcasterCastEmbedsView from '$/views/FarcasterCastEmbedsView.svelte'
+	import FarcasterCast_TimestampsView from '$/views/FarcasterCast_TimestampsView.svelte'
 	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
 	import FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
 	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
@@ -78,6 +79,9 @@
 		href ?? (pendingEntity.fid !== undefined && pendingEntity.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 			fid: String(pendingEntity.fid ?? ''),
 			hash: String(pendingEntity.hash ?? ''),
+		}) : pendingEntity.username !== undefined && pendingEntity.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+			fname: String(pendingEntity.username ?? ''),
+			hash: String(pendingEntity.hashPrefix ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -148,6 +152,11 @@
 								<FarcasterUserView
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
+									href={
+										(farcasterUser[EntityMetaKey.Selector].fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]', {
+											userId: String(farcasterUser[EntityMetaKey.Selector].fid ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -209,6 +218,11 @@
 								<FarcasterChannelView
 									selection={select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector])}
 									prefetched={farcasterChannel}
+									href={
+										(farcasterChannel[EntityMetaKey.Selector].id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
+											channelId: String(farcasterChannel[EntityMetaKey.Selector].id ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -237,6 +251,9 @@
 										(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 											fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
 											hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
+										}) : farcasterCast[EntityMetaKey.Selector].username !== undefined && farcasterCast[EntityMetaKey.Selector].hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+											fname: String(farcasterCast[EntityMetaKey.Selector].username ?? ''),
+											hash: String(farcasterCast[EntityMetaKey.Selector].hashPrefix ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -405,5 +422,31 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<FarcasterCastEmbedsView
+				selection={
+						selection.$$embeds({
+							count: true,
+						})
+					}
+				title='Embeds'
+				emptyText='No Farcaster cast embeds.'
+				id='FarcasterCastEmbedsView-embeds'
+			/>
+
+			<FarcasterCast_TimestampsView
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
+				title='Observations'
+				emptyText='No Farcaster cast observations yet.'
+				id='FarcasterCast_TimestampsView-timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

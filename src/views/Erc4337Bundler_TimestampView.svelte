@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.Erc4337Bundler_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.Erc4337Bundler_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.Erc4337Bundler_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Erc4337Bundler_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -65,11 +65,16 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$bundler !== undefined && pendingEntity.$bundler.$network !== undefined && pendingEntity.$bundler.$network.slug !== undefined && pendingEntity.$bundler.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			network: String(pendingEntity.$bundler.$network.slug ?? ''),
-			address: String(pendingEntity.$bundler.address ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$bundler !== undefined && pendingEntity.$bundler.address !== undefined && pendingEntity.$bundler.$network !== undefined && pendingEntity.$bundler.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			address: String(pendingEntity.$bundler.address ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$bundler.$network.caip2) ?? ''),
+		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$bundler !== undefined && pendingEntity.$bundler.address !== undefined && pendingEntity.$bundler.$network !== undefined && pendingEntity.$bundler.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			address: String(pendingEntity.$bundler.address ?? ''),
+			network: String(pendingEntity.$bundler.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -242,9 +247,12 @@
 					<Erc4337BundlerView
 						selection={select(EntityType.Erc4337Bundler, selection.entitySelector.$bundler, {})}
 						href={
-							(selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.slug !== undefined && selection.entitySelector.$bundler.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-								network: String(selection.entitySelector.$bundler.$network.slug ?? ''),
+							(selection.entitySelector.$bundler.address !== undefined && selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
 								address: String(selection.entitySelector.$bundler.address ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$bundler.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$bundler.address !== undefined && selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
+								address: String(selection.entitySelector.$bundler.address ?? ''),
+								network: String(selection.entitySelector.$bundler.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

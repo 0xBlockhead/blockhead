@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Cardano constitution epochs',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.CardanoConstitution_Epoch>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.CardanoConstitution_Epoch>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: cardanoConstitutionEpoch }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoConstitution_Epoch> })}
+				{#snippet Item({ item: cardanoConstitutionEpoch })}
 					{@const cardanoConstitutionEpochFields = { ...cardanoConstitutionEpoch[EntityMetaKey.Selector], ...cardanoConstitutionEpoch }}
+					{@const selection = select(EntityType.CardanoConstitution_Epoch, cardanoConstitutionEpoch[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<CardanoConstitution_EpochView
-						selection={select(EntityType.CardanoConstitution_Epoch, cardanoConstitutionEpoch[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={cardanoConstitutionEpochFields}
 						layout={EntityLayout.Summary}
 						open={false}

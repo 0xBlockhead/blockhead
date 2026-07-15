@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
+import { QueryClient } from '@tanstack/query-core'
 
 import {
 	defineResolver,
@@ -12,12 +13,16 @@ import {
 	type SourceResolverDefinitionCandidate,
 } from '$/resolvers/$resolvers.ts'
 import {
-	EntityFieldCardinality,
-	EntityFieldType,
 	EntityMetaKey,
+	entityFieldAddressKey,
 	entityFieldDefinitions,
+	type EntitySelector,
 	type Schema,
 } from '$/schema/$schema.ts'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+} from '$/schema/EntityField.ts'
 import { type as arktype } from 'arktype'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -38,10 +43,17 @@ import { EvmBlobSelector } from '$/schema/EvmBlob.ts'
 import { EvmLogSelector } from '$/schema/EvmLog.ts'
 import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 import { NetworkSelector } from '$/schema/Network.ts'
+import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
+import { NostrRelay_TimestampSelector } from '$/schema/NostrRelay_Timestamp.ts'
+import { RssFeedSelector } from '$/schema/RssFeed.ts'
+import { RssFeed_TimestampSelector } from '$/schema/RssFeed_Timestamp.ts'
+import { RssItemSelector } from '$/schema/RssItem.ts'
+import { RssItem_TimestampSelector } from '$/schema/RssItem_Timestamp.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
 import { CoinId } from '$/constants/Coin.ts'
+import voltaireJsonRpc from '$/resolvers/Voltaire-JsonRpc.ts'
 
 const {
 	resolverDefinitions,
@@ -336,6 +348,33 @@ describe('resolver registry live resolver architecture', () => {
 				},
 			})({})
 		}).toBeTypeOf('function')
+		expect(() => {
+			defineResolver(Source.Voltaire_JsonRpc, {
+				entityType: EntityType.Network,
+				resolve: {
+					Caip2: async () => [],
+				},
+			})({
+				Evm: {
+					$$blocks: () => [{
+						[EntityMetaKey.Selector]: {
+							$network: {
+								caip2: {
+									namespace: 'eip155',
+									reference: '1',
+								},
+							},
+							blockNumber: 1n,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.EvmBlock, [], 'hash')]: '0x01',
+						},
+						// @ts-expect-error Facet reference writers cannot emit direct sibling fields.
+						hash: '0x01',
+					}],
+				},
+			})
+		}).toBeTypeOf('function')
 
 		expect(allSourceResolverDefinitions.length).toBeGreaterThan(0)
 		expect(allSourceResolverDefinitions.every((resolver) => (
@@ -395,6 +434,157 @@ describe('resolver registry live resolver architecture', () => {
 			&& part.fieldName === 'blockHeight'
 			&& part.select != null
 		))).toBe(true)
+	})
+
+	it('publishes Voltaire live EVM network Many fields as one source row containing an array', async () => {
+		const replaceTimestampRows = vi.fn()
+		const replaceBlockRows = vi.fn()
+		const abortController = new AbortController()
+		const $network = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		} satisfies EntitySelector<typeof schema, EntityType.Network>
+		vi.doMock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
+			getChainHeadNumberForRpcUrl: vi.fn(async () => 12n),
+			getProviderForExecutionUrl: vi.fn(async () => ({})),
+			getRecentBlockWiresForRpcUrl: vi.fn(async () => ({
+				wires: [{
+					number: '0xc',
+					hash: `0x${'12'.repeat(32)}`,
+					parentHash: `0x${'34'.repeat(32)}`,
+					timestamp: '0x64',
+					miner: `0x${'56'.repeat(20)}`,
+					gasUsed: '0x1',
+					gasLimit: '0x2',
+					transactions: [],
+				}],
+			})),
+			iterateBlockStreamEvents: async function* ({ signal }: { signal: AbortSignal }) {
+				await new Promise<void>((resolve) => {
+					signal.addEventListener('abort', () => resolve(), { once: true })
+				})
+			},
+			voltaireJsonRpcTransportsWithOriginsByChainId: {
+				1: [{
+					rpcUrl: 'https://example.com/rpc',
+					transportType: 'Http',
+					origins: [],
+				}],
+			},
+		}))
+		const blockStream = voltaireJsonRpc.resolvers.find((resolver) => (
+			'resolveLive' in resolver
+		))?.resolveLive.blockStream
+		if (blockStream == null)
+			throw new Error('Voltaire_JsonRpc: missing blockStream live resolver')
+
+		blockStream.start({
+			parentEntitySelector: $network,
+			queryClient: new QueryClient(),
+			signal: abortController.signal,
+			trigger: {
+				filters: [],
+				sorts: [],
+				pagination: {
+					limit: 2,
+				},
+				selectorKeys: [],
+				parentSelectorKeys: [],
+				publicEnv: {},
+			},
+			fields: {
+				'$$timestamps': {
+					replaceRows: replaceTimestampRows,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$blocks': {
+					replaceRows: replaceBlockRows,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$transactions': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$contracts': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$blobs': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconEpochs': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				'$$beaconSlots': {
+					replaceRows: vi.fn(),
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				invalidate: vi.fn(),
+			},
+		})
+
+		try {
+			await vi.waitFor(() => {
+				expect(replaceTimestampRows).toHaveBeenCalledOnce()
+				expect(replaceBlockRows).toHaveBeenCalledOnce()
+			})
+			expect(replaceTimestampRows).toHaveBeenCalledWith([{
+				source: Source.Voltaire_JsonRpc,
+				value: [{
+					[EntityMetaKey.Selector]: {
+						$network,
+						timestampMs: expect.any(Number),
+						source: Source.Voltaire_JsonRpc,
+					},
+					blockHeight: 12n,
+				}],
+			}])
+			expect(replaceBlockRows).toHaveBeenCalledWith([{
+				source: Source.Voltaire_JsonRpc,
+				value: [expect.objectContaining({
+					[EntityMetaKey.Selector]: {
+						$network,
+						blockNumber: 12n,
+					},
+					blockNumber: 12n,
+					hash: `0x${'12'.repeat(32)}`,
+				})],
+			}])
+		} finally {
+			abortController.abort()
+		}
 	})
 
 	it('keeps root and field live resolver indexes distinct', () => {
@@ -1261,6 +1451,312 @@ describe('resolver registry live resolver architecture', () => {
 				source: Source.Blockscout_Rest,
 			},
 		}])
+	})
+
+	it('keeps Nostr relay observations source-scoped and preserves failure evidence', async () => {
+		const resolverContext = {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 1,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		const relayUrl = 'wss://relay.example'
+		const timestampMs = 1_720_000_000_000
+		const fetchRelayInformation = vi.fn(async () => ({
+			name: 'Example relay',
+			supported_nips: [1, 11],
+			limitation: {
+				max_limit: 500,
+				payment_required: true,
+			},
+			fees: {
+				admission: [{
+					amount: 1_000,
+					unit: 'msats',
+				}],
+			},
+		}))
+		const listTopRelays = vi.fn(async () => ({
+			relays: [{
+				url: relayUrl,
+				name: 'Indexed relay',
+				nips: [1, 11, 66],
+				users: 42,
+				events: 120,
+			}],
+		}))
+		vi.doMock('$/sources/NostrRelay/Http/queries.ts', () => ({ fetchRelayInformation }))
+		vi.doMock('$/sources/NostrBand/Rest/queries.ts', () => ({ listTopRelays }))
+
+		const nip11RelayResolver = allSourceResolverDefinitions.find((resolver) => (
+			resolver.source === Source.NostrRelay_Nip11_Http
+			&& resolver.entityType === EntityType.NostrRelay
+		))
+		const nip11ObservationResolver = allSourceResolverDefinitions.find((resolver) => (
+			resolver.source === Source.NostrRelay_Nip11_Http
+			&& resolver.entityType === EntityType.NostrRelay_Timestamp
+		))
+		const nostrBandRelayResolver = allSourceResolverDefinitions.find((resolver) => (
+			resolver.source === Source.NostrBand_Rest
+			&& resolver.entityType === EntityType.NostrRelay
+		))
+		const nostrBandObservationResolver = allSourceResolverDefinitions.find((resolver) => (
+			resolver.source === Source.NostrBand_Rest
+			&& resolver.entityType === EntityType.NostrRelay_Timestamp
+		))
+		const resolveNip11Relay = nip11RelayResolver?.resolve[NostrRelaySelector.RelayUrl]
+		const resolveNip11Observation = nip11ObservationResolver?.resolve[NostrRelay_TimestampSelector.RelayTimestampMsSource]
+		const resolveNostrBandRelay = nostrBandRelayResolver?.resolve[NostrRelaySelector.RelayUrl]
+		const resolveNostrBandObservation = nostrBandObservationResolver?.resolve[NostrRelay_TimestampSelector.RelayTimestampMsSource]
+		if (
+			resolveNip11Relay == null
+			|| resolveNip11Observation == null
+			|| resolveNostrBandRelay == null
+			|| resolveNostrBandObservation == null
+		)
+			throw new Error('missing Nostr relay observation resolver')
+
+		expect(resolverFieldSelector(nip11RelayResolver, '$$timestamps')(
+			await resolveNip11Relay({ relayUrl }, resolverContext),
+			{ relayUrl },
+			resolverContext
+		)[0][EntityMetaKey.Selector]).toMatchObject({
+			$relay: { relayUrl },
+			source: Source.NostrRelay_Nip11_Http,
+		})
+		const nip11Observation = await resolveNip11Observation({
+			$relay: { relayUrl },
+			timestampMs,
+			source: Source.NostrRelay_Nip11_Http,
+		}, resolverContext)
+		expect(nip11Observation).toMatchObject({
+			timestampMs,
+			source: Source.NostrRelay_Nip11_Http,
+			name: 'Example relay',
+			supportedNips: [1, 11],
+			limitation: {
+				maxLimit: 500,
+				paymentRequired: true,
+			},
+			fees: {
+				admission: [{
+					amount: 1_000,
+					unit: 'msats',
+				}],
+			},
+			isPaid: true,
+			reachable: true,
+		})
+		await expect(resolveNip11Observation({
+			$relay: { relayUrl },
+			timestampMs,
+			source: Source.NostrBand_Rest,
+		}, resolverContext)).rejects.toThrow('unsupported source')
+		fetchRelayInformation.mockRejectedValueOnce(new Error('relay unavailable'))
+		await expect(resolveNip11Observation({
+			$relay: { relayUrl },
+			timestampMs: timestampMs + 1,
+			source: Source.NostrRelay_Nip11_Http,
+		}, resolverContext)).resolves.toMatchObject({
+			reachable: false,
+			error: 'relay unavailable',
+		})
+
+		expect(resolverFieldSelector(nostrBandRelayResolver, '$$timestamps')(
+			await resolveNostrBandRelay({ relayUrl }, resolverContext),
+			{ relayUrl },
+			resolverContext
+		)[0][EntityMetaKey.Selector]).toMatchObject({
+			$relay: { relayUrl },
+			source: Source.NostrBand_Rest,
+		})
+		await expect(resolveNostrBandObservation({
+			$relay: { relayUrl },
+			timestampMs,
+			source: Source.NostrBand_Rest,
+		}, resolverContext)).resolves.toMatchObject({
+			name: 'Indexed relay',
+			supportedNips: [1, 11, 66],
+			activeUsers: 42,
+			eventsPerDay: 120,
+			rank: 1,
+			reachable: true,
+		})
+		await expect(resolveNostrBandObservation({
+			$relay: { relayUrl: 'wss://missing.example' },
+			timestampMs,
+			source: Source.NostrBand_Rest,
+		}, resolverContext)).resolves.toMatchObject({
+			reachable: false,
+			error: 'NostrBand_Rest: relay not found',
+		})
+		await expect(resolveNostrBandObservation({
+			$relay: { relayUrl },
+			timestampMs,
+			source: Source.NostrRelay_Nip11_Http,
+		}, resolverContext)).rejects.toThrow('unsupported source')
+	})
+
+	it('converges RSS item identity and keeps fetch state source-scoped', async () => {
+		const resolverContext = {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 10,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		const feedUrl = 'https://example.com/feed.xml'
+		const guidItem = {
+			guid: 'publisher-guid',
+			link: 'https://example.com/posts/1',
+			title: 'GUID item',
+		}
+		const linkItem = {
+			link: 'https://example.com/posts/2',
+			title: 'Link item',
+		}
+		const getNativeFeed = vi.fn(async () => ({
+			items: [
+				guidItem,
+				linkItem,
+			],
+		}))
+		const listNativeFeedItems = vi.fn(async () => [
+			guidItem,
+			linkItem,
+		])
+		const getRss2JsonFeed = vi.fn(async () => ({
+			status: 'ok',
+			feed: {},
+			items: [
+				guidItem,
+				linkItem,
+			],
+		}))
+		vi.doMock('$/sources/Rss/Rest/queries.ts', () => ({
+			getFeed: getNativeFeed,
+			listFeedItems: listNativeFeedItems,
+		}))
+		vi.doMock('$/sources/Rss2Json/Rest/queries.ts', () => ({
+			getFeed: getRss2JsonFeed,
+		}))
+
+		for (const source of [Source.Rss_Rest, Source.Rss2Json_Rest]) {
+			const itemResolver = allSourceResolverDefinitions.find((resolver) => (
+				resolver.source === source
+				&& resolver.entityType === EntityType.RssItem
+			))
+			const feedItemsResolver = allSourceResolverDefinitions.find((resolver) => (
+				resolver.source === source
+				&& resolver.entityType === EntityType.RssFeed
+				&& '$$items' in resolver.projections
+			))
+			const feedObservationResolver = allSourceResolverDefinitions.find((resolver) => (
+				resolver.source === source
+				&& resolver.entityType === EntityType.RssFeed_Timestamp
+			))
+			const itemObservationResolver = allSourceResolverDefinitions.find((resolver) => (
+				resolver.source === source
+				&& resolver.entityType === EntityType.RssItem_Timestamp
+			))
+			const resolveItem = itemResolver?.resolve[RssItemSelector.FeedIdentity]
+			const resolveFeedItems = feedItemsResolver?.resolve[RssFeedSelector.FeedUrl]
+			const resolveFeedObservation = feedObservationResolver?.resolve[
+				RssFeed_TimestampSelector.FeedTimestampMsSource
+			]
+			const resolveItemObservation = itemObservationResolver?.resolve[
+				RssItem_TimestampSelector.ItemTimestampMsSource
+			]
+			if (
+				resolveItem == null
+				|| resolveFeedItems == null
+				|| resolveFeedObservation == null
+				|| resolveItemObservation == null
+			)
+				throw new Error(`missing ${source} RSS resolver`)
+
+			const feedItems = resolverFieldSelector(feedItemsResolver, '$$items')(
+				await resolveFeedItems({ feedUrl }, resolverContext),
+				{ feedUrl },
+				resolverContext
+			)
+			expect(feedItems.map((item) => item[EntityMetaKey.Selector])).toEqual([
+				{
+					$feed: { feedUrl },
+					itemIdentityKind: 'Guid',
+					itemIdentity: 'publisher-guid',
+				},
+				{
+					$feed: { feedUrl },
+					itemIdentityKind: 'Link',
+					itemIdentity: 'https://example.com/posts/2',
+				},
+			])
+			await expect(resolveItem({
+				$feed: { feedUrl },
+				itemIdentityKind: 'Guid',
+				itemIdentity: 'publisher-guid',
+			}, resolverContext)).resolves.toMatchObject({
+				guid: 'publisher-guid',
+				itemIdentityKind: 'Guid',
+				itemIdentity: 'publisher-guid',
+			})
+
+			const timestampMs = 1_720_000_000_000
+			await expect(resolveFeedObservation({
+				$feed: { feedUrl },
+				timestampMs,
+				source,
+			}, resolverContext)).resolves.toMatchObject({
+				reachable: true,
+				observedItemCount: 2,
+				fetchWindowKind: 'Feed',
+			})
+			await expect(resolveItemObservation({
+				$item: {
+					$feed: { feedUrl },
+					itemIdentityKind: 'Link',
+					itemIdentity: 'https://example.com/posts/2',
+				},
+				timestampMs,
+				source,
+			}, resolverContext)).resolves.toMatchObject({
+				observed: true,
+				reachable: true,
+				fetchWindowKind: 'Feed',
+			})
+			await expect(resolveFeedObservation({
+				$feed: { feedUrl },
+				timestampMs,
+				source: source === Source.Rss_Rest ? Source.Rss2Json_Rest : Source.Rss_Rest,
+			}, resolverContext)).rejects.toThrow('unsupported source')
+		}
+
+		getNativeFeed.mockRejectedValueOnce(new Error('native feed unavailable'))
+		const nativeFeedObservationResolver = allSourceResolverDefinitions.find((resolver) => (
+			resolver.source === Source.Rss_Rest
+			&& resolver.entityType === EntityType.RssFeed_Timestamp
+		))
+		await expect(nativeFeedObservationResolver?.resolve[
+			RssFeed_TimestampSelector.FeedTimestampMsSource
+		]({
+			$feed: { feedUrl },
+			timestampMs: 1_720_000_000_001,
+			source: Source.Rss_Rest,
+		}, resolverContext)).resolves.toMatchObject({
+			reachable: false,
+			observedItemCount: 0,
+			error: 'native feed unavailable',
+		})
 	})
 
 	it('keeps UTXO parent list resolvers returning child selectors only', async () => {

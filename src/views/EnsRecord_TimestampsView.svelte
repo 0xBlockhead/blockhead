@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'ENS record observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EnsRecord_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EnsRecord_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,11 +112,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: ensRecordTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EnsRecord_Timestamp> })}
+				{#snippet Item({ item: ensRecordTimestamp })}
 					{@const ensRecordTimestampFields = { ...ensRecordTimestamp[EntityMetaKey.Selector], ...ensRecordTimestamp }}
+					{@const selection = select(EntityType.EnsRecord_Timestamp, ensRecordTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const ensRecordTimestampHrefFields = { ...ensRecordTimestamp, ...ensRecordTimestamp[EntityMetaKey.Selector] }}
 					<EnsRecord_TimestampView
-						selection={select(EntityType.EnsRecord_Timestamp, ensRecordTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={ensRecordTimestampFields}
 						href={
 							(ensRecordTimestampHrefFields.timestampMs !== undefined && ensRecordTimestampHrefFields.source !== undefined && ensRecordTimestampHrefFields.$record !== undefined && ensRecordTimestampHrefFields.$record.$name !== undefined && ensRecordTimestampHrefFields.$record.$name.name !== undefined && ensRecordTimestampHrefFields.$record.recordKey !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {

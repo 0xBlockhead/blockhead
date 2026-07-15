@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.AptosBlock>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.AptosBlock>>
+			selection: RegisteredEntityProxyResource<EntityType.AptosBlock>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AptosBlock>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -46,7 +45,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.containsVersion) ?? '')].filter(Boolean).join(' ') || 'aptos block')
+	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || 'aptos block')
 	const viewDomId = $derived('aptos-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -149,143 +148,98 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+		</dl>
 
+		<dl data-column-item="center">
 			<div>
-				<dt>contains version</dt>
+				<dt>first version</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
 							selection({
 								fields: {
-									containsVersion: true,
+									firstVersion: true,
 								},
 							})
 						}
 					>
 						{#snippet Pending()}
-							{@const containsVersion = pendingEntity.containsVersion}
-							{#if containsVersion !== undefined && containsVersion !== null}
-								<NumberValue value={Number(containsVersion)} />
+							{@const firstVersion = pendingEntity.firstVersion}
+							{#if firstVersion !== undefined && firstVersion !== null}
+								<NumberValue value={Number(firstVersion)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const containsVersion = resolvedEntity.containsVersion}
-							{#if containsVersion !== undefined && containsVersion !== null}
-								<NumberValue value={Number(containsVersion)} />
+							{@const firstVersion = resolvedEntity.firstVersion}
+							{#if firstVersion !== undefined && firstVersion !== null}
+								<NumberValue value={Number(firstVersion)} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
-		</dl>
 
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							firstVersion: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const firstVersion = pendingEntity.firstVersion}
-					{#if firstVersion !== undefined && firstVersion !== null}
-						<div>
-							<dt>first version</dt>
-							<dd>
-								<NumberValue value={Number(firstVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const firstVersion = resolvedEntity.firstVersion}
-					{#if firstVersion !== undefined && firstVersion !== null}
-						<div>
-							<dt>first version</dt>
-							<dd>
-								<NumberValue value={Number(firstVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							lastVersion: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const lastVersion = pendingEntity.lastVersion}
-					{#if lastVersion !== undefined && lastVersion !== null}
-						<div>
-							<dt>last version</dt>
-							<dd>
+			<div>
+				<dt>last version</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									lastVersion: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const lastVersion = pendingEntity.lastVersion}
+							{#if lastVersion !== undefined && lastVersion !== null}
 								<NumberValue value={Number(lastVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastVersion = resolvedEntity.lastVersion}
-					{#if lastVersion !== undefined && lastVersion !== null}
-						<div>
-							<dt>last version</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const lastVersion = resolvedEntity.lastVersion}
+							{#if lastVersion !== undefined && lastVersion !== null}
 								<NumberValue value={Number(lastVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							timestampMs: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const timestampMs = pendingEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = pendingEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
 								<Timestamp timestamp={Number(timestampMs)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Account snapshots',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.PolkadotAccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.PolkadotAccount_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -114,18 +115,24 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: polkadotAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotAccount_Timestamp> })}
+				{#snippet Item({ item: polkadotAccountTimestamp })}
 					{@const polkadotAccountTimestampFields = { ...polkadotAccountTimestamp[EntityMetaKey.Selector], ...polkadotAccountTimestamp }}
+					{@const selection = select(EntityType.PolkadotAccount_Timestamp, polkadotAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const polkadotAccountTimestampHrefFields = { ...polkadotAccountTimestamp, ...polkadotAccountTimestamp[EntityMetaKey.Selector] }}
 					<PolkadotAccount_TimestampView
-						selection={select(EntityType.PolkadotAccount_Timestamp, polkadotAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={polkadotAccountTimestampFields}
 						href={
-							(polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.$network !== undefined && polkadotAccountTimestampHrefFields.$account.$network.slug !== undefined && polkadotAccountTimestampHrefFields.$account.accountId !== undefined && polkadotAccountTimestampHrefFields.timestampMs !== undefined && polkadotAccountTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								network: String(polkadotAccountTimestampHrefFields.$account.$network.slug ?? ''),
-								accountId: String(polkadotAccountTimestampHrefFields.$account.accountId ?? ''),
+							(polkadotAccountTimestampHrefFields.timestampMs !== undefined && polkadotAccountTimestampHrefFields.source !== undefined && polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.accountId !== undefined && polkadotAccountTimestampHrefFields.$account.$network !== undefined && polkadotAccountTimestampHrefFields.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(polkadotAccountTimestampHrefFields.timestampMs ?? ''),
 								source: String(polkadotAccountTimestampHrefFields.source ?? ''),
+								accountId: String(polkadotAccountTimestampHrefFields.$account.accountId ?? ''),
+								network: String(caip2StringFromValue(polkadotAccountTimestampHrefFields.$account.$network.caip2) ?? ''),
+							}) : polkadotAccountTimestampHrefFields.timestampMs !== undefined && polkadotAccountTimestampHrefFields.source !== undefined && polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.accountId !== undefined && polkadotAccountTimestampHrefFields.$account.$network !== undefined && polkadotAccountTimestampHrefFields.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								timestampMs: String(polkadotAccountTimestampHrefFields.timestampMs ?? ''),
+								source: String(polkadotAccountTimestampHrefFields.source ?? ''),
+								accountId: String(polkadotAccountTimestampHrefFields.$account.accountId ?? ''),
+								network: String(polkadotAccountTimestampHrefFields.$account.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

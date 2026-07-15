@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +26,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.A2aTask>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.A2aTask>>
+			selection: RegisteredEntityProxyResource<EntityType.A2aTask>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.A2aTask>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -130,40 +129,35 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							taskId: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const taskId = pendingEntity.taskId}
-					{#if taskId !== undefined && taskId !== null}
-						<div>
-							<dt>task ID</dt>
-							<dd>
+			<div>
+				<dt>task ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									taskId: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const taskId = pendingEntity.taskId}
+							{#if taskId !== undefined && taskId !== null}
 								{String((taskId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const taskId = resolvedEntity.taskId}
-					{#if taskId !== undefined && taskId !== null}
-						<div>
-							<dt>task ID</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const taskId = resolvedEntity.taskId}
+							{#if taskId !== undefined && taskId !== null}
 								{String((taskId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={selection.$service}

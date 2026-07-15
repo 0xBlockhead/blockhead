@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Channels',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadStateChannel>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadStateChannel>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,11 +111,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: blockheadStateChannel }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadStateChannel> })}
+				{#snippet Item({ item: blockheadStateChannel })}
 					{@const blockheadStateChannelFields = { ...blockheadStateChannel[EntityMetaKey.Selector], ...blockheadStateChannel }}
+					{@const selection = select(EntityType.BlockheadStateChannel, blockheadStateChannel[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const blockheadStateChannelHrefFields = { ...blockheadStateChannel, ...blockheadStateChannel[EntityMetaKey.Selector] }}
 					<BlockheadStateChannelView
-						selection={select(EntityType.BlockheadStateChannel, blockheadStateChannel[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={blockheadStateChannelFields}
 						href={
 							(blockheadStateChannelHrefFields.id !== undefined ? resolve('/channel/[channelId=stringSegment]', {

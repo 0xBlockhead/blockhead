@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'ERC-4337 smart accounts',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Erc4337SmartAccount>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Erc4337SmartAccount>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,16 +112,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: erc4337SmartAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337SmartAccount> })}
+				{#snippet Item({ item: erc4337SmartAccount })}
 					{@const erc4337SmartAccountFields = { ...erc4337SmartAccount[EntityMetaKey.Selector], ...erc4337SmartAccount }}
+					{@const selection = select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const erc4337SmartAccountHrefFields = { ...erc4337SmartAccount, ...erc4337SmartAccount[EntityMetaKey.Selector] }}
 					<Erc4337SmartAccountView
-						selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={erc4337SmartAccountFields}
 						href={
-							(erc4337SmartAccountHrefFields.$network !== undefined && erc4337SmartAccountHrefFields.$network.slug !== undefined && erc4337SmartAccountHrefFields.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
-								network: String(erc4337SmartAccountHrefFields.$network.slug ?? ''),
+							(erc4337SmartAccountHrefFields.address !== undefined && erc4337SmartAccountHrefFields.$network !== undefined && erc4337SmartAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
 								address: String(erc4337SmartAccountHrefFields.address ?? ''),
+								network: String(caip2StringFromValue(erc4337SmartAccountHrefFields.$network.caip2) ?? ''),
+							}) : erc4337SmartAccountHrefFields.address !== undefined && erc4337SmartAccountHrefFields.$network !== undefined && erc4337SmartAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
+								address: String(erc4337SmartAccountHrefFields.address ?? ''),
+								network: String(erc4337SmartAccountHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

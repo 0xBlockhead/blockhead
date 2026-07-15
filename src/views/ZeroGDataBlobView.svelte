@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.ZeroGDataBlob>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.ZeroGDataBlob>>
+			selection: RegisteredEntityProxyResource<EntityType.ZeroGDataBlob>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ZeroGDataBlob>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -61,6 +60,7 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import ZeroGDataChunksView from '$/views/ZeroGDataChunksView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import ZeroGConsensusNetworkView from '$/views/ZeroGConsensusNetworkView.svelte'
 	import ZeroGDaQuorumView from '$/views/ZeroGDaQuorumView.svelte'
@@ -372,5 +372,20 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<ZeroGDataChunksView
+				selection={
+						selection.$$chunks({
+							count: true,
+						})
+					}
+				title='chunks'
+				emptyText='No 0G data chunks.'
+				id='ZeroGDataChunksView-chunks'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

@@ -1,8 +1,10 @@
 import { type } from 'arktype'
 
 import { getJson } from '$/lib/http.ts'
-import { metadataVisionOrigins } from '$/sources/MetadataVision/index.ts'
-import { metadataVisionOrigin } from '$/sources/MetadataVision/Rest/constants.ts'
+import {
+	metadataVisionOrigin,
+	metadataVisionOrigins,
+} from '$/sources/MetadataVision/Rest/constants.ts'
 import type { MetadataVisionOpenGraphData } from '$/sources/MetadataVision/Rest/types.ts'
 
 const metadataVisionOpenGraphData = type({

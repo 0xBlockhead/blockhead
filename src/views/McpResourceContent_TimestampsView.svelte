@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'MCP resource content observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.McpResourceContent_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.McpResourceContent_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,10 +112,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: mcpResourceContentTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.McpResourceContent_Timestamp> })}
+				{#snippet Item({ item: mcpResourceContentTimestamp })}
 					{@const mcpResourceContentTimestampFields = { ...mcpResourceContentTimestamp[EntityMetaKey.Selector], ...mcpResourceContentTimestamp }}
+					{@const selection = select(EntityType.McpResourceContent_Timestamp, mcpResourceContentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<McpResourceContent_TimestampView
-						selection={select(EntityType.McpResourceContent_Timestamp, mcpResourceContentTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={mcpResourceContentTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

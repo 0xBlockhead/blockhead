@@ -7,3 +7,9 @@ export const blockscoutExplorerRestV2OriginByChainId = {
 	42161: 'https://arbitrum.blockscout.com',
 	11155111: 'https://eth-sepolia.blockscout.com',
 } as const satisfies Partial<Record<number, string>>
+
+export const blockscoutOrigins = Object.values(blockscoutExplorerRestV2OriginByChainId)
+	.map((origin) => ({
+		origin,
+		corsEnabled: false,
+	}))

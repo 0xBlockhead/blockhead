@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BeaconSlashing>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BeaconSlashing>>
+			selection: RegisteredEntityProxyResource<EntityType.BeaconSlashing>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BeaconSlashing>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -62,11 +61,16 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInSlot ?? '')}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.slot !== undefined && pendingEntity.kind !== undefined && pendingEntity.indexInSlot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/slashing/[kind=stringSegment]/[index=nonNegativeInteger]', {
-			network: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.slot !== undefined && pendingEntity.kind !== undefined && pendingEntity.indexInSlot !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/slashing/[kind=stringSegment]/[index=nonNegativeInteger]', {
 			slot: String(pendingEntity.slot ?? ''),
 			kind: String(pendingEntity.kind ?? ''),
 			index: String(pendingEntity.indexInSlot ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.slot !== undefined && pendingEntity.kind !== undefined && pendingEntity.indexInSlot !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/slashing/[kind=stringSegment]/[index=nonNegativeInteger]', {
+			slot: String(pendingEntity.slot ?? ''),
+			kind: String(pendingEntity.kind ?? ''),
+			index: String(pendingEntity.indexInSlot ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}

@@ -6,8 +6,8 @@
  */
 
 import { getJson } from '$/lib/http.ts'
-import { blockchairOrigins } from '$/sources/Blockchair/index.ts'
 import {
+	blockchairOrigins,
 	blockchairRestBaseUrl,
 } from '$/sources/Blockchair/Rest/constants.ts'
 

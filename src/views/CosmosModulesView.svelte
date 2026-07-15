@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Modules',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.CosmosModule>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.CosmosModule>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,10 +110,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: cosmosModule }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosModule> })}
+				{#snippet Item({ item: cosmosModule })}
 					{@const cosmosModuleFields = { ...cosmosModule[EntityMetaKey.Selector], ...cosmosModule }}
+					{@const selection = select(EntityType.CosmosModule, cosmosModule[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<CosmosModuleView
-						selection={select(EntityType.CosmosModule, cosmosModule[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={cosmosModuleFields}
 						layout={EntityLayout.Summary}
 						open={false}

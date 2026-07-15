@@ -1,17 +1,11 @@
 import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
-import { arweaveBindings } from '$/sources/Arweave/bindings.ts'
+import {
+	arweaveGatewayEndpoints,
+	arweaveGatewayOrigins,
+} from '$/sources/Arweave/Rest/constants.ts'
 import type { ArweaveBrowseResult } from '$/sources/Arweave/Rest/types.ts'
 
 const gatewayUrlLastSegment = /([^/]+)$/
-
-const arweaveGatewayEndpoints = arweaveBindings[0].endpoints
-
-const arweaveGatewayOrigins = arweaveGatewayEndpoints.flatMap((endpoint) => (
-	[{
-		origin: endpoint.origin,
-		corsEnabled: endpoint.corsEnabled,
-	}]
-))
 
 const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, '')
 

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'UTXO addresses',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.UtxoAddress>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.UtxoAddress>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,16 +112,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: utxoAddress }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoAddress> })}
+				{#snippet Item({ item: utxoAddress })}
 					{@const utxoAddressFields = { ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }}
+					{@const selection = select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const utxoAddressHrefFields = { ...utxoAddress, ...utxoAddress[EntityMetaKey.Selector] }}
 					<UtxoAddressView
-						selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={utxoAddressFields}
 						href={
-							(utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.slug !== undefined && utxoAddressHrefFields.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-								network: String(utxoAddressHrefFields.$network.slug ?? ''),
+							(utxoAddressHrefFields.address !== undefined && utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
 								address: String(utxoAddressHrefFields.address ?? ''),
+								network: String(caip2StringFromValue(utxoAddressHrefFields.$network.caip2) ?? ''),
+							}) : utxoAddressHrefFields.address !== undefined && utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+								address: String(utxoAddressHrefFields.address ?? ''),
+								network: String(utxoAddressHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

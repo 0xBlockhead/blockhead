@@ -4,8 +4,8 @@
  */
 
 import { getJson } from '$/lib/http.ts'
-import { l2BeatOrigins } from '$/sources/L2Beat/index.ts'
 import {
+	l2BeatOrigins,
 	origin,
 	scalingSummaryPath,
 } from '$/sources/L2Beat/Rest/constants.ts'

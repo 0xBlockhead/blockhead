@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -22,7 +20,7 @@
 		selection,
 		title = 'Networks',
 		typeAnnotationParagraphs = ['A blockchain, ledger, or protocol network with its own identity and supporting metadata.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -31,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Network>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Network>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -114,11 +114,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: network }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Network> })}
+				{#snippet Item({ item: network })}
 					{@const networkFields = { ...network[EntityMetaKey.Selector], ...network }}
+					{@const selection = select(EntityType.Network, network[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const networkHrefFields = { ...network, ...network[EntityMetaKey.Selector] }}
 					<NetworkView
-						selection={select(EntityType.Network, network[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={networkFields}
 						href={
 							(networkHrefFields.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {

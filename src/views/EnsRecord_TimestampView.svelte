@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EnsRecord_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EnsRecord_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.EnsRecord_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EnsRecord_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -83,6 +82,12 @@
 			{#snippet Pending()}
 				<EnsRecordView
 					selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
+					href={
+						(selection.entitySelector.$record.recordKey !== undefined && selection.entitySelector.$record.$name !== undefined && selection.entitySelector.$record.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
+							recordId: String(selection.entitySelector.$record.recordKey ?? ''),
+							ensName: String(selection.entitySelector.$record.$name.name ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -92,6 +97,12 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<EnsRecordView
 					selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
+					href={
+						(selection.entitySelector.$record.recordKey !== undefined && selection.entitySelector.$record.$name !== undefined && selection.entitySelector.$record.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
+							recordId: String(selection.entitySelector.$record.recordKey ?? ''),
+							ensName: String(selection.entitySelector.$record.$name.name ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -125,6 +136,12 @@
 				<dd>
 					<EnsRecordView
 						selection={select(EntityType.EnsRecord, selection.entitySelector.$record, {})}
+						href={
+							(selection.entitySelector.$record.recordKey !== undefined && selection.entitySelector.$record.$name !== undefined && selection.entitySelector.$record.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
+								recordId: String(selection.entitySelector.$record.recordKey ?? ''),
+								ensName: String(selection.entitySelector.$record.$name.name ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

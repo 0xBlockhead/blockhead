@@ -1,5 +1,4 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { tronSolidityNodeBindings } from '$/sources/TronSolidityNode/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	TronNodeAccount,
@@ -11,23 +10,16 @@ import type {
 export const tronSolidityNodeRestEndpoints = [
 	{
 		slug: 'solidity_node_local',
-		restBaseUrl: tronSolidityNodeBindings[0].endpoints[0].locator,
+		restBaseUrl: 'http://127.0.0.1:8091',
 	},
 ] as const
 
 export const tronSolidityNodeOrigins = [
-	...new Map(
-		tronSolidityNodeBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: 'http://127.0.0.1:8091',
+		corsEnabled: false,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

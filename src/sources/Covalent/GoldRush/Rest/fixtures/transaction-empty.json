@@ -1,0 +1,11 @@
+{
+	"data": {
+		"updated_at": "2026-07-14T12:00:00Z",
+		"chain_id": 1,
+		"chain_name": "eth-mainnet",
+		"items": []
+	},
+	"error": false,
+	"error_message": null,
+	"error_code": null
+}

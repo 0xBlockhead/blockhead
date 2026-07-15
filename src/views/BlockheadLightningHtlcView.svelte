@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BlockheadLightningHtlc>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BlockheadLightningHtlc>>
+			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningHtlc>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLightningHtlc>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -100,9 +100,12 @@
 							selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 							prefetched={lightningChannel}
 							href={
-								(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-									network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+								(lightningChannel[EntityMetaKey.Selector].channelId !== undefined && lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
 									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
+									network: String(caip2StringFromValue(lightningChannel[EntityMetaKey.Selector].$network.caip2) ?? ''),
+								}) : lightningChannel[EntityMetaKey.Selector].channelId !== undefined && lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
+									network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
 								}) : undefined)
 							}
 							layout={EntityLayout.Value}
@@ -122,9 +125,12 @@
 							selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 							prefetched={lightningChannel}
 							href={
-								(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-									network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+								(lightningChannel[EntityMetaKey.Selector].channelId !== undefined && lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
 									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
+									network: String(caip2StringFromValue(lightningChannel[EntityMetaKey.Selector].$network.caip2) ?? ''),
+								}) : lightningChannel[EntityMetaKey.Selector].channelId !== undefined && lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
+									network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
 								}) : undefined)
 							}
 							layout={EntityLayout.Value}
@@ -184,9 +190,12 @@
 									selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 									prefetched={lightningChannel}
 									href={
-										(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-											network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+										(lightningChannel[EntityMetaKey.Selector].channelId !== undefined && lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
 											channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
+											network: String(caip2StringFromValue(lightningChannel[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : lightningChannel[EntityMetaKey.Selector].channelId !== undefined && lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+											channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
+											network: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

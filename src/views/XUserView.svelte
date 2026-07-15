@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.XUser>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.XUser>>
+			selection: RegisteredEntityProxyResource<EntityType.XUser>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XUser>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -54,8 +54,6 @@
 			websiteUrl: true,
 			verified: true,
 			createdAt: true,
-			$icon: true,
-			$profileBanner: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'X user')
@@ -67,6 +65,8 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import XPostsView from '$/views/XPostsView.svelte'
+	import XUser_TimestampsView from '$/views/XUser_TimestampsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
 
@@ -76,7 +76,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.id !== undefined ? resolve('/x/user/[userId=stringSegment]', {
+			userId: String(pendingEntity.id ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -365,5 +369,39 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<XPostsView
+				selection={
+						selection.$$posts({
+							sources: [
+								Source.X_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Posts'
+				href={resolve('/x/posts')}
+				emptyText='No X posts here yet.'
+				id='XPostsView-posts'
+			/>
+
+			<XUser_TimestampsView
+				selection={
+						selection.$$timestamps({
+							sources: [
+								Source.X_Rest,
+								Source.X_FxEmbed_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Observations'
+				emptyText='No X user observations yet.'
+				id='XUser_TimestampsView-timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

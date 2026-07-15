@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.LightningChannel_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.LightningChannel_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.LightningChannel_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LightningChannel_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -111,9 +111,12 @@
 					<LightningChannelView
 						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel, {})}
 						href={
-							(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-								network: String(selection.entitySelector.$channel.$network.slug ?? ''),
+							(selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
 								channelId: String(selection.entitySelector.$channel.channelId ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$channel.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$channel.channelId !== undefined && selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
+								channelId: String(selection.entitySelector.$channel.channelId ?? ''),
+								network: String(selection.entitySelector.$channel.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

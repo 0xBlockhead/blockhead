@@ -1,6 +1,6 @@
 import { getGithubContents, getGithubRawText, githubContentsUrl, githubRawUrl } from '$/sources/_shared/hosts/Github/Http/client.ts'
+import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
 import { zcashZipsGithubRepo } from '$/sources/ZcashZips/Github/constants.ts'
-import { zcashZipsBindings } from '$/sources/ZcashZips/bindings.ts'
 import type { ZcashZipsGithubContents } from '$/sources/ZcashZips/Github/types.ts'
 
 export const getContentsUrl = () => (
@@ -16,14 +16,14 @@ export const getProposalRstUrl = ({ number }: { number: number }) => (
 
 export const getContents = (): Promise<ZcashZipsGithubContents> => (
 	getGithubContents({
-		endpoints: zcashZipsBindings[0].endpoints,
+		endpoints: githubHttpEndpoints,
 		target: zcashZipsGithubRepo,
 	})
 )
 
 export const getProposalRstText = ({ number }: { number: number }) => (
 	getGithubRawText({
-		endpoints: zcashZipsBindings[0].endpoints,
+		endpoints: githubHttpEndpoints,
 		target: {
 			...zcashZipsGithubRepo,
 			path: `${zcashZipsGithubRepo.path}/zip-${number.toString().padStart(4, '0')}.rst`,

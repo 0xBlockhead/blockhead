@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.HederaContractLog>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.HederaContractLog>>
+			selection: RegisteredEntityProxyResource<EntityType.HederaContractLog>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.HederaContractLog>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -79,84 +78,75 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={selection.$result}
-			>
-				{#snippet Pending()}{/snippet}
-
-				{#snippet children(hederaContractResult)}
-					{#if hederaContractResult != null && hederaContractResult[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>result</dt>
-							<dd>
+			<div>
+				<dt>result</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$result}
+					>
+						{#snippet children(hederaContractResult)}
+							{#if hederaContractResult != null && hederaContractResult[EntityMetaKey.Selector] != null}
 								<HederaContractResultView
 									selection={select(EntityType.HederaContractResult, hederaContractResult[EntityMetaKey.Selector])}
 									prefetched={hederaContractResult}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$contract}
-			>
-				{#snippet Pending()}{/snippet}
-
-				{#snippet children(hederaContract)}
-					{#if hederaContract != null && hederaContract[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>contract</dt>
-							<dd>
+			<div>
+				<dt>contract</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$contract}
+					>
+						{#snippet children(hederaContract)}
+							{#if hederaContract != null && hederaContract[EntityMetaKey.Selector] != null}
 								<HederaContractView
 									selection={select(EntityType.HederaContract, hederaContract[EntityMetaKey.Selector])}
 									prefetched={hederaContract}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							consensusTimestamp: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const consensusTimestamp = pendingEntity.consensusTimestamp}
-					{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
-						<div>
-							<dt>consensus timestamp</dt>
-							<dd>
+			<div>
+				<dt>consensus timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									consensusTimestamp: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const consensusTimestamp = pendingEntity.consensusTimestamp}
+							{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
 								{String((consensusTimestamp) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const consensusTimestamp = resolvedEntity.consensusTimestamp}
-					{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
-						<div>
-							<dt>consensus timestamp</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const consensusTimestamp = resolvedEntity.consensusTimestamp}
+							{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
 								{String((consensusTimestamp) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>log index</dt>

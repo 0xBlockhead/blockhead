@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { proposalCategoryById, proposalCategoryBySlug, specificationRealmById, specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'
+	import { defaultSpecificationProposalSources, specificationProposalSourceSelectionByKey } from '$/sources/$sourceSelections.ts'
 
 
 	// Context
@@ -17,11 +18,13 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SpecificationProposal, {
+	const pageEntitySelector = $derived({
 		realm: specificationRealmBySlug[params.specificationRealmSlug].id,
 		category: proposalCategoryBySlug[params.proposalKindSlug].id,
 		number: Number(params.proposalRef.slice(params.proposalRef.lastIndexOf('-') + 1)),
-	}, {
+	})
+	const pageSelection = $derived(select(EntityType.SpecificationProposal, pageEntitySelector, {
+		sources: specificationProposalSourceSelectionByKey[[String(pageEntitySelector.realm), String(pageEntitySelector.category)].join(':')] ?? defaultSpecificationProposalSources,
 		fields: {
 			documentTitle: true,
 			documentCategory: true,

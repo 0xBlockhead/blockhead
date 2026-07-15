@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -22,7 +20,7 @@
 		selection,
 		title = 'EVM network bridges',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -31,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmNetworkBridge>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmNetworkBridge>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -70,8 +70,8 @@
 				fields: {
 					url: true,
 					relationshipType: true,
-					$fromNetwork: true,
 					$toNetwork: true,
+					$fromNetwork: true,
 				},
 			})
 		}
@@ -114,17 +114,22 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmNetworkBridge }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetworkBridge> })}
+				{#snippet Item({ item: evmNetworkBridge })}
 					{@const evmNetworkBridgeFields = { ...evmNetworkBridge[EntityMetaKey.Selector], ...evmNetworkBridge }}
+					{@const selection = select(EntityType.EvmNetworkBridge, evmNetworkBridge[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmNetworkBridgeHrefFields = { ...evmNetworkBridge, ...evmNetworkBridge[EntityMetaKey.Selector] }}
 					<EvmNetworkBridgeView
-						selection={select(EntityType.EvmNetworkBridge, evmNetworkBridge[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmNetworkBridgeFields}
 						href={
-							(evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.slug !== undefined && evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.url !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
-								network: String(evmNetworkBridgeHrefFields.$fromNetwork.slug ?? ''),
+							(evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.url !== undefined && evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
 								toCaip2: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$toNetwork.caip2) ?? ''),
 								url: String(evmNetworkBridgeHrefFields.url ?? ''),
+								network: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$fromNetwork.caip2) ?? ''),
+							}) : evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.url !== undefined && evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
+								toCaip2: String(caip2StringFromValue(evmNetworkBridgeHrefFields.$toNetwork.caip2) ?? ''),
+								url: String(evmNetworkBridgeHrefFields.url ?? ''),
+								network: String(evmNetworkBridgeHrefFields.$fromNetwork.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

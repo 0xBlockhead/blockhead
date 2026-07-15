@@ -1,7 +1,9 @@
 import { getJson } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
-import { xOrigins } from '$/sources/X/index.ts'
-import { xApiV2Base } from '$/sources/X/Rest/constants.ts'
+import {
+	xApiV2Base,
+	xOrigins,
+} from '$/sources/X/Rest/constants.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export const xApiV2Get = async <T>(

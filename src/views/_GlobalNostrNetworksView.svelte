@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Nostr',
 		typeAnnotationParagraphs = ['Nostr is a relay-based social protocol for signed events. Profiles, notes, reposts, and articles are event kinds; relays are transport endpoints and are not global proof that an event exists everywhere.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalNostrNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalNostrNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -63,7 +64,13 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					scope: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -103,11 +110,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: globalNostrNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalNostrNetwork> })}
+				{#snippet Item({ item: globalNostrNetwork })}
 					{@const globalNostrNetworkFields = { ...globalNostrNetwork[EntityMetaKey.Selector], ...globalNostrNetwork }}
+					{@const selection = select(EntityType._GlobalNostrNetwork, globalNostrNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const globalNostrNetworkHrefFields = { ...globalNostrNetwork, ...globalNostrNetwork[EntityMetaKey.Selector] }}
 					<GlobalNostrNetworkView
-						selection={select(EntityType._GlobalNostrNetwork, globalNostrNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={globalNostrNetworkFields}
+						href={(globalNostrNetwork[EntityMetaKey.Selector].scope === '_GlobalNostrNetwork' ? resolve('/nostr') : undefined)}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

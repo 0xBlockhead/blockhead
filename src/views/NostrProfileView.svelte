@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.NostrProfile>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.NostrProfile>>
+			selection: RegisteredEntityProxyResource<EntityType.NostrProfile>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NostrProfile>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -54,7 +53,6 @@
 			nip05: true,
 			website: true,
 			metadataUpdatedAt: true,
-			$icon: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile')
@@ -80,7 +78,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.pubkey !== undefined ? resolve('/nostr/profile/[pubkey=stringSegment]', {
+			pubkey: String(pendingEntity.pubkey ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

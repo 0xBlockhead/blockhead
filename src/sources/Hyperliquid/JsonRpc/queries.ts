@@ -1,7 +1,6 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { hyperliquidBindings } from '$/sources/Hyperliquid/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	HyperliquidEvmBlock,
@@ -9,33 +8,22 @@ import type {
 	HyperliquidEvmTransactionReceipt,
 } from '$/sources/Hyperliquid/JsonRpc/types.ts'
 
-export const hyperliquidOrigins = [
-	...new Map(
-		hyperliquidBindings
-			.flatMap((binding) => binding.endpoints)
-			.flatMap((endpoint) => (
-				endpoint.origin == null ?
-					[]
-				:
-					[[
-						endpoint.origin,
-						{
-							origin: endpoint.origin,
-							corsEnabled: endpoint.corsEnabled === true,
-						},
-					]]
-			))
-	).values(),
-]
+const hyperliquidRpcOrigin = 'https://rpc.hyperliquid.xyz' as const
 
-export const hyperliquidMainnetRpcEndpoints = hyperliquidBindings
-	.slice(1, 2)
-	.flatMap((binding) => binding.endpoints)
-	.map((endpoint) => ({
-		url: endpoint.locator,
+export const hyperliquidOrigins = [
+	{
+		origin: hyperliquidRpcOrigin,
+		corsEnabled: true,
+	},
+] as const
+
+export const hyperliquidMainnetRpcEndpoints = [
+	{
+		url: `${hyperliquidRpcOrigin}/evm`,
 		transportType: TransportType.Http,
 		providerName: 'Hyperliquid HyperEVM JSON-RPC',
-	}))
+	},
+] as const
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion

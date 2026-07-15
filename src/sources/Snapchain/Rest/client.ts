@@ -4,8 +4,10 @@
  */
 
 import { getJson } from '$/lib/http.ts'
-import { snapchainOrigins } from '$/sources/Snapchain/index.ts'
-import { nodeEndpoints } from '$/sources/Snapchain/Rest/constants.ts'
+import {
+	nodeEndpoints,
+	snapchainOrigins,
+} from '$/sources/Snapchain/Rest/constants.ts'
 
 const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
 	const searchParams = new URLSearchParams()

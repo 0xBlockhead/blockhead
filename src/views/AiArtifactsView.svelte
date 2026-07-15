@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'AI artifacts',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AiArtifact>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.AiArtifact>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -68,6 +68,7 @@
 				fields: {
 					artifactType: true,
 					mediaType: true,
+					providerArtifactId: true,
 					ociDigest: true,
 					ipfsCid: true,
 					arweaveId: true,
@@ -116,10 +117,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: aiArtifact }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiArtifact> })}
+				{#snippet Item({ item: aiArtifact })}
 					{@const aiArtifactFields = { ...aiArtifact[EntityMetaKey.Selector], ...aiArtifact }}
+					{@const selection = select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<AiArtifactView
-						selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={aiArtifactFields}
 						layout={EntityLayout.Summary}
 						open={false}

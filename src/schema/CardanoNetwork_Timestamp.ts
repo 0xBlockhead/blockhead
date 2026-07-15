@@ -1,7 +1,9 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CardanoNetwork_TimestampSelector {
@@ -17,7 +19,7 @@ export const CardanoNetwork_Timestamp = entity({
 	$network: {
 		label: 'network',
 		type: EntityFieldType.EntityReference,
-		entityType: EntityType.CardanoNetwork,
+		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
@@ -35,34 +37,121 @@ export const CardanoNetwork_Timestamp = entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	latestSlot: {
-		label: 'latest slot',
+		label: 'Latest slot',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	latestBlockNo: {
-		label: 'latest block no',
+		label: 'Latest block number',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
-	epoch: {
-		label: 'epoch',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	era: {
-		label: 'era',
+	latestBlockHash: {
+		label: 'Latest block hash',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
-	syncProgress: {
-		label: 'sync progress',
+	latestBlockTimeMs: {
+		label: 'Latest block time',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	latestBlockTransactionCount: {
+		label: 'Latest block transactions',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	epoch: {
+		label: 'Epoch',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	epochBlockCount: {
+		label: 'Epoch blocks',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	epochTransactionCount: {
+		label: 'Epoch transactions',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	circulatingSupplyLovelace: {
+		label: 'Circulating supply',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	totalSupplyLovelace: {
+		label: 'Total supply',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	liveStakeLovelace: {
+		label: 'Live stake',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	activeStakeLovelace: {
+		label: 'Active stake',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
+	},
+	backendHealthy: {
+		label: 'Backend healthy',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

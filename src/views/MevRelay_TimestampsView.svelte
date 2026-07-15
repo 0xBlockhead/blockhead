@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'MEV relay observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.MevRelay_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.MevRelay_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -114,18 +115,24 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: mevRelayTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MevRelay_Timestamp> })}
+				{#snippet Item({ item: mevRelayTimestamp })}
 					{@const mevRelayTimestampFields = { ...mevRelayTimestamp[EntityMetaKey.Selector], ...mevRelayTimestamp }}
+					{@const selection = select(EntityType.MevRelay_Timestamp, mevRelayTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const mevRelayTimestampHrefFields = { ...mevRelayTimestamp, ...mevRelayTimestamp[EntityMetaKey.Selector] }}
 					<MevRelay_TimestampView
-						selection={select(EntityType.MevRelay_Timestamp, mevRelayTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={mevRelayTimestampFields}
 						href={
-							(mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.slug !== undefined && mevRelayTimestampHrefFields.$relay.host !== undefined && mevRelayTimestampHrefFields.timestampMs !== undefined && mevRelayTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								network: String(mevRelayTimestampHrefFields.$relay.$network.slug ?? ''),
-								host: String(mevRelayTimestampHrefFields.$relay.host ?? ''),
+							(mevRelayTimestampHrefFields.timestampMs !== undefined && mevRelayTimestampHrefFields.source !== undefined && mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.host !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(mevRelayTimestampHrefFields.timestampMs ?? ''),
 								source: String(mevRelayTimestampHrefFields.source ?? ''),
+								host: String(mevRelayTimestampHrefFields.$relay.host ?? ''),
+								network: String(caip2StringFromValue(mevRelayTimestampHrefFields.$relay.$network.caip2) ?? ''),
+							}) : mevRelayTimestampHrefFields.timestampMs !== undefined && mevRelayTimestampHrefFields.source !== undefined && mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.host !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								timestampMs: String(mevRelayTimestampHrefFields.timestampMs ?? ''),
+								source: String(mevRelayTimestampHrefFields.source ?? ''),
+								host: String(mevRelayTimestampHrefFields.$relay.host ?? ''),
+								network: String(mevRelayTimestampHrefFields.$relay.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

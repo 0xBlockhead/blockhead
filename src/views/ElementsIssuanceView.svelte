@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.ElementsIssuance>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.ElementsIssuance>>
+			selection: RegisteredEntityProxyResource<EntityType.ElementsIssuance>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ElementsIssuance>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -189,9 +189,12 @@
 					<UtxoTransactionView
 						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction, {})}
 						href={
-							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined && selection.entitySelector.$transaction.txId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
+							(selection.entitySelector.$transaction.txId !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$transaction.txId !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								transactionId: String(selection.entitySelector.$transaction.txId ?? ''),
+								network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

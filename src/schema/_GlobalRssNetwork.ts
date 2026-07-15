@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -25,12 +26,6 @@ export const _GlobalRssNetwork = entity({
 		label: 'observed feeds',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.RssFeed,
-		cardinality: EntityFieldCardinality.Many,
-	},
-	$$observedItems: {
-		label: 'observed items',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.RssItem,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {

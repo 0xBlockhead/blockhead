@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -20,19 +21,19 @@ export const HederaContractLog = entity({
 		label: 'result',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.HederaContractResult,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$contract: {
 		label: 'contract',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.HederaContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	consensusTimestamp: {
 		label: 'consensus timestamp',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	logIndex: {
 		label: 'log index',

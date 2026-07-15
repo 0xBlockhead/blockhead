@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'EVM coin instances',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmCoinInstance>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmCoinInstance>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,9 +45,12 @@
 		>
 	> = $props()
 
+	const collectionSelection = $derived(selection)
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
@@ -67,8 +68,6 @@
 		resource={
 			selection({
 				fields: {
-					symbol: true,
-					name: true,
 					type: true,
 					$network: true,
 					$contract: true,
@@ -114,24 +113,53 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmCoinInstance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmCoinInstance> })}
+				{#snippet Item({ item: evmCoinInstance })}
 					{@const evmCoinInstanceFields = { ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }}
+					{@const selection = select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmCoinInstanceHrefFields = { ...evmCoinInstance, ...evmCoinInstance[EntityMetaKey.Selector] }}
-					<EvmCoinInstanceView
-						selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], { sources: selection.sources })}
-						prefetched={evmCoinInstanceFields}
-						href={
-							(evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-								chainId: String(evmCoinInstanceHrefFields.$network.caip2.reference ?? ''),
-								coinInstanceSlug: String('native' ?? ''),
-							}) : evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstanceHrefFields.$contract !== undefined && evmCoinInstanceHrefFields.$contract.address !== undefined && evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-								coinInstanceSlug: String(evmCoinInstanceHrefFields.$contract.address ?? ''),
-								chainId: String(evmCoinInstanceHrefFields.$network.caip2.reference ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+					<ProjectionBoundary
+						resource={selection.NativeCurrency}
+					>
+						{#snippet Applicable()}
+							<EvmCoinInstanceView
+								selection={selection}
+								prefetched={evmCoinInstanceFields}
+								href={
+									(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+										chainId: String(evmCoinInstanceHrefFields.$network.caip2.reference ?? ''),
+										coinInstanceSlug: String('native' ?? ''),
+									}) : evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstanceHrefFields.$contract !== undefined && evmCoinInstanceHrefFields.$contract.address !== undefined && evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+										coinInstanceSlug: String(evmCoinInstanceHrefFields.$contract.address ?? ''),
+										chainId: String(evmCoinInstanceHrefFields.$network.caip2.reference ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
+					</ProjectionBoundary>
+
+					<ProjectionBoundary
+						resource={selection.Erc20Token}
+					>
+						{#snippet Applicable()}
+							<EvmCoinInstanceView
+								selection={selection}
+								prefetched={evmCoinInstanceFields}
+								href={
+									(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+										chainId: String(evmCoinInstanceHrefFields.$network.caip2.reference ?? ''),
+										coinInstanceSlug: String('native' ?? ''),
+									}) : evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstanceHrefFields.$contract !== undefined && evmCoinInstanceHrefFields.$contract.address !== undefined && evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+										coinInstanceSlug: String(evmCoinInstanceHrefFields.$contract.address ?? ''),
+										chainId: String(evmCoinInstanceHrefFields.$network.caip2.reference ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
+					</ProjectionBoundary>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

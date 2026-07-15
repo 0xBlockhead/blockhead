@@ -1,7 +1,9 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum CashuKeyset_TimestampSelector {
@@ -39,12 +41,18 @@ export const CashuKeyset_Timestamp = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.CashuMint_Rest,
+		],
 	},
 	inputFeePpk: {
 		label: 'input fee ppk',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.CashuMint_Rest,
+		],
 	},
 	finalExpiryMs: {
 		label: 'final expiry ms',

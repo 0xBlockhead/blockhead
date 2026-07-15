@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.TonMessage>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.TonMessage>>
+			selection: RegisteredEntityProxyResource<EntityType.TonMessage>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TonMessage>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -49,7 +50,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import TonNetworkView from '$/views/TonNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import TonTransactionView from '$/views/TonTransactionView.svelte'
 	import TonTraceView from '$/views/TonTraceView.svelte'
 </script>
@@ -86,11 +87,18 @@
 					<ResourceBoundary
 						resource={selection.$network}
 					>
-						{#snippet children(tonNetwork)}
-							{#if tonNetwork != null && tonNetwork[EntityMetaKey.Selector] != null}
-								<TonNetworkView
-									selection={select(EntityType.TonNetwork, tonNetwork[EntityMetaKey.Selector])}
-									prefetched={tonNetwork}
+						{#snippet children(network)}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
+								<NetworkView
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									prefetched={network}
+									href={
+										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -100,40 +108,35 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							messageHash: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const messageHash = pendingEntity.messageHash}
-					{#if messageHash !== undefined && messageHash !== null}
-						<div>
-							<dt>message hash</dt>
-							<dd>
+			<div>
+				<dt>message hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									messageHash: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const messageHash = pendingEntity.messageHash}
+							{#if messageHash !== undefined && messageHash !== null}
 								<TruncatedValue value={String((messageHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const messageHash = resolvedEntity.messageHash}
-					{#if messageHash !== undefined && messageHash !== null}
-						<div>
-							<dt>message hash</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const messageHash = resolvedEntity.messageHash}
+							{#if messageHash !== undefined && messageHash !== null}
 								<TruncatedValue value={String((messageHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={selection.$sourceTransaction}

@@ -74,10 +74,7 @@ export default {
 			resolve: {
 				[CoinSelector.CoinId]: async ({ coinId }, context) => {
 					const { coinById } = await import('$/constants/Coin.ts')
-					const {
-						idByCoinId,
-						decimalsByCoinId,
-					} = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+					const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 					const { getCoinById } = await import('$/resolvers/Coinpaprika/OpenApi/queries.ts')
 					const coinpaprikaId = idByCoinId[coinId]
 					if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin not mapped')
@@ -87,13 +84,9 @@ export default {
 						coinpaprikaId,
 					})
 
-					const decimals = decimalsByCoinId[coinId]
 					const logoMedia = mediaFromUrl(coin.logo, MediaType.Image)
 					const coinName = coin.name ?? ''
 					const coinSymbol = coin.symbol ?? ''
-					if (decimals == null)
-						throw new Error('Coinpaprika_OpenApi: coin decimals not mapped')
-
 					return {
 						name: (
 							coinName === '' ?
@@ -107,7 +100,6 @@ export default {
 							:
 								coinSymbol.toUpperCase()
 						),
-						decimals,
 						...(logoMedia != null && { $logo: logoMedia }),
 					}
 				}
@@ -115,7 +107,6 @@ export default {
 		})({
 				name: (coin) => coin.name,
 				symbol: (coin) => coin.symbol,
-				decimals: (coin) => coin.decimals,
 				$logo: (coin) => coin.$logo,
 			}),
 

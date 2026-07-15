@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'IPFS resources',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.IpfsResource>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.IpfsResource>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -70,6 +70,7 @@
 					canonicalUri: true,
 					contentType: true,
 					displayType: true,
+					contentPath: true,
 					namespace: true,
 					target: true,
 				},
@@ -114,16 +115,21 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: ipfsResource }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IpfsResource> })}
+				{#snippet Item({ item: ipfsResource })}
 					{@const ipfsResourceFields = { ...ipfsResource[EntityMetaKey.Selector], ...ipfsResource }}
+					{@const selection = select(EntityType.IpfsResource, ipfsResource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const ipfsResourceHrefFields = { ...ipfsResource, ...ipfsResource[EntityMetaKey.Selector] }}
 					<IpfsResourceView
-						selection={select(EntityType.IpfsResource, ipfsResource[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={ipfsResourceFields}
 						href={
-							(ipfsResourceHrefFields.namespace !== undefined && ipfsResourceHrefFields.target !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
+							(ipfsResource[EntityMetaKey.Selector].contentPath === '' && ipfsResourceHrefFields.namespace !== undefined && ipfsResourceHrefFields.target !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
 								namespace: String(ipfsResourceHrefFields.namespace ?? ''),
 								target: String(ipfsResourceHrefFields.target ?? ''),
+							}) : ipfsResource[EntityMetaKey.Selector].contentPath !== '' && ipfsResourceHrefFields.namespace !== undefined && ipfsResourceHrefFields.target !== undefined && ipfsResourceHrefFields.contentPath !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', {
+								namespace: String(ipfsResourceHrefFields.namespace ?? ''),
+								target: String(ipfsResourceHrefFields.target ?? ''),
+								contentPath: String(ipfsResourceHrefFields.contentPath ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

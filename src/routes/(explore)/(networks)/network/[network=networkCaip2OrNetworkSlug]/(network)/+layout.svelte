@@ -35,10 +35,10 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = NetworkView}
+			{@const DetailView = data.selectorMapping.entityType === EntityType.Network && data.selectorMapping.selectorName === 'Caip2' ? NetworkView : NetworkView}
 
 			<DetailView
-				selection={select(EntityType.Network, data.selector)}
+				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}
 				href={
 					resolve('/network/[network=networkCaip2OrNetworkSlug]', {
 						network: params.network,

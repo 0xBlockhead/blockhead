@@ -5,6 +5,7 @@
 	import { QueryClient } from '@tanstack/query-core'
 	import {
 		createBrowserWASQLitePersistence,
+		openBrowserWASQLiteOPFSDatabase,
 	} from '@tanstack/browser-db-sqlite-persistence'
 	import { env } from '$env/dynamic/public'
 
@@ -12,24 +13,18 @@
 		client,
 	} from '$/client/$client.svelte.ts'
 	import {
-		createE2EClientInstrumentation,
-		e2eDatabaseName,
-		e2eSchemaVersion,
-		e2eVfsName,
-		installAppClientProbe,
-		openBlockheadBrowserDatabase,
-	} from '$/client/$e2eProbe.ts'
-	import {
 		BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
 		BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
 	} from '$/constants/Persistence.ts'
 	import { resolvers } from '$/resolvers/index.ts'
-	import { schema } from '$/schema/index.ts'
+	import {
+		schema,
+		schemaMeta,
+	} from '$/schema/index.ts'
 	import { sourceProviders } from '$/sources/index.ts'
 
-	const database = await openBlockheadBrowserDatabase({
-		databaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),
-		vfsName: e2eVfsName(),
+	const database = await openBrowserWASQLiteOPFSDatabase({
+		databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME,
 	})
 	let databaseClosed = false
 	const closeDatabase = () => {
@@ -42,15 +37,15 @@
 	window.addEventListener('pagehide', closeDatabase, { once: true })
 	import.meta.hot?.dispose(closeDatabase)
 
-	const basePersistence = createBrowserWASQLitePersistence({
+	const persistence = createBrowserWASQLitePersistence({
 		database,
 		schemaMismatchPolicy: 'reset',
 	})
-	const e2eInstrumentation = createE2EClientInstrumentation(basePersistence)
 
 	export const appClient = client(
 		{
 			schema,
+			schemaIndex: schemaMeta,
 			sourceProviders,
 		}
 	)(
@@ -67,9 +62,8 @@
 					},
 				},
 			}),
-			persistence: e2eInstrumentation.persistence,
-			schemaVersion: e2eSchemaVersion(BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION),
-			waitForPersistence: e2eInstrumentation.waitForPersistence,
+			persistence,
+			schemaVersion: BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
 		}
 	)
 
@@ -99,8 +93,6 @@
 	let {
 		children,
 	} = $props()
-
-	installAppClientProbe(appClient)
 
 	$effect(() => (
 		mountWalletConnectionRuntime(appClient)

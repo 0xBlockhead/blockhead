@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Lightning nodes',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.LightningNode>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.LightningNode>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -67,8 +68,6 @@
 		resource={
 			selection({
 				fields: {
-					alias: true,
-					channelCount: true,
 					publicKey: true,
 					$network: true,
 				},
@@ -113,16 +112,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: lightningNode }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LightningNode> })}
+				{#snippet Item({ item: lightningNode })}
 					{@const lightningNodeFields = { ...lightningNode[EntityMetaKey.Selector], ...lightningNode }}
+					{@const selection = select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const lightningNodeHrefFields = { ...lightningNode, ...lightningNode[EntityMetaKey.Selector] }}
 					<LightningNodeView
-						selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={lightningNodeFields}
 						href={
-							(lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.slug !== undefined && lightningNodeHrefFields.publicKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-								network: String(lightningNodeHrefFields.$network.slug ?? ''),
+							(lightningNodeHrefFields.publicKey !== undefined && lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
 								pubkey: String(lightningNodeHrefFields.publicKey ?? ''),
+								network: String(caip2StringFromValue(lightningNodeHrefFields.$network.caip2) ?? ''),
+							}) : lightningNodeHrefFields.publicKey !== undefined && lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
+								pubkey: String(lightningNodeHrefFields.publicKey ?? ''),
+								network: String(lightningNodeHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

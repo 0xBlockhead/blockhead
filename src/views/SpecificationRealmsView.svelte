@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { specificationRealmById } from '$/constants/SpecificationProposal.ts'
 	import { Source } from '$/sources/Source.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -28,7 +26,7 @@
 		selection,
 		title = 'Specification realms',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -37,7 +35,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationRealm>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.SpecificationRealm>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -53,6 +51,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -117,11 +117,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: specificationRealm }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SpecificationRealm> })}
+				{#snippet Item({ item: specificationRealm })}
 					{@const specificationRealmFields = { ...specificationRealm[EntityMetaKey.Selector], ...specificationRealm }}
+					{@const selection = select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const specificationRealmHrefFields = { ...specificationRealm, ...specificationRealm[EntityMetaKey.Selector] }}
 					<SpecificationRealmView
-						selection={select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={specificationRealmFields}
 						href={
 							(specificationRealmHrefFields.realm !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {

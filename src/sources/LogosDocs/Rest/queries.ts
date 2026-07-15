@@ -1,12 +1,16 @@
 import { getText } from '$/lib/http.ts'
-import {
-	logosDocsBaseUrl,
-} from '$/sources/LogosDocs/bindings.ts'
-import { logosDocsOrigins } from '$/sources/LogosDocs/index.ts'
 import type {
 	LogosDocsNetworkSummary,
 	LogosDocsPage,
 } from '$/sources/LogosDocs/Rest/types.ts'
+
+const logosDocsBaseUrl = 'https://docs.logoslabs.io'
+const logosDocsOrigins = [
+	{
+		origin: logosDocsBaseUrl,
+		corsEnabled: true,
+	},
+] as const
 
 export const getPages = [
 	{

@@ -1,5 +1,12 @@
 export const origin = 'https://l2beat.com'
 
+export const l2BeatOrigins = [
+	{
+		origin,
+		corsEnabled: false,
+	},
+] as const
+
 export const scalingSummaryPath = '/api/scaling/summary'
 
 export const ethereumChainId = 1

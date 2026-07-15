@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,8 +24,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.RssFeed>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.RssFeed>>
+			selection: RegisteredEntityProxyResource<EntityType.RssFeed>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RssFeed>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -61,6 +62,8 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import RssItemsView from '$/views/RssItemsView.svelte'
+	import RssFeed_TimestampsView from '$/views/RssFeed_TimestampsView.svelte'
 </script>
 
 
@@ -69,7 +72,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
+			feedUrl: String(pendingEntity.feedUrl ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -369,5 +376,35 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<RssItemsView
+				selection={
+						selection.$$items({
+							sources: [
+								Source.Rss_Rest,
+								Source.Rss2Json_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Items'
+				emptyText='No RSS items here yet.'
+				id='RssItemsView-items'
+			/>
+
+			<RssFeed_TimestampsView
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
+				title='Observations'
+				emptyText='No RSS feed observations yet.'
+				id='RssFeed_TimestampsView-timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

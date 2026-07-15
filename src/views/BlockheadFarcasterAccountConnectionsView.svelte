@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Blockhead Farcaster account connections',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadFarcasterAccountConnection>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,11 +113,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: blockheadFarcasterAccountConnection }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadFarcasterAccountConnection> })}
+				{#snippet Item({ item: blockheadFarcasterAccountConnection })}
 					{@const blockheadFarcasterAccountConnectionFields = { ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector], ...blockheadFarcasterAccountConnection }}
+					{@const selection = select(EntityType.BlockheadFarcasterAccountConnection, blockheadFarcasterAccountConnection[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const blockheadFarcasterAccountConnectionHrefFields = { ...blockheadFarcasterAccountConnection, ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector] }}
 					<BlockheadFarcasterAccountConnectionView
-						selection={select(EntityType.BlockheadFarcasterAccountConnection, blockheadFarcasterAccountConnection[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={blockheadFarcasterAccountConnectionFields}
+						href={
+							(blockheadFarcasterAccountConnectionHrefFields.fid !== undefined ? resolve('/farcaster/account/[accountId=nonNegativeInteger]', {
+								accountId: String(blockheadFarcasterAccountConnectionHrefFields.fid ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

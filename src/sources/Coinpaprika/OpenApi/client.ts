@@ -1,8 +1,8 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { coinpaprikaOrigins } from '$/sources/Coinpaprika/index.ts'
 import {
+	coinpaprikaOrigins,
 	freeBaseUrl,
 	proBaseUrl,
 } from '$/sources/Coinpaprika/OpenApi/constants.ts'

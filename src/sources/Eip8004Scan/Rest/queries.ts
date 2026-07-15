@@ -1,7 +1,9 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { getJson } from '$/lib/http.ts'
-import { eip8004ScanOrigins } from '$/sources/Eip8004Scan/index.ts'
-import { eip8004ScanPublicBase } from '$/sources/Eip8004Scan/Rest/constants.ts'
+import {
+	eip8004ScanOrigins,
+	eip8004ScanPublicBase,
+} from '$/sources/Eip8004Scan/Rest/constants.ts'
 import type {
 	Eip8004ScanAgentDetailResponse,
 	Eip8004ScanAgentsListResponse,

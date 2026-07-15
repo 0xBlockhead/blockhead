@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BeaconValidator>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BeaconValidator>>
+			selection: RegisteredEntityProxyResource<EntityType.BeaconValidator>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BeaconValidator>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -71,9 +70,12 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInNetwork ?? '')}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.indexInNetwork !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-			network: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.indexInNetwork !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
 			validatorId: String(pendingEntity.indexInNetwork ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.indexInNetwork !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+			validatorId: String(pendingEntity.indexInNetwork ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -308,40 +310,35 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							pubkey: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const pubkey = pendingEntity.pubkey}
-					{#if pubkey !== undefined && pubkey !== null}
-						<div>
-							<dt>Public key</dt>
-							<dd>
+			<div>
+				<dt>Public key</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									pubkey: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const pubkey = pendingEntity.pubkey}
+							{#if pubkey !== undefined && pubkey !== null}
 								<TruncatedValue value={String((pubkey) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pubkey = resolvedEntity.pubkey}
-					{#if pubkey !== undefined && pubkey !== null}
-						<div>
-							<dt>Public key</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const pubkey = resolvedEntity.pubkey}
+							{#if pubkey !== undefined && pubkey !== null}
 								<TruncatedValue value={String((pubkey) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>Network</dt>

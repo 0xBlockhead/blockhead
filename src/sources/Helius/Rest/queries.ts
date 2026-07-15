@@ -1,14 +1,15 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
-import { heliusBindings } from '$/sources/Helius/bindings.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 
 const origin = 'https://api-mainnet.helius-rpc.com'
-const heliusOrigins = heliusBindings[0].endpoints.map((endpoint) => ({
-	origin: endpoint.origin,
-	corsEnabled: endpoint.corsEnabled,
-}))
+const heliusOrigins = [
+	{
+		origin,
+		corsEnabled: true,
+	},
+] as const
 
 /** Deprecated by Helius for new parser work, but still the documented parsed transaction endpoint. */
 export const getEnhancedTransactions = async ({

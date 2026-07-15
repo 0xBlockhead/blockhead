@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,8 +24,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.RssNetwork>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.RssNetwork>>
+			selection: RegisteredEntityProxyResource<EntityType.RssNetwork>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RssNetwork>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -57,6 +58,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import RssFeedsView from '$/views/RssFeedsView.svelte'
 </script>
 
 
@@ -65,7 +67,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={href ?? (pendingEntity.scope === 'RssNetwork' ? resolve('/rss') : undefined)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -305,5 +307,24 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<RssFeedsView
+				selection={
+						selection.$$rssFeeds({
+							sources: [
+								Source.Constants_Internal,
+							],
+							count: true,
+						})
+					}
+				title='Feeds'
+				href={resolve('/rss/feeds')}
+				emptyText='No RSS feeds in this hub yet.'
+				id='RssFeedsView-rss-feeds'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

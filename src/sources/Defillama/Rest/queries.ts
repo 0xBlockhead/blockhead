@@ -8,8 +8,10 @@ import { corsFetch, throwIfHttpNotOk } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { GetDefillamaCurrentPricesOptions } from '$/sources/Defillama/OpenApi/types.ts'
 import { getCurrentPrices as getCurrentPricesOpenApi } from '$/sources/Defillama/OpenApi/queries.ts'
-import { defillamaOrigins } from '$/sources/Defillama/index.ts'
-import { proBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
+import {
+	defillamaOrigins,
+	proBaseUrl,
+} from '$/sources/Defillama/Rest/constants.ts'
 import type {
 	DefiLlamaCurrentPricesResponse,
 	GetProDefillamaCurrentPricesArgs,

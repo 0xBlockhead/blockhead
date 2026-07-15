@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,8 +23,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType._GlobalRssNetwork>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType._GlobalRssNetwork>>
+			selection: RegisteredEntityProxyResource<EntityType._GlobalRssNetwork>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType._GlobalRssNetwork>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -55,7 +54,6 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RssFeedsView from '$/views/RssFeedsView.svelte'
-	import RssItemsView from '$/views/RssItemsView.svelte'
 	import GlobalRssNetwork_TimestampsView from '$/views/_GlobalRssNetwork_TimestampsView.svelte'
 </script>
 
@@ -107,10 +105,6 @@
 							id: 'rss-feeds',
 							label: 'Feeds',
 						},
-						{
-							id: 'rss-items',
-							label: 'Items',
-						},
 					]
 				}
 				data-card
@@ -121,7 +115,7 @@
 			>
 				{#snippet Summary({})}
 					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Feeds and items</HeadingComponent>
+						<HeadingComponent>Feeds</HeadingComponent>
 					</header>
 				{/snippet}
 
@@ -135,22 +129,6 @@
 						href={resolve('/rss/feeds')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No RSS feeds in this observed.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
-
-				{#snippet SectionRssItems({ id, label, open })}
-					<RssItemsView
-						selection={
-							selection.$$observedItems({
-								count: true,
-							})
-						}
-						href={resolve('/rss/items')}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No RSS items in this observed.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

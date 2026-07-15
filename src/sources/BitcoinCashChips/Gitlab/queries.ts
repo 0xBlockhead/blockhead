@@ -1,13 +1,13 @@
 import { getJson, getText } from '$/lib/http.ts'
-import { bitcoinCashChipsBindings } from '$/sources/BitcoinCashChips/bindings.ts'
 import type { BitcoinCashChipsGitlabTree } from '$/sources/BitcoinCashChips/Gitlab/types.ts'
+import { gitlabHttpEndpoints } from '$/sources/_shared/hosts/Gitlab/Http/constants.ts'
 
 const bitcoinCashChipsGitlabRepo = {
 	projectId: '23431309',
 	ref: 'master',
 } as const
 
-const origins = bitcoinCashChipsBindings[0].endpoints.map((endpoint) => ({
+const origins = gitlabHttpEndpoints.map((endpoint) => ({
 	origin: endpoint.origin,
 	corsEnabled: endpoint.corsEnabled,
 }))

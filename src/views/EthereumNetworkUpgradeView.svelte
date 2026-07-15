@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EthereumNetworkUpgrade>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EthereumNetworkUpgrade>>
+			selection: RegisteredEntityProxyResource<EntityType.EthereumNetworkUpgrade>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EthereumNetworkUpgrade>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -74,9 +74,12 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrade/[upgradeSlug=stringSegment]', {
-			network: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.slug !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrade/[upgradeSlug=stringSegment]', {
 			upgradeSlug: String(pendingEntity.slug ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.slug !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrade/[upgradeSlug=stringSegment]', {
+			upgradeSlug: String(pendingEntity.slug ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -235,9 +238,12 @@
 										selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector])}
 										prefetched={ethereumExecutionUpgrade}
 										href={
-											(ethereumExecutionUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.slug !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/execution/[upgradeSlug=stringSegment]', {
-												network: String(ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.slug ?? ''),
+											(ethereumExecutionUpgrade[EntityMetaKey.Selector].slug !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/execution/[upgradeSlug=stringSegment]', {
 												upgradeSlug: String(ethereumExecutionUpgrade[EntityMetaKey.Selector].slug ?? ''),
+												network: String(caip2StringFromValue(ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											}) : ethereumExecutionUpgrade[EntityMetaKey.Selector].slug !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/execution/[upgradeSlug=stringSegment]', {
+												upgradeSlug: String(ethereumExecutionUpgrade[EntityMetaKey.Selector].slug ?? ''),
+												network: String(ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.slug ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}
@@ -271,9 +277,12 @@
 										selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector])}
 										prefetched={ethereumConsensusUpgrade}
 										href={
-											(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.slug !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
-												network: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.slug ?? ''),
+											(ethereumConsensusUpgrade[EntityMetaKey.Selector].slug !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
 												upgradeSlug: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].slug ?? ''),
+												network: String(caip2StringFromValue(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2) ?? ''),
+											}) : ethereumConsensusUpgrade[EntityMetaKey.Selector].slug !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
+												upgradeSlug: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].slug ?? ''),
+												network: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.slug ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Value}

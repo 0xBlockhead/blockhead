@@ -1,6 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import { nostrBandOrigins } from '$/sources/NostrBand/index.ts'
-import { nostrBandApiBaseUrl } from '$/sources/NostrBand/Rest/constants.ts'
+import {
+	nostrBandApiBaseUrl,
+	nostrBandOrigins,
+} from '$/sources/NostrBand/Rest/constants.ts'
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
 	const searchParams = new URLSearchParams()

@@ -36,6 +36,8 @@
 		interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.owner),
 	}, {
 		sources: [
+			Source.EnvioHyperSync_RawHttp,
+			Source.SqdPortal_RawHttp,
 			Source.Voltaire_JsonRpc,
 		],
 		fields: {

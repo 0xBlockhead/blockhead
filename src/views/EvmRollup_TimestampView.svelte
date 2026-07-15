@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmRollup_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmRollup_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmRollup_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmRollup_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -64,11 +64,16 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$rollup !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.slug !== undefined && pendingEntity.$rollup.projectId !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			network: String(pendingEntity.$rollup.$network.slug ?? ''),
-			projectId: String(pendingEntity.$rollup.projectId ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$rollup !== undefined && pendingEntity.$rollup.projectId !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			projectId: String(pendingEntity.$rollup.projectId ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$rollup.$network.caip2) ?? ''),
+		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$rollup !== undefined && pendingEntity.$rollup.projectId !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			projectId: String(pendingEntity.$rollup.projectId ?? ''),
+			network: String(pendingEntity.$rollup.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -108,9 +113,12 @@
 					<EvmRollupView
 						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
 						href={
-							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
+							(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
 								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -125,9 +133,12 @@
 					<EvmRollupView
 						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
 						href={
-							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
+							(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
 								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -385,9 +396,12 @@
 					<EvmRollupView
 						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup, {})}
 						href={
-							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
+							(selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
 								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$rollup.projectId !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+								network: String(selection.entitySelector.$rollup.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

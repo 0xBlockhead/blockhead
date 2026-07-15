@@ -6,22 +6,44 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-
-const jsonRpcApiFamilies = new Set<ApiFamily>([
-	ApiFamily.BitcoinJsonRpc,
-	ApiFamily.CelestiaNodeJsonRpc,
-	ApiFamily.EvmExecutionJsonRpc,
-	ApiFamily.FilecoinLotusJsonRpc,
-	ApiFamily.JsonRpcApi,
-	ApiFamily.MoneroDaemonJsonRpc,
-	ApiFamily.SolanaJsonRpc,
-	ApiFamily.StarknetJsonRpc,
-	ApiFamily.SubstrateJsonRpc,
-])
+import { sourceBindingCompatibility } from '$/sources/$sourceBindingCompatibility.ts'
 
 const isTemplated = (value: string) => value.includes('{')
 
 export const validateSourceBinding = (binding: SourceBinding): SourceBinding => {
+	if (binding.endpoints.length === 0)
+		throw new Error(`${binding.source}: source binding requires at least one endpoint`)
+
+	if (binding.operationGroups.length === 0)
+		throw new Error(`${binding.source}: source binding requires at least one operation group`)
+
+	const compatibility = sourceBindingCompatibility.find((candidate) => (
+		candidate.wireProtocol === binding.wireProtocol
+		&& candidate.apiFamilies.some((apiFamily) => apiFamily === binding.apiFamily)
+	))
+
+	if (compatibility == null)
+		throw new Error(`${binding.source}: ${binding.apiFamily} is incompatible with ${binding.wireProtocol}`)
+	if (!('operationGroups' in compatibility))
+		throw new Error(`${binding.source}: compatibility row requires an explicit operation group policy`)
+	if (!('artifactKinds' in compatibility))
+		throw new Error(`${binding.source}: compatibility row requires an explicit artifact kind policy`)
+
+	if (binding.endpoints.some((endpoint) => !compatibility.endpointKinds.some((endpointKind) => endpointKind === endpoint.endpointKind)))
+		throw new Error(`${binding.source}: endpoint kind is incompatible with ${binding.wireProtocol}/${binding.apiFamily}`)
+
+	if (
+		compatibility.operationGroups !== true
+		&& binding.operationGroups.some((operationGroup) => !compatibility.operationGroups.some((allowedOperationGroup) => allowedOperationGroup === operationGroup))
+	)
+		throw new Error(`${binding.source}: operation group is incompatible with ${binding.apiFamily}`)
+
+	if (
+		compatibility.artifactKinds !== true
+		&& binding.artifacts?.some((artifact) => !compatibility.artifactKinds.some((artifactKind) => artifactKind === artifact.kind))
+	)
+		throw new Error(`${binding.source}: artifact kind is incompatible with ${binding.apiFamily}`)
+
 	for (const endpoint of binding.endpoints) {
 		if (
 			endpoint.locator.includes('configured')
@@ -72,57 +94,64 @@ export const validateSourceBinding = (binding: SourceBinding): SourceBinding => 
 
 	if (
 		binding.delivery === SourceDelivery.RemoteLive
-		&& !binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
-	)
-		throw new Error(`${binding.source}: RemoteLive requires a WebSocket endpoint`)
-
-	if (
-		binding.apiFamily === ApiFamily.OpenApiHttp
+		&& binding.wireProtocol === WireProtocol.Grpc
 		&& (
-			binding.wireProtocol !== WireProtocol.HttpRest
+			binding.apiFamily !== ApiFamily.GrpcService
 			|| binding.endpoints.some((endpoint) => endpoint.endpointKind !== SourceEndpointKind.HttpUrl)
 		)
 	)
-		throw new Error(`${binding.source}: OpenApiHttp requires HttpRest over HTTP endpoints`)
+		throw new Error(`${binding.source}: managed RemoteLive gRPC requires GrpcService over HTTP endpoints`)
 
 	if (
-		binding.apiFamily === ApiFamily.GraphqlHttp
-		&& (
-			binding.wireProtocol !== WireProtocol.Graphql
-			|| binding.endpoints.some((endpoint) => endpoint.endpointKind !== SourceEndpointKind.HttpUrl)
+		binding.delivery === SourceDelivery.RemoteLive
+		&& binding.wireProtocol !== WireProtocol.Grpc
+		&& !(
+			binding.endpoints.every((endpoint) => endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
+			|| (
+				binding.endpoints.length >= 2
+				&& binding.endpoints[0].endpointKind === SourceEndpointKind.HttpUrl
+				&& binding.endpoints.slice(1).every((endpoint) => endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
+			)
 		)
 	)
-		throw new Error(`${binding.source}: GraphqlHttp requires Graphql over HTTP endpoints`)
+		throw new Error(`${binding.source}: RemoteLive requires WebSocket endpoints with at most one leading HTTP endpoint`)
 
 	if (
-		jsonRpcApiFamilies.has(binding.apiFamily)
-		&& binding.wireProtocol !== WireProtocol.JsonRpc2
+		(
+			binding.delivery === SourceDelivery.HttpProxy
+			|| binding.delivery === SourceDelivery.RemoteLive
+		)
+		&& binding.credentials.some((credential) => credential.scope === SourceCredentialScope.RuntimeSecret)
+		&& binding.serverCredentialId == null
 	)
-		throw new Error(`${binding.source}: JSON-RPC API family requires JsonRpc2 wire protocol`)
+		throw new Error(`${binding.source}: server-mediated runtime secret requires an opaque server credential id`)
 
 	if (
-		binding.apiFamily === ApiFamily.CatalogRows
+		binding.serverCredentialId != null
 		&& (
-			binding.wireProtocol !== WireProtocol.InProcess
-			|| binding.endpoints.some((endpoint) => endpoint.endpointKind !== SourceEndpointKind.InProcess)
+			!binding.credentials.some((credential) => credential.scope === SourceCredentialScope.RuntimeSecret)
+			|| (
+				binding.delivery !== SourceDelivery.HttpProxy
+				&& binding.delivery !== SourceDelivery.RemoteLive
+			)
 		)
 	)
-		throw new Error(`${binding.source}: CatalogRows requires InProcess wire protocol and endpoints`)
+		throw new Error(`${binding.source}: server credential id requires a server-mediated runtime secret`)
 
 	if (
-		binding.apiFamily === ApiFamily.WalletApi
-		&& binding.wireProtocol !== WireProtocol.WalletProvider
-	)
-		throw new Error(`${binding.source}: WalletApi requires WalletProvider wire protocol`)
-
-	if (
-		(binding.delivery === SourceDelivery.BrowserDirect || binding.delivery === SourceDelivery.HttpProxy)
+		binding.delivery === SourceDelivery.BrowserDirect
 		&& binding.credentials.some((credential) => (
 			credential.scope === SourceCredentialScope.RuntimeSecret
 			|| credential.scope === SourceCredentialScope.LocalSecret
 		))
 	)
 		throw new Error(`${binding.source}: browser delivery cannot require runtime/local secrets`)
+
+	if (
+		binding.delivery === SourceDelivery.HttpProxy
+		&& binding.credentials.some((credential) => credential.scope === SourceCredentialScope.LocalSecret)
+	)
+		throw new Error(`${binding.source}: HttpProxy cannot require local secrets`)
 
 	return binding
 }

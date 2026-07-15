@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'ActivityPub instance moderated domains',
 		typeAnnotationParagraphs = ['A domain that a declared ActivityPub instance reports in its public moderation-domain list.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.ActivityPubInstanceModeratedDomain>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.ActivityPubInstanceModeratedDomain>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,10 +113,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: activityPubInstanceModeratedDomain }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ActivityPubInstanceModeratedDomain> })}
+				{#snippet Item({ item: activityPubInstanceModeratedDomain })}
 					{@const activityPubInstanceModeratedDomainFields = { ...activityPubInstanceModeratedDomain[EntityMetaKey.Selector], ...activityPubInstanceModeratedDomain }}
+					{@const selection = select(EntityType.ActivityPubInstanceModeratedDomain, activityPubInstanceModeratedDomain[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<ActivityPubInstanceModeratedDomainView
-						selection={select(EntityType.ActivityPubInstanceModeratedDomain, activityPubInstanceModeratedDomain[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={activityPubInstanceModeratedDomainFields}
 						layout={EntityLayout.Summary}
 						open={false}

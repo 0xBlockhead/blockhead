@@ -1481,7 +1481,7 @@ export default {
 								...jsonRpcTransport,
 								recentBlockDepth,
 							})
-							const evmBlockRows = (
+							const evmBlocks = (
 								wires.flatMap((wire) => {
 									if (wire == null) return []
 
@@ -1493,15 +1493,15 @@ export default {
 										value == null ?
 											[]
 										:
-											[{
-												source: Source.Voltaire_JsonRpc,
-												value,
-											}]
+											[value]
 									)
 								})
 							)
-							if (evmBlockRows.length > 0)
-								fields['$$blocks'].replaceRows(evmBlockRows)
+							if (evmBlocks.length > 0)
+								fields.$$blocks.replaceRows([{
+									source: Source.Voltaire_JsonRpc,
+									value: evmBlocks,
+								}])
 						}
 
 							while (!signal.aborted) {
@@ -1514,14 +1514,14 @@ export default {
 										const currentHead = await getChainHeadNumberForRpcUrl(jsonRpcTransport)
 										fields.$$timestamps.replaceRows([{
 											source: Source.Voltaire_JsonRpc,
-											value: {
-													[EntityMetaKey.Selector]: {
-														$network: parentEntitySelector,
+											value: [{
+												[EntityMetaKey.Selector]: {
+													$network: parentEntitySelector,
 														timestampMs: Date.now(),
 														source: Source.Voltaire_JsonRpc,
 													},
 											blockHeight: currentHead,
-												},
+												}],
 											}])
 										fields.$$blocks.count.replaceRows([{
 											source: Source.Voltaire_JsonRpc,
@@ -1547,14 +1547,14 @@ export default {
 												const chainHead = await getChainHeadNumberForRpcUrl(jsonRpcTransport)
 												fields.$$timestamps.replaceRows([{
 													source: Source.Voltaire_JsonRpc,
-													value: {
-															[EntityMetaKey.Selector]: {
-																$network: parentEntitySelector,
+													value: [{
+														[EntityMetaKey.Selector]: {
+															$network: parentEntitySelector,
 																timestampMs: Date.now(),
 																source: Source.Voltaire_JsonRpc,
 															},
 															blockHeight: chainHead,
-														},
+														}],
 													}])
 												fields.$$blocks.count.replaceRows([{
 													source: Source.Voltaire_JsonRpc,
@@ -1569,14 +1569,14 @@ export default {
 
 										fields.$$timestamps.replaceRows([{
 											source: Source.Voltaire_JsonRpc,
-											value: {
-													[EntityMetaKey.Selector]: {
-														$network: parentEntitySelector,
+											value: [{
+												[EntityMetaKey.Selector]: {
+													$network: parentEntitySelector,
 														timestampMs: Date.now(),
 														source: Source.Voltaire_JsonRpc,
 													},
 													blockHeight: event.metadata.chainHead,
-												},
+												}],
 											}])
 										fields.$$blocks.count.replaceRows([{
 											source: Source.Voltaire_JsonRpc,

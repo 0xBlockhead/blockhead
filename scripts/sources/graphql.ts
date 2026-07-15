@@ -24,6 +24,7 @@ type GraphqlSchemaSource = {
 	schemaFile: string
 	outputFile?: string
 	patchFile?: string
+	verifySchemaFromUrl?: true
 }
 
 const theGraphScalarDeclarations = [
@@ -148,7 +149,13 @@ const syncModule = async (sourceModule: string) => {
 		manifest.patchFile == null ? undefined : resolve(dirname(manifestFile), manifest.patchFile)
 
 	await mkdir(dirname(schemaFile), { recursive: true })
-	await writeFile(schemaFile, normalizeGraphqlSchemaText(await downloadSchemaText(manifest.schemaUrl)))
+	await writeFile(
+		schemaFile,
+		manifest.verifySchemaFromUrl === true ?
+			await downloadSchemaText(manifest.schemaUrl)
+		:
+			normalizeGraphqlSchemaText(await downloadSchemaText(manifest.schemaUrl))
+	)
 	console.log(`Downloaded ${sourceModule} schema`)
 
 	const tempDir = await mkdtemp(join(tmpdir(), 'blockhead-graphql-'))
@@ -203,6 +210,12 @@ const checkModule = async (sourceModule: string) => {
 			throw new Error(`${sourceModule}: GraphQL schema snapshot drifts from checked-in ${schemaFile}`)
 
 		return
+	}
+
+	if (manifest.verifySchemaFromUrl === true) {
+		const officialSchema = await downloadSchemaText(manifest.schemaUrl)
+		if (officialSchema !== await readFile(schemaFile, 'utf8'))
+			throw new Error(`${sourceModule}: GraphQL schema drifts from official ${manifest.schemaUrl}`)
 	}
 
 	const outputFile = resolve(dirname(manifestFile), manifest.outputFile)

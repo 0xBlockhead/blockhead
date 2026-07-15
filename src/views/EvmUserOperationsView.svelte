@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'User operations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmUserOperation>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmUserOperation>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -119,16 +120,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmUserOperation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmUserOperation> })}
+				{#snippet Item({ item: evmUserOperation })}
 					{@const evmUserOperationFields = { ...evmUserOperation[EntityMetaKey.Selector], ...evmUserOperation }}
+					{@const selection = select(EntityType.EvmUserOperation, evmUserOperation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmUserOperationHrefFields = { ...evmUserOperation, ...evmUserOperation[EntityMetaKey.Selector] }}
 					<EvmUserOperationView
-						selection={select(EntityType.EvmUserOperation, evmUserOperation[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmUserOperationFields}
 						href={
-							(evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.slug !== undefined && evmUserOperationHrefFields.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-								network: String(evmUserOperationHrefFields.$network.slug ?? ''),
+							(evmUserOperationHrefFields.hash !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
 								userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
+								network: String(caip2StringFromValue(evmUserOperationHrefFields.$network.caip2) ?? ''),
+							}) : evmUserOperationHrefFields.hash !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
+								userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
+								network: String(evmUserOperationHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

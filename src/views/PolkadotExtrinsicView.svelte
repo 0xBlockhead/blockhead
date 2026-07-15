@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.PolkadotExtrinsic>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.PolkadotExtrinsic>>
+			selection: RegisteredEntityProxyResource<EntityType.PolkadotExtrinsic>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.PolkadotExtrinsic>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -69,11 +69,16 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInBlock ?? '')}
 	href={
-		href ?? (pendingEntity.$block !== undefined && pendingEntity.$block.$network !== undefined && pendingEntity.$block.$network.slug !== undefined && pendingEntity.$block.blockNumber !== undefined && pendingEntity.$block.hash !== undefined && pendingEntity.indexInBlock !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
-			network: String(pendingEntity.$block.$network.slug ?? ''),
+		href ?? (pendingEntity.indexInBlock !== undefined && pendingEntity.$block !== undefined && pendingEntity.$block.blockNumber !== undefined && pendingEntity.$block.hash !== undefined && pendingEntity.$block.$network !== undefined && pendingEntity.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
+			extrinsicIndex: String(pendingEntity.indexInBlock ?? ''),
 			blockNumber: String(pendingEntity.$block.blockNumber ?? ''),
 			hash: String(pendingEntity.$block.hash ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$block.$network.caip2) ?? ''),
+		}) : pendingEntity.indexInBlock !== undefined && pendingEntity.$block !== undefined && pendingEntity.$block.blockNumber !== undefined && pendingEntity.$block.hash !== undefined && pendingEntity.$block.$network !== undefined && pendingEntity.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
 			extrinsicIndex: String(pendingEntity.indexInBlock ?? ''),
+			blockNumber: String(pendingEntity.$block.blockNumber ?? ''),
+			hash: String(pendingEntity.$block.hash ?? ''),
+			network: String(pendingEntity.$block.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -281,9 +286,12 @@
 									selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
 									prefetched={polkadotAccount}
 									href={
-										(polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.slug !== undefined && polkadotAccount[EntityMetaKey.Selector].accountId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
-											network: String(polkadotAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										(polkadotAccount[EntityMetaKey.Selector].accountId !== undefined && polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 											accountId: String(polkadotAccount[EntityMetaKey.Selector].accountId ?? ''),
+											network: String(caip2StringFromValue(polkadotAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : polkadotAccount[EntityMetaKey.Selector].accountId !== undefined && polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(polkadotAccount[EntityMetaKey.Selector].accountId ?? ''),
+											network: String(polkadotAccount[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -309,9 +317,12 @@
 									selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
 									prefetched={polkadotPallet}
 									href={
-										(polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.slug !== undefined && polkadotPallet[EntityMetaKey.Selector].palletName !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-											network: String(polkadotPallet[EntityMetaKey.Selector].$network.slug ?? ''),
+										(polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
 											palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
+											network: String(caip2StringFromValue(polkadotPallet[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : polkadotPallet[EntityMetaKey.Selector].palletName !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
+											palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
+											network: String(polkadotPallet[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -329,13 +340,20 @@
 					<PolkadotBlockView
 						selection={select(EntityType.PolkadotBlock, selection.entitySelector.$block, {})}
 						href={
-							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-								network: String(selection.entitySelector.$block.$network.slug ?? ''),
+							(selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 								blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
-							}) : selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+								blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
 								network: String(selection.entitySelector.$block.$network.slug ?? ''),
+							}) : selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
 								blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
 								hash: String(selection.entitySelector.$block.hash ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.hash !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
+								hash: String(selection.entitySelector.$block.hash ?? ''),
+								network: String(selection.entitySelector.$block.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

@@ -79,8 +79,8 @@ export default {
 			entityType: EntityType.Coin,
 			resolve: {
 				[CoinSelector.CoinId]: async ({ coinId }, context) => {
-					const { CoinId, coinById } = await import('$/constants/Coin.ts')
-					const { decimalsByCoinId, idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+					const { coinById } = await import('$/constants/Coin.ts')
+					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 					const publicEnv = context.publicEnv
 					const coingeckoId = idByCoinId[coinId]
@@ -88,19 +88,10 @@ export default {
 					const coin = await getCoin(publicEnv, coingeckoId)
 					if (coin == null) throw new Error('Coingecko_Rest: coin not returned by API')
 
-					const decimals = (
-						Object.values(coin.detail_platforms ?? {})
-							.find((platform) => platform.decimal_place != null)
-							?.decimal_place
-					?? decimalsByCoinId[coinId]
-					)
 					const logoUrl = coin.image?.large ?? coin.image?.small ?? coin.image?.thumb
 					const logoMedia = mediaFromUrl(logoUrl, MediaType.Image)
 
 					const coinName = coin.name
-					if (decimals == null)
-						throw new Error('Coingecko_Rest: coin decimals not mapped')
-
 					return {
 						symbol: coinById[coinId].symbol,
 						name: (
@@ -109,7 +100,6 @@ export default {
 							:
 								coinName
 						),
-						decimals,
 						...(logoMedia != null && { $logo: logoMedia }),
 					}
 				}
@@ -117,7 +107,6 @@ export default {
 		})({
 				symbol: (coin) => coin.symbol,
 				name: (coin) => coin.name,
-				decimals: (coin) => coin.decimals,
 				$logo: (coin) => coin.$logo,
 			}),
 
@@ -166,7 +155,6 @@ export default {
 
 					const { CoinId } = await import('$/constants/Coin.ts')
 					const {
-						decimalsByCoinId,
 						coinIdByWireId,
 					} = await import('$/sources/Coingecko/Rest/constants.ts')
 					const {
@@ -193,13 +181,7 @@ export default {
 						throw new Error('Coingecko_Rest: ERC-20 contract not found on asset platform')
 
 					const coinId = coinIdByWireId[coin.id] ?? CoinId.Unknown
-					const decimals = (
-						coin.detail_platforms?.[assetPlatform.id]?.decimal_place
-					?? Object.values(coin.detail_platforms ?? {})
-						.find((platform) => platform.decimal_place != null)
-						?.decimal_place
-					?? decimalsByCoinId[coinId]
-					)
+					const decimals = coin.detail_platforms?.[assetPlatform.id]?.decimal_place
 					const iconUrl = coin.image?.large ?? coin.image?.small ?? coin.image?.thumb
 					const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
 					const coinName = coin.name
@@ -218,13 +200,15 @@ export default {
 				},
 			},
 		})({
-				coinId: (coinInstance) => coinInstance.coinId,
-				name: (coinInstance) => coinInstance.name,
-				symbol: (coinInstance) => coinInstance.symbol,
-				decimals: (coinInstance) => coinInstance.decimals,
-				caip19: (coinInstance) => coinInstance.caip19,
-				iconUrl: (coinInstance) => coinInstance.iconUrl,
-				$icon: (coinInstance) => coinInstance.$icon,
+				Erc20Token: {
+					coinId: (coinInstance) => coinInstance.coinId,
+					name: (coinInstance) => coinInstance.name,
+					symbol: (coinInstance) => coinInstance.symbol,
+					decimals: (coinInstance) => coinInstance.decimals,
+					caip19: (coinInstance) => coinInstance.caip19,
+					iconUrl: (coinInstance) => coinInstance.iconUrl,
+					$icon: (coinInstance) => coinInstance.$icon,
+				},
 			}),
 
 		defineResolver(Source.Coingecko_Rest, {
@@ -543,7 +527,12 @@ export default {
 				},
 			},
 		})({
-				representation: (coinInstance) => coinInstance,
+				NativeCurrency: {
+					representation: (coinInstance) => coinInstance,
+				},
+				Erc20Token: {
+					representation: (coinInstance) => coinInstance,
+				},
 			}),
 
 		defineResolver(Source.Coingecko_Rest, {
@@ -571,7 +560,12 @@ export default {
 				},
 			},
 		})({
-				$canonicalInstance: (coinInstance) => coinInstance,
+				NativeCurrency: {
+					$canonicalInstance: (coinInstance) => coinInstance,
+				},
+				Erc20Token: {
+					$canonicalInstance: (coinInstance) => coinInstance,
+				},
 			}),
 
 		defineResolver(Source.Coingecko_Rest, {

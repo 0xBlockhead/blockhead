@@ -1,4 +1,3 @@
-import { bittensorOrigins } from '$/sources/Bittensor/index.ts'
 import { substrateJsonRpc } from '$/sources/Substrate/JsonRpc/client.ts'
 import {
 	getBlock as getSubstrateBlock,
@@ -10,6 +9,17 @@ import {
 } from '$/sources/Substrate/JsonRpc/queries.ts'
 
 export const getMainnetRpcUrl = 'https://entrypoint-finney.opentensor.ai'
+
+const bittensorOrigins = [
+	{
+		origin: getMainnetRpcUrl,
+		corsEnabled: false,
+	},
+	{
+		origin: 'https://lite.chain.opentensor.ai',
+		corsEnabled: false,
+	},
+] as const
 
 const bittensorJsonRpc = {
 	origins: bittensorOrigins,

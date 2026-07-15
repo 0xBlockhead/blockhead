@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BlockheadFarcasterAccountConnection>>
+			selection: RegisteredEntityProxyResource<EntityType.BlockheadFarcasterAccountConnection>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadFarcasterAccountConnection>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -51,7 +51,6 @@
 		fields: {
 			displayName: true,
 			username: true,
-			$icon: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || 'Blockhead Farcaster account connection')
@@ -73,7 +72,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.fid !== undefined ? resolve('/farcaster/account/[accountId=nonNegativeInteger]', {
+			accountId: String(pendingEntity.fid ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

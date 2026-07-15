@@ -1,9 +1,9 @@
 import {
-	EntityFieldType,
 	entityFieldAddressKey,
 	entityFieldPrimitiveValueIsValid,
 	type EntityType as SchemaEntityType,
 } from '$/schema/$schema.ts'
+import { EntityFieldType } from '$/schema/EntityField.ts'
 import { schema, schemaMeta } from '$/schema/index.ts'
 
 type RegisteredSchema = typeof schema

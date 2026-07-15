@@ -23,16 +23,8 @@
 			Source.LightningMempoolSpace_Rest,
 			Source.LightningLnd_Rest,
 		],
-		fields: {
-			alias: true,
-			channelCount: true,
-			capacitySats: true,
-			countryCode: true,
-			city: true,
-			networkAddresses: true,
-		},
 	}))
-	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.alias) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).alias) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node')))
+	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node')))
 
 
 	// Components

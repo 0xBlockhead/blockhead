@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Erc4626 vaults',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Erc4626Vault>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Erc4626Vault>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: erc4626Vault }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4626Vault> })}
+				{#snippet Item({ item: erc4626Vault })}
 					{@const erc4626VaultFields = { ...erc4626Vault[EntityMetaKey.Selector], ...erc4626Vault }}
+					{@const selection = select(EntityType.Erc4626Vault, erc4626Vault[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<Erc4626VaultView
-						selection={select(EntityType.Erc4626Vault, erc4626Vault[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={erc4626VaultFields}
 						layout={EntityLayout.Summary}
 						open={false}

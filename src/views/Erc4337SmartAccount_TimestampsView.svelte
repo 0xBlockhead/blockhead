@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'ERC-4337 smart account observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Erc4337SmartAccount_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Erc4337SmartAccount_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,18 +114,24 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: erc4337SmartAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337SmartAccount_Timestamp> })}
+				{#snippet Item({ item: erc4337SmartAccountTimestamp })}
 					{@const erc4337SmartAccountTimestampFields = { ...erc4337SmartAccountTimestamp[EntityMetaKey.Selector], ...erc4337SmartAccountTimestamp }}
+					{@const selection = select(EntityType.Erc4337SmartAccount_Timestamp, erc4337SmartAccountTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const erc4337SmartAccountTimestampHrefFields = { ...erc4337SmartAccountTimestamp, ...erc4337SmartAccountTimestamp[EntityMetaKey.Selector] }}
 					<Erc4337SmartAccount_TimestampView
-						selection={select(EntityType.Erc4337SmartAccount_Timestamp, erc4337SmartAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={erc4337SmartAccountTimestampFields}
 						href={
-							(erc4337SmartAccountTimestampHrefFields.$account !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network.slug !== undefined && erc4337SmartAccountTimestampHrefFields.$account.address !== undefined && erc4337SmartAccountTimestampHrefFields.timestampMs !== undefined && erc4337SmartAccountTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								network: String(erc4337SmartAccountTimestampHrefFields.$account.$network.slug ?? ''),
-								address: String(erc4337SmartAccountTimestampHrefFields.$account.address ?? ''),
+							(erc4337SmartAccountTimestampHrefFields.timestampMs !== undefined && erc4337SmartAccountTimestampHrefFields.source !== undefined && erc4337SmartAccountTimestampHrefFields.$account !== undefined && erc4337SmartAccountTimestampHrefFields.$account.address !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(erc4337SmartAccountTimestampHrefFields.timestampMs ?? ''),
 								source: String(erc4337SmartAccountTimestampHrefFields.source ?? ''),
+								address: String(erc4337SmartAccountTimestampHrefFields.$account.address ?? ''),
+								network: String(caip2StringFromValue(erc4337SmartAccountTimestampHrefFields.$account.$network.caip2) ?? ''),
+							}) : erc4337SmartAccountTimestampHrefFields.timestampMs !== undefined && erc4337SmartAccountTimestampHrefFields.source !== undefined && erc4337SmartAccountTimestampHrefFields.$account !== undefined && erc4337SmartAccountTimestampHrefFields.$account.address !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								timestampMs: String(erc4337SmartAccountTimestampHrefFields.timestampMs ?? ''),
+								source: String(erc4337SmartAccountTimestampHrefFields.source ?? ''),
+								address: String(erc4337SmartAccountTimestampHrefFields.$account.address ?? ''),
+								network: String(erc4337SmartAccountTimestampHrefFields.$account.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

@@ -2,6 +2,13 @@ export const origin = 'https://api.allium.so' as const
 
 export const baseUrl = origin
 
+export const alliumOrigins = [
+	{
+		origin,
+		corsEnabled: false,
+	},
+] as const
+
 const chains = [
 	{ chainId: 1, apiChain: 'ethereum' },
 	{ chainId: 10, apiChain: 'optimism' },

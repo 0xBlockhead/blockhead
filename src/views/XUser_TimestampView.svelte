@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.XUser_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.XUser_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.XUser_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XUser_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -81,6 +80,11 @@
 			{#snippet Pending()}
 				<XUserView
 					selection={select(EntityType.XUser, selection.entitySelector.$user)}
+					href={
+						(selection.entitySelector.$user.id !== undefined ? resolve('/x/user/[userId=stringSegment]', {
+							userId: String(selection.entitySelector.$user.id ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -90,6 +94,11 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<XUserView
 					selection={select(EntityType.XUser, selection.entitySelector.$user)}
+					href={
+						(selection.entitySelector.$user.id !== undefined ? resolve('/x/user/[userId=stringSegment]', {
+							userId: String(selection.entitySelector.$user.id ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -123,6 +132,11 @@
 				<dd>
 					<XUserView
 						selection={select(EntityType.XUser, selection.entitySelector.$user, {})}
+						href={
+							(selection.entitySelector.$user.id !== undefined ? resolve('/x/user/[userId=stringSegment]', {
+								userId: String(selection.entitySelector.$user.id ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

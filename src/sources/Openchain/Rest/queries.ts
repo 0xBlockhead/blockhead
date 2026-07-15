@@ -1,7 +1,9 @@
 import { getJson } from '$/lib/http.ts'
-import { openchainOrigins } from '$/sources/Openchain/index.ts'
 import { openchainGetJson } from '$/sources/Openchain/Rest/client.ts'
-import { directoryBaseUrl } from '$/sources/Openchain/Rest/constants.ts'
+import {
+	directoryBaseUrl,
+	openchainOrigins,
+} from '$/sources/Openchain/Rest/constants.ts'
 import {
 	type FourbyteSignaturesList,
 	type OpenchainLookupResponse,

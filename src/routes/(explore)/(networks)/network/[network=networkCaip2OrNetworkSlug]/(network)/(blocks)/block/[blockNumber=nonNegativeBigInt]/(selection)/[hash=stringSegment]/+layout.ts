@@ -20,10 +20,11 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 
 	const selectorMappings: {
 		entityType: EntityType
+		selectorName: string
 		selector: EntitySelector<typeof schema, EntityType>
 	}[] = []
 
-	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')) && matchNonNegativeBigInt(params.blockNumber) && matchStringSegment(params.hash)) {
+	if (((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')) && projectionNetwork.namespace === 'Polkadot') && matchNonNegativeBigInt(params.blockNumber) && matchStringSegment(params.hash)) {
 		const polkadotBlockNetworkBlockNumberHashSelector = parseEntitySelector(
 			schema,
 			PolkadotBlockSchema,
@@ -34,10 +35,18 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(polkadotBlockNetworkBlockNumberHashSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.PolkadotBlock, selector: polkadotBlockNetworkBlockNumberHashSelector })
+			selectorMappings.push({ entityType: EntityType.PolkadotBlock, selectorName: 'NetworkBlockNumberHash', selector: polkadotBlockNetworkBlockNumberHashSelector })
 	}
 
-	if ((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && matchNonNegativeBigInt(params.blockNumber) && matchStringSegment(params.hash)) {
+	if (((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && [
+	'Bitcoin',
+	'BitcoinCash',
+	'Cardano',
+	'Dogecoin',
+	'Elements',
+	'Litecoin',
+	'Zcash',
+].includes(projectionNetwork.namespace)) && matchNonNegativeBigInt(params.blockNumber) && matchStringSegment(params.hash)) {
 		const utxoBlockNetworkHeightHashSelector = parseEntitySelector(
 			schema,
 			UtxoBlockSchema,
@@ -48,7 +57,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(utxoBlockNetworkHeightHashSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.UtxoBlock, selector: utxoBlockNetworkHeightHashSelector })
+			selectorMappings.push({ entityType: EntityType.UtxoBlock, selectorName: 'NetworkHeightHash', selector: utxoBlockNetworkHeightHashSelector })
 	}
 
 	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')

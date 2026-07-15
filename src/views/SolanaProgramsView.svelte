@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Programs',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SolanaProgram>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.SolanaProgram>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: solanaProgram }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaProgram> })}
+				{#snippet Item({ item: solanaProgram })}
 					{@const solanaProgramFields = { ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }}
+					{@const selection = select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const solanaProgramHrefFields = { ...solanaProgram, ...solanaProgram[EntityMetaKey.Selector] }}
 					<SolanaProgramView
-						selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={solanaProgramFields}
 						href={
-							(solanaProgramHrefFields.$network !== undefined && solanaProgramHrefFields.$network.slug !== undefined && solanaProgramHrefFields.programId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
-								network: String(solanaProgramHrefFields.$network.slug ?? ''),
+							(solanaProgramHrefFields.programId !== undefined && solanaProgramHrefFields.$network !== undefined && solanaProgramHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
 								programId: String(solanaProgramHrefFields.programId ?? ''),
+								network: String(caip2StringFromValue(solanaProgramHrefFields.$network.caip2) ?? ''),
+							}) : solanaProgramHrefFields.programId !== undefined && solanaProgramHrefFields.$network !== undefined && solanaProgramHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
+								programId: String(solanaProgramHrefFields.programId ?? ''),
+								network: String(solanaProgramHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

@@ -8,7 +8,7 @@ import {
 	optionalPublicEnvString,
 } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { theGraphOrigins } from '$/sources/TheGraph/index.ts'
+import { theGraphOrigins } from '$/sources/TheGraph/Graphql/constants.ts'
 
 export const queryTheGraph = async <
 	_Result extends object,

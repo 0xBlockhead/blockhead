@@ -6,8 +6,10 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { duneOrigins } from '$/sources/Dune/index.ts'
-import { baseUrl } from '$/sources/Dune/Rest/constants.ts'
+import {
+	baseUrl,
+	duneOrigins,
+} from '$/sources/Dune/Rest/constants.ts'
 
 export const duneRequestHeaders = (
 	publicEnv: SourcePublicEnv

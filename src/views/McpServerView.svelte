@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.McpServer>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.McpServer>>
+			selection: RegisteredEntityProxyResource<EntityType.McpServer>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.McpServer>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -190,6 +190,11 @@
 								<BlockheadSourceView
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
+									href={
+										(blockheadSource[EntityMetaKey.Selector].id !== undefined ? resolve('/~/manage/source/[sourceId=stringSegment]', {
+											sourceId: String(blockheadSource[EntityMetaKey.Selector].id ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

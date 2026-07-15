@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BlockheadPanel>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BlockheadPanel>>
+			selection: RegisteredEntityProxyResource<EntityType.BlockheadPanel>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadPanel>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -47,7 +47,6 @@
 			Source.Local_Internal,
 		],
 		fields: {
-			$panelTree: true,
 			indexInParent: true,
 			kind: true,
 			entityType: true,
@@ -196,6 +195,11 @@
 								<BlockheadPanelTreeView
 									selection={select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector])}
 									prefetched={blockheadPanelTree}
+									href={
+										(blockheadPanelTree[EntityMetaKey.Selector].id !== undefined ? resolve('/~/dashboard/[dashboardId=stringSegment]', {
+											dashboardId: String(blockheadPanelTree[EntityMetaKey.Selector].id ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

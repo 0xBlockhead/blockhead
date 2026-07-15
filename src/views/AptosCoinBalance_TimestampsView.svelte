@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -18,9 +16,9 @@
 	// State
 	let {
 		selection,
-		title = 'Aptos coin balance observations',
-		typeAnnotationParagraphs = [],
-		placeholderText,
+		title = 'Current Aptos coin balance observations',
+		typeAnnotationParagraphs = ['A current balance reported by the Aptos Indexer, anchored to the row\'s last transaction version. This surface does not imply retained balance history.'],
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AptosCoinBalance_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.AptosCoinBalance_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -107,14 +107,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No Aptos coin balance observations yet.</p>
+						<p data-text="muted">No Current Aptos coin balance observations yet.</p>
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: aptosCoinBalanceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosCoinBalance_Timestamp> })}
+				{#snippet Item({ item: aptosCoinBalanceTimestamp })}
 					{@const aptosCoinBalanceTimestampFields = { ...aptosCoinBalanceTimestamp[EntityMetaKey.Selector], ...aptosCoinBalanceTimestamp }}
+					{@const selection = select(EntityType.AptosCoinBalance_Timestamp, aptosCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<AptosCoinBalance_TimestampView
-						selection={select(EntityType.AptosCoinBalance_Timestamp, aptosCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={aptosCoinBalanceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

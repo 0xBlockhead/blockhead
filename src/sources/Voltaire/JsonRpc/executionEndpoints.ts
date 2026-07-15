@@ -32,6 +32,11 @@ export type ExecutionEndpoint = {
 
 
 // Constants
+const browserCorsJsonRpcOriginSuffixes = [
+	'.drpc.org',
+	'.publicnode.com',
+] as const
+
 export const executionEndpoints = [
 	// {
 	// 	chainId: ChainId.Ethereum,
@@ -685,4 +690,26 @@ export const executionEndpoints = [
 export const executionEndpointsByChainId = Object.groupBy(
 	executionEndpoints,
 	(e) => e.chainId
+)
+
+export const voltaireJsonRpcTransportCandidates = executionEndpoints.map((executionEndpoint) => ({
+	chainId: executionEndpoint.chainId,
+	rpcUrl: executionEndpoint.url,
+	transportType: executionEndpoint.transportType,
+}))
+
+export const voltaireJsonRpcOriginsByChainId = Object.fromEntries(
+	Object.entries(executionEndpointsByChainId)
+		.map(([chainId, endpoints]) => [
+			Number(chainId),
+			endpoints
+				.filter((endpoint) => endpoint.transportType === TransportType.Http)
+				.map((endpoint) => {
+					const origin = new URL(endpoint.url).origin
+					return {
+						origin,
+						corsEnabled: browserCorsJsonRpcOriginSuffixes.some((suffix) => origin.endsWith(suffix)),
+					}
+				}),
+		])
 )

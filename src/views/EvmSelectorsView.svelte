@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +20,7 @@
 		selection,
 		title = 'EVM selectors',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -31,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmSelector>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmSelector>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -114,11 +114,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmSelector }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmSelector> })}
+				{#snippet Item({ item: evmSelector })}
 					{@const evmSelectorFields = { ...evmSelector[EntityMetaKey.Selector], ...evmSelector }}
+					{@const selection = select(EntityType.EvmSelector, evmSelector[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmSelectorHrefFields = { ...evmSelector, ...evmSelector[EntityMetaKey.Selector] }}
 					<EvmSelectorView
-						selection={select(EntityType.EvmSelector, evmSelector[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmSelectorFields}
 						href={
 							(evmSelectorHrefFields.hex !== undefined ? resolve('/evm/selector/[hex=zeroExHex]', {

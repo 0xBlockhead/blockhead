@@ -1,5 +1,4 @@
 import { getJson } from '$/lib/http.ts'
-import { tzktBindings } from '$/sources/Tzkt/bindings.ts'
 import type {
 	TzktBigMap,
 	TzktBigMapKey,
@@ -11,23 +10,16 @@ import type {
 
 export const tzktRestEndpoints = [
 	{
-		restBaseUrl: tzktBindings[0].endpoints[0].locator,
+		restBaseUrl: 'https://api.tzkt.io',
 	},
 ] as const
 
 export const tzktOrigins = [
-	...new Map(
-		tzktBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: 'https://api.tzkt.io',
+		corsEnabled: false,
+	},
+] as const
 
 const base = (restBaseUrl: string) => (
 	restBaseUrl.replace(/\/$/, '')

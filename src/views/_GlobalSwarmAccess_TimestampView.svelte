@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType._GlobalSwarmAccess_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType._GlobalSwarmAccess_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType._GlobalSwarmAccess_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType._GlobalSwarmAccess_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -81,7 +80,7 @@
 			{#snippet Pending()}
 				<GlobalSwarmAccessView
 					selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub)}
-					href={resolve('/swarm/access')}
+					href={(selection.entitySelector.$hub.scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -91,7 +90,7 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<GlobalSwarmAccessView
 					selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub)}
-					href={resolve('/swarm/access')}
+					href={(selection.entitySelector.$hub.scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -125,7 +124,7 @@
 				<dd>
 					<GlobalSwarmAccessView
 						selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub, {})}
-						href={resolve('/swarm/access')}
+						href={(selection.entitySelector.$hub.scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

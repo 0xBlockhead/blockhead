@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -23,8 +22,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.LensUsername>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.LensUsername>>
+			selection: RegisteredEntityProxyResource<EntityType.LensUsername>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensUsername>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -181,40 +180,35 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							id: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const id = pendingEntity.id}
-					{#if id !== undefined && id !== null}
-						<div>
-							<dt>ID</dt>
-							<dd>
+			<div>
+				<dt>ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									id: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const id = pendingEntity.id}
+							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const id = resolvedEntity.id}
-					{#if id !== undefined && id !== null}
-						<div>
-							<dt>ID</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const id = resolvedEntity.id}
+							{#if id !== undefined && id !== null}
 								{String((id) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={

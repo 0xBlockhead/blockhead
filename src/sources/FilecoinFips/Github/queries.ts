@@ -1,5 +1,5 @@
 import { getGithubContents, getGithubRawText, githubContentsUrl, githubRawUrl } from '$/sources/_shared/hosts/Github/Http/client.ts'
-import { filecoinFipsBindings } from '$/sources/FilecoinFips/bindings.ts'
+import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
 import type { FilecoinFipsGithubContents } from '$/sources/FilecoinFips/Github/types.ts'
 
 const filecoinFipsGithubRepo = {
@@ -22,14 +22,14 @@ export const getMarkdownUrl = ({ number }: { number: number }) => (
 
 export const getContents = (): Promise<FilecoinFipsGithubContents> => (
 	getGithubContents({
-		endpoints: filecoinFipsBindings[0].endpoints,
+		endpoints: githubHttpEndpoints,
 		target: filecoinFipsGithubRepo,
 	})
 )
 
 export const getMarkdownText = ({ number }: { number: number }) => (
 	getGithubRawText({
-		endpoints: filecoinFipsBindings[0].endpoints,
+		endpoints: githubHttpEndpoints,
 		target: {
 			...filecoinFipsGithubRepo,
 			path: `${filecoinFipsGithubRepo.path}/fip-${number.toString().padStart(4, '0')}.md`,

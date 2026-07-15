@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.IpfsResource>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.IpfsResource>>
+			selection: RegisteredEntityProxyResource<EntityType.IpfsResource>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.IpfsResource>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -78,9 +77,13 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.namespace !== undefined && pendingEntity.target !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
+		href ?? (pendingEntity.contentPath === '' && pendingEntity.namespace !== undefined && pendingEntity.target !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
 			namespace: String(pendingEntity.namespace ?? ''),
 			target: String(pendingEntity.target ?? ''),
+		}) : pendingEntity.contentPath !== '' && pendingEntity.namespace !== undefined && pendingEntity.target !== undefined && pendingEntity.contentPath !== undefined ? resolve('/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', {
+			namespace: String(pendingEntity.namespace ?? ''),
+			target: String(pendingEntity.target ?? ''),
+			contentPath: String(pendingEntity.contentPath ?? ''),
 		}) : undefined)
 	}
 	{layout}

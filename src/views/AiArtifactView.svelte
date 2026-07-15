@@ -3,15 +3,18 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -25,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.AiArtifact>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.AiArtifact>>
+			selection: RegisteredEntityProxyResource<EntityType.AiArtifact>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AiArtifact>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -42,7 +45,9 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aiArtifact = $derived(selection({
 		sources: [
+			Source.HuggingFaceHub_Rest,
 			Source.Ipfs_Rest,
+			Source.Mlflow_Rest,
 		],
 		fields: {
 			artifactType: true,
@@ -50,7 +55,7 @@
 			size: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact')
+	const titleFallback = $derived([String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerArtifactId) ?? ''), String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact')
 	const viewDomId = $derived('ai-artifact-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -60,6 +65,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AiDocumentsView from '$/views/AiDocumentsView.svelte'
 	import AiArtifactAttestationsView from '$/views/AiArtifactAttestationsView.svelte'
+	import AiModelProviderView from '$/views/AiModelProviderView.svelte'
 </script>
 
 
@@ -76,7 +82,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiArtifact}>
 			{#snippet Pending()}
-				{[String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+				{[String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerArtifactId) ?? ''), String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -89,7 +95,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aiArtifact}>
 			{#snippet Pending()}
-				{[String((pendingEntity.mediaType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+				{[String((pendingEntity.mediaType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((pendingEntity.providerArtifactId) ?? ''), String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -124,6 +130,63 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={selection.$provider}
+			>
+				{#snippet Pending()}{/snippet}
+
+				{#snippet children(aiModelProvider)}
+					{#if aiModelProvider != null && aiModelProvider[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>provider</dt>
+							<dd>
+								<AiModelProviderView
+									selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector])}
+									prefetched={aiModelProvider}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							providerArtifactId: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const providerArtifactId = pendingEntity.providerArtifactId}
+					{#if providerArtifactId !== undefined && providerArtifactId !== null}
+						<div>
+							<dt>provider artifact ID</dt>
+							<dd>
+								{String((providerArtifactId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const providerArtifactId = resolvedEntity.providerArtifactId}
+					{#if providerArtifactId !== undefined && providerArtifactId !== null}
+						<div>
+							<dt>provider artifact ID</dt>
+							<dd>
+								{String((providerArtifactId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<ResourceBoundary
 				resource={
 					selection({

@@ -20,6 +20,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 
 	const selectorMappings: {
 		entityType: EntityType
+		selectorName: string
 		selector: EntitySelector<typeof schema, EntityType>
 	}[] = []
 
@@ -33,7 +34,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(beaconValidatorNetworkIndexInNetworkSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.BeaconValidator, selector: beaconValidatorNetworkIndexInNetworkSelector })
+			selectorMappings.push({ entityType: EntityType.BeaconValidator, selectorName: 'NetworkIndexInNetwork', selector: beaconValidatorNetworkIndexInNetworkSelector })
 	}
 
 	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')) && matchSolanaPubkey(params.validatorId)) {
@@ -46,7 +47,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(solanaValidatorNetworkVotePubkeySelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.SolanaValidator, selector: solanaValidatorNetworkVotePubkeySelector })
+			selectorMappings.push({ entityType: EntityType.SolanaValidator, selectorName: 'NetworkVotePubkey', selector: solanaValidatorNetworkVotePubkeySelector })
 	}
 
 	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')

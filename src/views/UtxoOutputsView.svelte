@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'UTXO outputs',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.UtxoOutput>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.UtxoOutput>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,17 +114,22 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: utxoOutput }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoOutput> })}
+				{#snippet Item({ item: utxoOutput })}
 					{@const utxoOutputFields = { ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }}
+					{@const selection = select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const utxoOutputHrefFields = { ...utxoOutput, ...utxoOutput[EntityMetaKey.Selector] }}
 					<UtxoOutputView
-						selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={utxoOutputFields}
 						href={
-							(utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.$network !== undefined && utxoOutputHrefFields.$transaction.$network.slug !== undefined && utxoOutputHrefFields.$transaction.txId !== undefined && utxoOutputHrefFields.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-								network: String(utxoOutputHrefFields.$transaction.$network.slug ?? ''),
-								transactionId: String(utxoOutputHrefFields.$transaction.txId ?? ''),
+							(utxoOutputHrefFields.indexInTransaction !== undefined && utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.txId !== undefined && utxoOutputHrefFields.$transaction.$network !== undefined && utxoOutputHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
 								outputIndex: String(utxoOutputHrefFields.indexInTransaction ?? ''),
+								transactionId: String(utxoOutputHrefFields.$transaction.txId ?? ''),
+								network: String(caip2StringFromValue(utxoOutputHrefFields.$transaction.$network.caip2) ?? ''),
+							}) : utxoOutputHrefFields.indexInTransaction !== undefined && utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.txId !== undefined && utxoOutputHrefFields.$transaction.$network !== undefined && utxoOutputHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
+								outputIndex: String(utxoOutputHrefFields.indexInTransaction ?? ''),
+								transactionId: String(utxoOutputHrefFields.$transaction.txId ?? ''),
+								network: String(utxoOutputHrefFields.$transaction.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

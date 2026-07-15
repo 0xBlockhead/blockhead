@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'ICP canister observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.IcpCanister_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.IcpCanister_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: icpCanisterTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpCanister_Timestamp> })}
+				{#snippet Item({ item: icpCanisterTimestamp })}
 					{@const icpCanisterTimestampFields = { ...icpCanisterTimestamp[EntityMetaKey.Selector], ...icpCanisterTimestamp }}
+					{@const selection = select(EntityType.IcpCanister_Timestamp, icpCanisterTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<IcpCanister_TimestampView
-						selection={select(EntityType.IcpCanister_Timestamp, icpCanisterTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={icpCanisterTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

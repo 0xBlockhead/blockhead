@@ -4,14 +4,14 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +29,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.Erc4337SmartAccount>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.Erc4337SmartAccount>>
+			selection: RegisteredEntityProxyResource<EntityType.Erc4337SmartAccount>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Erc4337SmartAccount>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -44,18 +44,25 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const erc4337SmartAccount = $derived(selection({}))
+	const erc4337SmartAccount = $derived(selection({
+		sources: [
+			Source.Blockscout_Rest,
+		],
+	}))
 	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account')
 	const viewDomId = $derived('erc4337smart-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import Erc4337AccountFactoryView from '$/views/Erc4337AccountFactoryView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
+	import Erc4337SmartAccount_TimestampsView from '$/views/Erc4337SmartAccount_TimestampsView.svelte'
 </script>
 
 
@@ -65,9 +72,12 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
-			network: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
 			address: String(pendingEntity.address ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
+			address: String(pendingEntity.address ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -182,41 +192,6 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							userOperationsCount: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const userOperationsCount = pendingEntity.userOperationsCount}
-					{#if userOperationsCount !== undefined && userOperationsCount !== null}
-						<div>
-							<dt>User operations</dt>
-							<dd>
-								<NumberValue value={Number(userOperationsCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const userOperationsCount = resolvedEntity.userOperationsCount}
-					{#if userOperationsCount !== undefined && userOperationsCount !== null}
-						<div>
-							<dt>User operations</dt>
-							<dd>
-								<NumberValue value={Number(userOperationsCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
@@ -232,9 +207,12 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
+										(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+											network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -260,9 +238,12 @@
 									selection={select(EntityType.Erc4337AccountFactory, erc4337AccountFactory[EntityMetaKey.Selector])}
 									prefetched={erc4337AccountFactory}
 									href={
-										(erc4337AccountFactory[EntityMetaKey.Selector].$network !== undefined && erc4337AccountFactory[EntityMetaKey.Selector].$network.slug !== undefined && erc4337AccountFactory[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
-											network: String(erc4337AccountFactory[EntityMetaKey.Selector].$network.slug ?? ''),
+										(erc4337AccountFactory[EntityMetaKey.Selector].address !== undefined && erc4337AccountFactory[EntityMetaKey.Selector].$network !== undefined && erc4337AccountFactory[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
 											address: String(erc4337AccountFactory[EntityMetaKey.Selector].address ?? ''),
+											network: String(caip2StringFromValue(erc4337AccountFactory[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : erc4337AccountFactory[EntityMetaKey.Selector].address !== undefined && erc4337AccountFactory[EntityMetaKey.Selector].$network !== undefined && erc4337AccountFactory[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
+											address: String(erc4337AccountFactory[EntityMetaKey.Selector].address ?? ''),
+											network: String(erc4337AccountFactory[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -292,5 +273,92 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-erc4337-smart-account-activity'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'erc4337-smart-account-user-operations',
+							label: 'User operations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-activity'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionErc4337SmartAccountUserOperations({ id, label, open })}
+					<EvmUserOperationsView
+						selection={
+							selection.$$userOperations({
+								count: true,
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ERC-4337 user operations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-erc4337-smart-account-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'erc4337-smart-account-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionErc4337SmartAccountTimestamps({ id, label, open })}
+					<Erc4337SmartAccount_TimestampsView
+						selection={
+							selection.$$timestamps({
+								sources: [
+									Source.Blockscout_Rest,
+								],
+								count: true,
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No ERC-4337 smart account observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

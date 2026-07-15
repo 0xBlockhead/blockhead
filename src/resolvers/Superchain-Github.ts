@@ -20,11 +20,14 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				[NetworkSelector.Caip2]: async ({ caip2 }) => {
+				if (caip2.namespace !== 'eip155') return undefined
+
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await fetchNetworks()
 				const network = networks.find((candidate) => candidate.chainId === Number(caip2.reference))
-				if (network == null) throw new Error(`Superchain_Github: network not found for eip155:${caip2.reference}`)
+				if (network == null) return undefined
+
 				return {
 					name: network.name,
 					namespace: NetworkNamespace.Evm,

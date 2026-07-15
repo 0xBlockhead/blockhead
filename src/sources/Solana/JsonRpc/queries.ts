@@ -1,8 +1,6 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { solanaBindings } from '$/sources/Solana/bindings.ts'
-import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	SolanaRpcAccountInfo,
@@ -16,37 +14,27 @@ import type {
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
 
-export const solanaOrigins = [
-	...new Map(
-		solanaBindings
-			.flatMap((binding) => binding.endpoints)
-			.flatMap((endpoint) => (
-				endpoint.origin == null ?
-					[]
-				:
-					[[
-						endpoint.origin,
-						{
-							origin: endpoint.origin,
-							corsEnabled: endpoint.corsEnabled === true,
-						},
-					]]
-			))
-	).values(),
-]
+const solanaMainnetHttpUrl = 'https://api.mainnet.solana.com' as const
 
-export const solanaMainnetRpcEndpoints = solanaBindings
-	.flatMap((binding) => binding.endpoints)
-	.map((endpoint) => ({
-		url: endpoint.locator,
-		transportType: (
-			endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
-				TransportType.WebSocket
-			:
-				TransportType.Http
-		),
+export const solanaOrigins = [
+	{
+		origin: solanaMainnetHttpUrl,
+		corsEnabled: false,
+	},
+] as const
+
+export const solanaMainnetRpcEndpoints = [
+	{
+		url: solanaMainnetHttpUrl,
+		transportType: TransportType.Http,
 		providerName: 'Solana Labs',
-	}))
+	},
+	{
+		url: 'wss://api.mainnet.solana.com',
+		transportType: TransportType.WebSocket,
+		providerName: 'Solana Labs',
+	},
+] as const
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion

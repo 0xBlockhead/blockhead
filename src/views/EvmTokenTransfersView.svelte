@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Token transfers',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmTokenTransfer>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmTokenTransfer>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,9 +46,12 @@
 		>
 	> = $props()
 
+	const collectionSelection = $derived(selection)
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmTokenTransferView from '$/views/EvmTokenTransferView.svelte'
@@ -77,7 +79,6 @@
 					standard: true,
 					amount: true,
 					tokenSymbol: true,
-					tokenId: true,
 					$log: true,
 				},
 				limit: 64,
@@ -122,23 +123,35 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmTokenTransfer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmTokenTransfer> })}
+				{#snippet Item({ item: evmTokenTransfer })}
 					{@const evmTokenTransferFields = { ...evmTokenTransfer[EntityMetaKey.Selector], ...evmTokenTransfer }}
+					{@const selection = select(EntityType.EvmTokenTransfer, evmTokenTransfer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmTokenTransferHrefFields = { ...evmTokenTransfer, ...evmTokenTransfer[EntityMetaKey.Selector] }}
-					<EvmTokenTransferView
-						selection={select(EntityType.EvmTokenTransfer, evmTokenTransfer[EntityMetaKey.Selector], { sources: selection.sources })}
-						prefetched={evmTokenTransferFields}
-						href={
-							(evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.slug !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.indexInLog !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
-								network: String(evmTokenTransferHrefFields.$log.$transaction.$network.slug ?? ''),
-								transactionId: String(evmTokenTransferHrefFields.$log.$transaction.txHash ?? ''),
-								indexInTransaction: String(evmTokenTransferHrefFields.$log.indexInTransaction ?? ''),
-								transferIndex: String(evmTokenTransferHrefFields.indexInLog ?? ''),
-							}) : undefined)
-						}
-						layout={EntityLayout.Summary}
-						open={false}
-					/>
+					<ProjectionBoundary
+						resource={selection.Nft}
+					>
+						{#snippet Applicable()}
+							<EvmTokenTransferView
+								selection={selection}
+								prefetched={evmTokenTransferFields}
+								href={
+									(evmTokenTransferHrefFields.indexInLog !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
+										transferIndex: String(evmTokenTransferHrefFields.indexInLog ?? ''),
+										indexInTransaction: String(evmTokenTransferHrefFields.$log.indexInTransaction ?? ''),
+										transactionId: String(evmTokenTransferHrefFields.$log.$transaction.txHash ?? ''),
+										network: String(caip2StringFromValue(evmTokenTransferHrefFields.$log.$transaction.$network.caip2) ?? ''),
+									}) : evmTokenTransferHrefFields.indexInLog !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
+										transferIndex: String(evmTokenTransferHrefFields.indexInLog ?? ''),
+										indexInTransaction: String(evmTokenTransferHrefFields.$log.indexInTransaction ?? ''),
+										transactionId: String(evmTokenTransferHrefFields.$log.$transaction.txHash ?? ''),
+										network: String(evmTokenTransferHrefFields.$log.$transaction.$network.slug ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
+					</ProjectionBoundary>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

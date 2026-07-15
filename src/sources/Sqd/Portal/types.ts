@@ -1,0 +1,89 @@
+import { type } from 'arktype'
+
+// https://docs.sqd.dev/en/api/evm/introduction
+export const SqdPortalEvmBlock = type({
+	header: {
+		number: 'number.integer >= 0',
+		hash: 'string',
+		parentHash: 'string',
+		timestamp: 'number.integer >= 0',
+		gasUsed: 'string',
+		gasLimit: 'string',
+		'baseFeePerGas?': 'string',
+		'blobGasUsed?': 'string',
+		'excessBlobGas?': 'string',
+	},
+	transactions: type({
+		hash: 'string',
+	}).array(),
+})
+
+export type SqdPortalEvmBlock = typeof SqdPortalEvmBlock.infer
+
+export type SqdPortalEvmBlockRequest = {
+	type: 'evm'
+	fromBlock: number
+	toBlock: number
+	parentBlockHash?: string
+	includeAllBlocks: true
+	fields: {
+		block: {
+			number: true
+			hash: true
+			parentHash: true
+			timestamp: true
+			gasUsed: true
+			gasLimit: true
+			baseFeePerGas: true
+			blobGasUsed: true
+			excessBlobGas: true
+		}
+		transaction: {
+			hash: true
+		}
+	}
+	transactions: readonly Record<never, never>[]
+}
+
+export type SqdPortalFinalizedHead = {
+	number: number
+	hash: string
+}
+
+export const SqdPortalReorg = type({
+	previousBlocks: type({
+		number: 'number.integer >= 0',
+		hash: 'string',
+	}).array(),
+})
+
+export type SqdPortalReorg = typeof SqdPortalReorg.infer
+
+export enum SqdPortalResolution {
+	Complete = 'Complete',
+	Empty = 'Empty',
+	Partial = 'Partial',
+	Reorg = 'Reorg',
+}
+
+export type SqdPortalEvmBlockResult =
+	| {
+			resolution: SqdPortalResolution.Complete
+			block: SqdPortalEvmBlock
+			finalizedHead?: SqdPortalFinalizedHead
+		}
+	| {
+			resolution: SqdPortalResolution.Empty
+			finalizedHead?: SqdPortalFinalizedHead
+		}
+	| {
+			resolution: SqdPortalResolution.Partial
+			blocks: readonly SqdPortalEvmBlock[]
+			nextBlock: number
+			finalizedHead?: SqdPortalFinalizedHead
+		}
+	| {
+			resolution: SqdPortalResolution.Reorg
+			previousBlocks: SqdPortalReorg['previousBlocks']
+			finalizedHead?: SqdPortalFinalizedHead
+		}

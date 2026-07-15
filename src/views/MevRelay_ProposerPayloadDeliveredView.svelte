@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>>
+			selection: RegisteredEntityProxyResource<EntityType.MevRelay_ProposerPayloadDelivered>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MevRelay_ProposerPayloadDelivered>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -69,11 +68,16 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.relayHost !== undefined && pendingEntity.slot !== undefined && pendingEntity.blockHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/payload/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]', {
-			network: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.relayHost !== undefined && pendingEntity.slot !== undefined && pendingEntity.blockHash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/payload/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]', {
 			relayHost: String(pendingEntity.relayHost ?? ''),
 			slot: String(pendingEntity.slot ?? ''),
 			blockHash: String(pendingEntity.blockHash ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.relayHost !== undefined && pendingEntity.slot !== undefined && pendingEntity.blockHash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/payload/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]', {
+			relayHost: String(pendingEntity.relayHost ?? ''),
+			slot: String(pendingEntity.slot ?? ''),
+			blockHash: String(pendingEntity.blockHash ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -129,9 +133,12 @@
 									selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 									prefetched={mevBuilder}
 									href={
-										(mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.slug !== undefined && mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-											network: String(mevBuilder[EntityMetaKey.Selector].$network.slug ?? ''),
+										(mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined && mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
 											builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
+											network: String(caip2StringFromValue(mevBuilder[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined && mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+											builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
+											network: String(mevBuilder[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -155,9 +162,12 @@
 									selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 									prefetched={mevBuilder}
 									href={
-										(mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.slug !== undefined && mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-											network: String(mevBuilder[EntityMetaKey.Selector].$network.slug ?? ''),
+										(mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined && mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
 											builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
+											network: String(caip2StringFromValue(mevBuilder[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined && mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+											builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
+											network: String(mevBuilder[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -388,9 +398,12 @@
 									selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 									prefetched={mevBuilder}
 									href={
-										(mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.slug !== undefined && mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-											network: String(mevBuilder[EntityMetaKey.Selector].$network.slug ?? ''),
+										(mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined && mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
 											builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
+											network: String(caip2StringFromValue(mevBuilder[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined && mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+											builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
+											network: String(mevBuilder[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -416,9 +429,12 @@
 									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 									prefetched={evmBlock}
 									href={
-										(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-											network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+										(evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 											blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+											network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+											blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+											network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

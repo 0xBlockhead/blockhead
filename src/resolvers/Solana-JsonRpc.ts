@@ -225,7 +225,12 @@ const solanaAccountTimestampFields = (
 	slot,
 	source: Source.Solana_JsonRpc,
 	lamports: BigInt(accountInfo.lamports),
-	ownerProgramId: accountInfo.owner,
+	$ownerProgram: {
+		[EntityMetaKey.Selector]: {
+			$network: accountId.$network,
+			programId: accountInfo.owner,
+		},
+	},
 	rentEpoch: BigInt(accountInfo.rentEpoch),
 	executable: accountInfo.executable,
 	dataEncoding: accountInfo.data[1],
@@ -689,12 +694,6 @@ export default {
 					})
 					if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${pubkey}`)
 					return {
-						$ownerProgram: {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								programId: accountInfo.value.owner,
-							},
-						},
 						$$timestamps: [
 							solanaAccountTimestampFields(
 								{
@@ -711,7 +710,6 @@ export default {
 				}
 			},
 		})({
-				$ownerProgram: (account) => account.$ownerProgram,
 				$$timestamps: (account) => account.$$timestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 				})),
@@ -741,7 +739,7 @@ export default {
 				slot: (timestamp) => timestamp.slot,
 				source: (timestamp) => timestamp.source,
 				lamports: (timestamp) => timestamp.lamports,
-				ownerProgramId: (timestamp) => timestamp.ownerProgramId,
+				$ownerProgram: (timestamp) => timestamp.$ownerProgram,
 				rentEpoch: (timestamp) => timestamp.rentEpoch,
 				executable: (timestamp) => timestamp.executable,
 				dataEncoding: (timestamp) => timestamp.dataEncoding,
@@ -964,7 +962,6 @@ export default {
 					const voteAccount = currentVoteAccount ?? delinquentVoteAccount
 					if (voteAccount == null) throw new Error(`Solana_JsonRpc: validator vote account not found for ${votePubkey}`)
 					return {
-						nodePubkey: voteAccount.nodePubkey,
 						$$timestamps: [
 							{
 								[EntityMetaKey.Selector]: {
@@ -983,7 +980,6 @@ export default {
 				}
 			},
 		})({
-				nodePubkey: (validator) => validator.nodePubkey,
 				$$timestamps: (validator) => validator.$$timestamps,
 			}),
 
@@ -1012,6 +1008,7 @@ export default {
 						},
 						slot,
 						source,
+						nodePubkey: voteAccount.nodePubkey,
 						activatedStakeLamports: BigInt(voteAccount.activatedStake),
 						commission: voteAccount.commission,
 						delinquent: delinquentVoteAccount != null,
@@ -1024,6 +1021,7 @@ export default {
 				$validator: (timestamp) => timestamp.$validator,
 				slot: (timestamp) => timestamp.slot,
 				source: (timestamp) => timestamp.source,
+				nodePubkey: (timestamp) => timestamp.nodePubkey,
 				activatedStakeLamports: (timestamp) => timestamp.activatedStakeLamports,
 				commission: (timestamp) => timestamp.commission,
 				delinquent: (timestamp) => timestamp.delinquent,

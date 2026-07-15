@@ -1,7 +1,6 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { nearRpcBindings } from '$/sources/NearRpc/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	NearRpcAccount,
@@ -18,25 +17,18 @@ import type {
 
 export const nearMainnetRpcEndpoints = [
 	{
-		url: nearRpcBindings[0].endpoints[0].locator,
+		url: 'https://rpc.mainnet.near.org',
 		transportType: TransportType.Http,
 		providerName: 'NEAR',
 	},
 ] as const
 
 export const nearRpcOrigins = [
-	...new Map(
-		nearRpcBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: 'https://rpc.mainnet.near.org',
+		corsEnabled: false,
+	},
+] as const
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion

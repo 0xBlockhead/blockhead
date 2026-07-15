@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.UtxoAddress_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.UtxoAddress_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.UtxoAddress_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.UtxoAddress_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -66,11 +66,16 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$address !== undefined && pendingEntity.$address.$network !== undefined && pendingEntity.$address.$network.slug !== undefined && pendingEntity.$address.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			network: String(pendingEntity.$address.$network.slug ?? ''),
-			address: String(pendingEntity.$address.address ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$address !== undefined && pendingEntity.$address.address !== undefined && pendingEntity.$address.$network !== undefined && pendingEntity.$address.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			address: String(pendingEntity.$address.address ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$address.$network.caip2) ?? ''),
+		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$address !== undefined && pendingEntity.$address.address !== undefined && pendingEntity.$address.$network !== undefined && pendingEntity.$address.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			address: String(pendingEntity.$address.address ?? ''),
+			network: String(pendingEntity.$address.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -490,9 +495,12 @@
 					<UtxoAddressView
 						selection={select(EntityType.UtxoAddress, selection.entitySelector.$address, {})}
 						href={
-							(selection.entitySelector.$address.$network !== undefined && selection.entitySelector.$address.$network.slug !== undefined && selection.entitySelector.$address.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-								network: String(selection.entitySelector.$address.$network.slug ?? ''),
+							(selection.entitySelector.$address.address !== undefined && selection.entitySelector.$address.$network !== undefined && selection.entitySelector.$address.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
 								address: String(selection.entitySelector.$address.address ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$address.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$address.address !== undefined && selection.entitySelector.$address.$network !== undefined && selection.entitySelector.$address.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
+								address: String(selection.entitySelector.$address.address ?? ''),
+								network: String(selection.entitySelector.$address.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

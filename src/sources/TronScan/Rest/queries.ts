@@ -1,5 +1,4 @@
 import { getJson } from '$/lib/http.ts'
-import { tronScanBindings } from '$/sources/TronScan/bindings.ts'
 import type {
 	TronScanAccount,
 	TronScanAccountTokens,
@@ -14,23 +13,16 @@ import type {
 export const tronScanRestEndpoints = [
 	{
 		slug: 'tronscan',
-		restBaseUrl: tronScanBindings[0].endpoints[0].locator,
+		restBaseUrl: 'https://apilist.tronscanapi.com',
 	},
 ] as const
 
 export const tronScanOrigins = [
-	...new Map(
-		tronScanBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: 'https://apilist.tronscanapi.com',
+		corsEnabled: true,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

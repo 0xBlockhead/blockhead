@@ -1,12 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum AptosBlockSelector {
 	NetworkHeight = 'NetworkHeight',
-	NetworkContainsVersion = 'NetworkContainsVersion',
+	NetworkVersion = 'NetworkVersion',
 }
 export const AptosBlock = entity({
 	entityType: EntityType.AptosBlock,
@@ -28,30 +29,31 @@ export const AptosBlock = entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	containsVersion: {
-		label: 'contains version',
+	version: {
+		label: 'lookup version',
+		description: 'A ledger version used to locate the canonical block that contains it.',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	firstVersion: {
 		label: 'first version',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	lastVersion: {
 		label: 'last version',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
 		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
+		description: 'The block timestamp in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$$transactions: {
 		label: 'transactions',
@@ -65,9 +67,9 @@ export const AptosBlock = entity({
 			'$network',
 			'height',
 		],
-		NetworkContainsVersion: [
+		NetworkVersion: [
 			'$network',
-			'containsVersion',
+			'version',
 		],
 	},
 })

@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Swarm protocols',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SwarmProtocol>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.SwarmProtocol>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -68,6 +69,7 @@
 				fields: {
 					protocolName: true,
 					relationshipModel: true,
+					scope: true,
 				},
 			})
 		}
@@ -110,11 +112,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: swarmProtocol }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SwarmProtocol> })}
+				{#snippet Item({ item: swarmProtocol })}
 					{@const swarmProtocolFields = { ...swarmProtocol[EntityMetaKey.Selector], ...swarmProtocol }}
+					{@const selection = select(EntityType.SwarmProtocol, swarmProtocol[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const swarmProtocolHrefFields = { ...swarmProtocol, ...swarmProtocol[EntityMetaKey.Selector] }}
 					<SwarmProtocolView
-						selection={select(EntityType.SwarmProtocol, swarmProtocol[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={swarmProtocolFields}
+						href={(swarmProtocol[EntityMetaKey.Selector].scope === 'SwarmProtocol' ? resolve('/swarm') : undefined)}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

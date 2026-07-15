@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'URL preview observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.UrlPreview_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.UrlPreview_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -116,11 +116,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: urlPreviewTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UrlPreview_Timestamp> })}
+				{#snippet Item({ item: urlPreviewTimestamp })}
 					{@const urlPreviewTimestampFields = { ...urlPreviewTimestamp[EntityMetaKey.Selector], ...urlPreviewTimestamp }}
+					{@const selection = select(EntityType.UrlPreview_Timestamp, urlPreviewTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const urlPreviewTimestampHrefFields = { ...urlPreviewTimestamp, ...urlPreviewTimestamp[EntityMetaKey.Selector] }}
 					<UrlPreview_TimestampView
-						selection={select(EntityType.UrlPreview_Timestamp, urlPreviewTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={urlPreviewTimestampFields}
 						href={
 							(urlPreviewTimestampHrefFields.timestampMs !== undefined && urlPreviewTimestampHrefFields.source !== undefined && urlPreviewTimestampHrefFields.$url !== undefined && urlPreviewTimestampHrefFields.$url.url !== undefined ? resolve('/url/[url=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {

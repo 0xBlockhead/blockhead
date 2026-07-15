@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +26,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.CashuKeyset>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.CashuKeyset>>
+			selection: RegisteredEntityProxyResource<EntityType.CashuKeyset>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CashuKeyset>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -48,8 +47,6 @@
 		],
 		fields: {
 			unit: true,
-			active: true,
-			inputFeePpk: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.keysetId) ?? '')].filter(Boolean).join(' ') || 'Cashu keyset')
@@ -57,10 +54,12 @@
 
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CashuMintView from '$/views/CashuMintView.svelte'
+	import CashuKeyset_TimestampsView from '$/views/CashuKeyset_TimestampsView.svelte'
 </script>
 
 
@@ -96,12 +95,12 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cashuKeyset}>
 			{#snippet Pending()}
-				{[String((pendingEntity.unit) ?? ''), String((pendingEntity.active) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keysetId) ?? '')].filter(Boolean).join(' ') || title || 'Cashu keyset'}
+				{[String((pendingEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keysetId) ?? '')].filter(Boolean).join(' ') || title || 'Cashu keyset'}
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.unit) ?? ''), String((resolvedEntity.active) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.keysetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[String((resolvedEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.keysetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -109,22 +108,24 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cashuKeyset}>
 			{#snippet Pending()}
-				{@const inputFeePpk0 = pendingEntity.inputFeePpk}
-				{#if inputFeePpk0 !== undefined && inputFeePpk0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(inputFeePpk0)} />
-					</span>
-				{/if}
+				<span data-text="muted">
+					<CashuMintView
+						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const inputFeePpk0 = resolvedEntity.inputFeePpk}
-				{#if inputFeePpk0 !== undefined && inputFeePpk0 !== null}
-					<span data-text="muted">
-						<NumberValue value={Number(inputFeePpk0)} />
-					</span>
-				{/if}
+				<span data-text="muted">
+					<CashuMintView
+						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -209,82 +210,6 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: [
-							Source.CashuMint_Rest,
-						],
-						fields: {
-							active: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const active = pendingEntity.active}
-					{#if active !== undefined && active !== null}
-						<div>
-							<dt>active</dt>
-							<dd>
-								{active ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const active = resolvedEntity.active}
-					{#if active !== undefined && active !== null}
-						<div>
-							<dt>active</dt>
-							<dd>
-								{active ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						sources: [
-							Source.CashuMint_Rest,
-						],
-						fields: {
-							inputFeePpk: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const inputFeePpk = pendingEntity.inputFeePpk}
-					{#if inputFeePpk !== undefined && inputFeePpk !== null}
-						<div>
-							<dt>input fee ppk</dt>
-							<dd>
-								<NumberValue value={Number(inputFeePpk)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const inputFeePpk = resolvedEntity.inputFeePpk}
-					{#if inputFeePpk !== undefined && inputFeePpk !== null}
-						<div>
-							<dt>input fee ppk</dt>
-							<dd>
-								<NumberValue value={Number(inputFeePpk)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
@@ -326,5 +251,52 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-cashu-keyset-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'cashu-keyset-timestamps',
+							label: 'Observations',
+						},
+					]
+				}
+				data-card
+				class='network-view-collapsible-observations'
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({})}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionCashuKeysetTimestamps({ id, label, open })}
+					<CashuKeyset_TimestampsView
+						selection={
+							selection.$$timestamps({
+								sources: [
+									Source.CashuMint_Rest,
+								],
+								count: true,
+							})
+						}
+						CollapsibleProps={{ canToggle: false }}
+						emptyText='No keyset observations.'
+						open={open}
+						title={label}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
 	{/snippet}
 </EntityView>

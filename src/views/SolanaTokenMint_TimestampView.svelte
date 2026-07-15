@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.SolanaTokenMint_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.SolanaTokenMint_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.SolanaTokenMint_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SolanaTokenMint_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -140,9 +140,12 @@
 					<SolanaTokenMintView
 						selection={select(EntityType.SolanaTokenMint, selection.entitySelector.$mint, {})}
 						href={
-							(selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.slug !== undefined && selection.entitySelector.$mint.mintAddress !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-								network: String(selection.entitySelector.$mint.$network.slug ?? ''),
+							(selection.entitySelector.$mint.mintAddress !== undefined && selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
 								mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$mint.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$mint.mintAddress !== undefined && selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+								mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
+								network: String(selection.entitySelector.$mint.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

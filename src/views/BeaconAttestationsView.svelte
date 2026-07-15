@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Attestations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BeaconAttestation>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconAttestation>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,17 +113,22 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: beaconAttestation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconAttestation> })}
+				{#snippet Item({ item: beaconAttestation })}
 					{@const beaconAttestationFields = { ...beaconAttestation[EntityMetaKey.Selector], ...beaconAttestation }}
+					{@const selection = select(EntityType.BeaconAttestation, beaconAttestation[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const beaconAttestationHrefFields = { ...beaconAttestation, ...beaconAttestation[EntityMetaKey.Selector] }}
 					<BeaconAttestationView
-						selection={select(EntityType.BeaconAttestation, beaconAttestation[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={beaconAttestationFields}
 						href={
-							(beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.slug !== undefined && beaconAttestationHrefFields.slot !== undefined && beaconAttestationHrefFields.indexInSlot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
-								network: String(beaconAttestationHrefFields.$network.slug ?? ''),
+							(beaconAttestationHrefFields.slot !== undefined && beaconAttestationHrefFields.indexInSlot !== undefined && beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
 								slot: String(beaconAttestationHrefFields.slot ?? ''),
 								index: String(beaconAttestationHrefFields.indexInSlot ?? ''),
+								network: String(caip2StringFromValue(beaconAttestationHrefFields.$network.caip2) ?? ''),
+							}) : beaconAttestationHrefFields.slot !== undefined && beaconAttestationHrefFields.indexInSlot !== undefined && beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
+								slot: String(beaconAttestationHrefFields.slot ?? ''),
+								index: String(beaconAttestationHrefFields.indexInSlot ?? ''),
+								network: String(beaconAttestationHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

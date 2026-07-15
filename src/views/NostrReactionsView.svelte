@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Nostr reactions',
 		typeAnnotationParagraphs = ['A Nostr reaction is a kind-7 event keyed by event id and scoped to the note or article it reacts to.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NostrReaction>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrReaction>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,11 +112,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: nostrReaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrReaction> })}
+				{#snippet Item({ item: nostrReaction })}
 					{@const nostrReactionFields = { ...nostrReaction[EntityMetaKey.Selector], ...nostrReaction }}
+					{@const selection = select(EntityType.NostrReaction, nostrReaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const nostrReactionHrefFields = { ...nostrReaction, ...nostrReaction[EntityMetaKey.Selector] }}
 					<NostrReactionView
-						selection={select(EntityType.NostrReaction, nostrReaction[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={nostrReactionFields}
+						href={
+							(nostrReactionHrefFields.eventId !== undefined ? resolve('/nostr/reaction/[eventId=stringSegment]', {
+								eventId: String(nostrReactionHrefFields.eventId ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Title}
 						open={false}
 					/>

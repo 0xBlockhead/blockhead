@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.SuiCheckpoint>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.SuiCheckpoint>>
+			selection: RegisteredEntityProxyResource<EntityType.SuiCheckpoint>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SuiCheckpoint>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -89,75 +88,65 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							sequence: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const sequence = pendingEntity.sequence}
-					{#if sequence !== undefined && sequence !== null}
-						<div>
-							<dt>sequence</dt>
-							<dd>
+			<div>
+				<dt>sequence</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									sequence: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const sequence = pendingEntity.sequence}
+							{#if sequence !== undefined && sequence !== null}
 								{String((sequence) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sequence = resolvedEntity.sequence}
-					{#if sequence !== undefined && sequence !== null}
-						<div>
-							<dt>sequence</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const sequence = resolvedEntity.sequence}
+							{#if sequence !== undefined && sequence !== null}
 								{String((sequence) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							digest: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const digest = pendingEntity.digest}
-					{#if digest !== undefined && digest !== null}
-						<div>
-							<dt>digest</dt>
-							<dd>
+			<div>
+				<dt>digest</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									digest: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const digest = pendingEntity.digest}
+							{#if digest !== undefined && digest !== null}
 								<TruncatedValue value={String((digest) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const digest = resolvedEntity.digest}
-					{#if digest !== undefined && digest !== null}
-						<div>
-							<dt>digest</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const digest = resolvedEntity.digest}
+							{#if digest !== undefined && digest !== null}
 								<TruncatedValue value={String((digest) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={

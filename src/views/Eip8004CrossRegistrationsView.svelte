@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'EIP-8004 cross registrations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Eip8004CrossRegistration>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Eip8004CrossRegistration>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: eip8004CrossRegistration }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Eip8004CrossRegistration> })}
+				{#snippet Item({ item: eip8004CrossRegistration })}
 					{@const eip8004CrossRegistrationFields = { ...eip8004CrossRegistration[EntityMetaKey.Selector], ...eip8004CrossRegistration }}
+					{@const selection = select(EntityType.Eip8004CrossRegistration, eip8004CrossRegistration[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<Eip8004CrossRegistrationView
-						selection={select(EntityType.Eip8004CrossRegistration, eip8004CrossRegistration[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={eip8004CrossRegistrationFields}
 						layout={EntityLayout.Summary}
 						open={false}

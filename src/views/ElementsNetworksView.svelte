@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Elements networks',
 		typeAnnotationParagraphs = ['Elements/Liquid-specific view over a canonical Network row, including federation metadata, settlement network, native asset, and registry assets.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.ElementsNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.ElementsNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,10 +110,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: elementsNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ElementsNetwork> })}
+				{#snippet Item({ item: elementsNetwork })}
 					{@const elementsNetworkFields = { ...elementsNetwork[EntityMetaKey.Selector], ...elementsNetwork }}
+					{@const selection = select(EntityType.ElementsNetwork, elementsNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<ElementsNetworkView
-						selection={select(EntityType.ElementsNetwork, elementsNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={elementsNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

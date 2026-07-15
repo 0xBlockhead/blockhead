@@ -5,7 +5,8 @@ import {
 } from 'vitest'
 
 import { MediaTransport, MediaType } from '$/schema/Media.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 
 describe('mediaFromUrl', () => {
@@ -14,8 +15,10 @@ describe('mediaFromUrl', () => {
 			[EntityMetaKey.Selector]: {
 				url: 'https://ipfs.io/ipfs/bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/image.png',
 			},
-			type: MediaType.Image,
-			transport: MediaTransport.Ipfs,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+				[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Ipfs,
+			},
 		})
 	})
 

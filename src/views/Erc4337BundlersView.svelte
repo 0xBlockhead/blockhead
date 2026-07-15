@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'ERC-4337 bundlers',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Erc4337Bundler>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Erc4337Bundler>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,16 +112,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: erc4337Bundler }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337Bundler> })}
+				{#snippet Item({ item: erc4337Bundler })}
 					{@const erc4337BundlerFields = { ...erc4337Bundler[EntityMetaKey.Selector], ...erc4337Bundler }}
+					{@const selection = select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const erc4337BundlerHrefFields = { ...erc4337Bundler, ...erc4337Bundler[EntityMetaKey.Selector] }}
 					<Erc4337BundlerView
-						selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={erc4337BundlerFields}
 						href={
-							(erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.slug !== undefined && erc4337BundlerHrefFields.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-								network: String(erc4337BundlerHrefFields.$network.slug ?? ''),
+							(erc4337BundlerHrefFields.address !== undefined && erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
 								address: String(erc4337BundlerHrefFields.address ?? ''),
+								network: String(caip2StringFromValue(erc4337BundlerHrefFields.$network.caip2) ?? ''),
+							}) : erc4337BundlerHrefFields.address !== undefined && erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
+								address: String(erc4337BundlerHrefFields.address ?? ''),
+								network: String(erc4337BundlerHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

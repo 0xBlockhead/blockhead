@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BeaconValidator_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BeaconValidator_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.BeaconValidator_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BeaconValidator_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -67,11 +67,16 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.slot ?? '')}
 	href={
-		href ?? (pendingEntity.$validator !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.slug !== undefined && pendingEntity.$validator.indexInNetwork !== undefined && pendingEntity.slot !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
-			network: String(pendingEntity.$validator.$network.slug ?? ''),
-			validatorId: String(pendingEntity.$validator.indexInNetwork ?? ''),
+		href ?? (pendingEntity.slot !== undefined && pendingEntity.source !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.indexInNetwork !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
 			slot: String(pendingEntity.slot ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			validatorId: String(pendingEntity.$validator.indexInNetwork ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$validator.$network.caip2) ?? ''),
+		}) : pendingEntity.slot !== undefined && pendingEntity.source !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.indexInNetwork !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
+			slot: String(pendingEntity.slot ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			validatorId: String(pendingEntity.$validator.indexInNetwork ?? ''),
+			network: String(pendingEntity.$validator.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -612,9 +617,12 @@
 					<BeaconValidatorView
 						selection={select(EntityType.BeaconValidator, selection.entitySelector.$validator, {})}
 						href={
-							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.slug !== undefined && selection.entitySelector.$validator.indexInNetwork !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								network: String(selection.entitySelector.$validator.$network.slug ?? ''),
+							(selection.entitySelector.$validator.indexInNetwork !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
 								validatorId: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$validator.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$validator.indexInNetwork !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+								validatorId: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
+								network: String(selection.entitySelector.$validator.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

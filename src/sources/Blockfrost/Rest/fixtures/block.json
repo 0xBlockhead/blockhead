@@ -1,0 +1,19 @@
+{
+	"time": 1720000000,
+	"height": 10000000,
+	"hash": "block-hash",
+	"slot": 130000000,
+	"epoch": 500,
+	"epoch_slot": 1000,
+	"slot_leader": "pool1leader",
+	"size": 8192,
+	"tx_count": 42,
+	"output": "1000000",
+	"fees": "200000",
+	"block_vrf": null,
+	"op_cert": null,
+	"op_cert_counter": null,
+	"previous_block": "previous-block-hash",
+	"next_block": null,
+	"confirmations": 3
+}

@@ -4,15 +4,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { beaconRestBaseByExecutionChainId } from '$/constants/BeaconConsensus.ts'
 	import { consensusProtocolByProtocol } from '$/constants/EvmNetwork.ts'
-	import { Caip2Namespace, Caip2Reference, NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
+	import { Caip2Namespace, Caip2Reference, networkByCaip2, networkBySlug, NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -32,8 +32,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.Network>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.Network>>
+			selection: RegisteredEntityProxyResource<EntityType.Network>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Network>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -46,7 +46,62 @@
 		>
 	> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
+	const pendingEntity = $derived(
+		(() => {
+			const base = { ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }
+			const caip2Key = (
+				base.caip2 == null ?
+					undefined
+				:
+					`${base.caip2.namespace}:${base.caip2.reference}`
+			)
+			const catalog = (
+				caip2Key != null ?
+					networkByCaip2[caip2Key]
+				: base.slug != null ?
+					networkBySlug[base.slug]
+				:
+					undefined
+			)
+			const beacon = (
+				base.caip2 == null ?
+					undefined
+				:
+					beaconRestBaseByExecutionChainId[Number(base.caip2.reference)]
+			)
+
+			return {
+				...base,
+				...(base.name == null && catalog != null && { name: catalog.name }),
+				...(base.namespace == null && catalog != null && { namespace: catalog.namespace }),
+				...(base.environment == null && catalog != null && { environment: catalog.environment }),
+				...(base.slug == null && catalog != null && { slug: catalog.slug }),
+				...(base.executionModels == null && catalog != null && {
+					executionModels: {
+						values: catalog.executionModels,
+					},
+				}),
+				...(base.ledgerModels == null && catalog != null && {
+					ledgerModels: {
+						values: catalog.ledgerModels,
+					},
+				}),
+				...(base.consensusProtocol == null && beacon != null && {
+					consensusProtocol: beacon.consensusProtocol,
+				}),
+				...(base.consensusEndpoints == null && beacon != null && {
+					consensusEndpoints: {
+						values: [
+							{
+								restBaseUrl: beacon.restBaseUrl,
+								consensusProtocol: beacon.consensusProtocol,
+							},
+						],
+					},
+				}),
+			}
+		})()
+	)
 	const network = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -56,12 +111,7 @@
 			namespace: true,
 			ledgerModels: true,
 			executionModels: true,
-			$networkStack: true,
 			environment: true,
-			$icon: true,
-			$$nativeAssets: true,
-			$$blockExplorerUrls: true,
-			$$faucetUrls: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [pendingEntity.caip2 == null ? '' : String((`${(pendingEntity.caip2).namespace}:${(pendingEntity.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'Network')
@@ -162,11 +212,46 @@
 	import BlockheadLightningInvoicesView from '$/views/BlockheadLightningInvoicesView.svelte'
 	import BlockheadLightningPaymentsView from '$/views/BlockheadLightningPaymentsView.svelte'
 	import BlockheadLightningNodeStatesView from '$/views/BlockheadLightningNodeStatesView.svelte'
+	import CardanoNetwork_TimestampsView from '$/views/CardanoNetwork_TimestampsView.svelte'
+	import CardanoBlocksView from '$/views/CardanoBlocksView.svelte'
+	import CardanoTransactionsView from '$/views/CardanoTransactionsView.svelte'
+	import CardanoAddressesView from '$/views/CardanoAddressesView.svelte'
+	import CardanoStakeCredentialsView from '$/views/CardanoStakeCredentialsView.svelte'
+	import CardanoStakePoolsView from '$/views/CardanoStakePoolsView.svelte'
+	import CardanoDRepsView from '$/views/CardanoDRepsView.svelte'
+	import CardanoGovernanceProposalsView from '$/views/CardanoGovernanceProposalsView.svelte'
+	import CardanoConstitution_EpochsView from '$/views/CardanoConstitution_EpochsView.svelte'
+	import CardanoCommittee_EpochsView from '$/views/CardanoCommittee_EpochsView.svelte'
+	import CardanoNativeAssetsView from '$/views/CardanoNativeAssetsView.svelte'
+	import CardanoProtocolParameters_EpochsView from '$/views/CardanoProtocolParameters_EpochsView.svelte'
 	import TronNetwork_TimestampsView from '$/views/TronNetwork_TimestampsView.svelte'
 	import TronBlocksView from '$/views/TronBlocksView.svelte'
 	import TronWitnessesView from '$/views/TronWitnessesView.svelte'
-	import TronTokensView from '$/views/TronTokensView.svelte'
-	import TronTokenTransfersView from '$/views/TronTokenTransfersView.svelte'
+	import TonNetwork_TimestampsView from '$/views/TonNetwork_TimestampsView.svelte'
+	import TonWorkchainsView from '$/views/TonWorkchainsView.svelte'
+	import TonBlocksView from '$/views/TonBlocksView.svelte'
+	import TonTransactionsView from '$/views/TonTransactionsView.svelte'
+	import TonTracesView from '$/views/TonTracesView.svelte'
+	import TonAccountsView from '$/views/TonAccountsView.svelte'
+	import TonContractsView from '$/views/TonContractsView.svelte'
+	import TonMessagesView from '$/views/TonMessagesView.svelte'
+	import TonJettonsView from '$/views/TonJettonsView.svelte'
+	import TonNftCollectionsView from '$/views/TonNftCollectionsView.svelte'
+	import TonNftItemsView from '$/views/TonNftItemsView.svelte'
+	import HederaNetwork_TimestampsView from '$/views/HederaNetwork_TimestampsView.svelte'
+	import HederaBlocksView from '$/views/HederaBlocksView.svelte'
+	import HederaTransactionsView from '$/views/HederaTransactionsView.svelte'
+	import HederaAccountsView from '$/views/HederaAccountsView.svelte'
+	import HederaTokensView from '$/views/HederaTokensView.svelte'
+	import HederaNftsView from '$/views/HederaNftsView.svelte'
+	import HederaContractsView from '$/views/HederaContractsView.svelte'
+	import HederaTopicsView from '$/views/HederaTopicsView.svelte'
+	import HederaSchedulesView from '$/views/HederaSchedulesView.svelte'
+	import HederaNodesView from '$/views/HederaNodesView.svelte'
+	import HederaNetworkFee_TimestampsView from '$/views/HederaNetworkFee_TimestampsView.svelte'
+	import HederaNetworkExchangeRate_TimestampsView from '$/views/HederaNetworkExchangeRate_TimestampsView.svelte'
+	import HederaNetworkStake_TimestampsView from '$/views/HederaNetworkStake_TimestampsView.svelte'
+	import HederaNetworkSupply_TimestampsView from '$/views/HederaNetworkSupply_TimestampsView.svelte'
 	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
 	import HyperliquidBlocksView from '$/views/HyperliquidBlocksView.svelte'
 	import HyperliquidTransactionsView from '$/views/HyperliquidTransactionsView.svelte'
@@ -175,7 +260,6 @@
 	import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
 	import HyperliquidSpotPairsView from '$/views/HyperliquidSpotPairsView.svelte'
 	import HyperliquidVaultsView from '$/views/HyperliquidVaultsView.svelte'
-	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -203,15 +287,7 @@
 			{/snippet}
 
 			{#snippet children(entity)}
-				{@const reference = entity.$icon}
-				{#if reference?.[EntityMetaKey.Selector] !== undefined}
-					<MediaView
-						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
-						prefetched={reference}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/if}
+				<IconComponent />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -260,6 +336,7 @@
 				resource={selection.Evm}
 			>
 				{#snippet Applicable(projection)}
+					{#if pendingEntity.executionModels !== undefined && pendingEntity.executionModels.values.includes('Evm')}
 					<div>
 						<dt>Upgrade</dt>
 						<dd>
@@ -295,9 +372,12 @@
 												})
 											}
 											href={
-												(ethereumNetworkUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.slug !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrade/[upgradeSlug=stringSegment]', {
-													network: String(ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.slug ?? ''),
+												(ethereumNetworkUpgrade[EntityMetaKey.Selector].slug !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrade/[upgradeSlug=stringSegment]', {
 													upgradeSlug: String(ethereumNetworkUpgrade[EntityMetaKey.Selector].slug ?? ''),
+													network: String(caip2StringFromValue(ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2) ?? ''),
+												}) : ethereumNetworkUpgrade[EntityMetaKey.Selector].slug !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrade/[upgradeSlug=stringSegment]', {
+													upgradeSlug: String(ethereumNetworkUpgrade[EntityMetaKey.Selector].slug ?? ''),
+													network: String(ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.slug ?? ''),
 												}) : undefined)
 											}
 											prefetched={{ ...ethereumNetworkUpgradeSelector, ...ethereumNetworkUpgrade }}
@@ -309,6 +389,78 @@
 							</ResourceBoundary>
 						</dd>
 					</div>
+					{:else if pendingEntity.executionModels === undefined}
+						<ResourceBoundary
+							resource={
+								selection({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										executionModels: true,
+									},
+								})
+							}
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{#if resolvedEntity.executionModels.values.includes('Evm')}
+									<div>
+										<dt>Upgrade</dt>
+										<dd>
+											<ResourceBoundary
+												resource={
+													projection.$$upgrades({
+														sources: [
+															Source.Constants_Internal,
+														],
+														fields: {
+															name: true,
+															activationBlock: true,
+														},
+														limit: 1,
+														orderBy: [
+															[({ fieldRow }) => fieldRow[EntityMetaKey.Value].activationBlock ?? Number.NEGATIVE_INFINITY, 'desc'],
+														],
+													})
+												}
+											>
+												{#snippet Pending()}{/snippet}
+
+												{#snippet children(ethereumNetworkUpgrades)}
+													{@const ethereumNetworkUpgrade = ethereumNetworkUpgrades.values[0]}
+													{#if ethereumNetworkUpgrade != null}
+														{@const ethereumNetworkUpgradeSelector = ethereumNetworkUpgrade[EntityMetaKey.Selector]}
+														<EthereumNetworkUpgradeView
+															selection={
+																select(EntityType.EthereumNetworkUpgrade, ethereumNetworkUpgradeSelector, {
+																	sources: [
+																		Source.Constants_Internal,
+																	],
+																})
+															}
+															href={
+																(ethereumNetworkUpgrade[EntityMetaKey.Selector].slug !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrade/[upgradeSlug=stringSegment]', {
+																	upgradeSlug: String(ethereumNetworkUpgrade[EntityMetaKey.Selector].slug ?? ''),
+																	network: String(caip2StringFromValue(ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2) ?? ''),
+																}) : ethereumNetworkUpgrade[EntityMetaKey.Selector].slug !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrade/[upgradeSlug=stringSegment]', {
+																	upgradeSlug: String(ethereumNetworkUpgrade[EntityMetaKey.Selector].slug ?? ''),
+																	network: String(ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.slug ?? ''),
+																}) : undefined)
+															}
+															prefetched={{ ...ethereumNetworkUpgradeSelector, ...ethereumNetworkUpgrade }}
+															layout={EntityLayout.Value}
+															open={false}
+														/>
+													{/if}
+												{/snippet}
+											</ResourceBoundary>
+										</dd>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
 				{/snippet}
 			</ProjectionBoundary>
 
@@ -316,6 +468,7 @@
 				resource={selection.Evm}
 			>
 				{#snippet Applicable(projection)}
+					{#if pendingEntity.executionModels !== undefined && pendingEntity.executionModels.values.includes('Evm')}
 					<div>
 						<dt>Block</dt>
 						<dd>
@@ -348,9 +501,12 @@
 												})
 											}
 											href={
-												(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-													network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+												(evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 													blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+													network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
+												}) : evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+													blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+													network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
 												}) : undefined)
 											}
 											prefetched={{ ...evmBlockSelector, ...evmBlock }}
@@ -362,6 +518,75 @@
 							</ResourceBoundary>
 						</dd>
 					</div>
+					{:else if pendingEntity.executionModels === undefined}
+						<ResourceBoundary
+							resource={
+								selection({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										executionModels: true,
+									},
+								})
+							}
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{#if resolvedEntity.executionModels.values.includes('Evm')}
+									<div>
+										<dt>Block</dt>
+										<dd>
+											<ResourceBoundary
+												resource={
+													projection.$$blocks({
+														sources: [
+															Source.Voltaire_JsonRpc,
+														],
+														fields: {
+															blockNumber: true,
+														},
+														limit: 1,
+														orderBy: [
+															[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
+														],
+													})
+												}
+											>
+												{#snippet children(evmBlocks)}
+													{@const evmBlock = evmBlocks.values[0]}
+													{#if evmBlock != null}
+														{@const evmBlockSelector = evmBlock[EntityMetaKey.Selector]}
+														<EvmBlockView
+															selection={
+																select(EntityType.EvmBlock, evmBlockSelector, {
+																	sources: [
+																		Source.Voltaire_JsonRpc,
+																	],
+																})
+															}
+															href={
+																(evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+																	blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+																	network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
+																}) : evmBlock[EntityMetaKey.Selector].blockNumber !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+																	blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
+																	network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
+																}) : undefined)
+															}
+															prefetched={{ ...evmBlockSelector, ...evmBlock }}
+															layout={EntityLayout.Value}
+															open={false}
+														/>
+													{/if}
+												{/snippet}
+											</ResourceBoundary>
+										</dd>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
 				{/snippet}
 			</ProjectionBoundary>
 
@@ -369,6 +594,7 @@
 				resource={selection.Evm}
 			>
 				{#snippet Applicable(projection)}
+					{#if pendingEntity.executionModels !== undefined && pendingEntity.executionModels.values.includes('Evm')}
 					<div>
 						<dt>Epoch</dt>
 						<dd>
@@ -403,9 +629,12 @@
 												})
 											}
 											href={
-												(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-													network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+												(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
 													epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+													network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+												}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+													epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+													network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
 												}) : undefined)
 											}
 											prefetched={{ ...beaconEpochSelector, ...beaconEpoch }}
@@ -417,6 +646,77 @@
 							</ResourceBoundary>
 						</dd>
 					</div>
+					{:else if pendingEntity.executionModels === undefined}
+						<ResourceBoundary
+							resource={
+								selection({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										executionModels: true,
+									},
+								})
+							}
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{#if resolvedEntity.executionModels.values.includes('Evm')}
+									<div>
+										<dt>Epoch</dt>
+										<dd>
+											<ResourceBoundary
+												resource={
+													projection.$$beaconEpochs({
+														sources: [
+															Source.Beacon_Rest,
+														],
+														fields: {
+															epoch: true,
+															startSlot: true,
+															endSlot: true,
+														},
+														limit: 1,
+														orderBy: [
+															[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].epoch ?? Number.NEGATIVE_INFINITY, 'desc'],
+														],
+													})
+												}
+											>
+												{#snippet children(beaconEpochs)}
+													{@const beaconEpoch = beaconEpochs.values[0]}
+													{#if beaconEpoch != null}
+														{@const beaconEpochSelector = beaconEpoch[EntityMetaKey.Selector]}
+														<BeaconEpochView
+															selection={
+																select(EntityType.BeaconEpoch, beaconEpochSelector, {
+																	sources: [
+																		Source.Beacon_Rest,
+																	],
+																})
+															}
+															href={
+																(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+																	epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+																	network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+																}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+																	epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+																	network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+																}) : undefined)
+															}
+															prefetched={{ ...beaconEpochSelector, ...beaconEpoch }}
+															layout={EntityLayout.Value}
+															open={false}
+														/>
+													{/if}
+												{/snippet}
+											</ResourceBoundary>
+										</dd>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
 				{/snippet}
 			</ProjectionBoundary>
 
@@ -424,6 +724,7 @@
 				resource={selection.Evm}
 			>
 				{#snippet Applicable(projection)}
+					{#if pendingEntity.executionModels !== undefined && pendingEntity.executionModels.values.includes('Evm')}
 					<div>
 						<dt>Slot</dt>
 						<dd>
@@ -457,9 +758,12 @@
 												})
 											}
 											href={
-												(beaconSlot[EntityMetaKey.Selector].$network !== undefined && beaconSlot[EntityMetaKey.Selector].$network.slug !== undefined && beaconSlot[EntityMetaKey.Selector].slot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-													network: String(beaconSlot[EntityMetaKey.Selector].$network.slug ?? ''),
+												(beaconSlot[EntityMetaKey.Selector].slot !== undefined && beaconSlot[EntityMetaKey.Selector].$network !== undefined && beaconSlot[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
 													slot: String(beaconSlot[EntityMetaKey.Selector].slot ?? ''),
+													network: String(caip2StringFromValue(beaconSlot[EntityMetaKey.Selector].$network.caip2) ?? ''),
+												}) : beaconSlot[EntityMetaKey.Selector].slot !== undefined && beaconSlot[EntityMetaKey.Selector].$network !== undefined && beaconSlot[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+													slot: String(beaconSlot[EntityMetaKey.Selector].slot ?? ''),
+													network: String(beaconSlot[EntityMetaKey.Selector].$network.slug ?? ''),
 												}) : undefined)
 											}
 											prefetched={{ ...beaconSlotSelector, ...beaconSlot }}
@@ -471,6 +775,76 @@
 							</ResourceBoundary>
 						</dd>
 					</div>
+					{:else if pendingEntity.executionModels === undefined}
+						<ResourceBoundary
+							resource={
+								selection({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										executionModels: true,
+									},
+								})
+							}
+						>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{#if resolvedEntity.executionModels.values.includes('Evm')}
+									<div>
+										<dt>Slot</dt>
+										<dd>
+											<ResourceBoundary
+												resource={
+													projection.$$beaconSlots({
+														sources: [
+															Source.Beacon_Rest,
+														],
+														fields: {
+															slot: true,
+															epoch: true,
+														},
+														limit: 1,
+														orderBy: [
+															[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].slot ?? Number.NEGATIVE_INFINITY, 'desc'],
+														],
+													})
+												}
+											>
+												{#snippet children(beaconSlots)}
+													{@const beaconSlot = beaconSlots.values[0]}
+													{#if beaconSlot != null}
+														{@const beaconSlotSelector = beaconSlot[EntityMetaKey.Selector]}
+														<BeaconSlotView
+															selection={
+																select(EntityType.BeaconSlot, beaconSlotSelector, {
+																	sources: [
+																		Source.Beacon_Rest,
+																	],
+																})
+															}
+															href={
+																(beaconSlot[EntityMetaKey.Selector].slot !== undefined && beaconSlot[EntityMetaKey.Selector].$network !== undefined && beaconSlot[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+																	slot: String(beaconSlot[EntityMetaKey.Selector].slot ?? ''),
+																	network: String(caip2StringFromValue(beaconSlot[EntityMetaKey.Selector].$network.caip2) ?? ''),
+																}) : beaconSlot[EntityMetaKey.Selector].slot !== undefined && beaconSlot[EntityMetaKey.Selector].$network !== undefined && beaconSlot[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+																	slot: String(beaconSlot[EntityMetaKey.Selector].slot ?? ''),
+																	network: String(beaconSlot[EntityMetaKey.Selector].$network.slug ?? ''),
+																}) : undefined)
+															}
+															prefetched={{ ...beaconSlotSelector, ...beaconSlot }}
+															layout={EntityLayout.Value}
+															open={false}
+														/>
+													{/if}
+												{/snippet}
+											</ResourceBoundary>
+										</dd>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
 				{/snippet}
 			</ProjectionBoundary>
 		</dl>
@@ -621,6 +995,11 @@
 								<NetworkStackView
 									selection={select(EntityType.NetworkStack, networkStack[EntityMetaKey.Selector])}
 									prefetched={networkStack}
+									href={
+										(networkStack[EntityMetaKey.Selector].networkStackId !== undefined ? resolve('/network-stack/[networkStackId=stringSegment]', {
+											networkStackId: String(networkStack[EntityMetaKey.Selector].networkStackId ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -892,6 +1271,58 @@
 							{/snippet}
 						</ResourceBoundary>
 					{/if}
+				{/snippet}
+			</ProjectionBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ProjectionBoundary
+				resource={selection.Hedera}
+			>
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={
+							projection.shard({
+								fields: {
+									shard: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(shard)}
+							{#if shard !== undefined && shard !== null}
+								<div>
+									<dt>Shard</dt>
+									<dd>
+										<NumberValue value={Number(shard)} />
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={
+							projection.realm({
+								fields: {
+									realm: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(realm)}
+							{#if realm !== undefined && realm !== null}
+								<div>
+									<dt>Realm</dt>
+									<dd>
+										<NumberValue value={Number(realm)} />
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 			</ProjectionBoundary>
 		</dl>
@@ -1561,9 +1992,6 @@
 										sources: [
 											Source.Constants_Internal,
 										],
-										fields: {
-											precompileName: true,
-										},
 										limit: 64,
 										count: true,
 									})
@@ -1743,14 +2171,12 @@
 													sources: [
 														Source.Constants_Internal,
 													],
-													fields: {
-														name: true,
-														symbol: true,
-													},
 													count: true,
 												})
 											}
 										>
+											{#snippet Pending()}{/snippet}
+
 											{#snippet children(coin)}
 												{#if coin != null && coin[EntityMetaKey.Selector] != null}
 													<CoinView
@@ -1763,7 +2189,7 @@
 																coinId: String(coin[EntityMetaKey.Selector].coinId ?? ''),
 															}) : undefined)
 														}
-														layout={EntityLayout.Summary}
+														layout={EntityLayout.SummaryInline}
 														open={false}
 													/>
 												{/if}
@@ -1778,15 +2204,12 @@
 													sources: [
 														Source.Constants_Internal,
 													],
-													fields: {
-														symbol: true,
-														name: true,
-														$network: true,
-													},
 													count: true,
 												})
 											}
 										>
+											{#snippet Pending()}{/snippet}
+
 											{#snippet children(evmCoinInstance)}
 												{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 													<EvmCoinInstanceView
@@ -1795,15 +2218,15 @@
 					] })}
 														prefetched={evmCoinInstance}
 														href={
-															(evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+															(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 																chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 																coinInstanceSlug: String('native' ?? ''),
-															}) : evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+															}) : evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 																coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
 																chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
 															}) : undefined)
 														}
-														layout={EntityLayout.Summary}
+														layout={EntityLayout.SummaryInline}
 														open={false}
 													/>
 												{/if}
@@ -2044,6 +2467,8 @@
 												})
 											}
 										>
+											{#snippet Pending()}{/snippet}
+
 											{#snippet children(network)}
 												{#if network == null || network[EntityMetaKey.Selector] == null}
 													<p data-text="muted">Parent network is not listed for this network.</p>
@@ -2081,6 +2506,8 @@
 												})
 											}
 										>
+											{#snippet Pending()}{/snippet}
+
 											{#snippet children(evmRollup)}
 												{#if evmRollup == null || evmRollup[EntityMetaKey.Selector] == null}
 													<p data-text="muted">Rollup is not listed for this network.</p>
@@ -2091,9 +2518,12 @@
 					] })}
 														prefetched={evmRollup}
 														href={
-															(evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.slug !== undefined && evmRollup[EntityMetaKey.Selector].projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-																network: String(evmRollup[EntityMetaKey.Selector].$network.slug ?? ''),
+															(evmRollup[EntityMetaKey.Selector].projectId !== undefined && evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
 																projectId: String(evmRollup[EntityMetaKey.Selector].projectId ?? ''),
+																network: String(caip2StringFromValue(evmRollup[EntityMetaKey.Selector].$network.caip2) ?? ''),
+															}) : evmRollup[EntityMetaKey.Selector].projectId !== undefined && evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+																projectId: String(evmRollup[EntityMetaKey.Selector].projectId ?? ''),
+																network: String(evmRollup[EntityMetaKey.Selector].$network.slug ?? ''),
 															}) : undefined)
 														}
 														layout={EntityLayout.Summary}
@@ -2158,6 +2588,8 @@
 												})
 											}
 										>
+											{#snippet Pending()}{/snippet}
+
 											{#snippet children(network)}
 												{#if network == null || network[EntityMetaKey.Selector] == null}
 													<p data-text="muted">Mainnet is not listed for this network.</p>
@@ -3869,7 +4301,13 @@
 
 						{#snippet SectionFilecoinResourcesEndpoints({ id, label, open })}
 							<ResourceBoundary
-								resource={projection.rpcEndpoints}
+								resource={
+									projection.rpcEndpoints({
+										sources: [
+											Source.Lotus_JsonRpc,
+										],
+									})
+								}
 							>
 								{#snippet children(rpcEndpoints)}
 									{#if rpcEndpoints.length > 0}
@@ -4070,7 +4508,13 @@
 
 						{#snippet SectionNearResourcesEndpoints({ id, label, open })}
 							<ResourceBoundary
-								resource={projection.rpcEndpoints}
+								resource={
+									projection.rpcEndpoints({
+										sources: [
+											Source.Constants_Internal,
+										],
+									})
+								}
 							>
 								{#snippet children(rpcEndpoints)}
 									{#if rpcEndpoints.length > 0}
@@ -4222,7 +4666,13 @@
 
 						{#snippet SectionMoneroResourcesEndpoints({ id, label, open })}
 							<ResourceBoundary
-								resource={projection.rpcEndpoints}
+								resource={
+									projection.rpcEndpoints({
+										sources: [
+											Source.MoneroDaemonRpc_JsonRpc,
+										],
+									})
+								}
 							>
 								{#snippet children(rpcEndpoints)}
 									{#if rpcEndpoints.length > 0}
@@ -4464,6 +4914,425 @@
 			</ProjectionBoundary>
 
 			<ProjectionBoundary
+				resource={selection.Cardano}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-cardano-chain-activity'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'cardano-chain-observations',
+									label: 'Observations',
+								},
+								{
+									id: 'cardano-chain-blocks',
+									label: 'Blocks',
+								},
+								{
+									id: 'cardano-chain-transactions',
+									label: 'Transactions',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-chain-activity'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Chain activity</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionCardanoChainObservations({ id, label, open })}
+							<CardanoNetwork_TimestampsView
+								selection={
+									projection.$$timestamps({
+										sources: [
+											Source.Blockfrost_Rest,
+										],
+										limit: 16,
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCardanoChainBlocks({ id, label, open })}
+							<CardanoBlocksView
+								selection={
+									projection.$$blocks({
+										sources: [
+											Source.Blockfrost_Rest,
+										],
+										limit: 16,
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCardanoChainTransactions({ id, label, open })}
+							<CardanoTransactionsView
+								selection={
+									projection.$$transactions({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Cardano}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-cardano-stake-delegation'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'cardano-stake-addresses',
+									label: 'Addresses',
+								},
+								{
+									id: 'cardano-stake-credentials',
+									label: 'Stake credentials',
+								},
+								{
+									id: 'cardano-stake-pools',
+									label: 'Stake pools',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-stake-delegation'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Stake and delegation</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionCardanoStakeAddresses({ id, label, open })}
+							<CardanoAddressesView
+								selection={
+									projection.$$addresses({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCardanoStakeCredentials({ id, label, open })}
+							<CardanoStakeCredentialsView
+								selection={
+									projection.$$stakeCredentials({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCardanoStakePools({ id, label, open })}
+							<CardanoStakePoolsView
+								selection={
+									projection.$$stakePools({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Cardano}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-cardano-governance'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'cardano-governance-dreps',
+									label: 'DReps',
+								},
+								{
+									id: 'cardano-governance-proposals',
+									label: 'Proposals',
+								},
+								{
+									id: 'cardano-governance-constitution',
+									label: 'Constitution epochs',
+								},
+								{
+									id: 'cardano-governance-committee',
+									label: 'Committee epochs',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-governance'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Governance</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionCardanoGovernanceDreps({ id, label, open })}
+							<CardanoDRepsView
+								selection={
+									projection.$$dReps({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCardanoGovernanceProposals({ id, label, open })}
+							<CardanoGovernanceProposalsView
+								selection={
+									projection.$$governanceProposals({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCardanoGovernanceConstitution({ id, label, open })}
+							<CardanoConstitution_EpochsView
+								selection={
+									projection.$$constitutionEpochs({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCardanoGovernanceCommittee({ id, label, open })}
+							<CardanoCommittee_EpochsView
+								selection={
+									projection.$$committeeEpochs({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Cardano}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-cardano-assets-protocol'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'cardano-assets-native',
+									label: 'Native assets',
+								},
+								{
+									id: 'cardano-protocol-parameters',
+									label: 'Protocol parameters',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-assets'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Assets and protocol</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionCardanoAssetsNative({ id, label, open })}
+							<CardanoNativeAssetsView
+								selection={
+									projection.$$assets({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCardanoProtocolParameters({ id, label, open })}
+							<CardanoProtocolParameters_EpochsView
+								selection={
+									projection.$$protocolParameterEpochs({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Cardano}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-cardano-resources'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'cardano-resources-endpoints',
+									label: 'Endpoints',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-resources'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Resources</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionCardanoResourcesEndpoints({ id, label, open })}
+							<ResourceBoundary
+								resource={
+									projection.restEndpoints({
+										sources: [
+											Source.Blockfrost_Rest,
+										],
+									})
+								}
+							>
+								{#snippet children(restEndpoints)}
+									{#if restEndpoints.length > 0}
+										<ul data-column="gap-2">
+											{#each restEndpoints as rESTEndpoint, rESTEndpointIndex (rESTEndpointIndex)}
+												{@const urlValue = rESTEndpoint.url}
+												{@const providerNameValue = rESTEndpoint.providerName}
+												{@const transportTypeValue = rESTEndpoint.transportType}
+												<li>
+													<dl data-column-item="center">
+														<div>
+															<dt>REST</dt>
+															<dd>
+																{#if urlValue !== undefined && urlValue !== null}
+																	{String((urlValue) ?? '')}
+																{/if}
+															</dd>
+														</div>
+
+														<div>
+															<dt>Provider</dt>
+															<dd>
+																{#if providerNameValue !== undefined && providerNameValue !== null}
+																	{String((providerNameValue) ?? '')}
+																{/if}
+															</dd>
+														</div>
+
+														<div>
+															<dt>Transport</dt>
+															<dd>
+																{#if transportTypeValue !== undefined && transportTypeValue !== null}
+																	{String((transportTypeValue) ?? '')}
+																{/if}
+															</dd>
+														</div>
+													</dl>
+												</li>
+											{/each}
+										</ul>
+									{:else}
+										<p data-text="muted">REST endpoints are not listed for this network.</p>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
 				resource={selection.Tron}
 			>
 				{#snippet Applicable(projection)}
@@ -4522,8 +5391,6 @@
 									projection.$$blocks({
 										sources: [
 											Source.TronGrid_Rest,
-											Source.TronFullNode_Rest,
-											Source.TronSolidityNode_Rest,
 										],
 										limit: 16,
 										count: true,
@@ -4540,77 +5407,6 @@
 							<TronWitnessesView
 								selection={
 									projection.$$witnesses({
-										sources: [
-											Source.TronGrid_Rest,
-										],
-										limit: 16,
-										count: true,
-									})
-								}
-								CollapsibleProps={{ canToggle: false }}
-								open={open}
-								title={label}
-								id={`${id}-list`}
-							/>
-						{/snippet}
-
-					</CollapsibleTabs>
-				{/snippet}
-			</ProjectionBoundary>
-
-			<ProjectionBoundary
-				resource={selection.Tron}
-			>
-				{#snippet Applicable(projection)}
-					<CollapsibleTabs
-						id={viewDomId + '-carousel-tron-assets'}
-						sectionIdPrefix={viewDomId}
-						sections={
-							[
-								{
-									id: 'tron-assets-tokens',
-									label: 'Tokens',
-								},
-								{
-									id: 'tron-assets-transfers',
-									label: 'Token transfers',
-								},
-							]
-						}
-						data-card
-						class='network-view-collapsible-assets'
-						scrollContainerProps={{
-							'data-row': 'start align-start',
-						}}
-					>
-						{#snippet Summary({})}
-							<header data-row-item="flexible" data-row="wrap gap-4">
-								<HeadingComponent>Assets</HeadingComponent>
-							</header>
-						{/snippet}
-
-						{#snippet SectionTronAssetsTokens({ id, label, open })}
-							<TronTokensView
-								selection={
-									projection.$$tokens({
-										sources: [
-											Source.TronGrid_Rest,
-										],
-										limit: 16,
-										count: true,
-									})
-								}
-								CollapsibleProps={{ canToggle: false }}
-								open={open}
-								title={label}
-								id={`${id}-list`}
-							/>
-						{/snippet}
-
-						{#snippet SectionTronAssetsTransfers({ id, label, open })}
-							<TronTokenTransfersView
-								selection={
-									projection.$$tokenTransfers({
 										sources: [
 											Source.TronGrid_Rest,
 										],
@@ -4658,7 +5454,13 @@
 
 						{#snippet SectionTronResourcesEndpoints({ id, label, open })}
 							<ResourceBoundary
-								resource={projection.restEndpoints}
+								resource={
+									projection.restEndpoints({
+										sources: [
+											Source.TronGrid_Rest,
+										],
+									})
+								}
 							>
 								{#snippet children(restEndpoints)}
 									{#if restEndpoints.length > 0}
@@ -4704,6 +5506,670 @@
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Ton}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-ton-chain-activity'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'ton-chain-observations',
+									label: 'Observations',
+								},
+								{
+									id: 'ton-chain-workchains',
+									label: 'Workchains',
+								},
+								{
+									id: 'ton-chain-blocks',
+									label: 'Blocks',
+								},
+								{
+									id: 'ton-chain-transactions',
+									label: 'Transactions',
+								},
+								{
+									id: 'ton-chain-traces',
+									label: 'Traces',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-chain-activity'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Chain activity</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionTonChainObservations({ id, label, open })}
+							<TonNetwork_TimestampsView
+								selection={
+									projection.$$timestamps({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON network observations.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionTonChainWorkchains({ id, label, open })}
+							<TonWorkchainsView
+								selection={
+									projection.$$workchains({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON workchains.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionTonChainBlocks({ id, label, open })}
+							<TonBlocksView
+								selection={
+									projection.$$blocks({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON blocks.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionTonChainTransactions({ id, label, open })}
+							<TonTransactionsView
+								selection={
+									projection.$$transactions({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON transactions.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionTonChainTraces({ id, label, open })}
+							<TonTracesView
+								selection={
+									projection.$$traces({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON traces.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Ton}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-ton-accounts-contracts'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'ton-accounts',
+									label: 'Accounts',
+								},
+								{
+									id: 'ton-contracts',
+									label: 'Contracts',
+								},
+								{
+									id: 'ton-messages',
+									label: 'Messages',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-accounts-contracts'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Accounts and contracts</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionTonAccounts({ id, label, open })}
+							<TonAccountsView
+								selection={
+									projection.$$accounts({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON accounts.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionTonContracts({ id, label, open })}
+							<TonContractsView
+								selection={
+									projection.$$contracts({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON contracts.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionTonMessages({ id, label, open })}
+							<TonMessagesView
+								selection={
+									projection.$$messages({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON messages.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Ton}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-ton-assets'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'ton-jettons',
+									label: 'Jettons',
+								},
+								{
+									id: 'ton-nft-collections',
+									label: 'NFT collections',
+								},
+								{
+									id: 'ton-nft-items',
+									label: 'NFT items',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-assets'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Jettons and NFTs</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionTonJettons({ id, label, open })}
+							<TonJettonsView
+								selection={
+									projection.$$jettons({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON jettons.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionTonNftCollections({ id, label, open })}
+							<TonNftCollectionsView
+								selection={
+									projection.$$nftCollections({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON NFT collections.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionTonNftItems({ id, label, open })}
+							<TonNftItemsView
+								selection={
+									projection.$$nftItems({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No TON NFT items.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Hedera}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-hedera-chain-activity'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'hedera-chain-observations',
+									label: 'Observations',
+								},
+								{
+									id: 'hedera-chain-blocks',
+									label: 'Blocks',
+								},
+								{
+									id: 'hedera-chain-transactions',
+									label: 'Transactions',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-chain-activity'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Chain activity</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionHederaChainObservations({ id, label, open })}
+							<HederaNetwork_TimestampsView
+								selection={
+									projection.$$timestamps({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera network observations.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaChainBlocks({ id, label, open })}
+							<HederaBlocksView
+								selection={
+									projection.$$blocks({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera blocks.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaChainTransactions({ id, label, open })}
+							<HederaTransactionsView
+								selection={
+									projection.$$transactions({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera transactions.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Hedera}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-hedera-accounts-tokens'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'hedera-accounts',
+									label: 'Accounts',
+								},
+								{
+									id: 'hedera-tokens',
+									label: 'Tokens',
+								},
+								{
+									id: 'hedera-nfts',
+									label: 'NFTs',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-accounts-tokens'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Accounts and tokens</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionHederaAccounts({ id, label, open })}
+							<HederaAccountsView
+								selection={
+									projection.$$accounts({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera accounts.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaTokens({ id, label, open })}
+							<HederaTokensView
+								selection={
+									projection.$$tokens({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera tokens.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaNfts({ id, label, open })}
+							<HederaNftsView
+								selection={
+									projection.$$nfts({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera NFTs.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Hedera}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-hedera-contracts-messaging'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'hedera-contracts',
+									label: 'Contracts',
+								},
+								{
+									id: 'hedera-topics',
+									label: 'Topics',
+								},
+								{
+									id: 'hedera-schedules',
+									label: 'Schedules',
+								},
+								{
+									id: 'hedera-nodes',
+									label: 'Nodes',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-contracts-messaging'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Contracts and messaging</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionHederaContracts({ id, label, open })}
+							<HederaContractsView
+								selection={
+									projection.$$contracts({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera contracts.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaTopics({ id, label, open })}
+							<HederaTopicsView
+								selection={
+									projection.$$topics({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera topics.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaSchedules({ id, label, open })}
+							<HederaSchedulesView
+								selection={
+									projection.$$schedules({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera schedules.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaNodes({ id, label, open })}
+							<HederaNodesView
+								selection={
+									projection.$$nodes({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera nodes.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Hedera}
+			>
+				{#snippet Applicable(projection)}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-hedera-network-observations'}
+						sectionIdPrefix={viewDomId}
+						sections={
+							[
+								{
+									id: 'hedera-fee-observations',
+									label: 'Fees',
+								},
+								{
+									id: 'hedera-exchange-observations',
+									label: 'Exchange rates',
+								},
+								{
+									id: 'hedera-stake-observations',
+									label: 'Stake',
+								},
+								{
+									id: 'hedera-supply-observations',
+									label: 'Supply',
+								},
+							]
+						}
+						data-card
+						class='network-view-collapsible-network-observations'
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Fees, exchange, stake, and supply</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionHederaFeeObservations({ id, label, open })}
+							<HederaNetworkFee_TimestampsView
+								selection={
+									projection.$$feeTimestamps({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera fee observations.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaExchangeObservations({ id, label, open })}
+							<HederaNetworkExchangeRate_TimestampsView
+								selection={
+									projection.$$exchangeRateTimestamps({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera exchange-rate observations.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaStakeObservations({ id, label, open })}
+							<HederaNetworkStake_TimestampsView
+								selection={
+									projection.$$stakeTimestamps({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera stake observations.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionHederaSupplyObservations({ id, label, open })}
+							<HederaNetworkSupply_TimestampsView
+								selection={
+									projection.$$supplyTimestamps({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No Hedera supply observations.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 					</CollapsibleTabs>

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'UTXO transactions',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.UtxoTransaction>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.UtxoTransaction>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,16 +114,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: utxoTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoTransaction> })}
+				{#snippet Item({ item: utxoTransaction })}
 					{@const utxoTransactionFields = { ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }}
+					{@const selection = select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const utxoTransactionHrefFields = { ...utxoTransaction, ...utxoTransaction[EntityMetaKey.Selector] }}
 					<UtxoTransactionView
-						selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={utxoTransactionFields}
 						href={
-							(utxoTransactionHrefFields.$network !== undefined && utxoTransactionHrefFields.$network.slug !== undefined && utxoTransactionHrefFields.txId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-								network: String(utxoTransactionHrefFields.$network.slug ?? ''),
+							(utxoTransactionHrefFields.txId !== undefined && utxoTransactionHrefFields.$network !== undefined && utxoTransactionHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
 								transactionId: String(utxoTransactionHrefFields.txId ?? ''),
+								network: String(caip2StringFromValue(utxoTransactionHrefFields.$network.caip2) ?? ''),
+							}) : utxoTransactionHrefFields.txId !== undefined && utxoTransactionHrefFields.$network !== undefined && utxoTransactionHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
+								transactionId: String(utxoTransactionHrefFields.txId ?? ''),
+								network: String(utxoTransactionHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

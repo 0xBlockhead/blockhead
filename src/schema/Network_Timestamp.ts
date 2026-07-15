@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 

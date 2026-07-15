@@ -1,6 +1,8 @@
 import { corsFetch, fetchFailedMessage } from '$/lib/http.ts'
-import { defillamaOrigins } from '$/sources/Defillama/index.ts'
-import { coinsBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
+import {
+	coinsBaseUrl,
+	defillamaOrigins,
+} from '$/sources/Defillama/Rest/constants.ts'
 import type {
 	DefillamaOpenApiChartResponse,
 	DefillamaOpenApiCurrentPricesResponse,

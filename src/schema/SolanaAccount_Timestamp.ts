@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -40,6 +41,9 @@ export const SolanaAccount_Timestamp = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
+		],
 	},
 	lamports: {
 		label: 'Lamports',
@@ -47,15 +51,17 @@ export const SolanaAccount_Timestamp = entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
 			Source.Solana_JsonRpc,
 		],
 	},
-	ownerProgramId: {
-		label: 'Owner program ID',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+	$ownerProgram: {
+		label: 'Owner program',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.SolanaProgram,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
 			Source.Solana_JsonRpc,
 		],
 	},
@@ -65,6 +71,7 @@ export const SolanaAccount_Timestamp = entity({
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
 			Source.Solana_JsonRpc,
 		],
 	},
@@ -74,6 +81,7 @@ export const SolanaAccount_Timestamp = entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
 			Source.Solana_JsonRpc,
 		],
 	},
@@ -82,6 +90,9 @@ export const SolanaAccount_Timestamp = entity({
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
+		],
 	},
 	dataEncoding: {
 		label: 'Data encoding',
@@ -89,6 +100,7 @@ export const SolanaAccount_Timestamp = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
 			Source.Solana_JsonRpc,
 		],
 	},

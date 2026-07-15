@@ -295,7 +295,10 @@ export default {
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode_Timestamp,
 			resolve: {
-				[LightningNode_TimestampSelector.NodeTimestampMsSource]: async ({ $node, timestampMs }) => {
+				[LightningNode_TimestampSelector.NodeTimestampMsSource]: async ({ $node, timestampMs, source }) => {
+					if (source !== Source.LightningMempoolSpace_Rest)
+						throw new Error(`LightningMempoolSpace_Rest: unsupported source ${source}`)
+
 					assertLightningNetwork($node.$network)
 					const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
 					return nodeFieldsFromMempoolSpaceNode(

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Finality',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EthereumBeaconFinality_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EthereumBeaconFinality_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: ethereumBeaconFinalityTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EthereumBeaconFinality_Timestamp> })}
+				{#snippet Item({ item: ethereumBeaconFinalityTimestamp })}
 					{@const ethereumBeaconFinalityTimestampFields = { ...ethereumBeaconFinalityTimestamp[EntityMetaKey.Selector], ...ethereumBeaconFinalityTimestamp }}
+					{@const selection = select(EntityType.EthereumBeaconFinality_Timestamp, ethereumBeaconFinalityTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const ethereumBeaconFinalityTimestampHrefFields = { ...ethereumBeaconFinalityTimestamp, ...ethereumBeaconFinalityTimestamp[EntityMetaKey.Selector] }}
 					<EthereumBeaconFinality_TimestampView
-						selection={select(EntityType.EthereumBeaconFinality_Timestamp, ethereumBeaconFinalityTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={ethereumBeaconFinalityTimestampFields}
 						href={
-							(ethereumBeaconFinalityTimestampHrefFields.$network !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.slug !== undefined && ethereumBeaconFinalityTimestampHrefFields.timestampMs !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/finality/[timestampMs=nonNegativeInteger]', {
-								network: String(ethereumBeaconFinalityTimestampHrefFields.$network.slug ?? ''),
+							(ethereumBeaconFinalityTimestampHrefFields.timestampMs !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/finality/[timestampMs=nonNegativeInteger]', {
 								timestampMs: String(ethereumBeaconFinalityTimestampHrefFields.timestampMs ?? ''),
+								network: String(caip2StringFromValue(ethereumBeaconFinalityTimestampHrefFields.$network.caip2) ?? ''),
+							}) : ethereumBeaconFinalityTimestampHrefFields.timestampMs !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/finality/[timestampMs=nonNegativeInteger]', {
+								timestampMs: String(ethereumBeaconFinalityTimestampHrefFields.timestampMs ?? ''),
+								network: String(ethereumBeaconFinalityTimestampHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

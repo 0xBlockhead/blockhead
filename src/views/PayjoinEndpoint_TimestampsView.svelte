@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Payjoin endpoint observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.PayjoinEndpoint_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.PayjoinEndpoint_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,10 +113,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: payjoinEndpointTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PayjoinEndpoint_Timestamp> })}
+				{#snippet Item({ item: payjoinEndpointTimestamp })}
 					{@const payjoinEndpointTimestampFields = { ...payjoinEndpointTimestamp[EntityMetaKey.Selector], ...payjoinEndpointTimestamp }}
+					{@const selection = select(EntityType.PayjoinEndpoint_Timestamp, payjoinEndpointTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<PayjoinEndpoint_TimestampView
-						selection={select(EntityType.PayjoinEndpoint_Timestamp, payjoinEndpointTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={payjoinEndpointTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

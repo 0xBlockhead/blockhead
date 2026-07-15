@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.RedditLink>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.RedditLink>>
+			selection: RegisteredEntityProxyResource<EntityType.RedditLink>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RedditLink>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -69,7 +69,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]', {
+			fullname: String(pendingEntity.fullname ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -302,6 +306,11 @@
 									<RedditSubredditView
 										selection={select(EntityType.RedditSubreddit, redditSubreddit[EntityMetaKey.Selector])}
 										prefetched={redditSubreddit}
+										href={
+											(redditSubreddit[EntityMetaKey.Selector].name !== undefined ? resolve('/reddit/r/[name=stringSegment]', {
+												name: String(redditSubreddit[EntityMetaKey.Selector].name ?? ''),
+											}) : undefined)
+										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>

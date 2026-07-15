@@ -16,6 +16,7 @@ export enum ExecutionEnvironmentId {
 	BitcoinCashScript = 'BitcoinCashScript',
 	ElementsScript = 'ElementsScript',
 	TronTvm = 'TronTvm',
+	Michelson = 'Michelson',
 	ZeroGChainEvm = 'ZeroGChainEvm',
 	ZeroGServingFramework = 'ZeroGServingFramework',
 }
@@ -83,6 +84,10 @@ const executionEnvironments = [
 	{
 		executionEnvironmentId: ExecutionEnvironmentId.TronTvm,
 		label: 'TRON Virtual Machine',
+	},
+	{
+		executionEnvironmentId: ExecutionEnvironmentId.Michelson,
+		label: 'Michelson',
 	},
 	{
 		executionEnvironmentId: ExecutionEnvironmentId.ZeroGChainEvm,

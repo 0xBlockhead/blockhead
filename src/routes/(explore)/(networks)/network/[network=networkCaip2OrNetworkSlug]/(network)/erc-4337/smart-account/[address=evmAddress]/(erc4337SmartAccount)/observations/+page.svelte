@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,6 +41,9 @@
 		title='Smart account observations'
 		selection={
 			select(EntityType.Erc4337SmartAccount, data.selector).$$timestamps({
+				sources: [
+					Source.Blockscout_Rest,
+				],
 				count: true,
 			})
 		}

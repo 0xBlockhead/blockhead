@@ -1,12 +1,14 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export enum AiArtifactSelector {
+	ProviderArtifactId = 'ProviderArtifactId',
 	Digest = 'Digest',
 	OciDigest = 'OciDigest',
 	IpfsCid = 'IpfsCid',
@@ -20,6 +22,18 @@ export const AiArtifact = entity({
 		plural: 'AI artifacts',
 	},
 })({
+	$provider: {
+		label: 'provider',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.AiModelProvider,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	providerArtifactId: {
+		label: 'provider artifact ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	digestAlgorithm: {
 		label: 'digest algorithm',
 		type: EntityFieldType.Primitive,
@@ -118,6 +132,10 @@ export const AiArtifact = entity({
 	},
 })({
 	selectors: {
+		ProviderArtifactId: [
+			'$provider',
+			'providerArtifactId',
+		],
 		Digest: [
 			'digestAlgorithm',
 			'digest',

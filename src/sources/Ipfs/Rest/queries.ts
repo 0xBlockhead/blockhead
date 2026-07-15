@@ -3,7 +3,6 @@ import {
 	ipfsNamespaceForTarget,
 	trimIpfsSlashes,
 } from '$/lib/ipfs.ts'
-import { ipfsBindings } from '$/sources/Ipfs/bindings.ts'
 import type {
 	IpfsBrowseResult,
 	IpfsNamespace,
@@ -11,7 +10,23 @@ import type {
 
 const gatewayUrlLastSegment = /([^/]+)$/
 
-const ipfsGatewayEndpoints = ipfsBindings[0].endpoints
+const ipfsGatewayEndpoints = [
+	{
+		locator: 'https://ipfs.io',
+		origin: 'https://ipfs.io',
+		corsEnabled: false,
+	},
+	{
+		locator: 'https://dweb.link',
+		origin: 'https://dweb.link',
+		corsEnabled: true,
+	},
+	{
+		locator: 'https://cloudflare-ipfs.com',
+		origin: 'https://cloudflare-ipfs.com',
+		corsEnabled: false,
+	},
+] as const
 
 const ipfsGatewayOrigins = ipfsGatewayEndpoints.flatMap((endpoint) => (
 	[{

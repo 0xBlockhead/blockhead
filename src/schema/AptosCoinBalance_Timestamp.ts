@@ -1,18 +1,20 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum AptosCoinBalance_TimestampSelector {
-	AccountAssetTypeLedgerVersionSource = 'AccountAssetTypeLedgerVersionSource',
+	AccountStorageIdLedgerVersionSource = 'AccountStorageIdLedgerVersionSource',
 }
 export const AptosCoinBalance_Timestamp = entity({
 	entityType: EntityType.AptosCoinBalance_Timestamp,
 	labels: {
-		singular: 'aptos coin balance timestamp',
-		plural: 'aptos coin balance observations',
+		singular: 'current Aptos coin balance observation',
+		plural: 'current Aptos coin balance observations',
 	},
+	description: 'A current balance reported by the Aptos Indexer, anchored to the row\'s last transaction version. This surface does not imply retained balance history.',
 })({
 	$account: {
 		label: 'account',
@@ -26,8 +28,23 @@ export const AptosCoinBalance_Timestamp = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	storageId: {
+		label: 'storage ID',
+		description: 'The primary key of the current_fungible_asset_balances row supplied by the Aptos Indexer.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	isPrimary: {
+		label: 'primary store',
+		description: 'Whether the balance belongs to the account\'s primary fungible asset store.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.One,
+	},
 	ledgerVersion: {
-		label: 'ledger version',
+		label: 'last transaction version',
+		description: 'The last transaction version supplied by the current materialized balance row.',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
@@ -50,13 +67,13 @@ export const AptosCoinBalance_Timestamp = entity({
 		label: 'amount',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	ownerAddress: {
 		label: 'owner address',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	coinType: {
 		label: 'coin type',
@@ -66,9 +83,9 @@ export const AptosCoinBalance_Timestamp = entity({
 	},
 })({
 	selectors: {
-		AccountAssetTypeLedgerVersionSource: [
+		AccountStorageIdLedgerVersionSource: [
 			'$account',
-			'assetType',
+			'storageId',
 			'ledgerVersion',
 			'source',
 		],

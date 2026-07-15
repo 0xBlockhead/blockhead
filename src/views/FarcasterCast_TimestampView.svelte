@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.FarcasterCast_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.FarcasterCast_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.FarcasterCast_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterCast_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -86,6 +85,9 @@
 						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 							fid: String(selection.entitySelector.$cast.fid ?? ''),
 							hash: String(selection.entitySelector.$cast.hash ?? ''),
+						}) : selection.entitySelector.$cast.username !== undefined && selection.entitySelector.$cast.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+							fname: String(selection.entitySelector.$cast.username ?? ''),
+							hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -101,6 +103,9 @@
 						(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 							fid: String(selection.entitySelector.$cast.fid ?? ''),
 							hash: String(selection.entitySelector.$cast.hash ?? ''),
+						}) : selection.entitySelector.$cast.username !== undefined && selection.entitySelector.$cast.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+							fname: String(selection.entitySelector.$cast.username ?? ''),
+							hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -140,6 +145,9 @@
 							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
 								fid: String(selection.entitySelector.$cast.fid ?? ''),
 								hash: String(selection.entitySelector.$cast.hash ?? ''),
+							}) : selection.entitySelector.$cast.username !== undefined && selection.entitySelector.$cast.hashPrefix !== undefined ? resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
+								fname: String(selection.entitySelector.$cast.username ?? ''),
+								hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

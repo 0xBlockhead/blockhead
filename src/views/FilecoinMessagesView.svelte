@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Filecoin messages',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FilecoinMessage>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinMessage>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -116,10 +116,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: filecoinMessage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinMessage> })}
+				{#snippet Item({ item: filecoinMessage })}
 					{@const filecoinMessageFields = { ...filecoinMessage[EntityMetaKey.Selector], ...filecoinMessage }}
+					{@const selection = select(EntityType.FilecoinMessage, filecoinMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<FilecoinMessageView
-						selection={select(EntityType.FilecoinMessage, filecoinMessage[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={filecoinMessageFields}
 						layout={EntityLayout.Summary}
 						open={false}

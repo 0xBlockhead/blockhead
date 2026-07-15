@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'AT Protocol accounts',
 		typeAnnotationParagraphs = ['An AT Protocol actor is a DID-addressed repository identity. Handles, display names, avatars, banners, and counts are mutable appview observations over that identity.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AtprotoActor>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.AtprotoActor>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -72,6 +72,7 @@
 					handle: true,
 					did: true,
 				},
+				limit: 12,
 			})
 		}
 		{placeholderText}
@@ -113,15 +114,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: atprotoActor }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AtprotoActor> })}
+				{#snippet Item({ item: atprotoActor })}
 					{@const atprotoActorFields = { ...atprotoActor[EntityMetaKey.Selector], ...atprotoActor }}
+					{@const selection = select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const atprotoActorHrefFields = { ...atprotoActor, ...atprotoActor[EntityMetaKey.Selector] }}
 					<AtprotoActorView
-						selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={atprotoActorFields}
 						href={
 							(atprotoActorHrefFields.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]', {
 								did: String(atprotoActorHrefFields.did ?? ''),
+							}) : atprotoActorHrefFields.handle !== undefined ? resolve('/atproto/actor/handle/[handle=stringSegment]', {
+								handle: String(atprotoActorHrefFields.handle ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

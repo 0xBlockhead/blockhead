@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'EVM contract verifications',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmContractVerification>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmContractVerification>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmContractVerification }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmContractVerification> })}
+				{#snippet Item({ item: evmContractVerification })}
 					{@const evmContractVerificationFields = { ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }}
+					{@const selection = select(EntityType.EvmContractVerification, evmContractVerification[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmContractVerificationHrefFields = { ...evmContractVerification, ...evmContractVerification[EntityMetaKey.Selector] }}
 					<EvmContractVerificationView
-						selection={select(EntityType.EvmContractVerification, evmContractVerification[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmContractVerificationFields}
 						href={
-							(evmContractVerificationHrefFields.$contract !== undefined && evmContractVerificationHrefFields.$contract.$network !== undefined && evmContractVerificationHrefFields.$contract.$network.slug !== undefined && evmContractVerificationHrefFields.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]/verification', {
-								network: String(evmContractVerificationHrefFields.$contract.$network.slug ?? ''),
+							(evmContractVerificationHrefFields.$contract !== undefined && evmContractVerificationHrefFields.$contract.address !== undefined && evmContractVerificationHrefFields.$contract.$network !== undefined && evmContractVerificationHrefFields.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]/verification', {
 								address: String(evmContractVerificationHrefFields.$contract.address ?? ''),
+								network: String(caip2StringFromValue(evmContractVerificationHrefFields.$contract.$network.caip2) ?? ''),
+							}) : evmContractVerificationHrefFields.$contract !== undefined && evmContractVerificationHrefFields.$contract.address !== undefined && evmContractVerificationHrefFields.$contract.$network !== undefined && evmContractVerificationHrefFields.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]/verification', {
+								address: String(evmContractVerificationHrefFields.$contract.address ?? ''),
+								network: String(evmContractVerificationHrefFields.$contract.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

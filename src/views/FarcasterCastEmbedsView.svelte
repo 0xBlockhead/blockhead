@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Farcaster cast embeds',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FarcasterCastEmbed>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.FarcasterCastEmbed>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -115,11 +115,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: farcasterCastEmbed }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterCastEmbed> })}
+				{#snippet Item({ item: farcasterCastEmbed })}
 					{@const farcasterCastEmbedFields = { ...farcasterCastEmbed[EntityMetaKey.Selector], ...farcasterCastEmbed }}
+					{@const selection = select(EntityType.FarcasterCastEmbed, farcasterCastEmbed[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const farcasterCastEmbedHrefFields = { ...farcasterCastEmbed, ...farcasterCastEmbed[EntityMetaKey.Selector] }}
 					<FarcasterCastEmbedView
-						selection={select(EntityType.FarcasterCastEmbed, farcasterCastEmbed[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={farcasterCastEmbedFields}
 						href={
 							(farcasterCastEmbedHrefFields.indexInCast !== undefined && farcasterCastEmbedHrefFields.$cast !== undefined && farcasterCastEmbedHrefFields.$cast.fid !== undefined && farcasterCastEmbedHrefFields.$cast.hash !== undefined ? resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {

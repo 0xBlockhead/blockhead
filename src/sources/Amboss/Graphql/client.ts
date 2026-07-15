@@ -5,22 +5,16 @@ import {
 } from 'gql.tada'
 
 import { getJson } from '$/lib/http.ts'
-import { ambossBindings } from '$/sources/Amboss/bindings.ts'
+import {
+	ambossOrigins,
+	graphqlUrl,
+} from '$/sources/Amboss/Graphql/constants.ts'
 
 import type { introspection } from './graphql-env.d.ts'
 
 export const graphql = initGraphQLTada<{
 	introspection: introspection
 }>()
-
-const graphqlUrl = 'https://api.amboss.space/graphql'
-
-const ambossOrigins = ambossBindings.flatMap((binding) => (
-	binding.endpoints.map((endpoint) => ({
-		origin: endpoint.origin,
-		corsEnabled: endpoint.corsEnabled,
-	}))
-))
 
 type AmbossGqlResponse<_Result> = {
 	data: _Result

@@ -163,7 +163,7 @@ export const navigationItems = [
 					{
 						id: 'explore-evm-calldata',
 						title: 'Calldata',
-						href: '/evm/calldata',
+						href: '/evm/calldata-decoder',
 						icon: '📦',
 					},
 					{
@@ -246,12 +246,6 @@ export const navigationItems = [
 						title: 'Pools',
 						href: '/pools',
 						icon: '🌊',
-					},
-					{
-						id: 'assets-vaults',
-						title: 'Vaults',
-						href: '/vaults',
-						icon: '📈',
 					},
 					{
 						id: 'assets-channels',
@@ -379,14 +373,14 @@ export const navigationItems = [
 							{
 								id: 'social-lens-accounts',
 								title: 'Profiles',
-								href: '/lens/accounts',
+								href: '/lens/observations/accounts',
 								icon: '👤',
 								children: [],
 							},
 							{
 								id: 'social-lens-posts',
 								title: 'Publications',
-								href: '/lens/posts',
+								href: '/lens/observations/posts',
 								icon: '📝',
 								children: [],
 							},
@@ -468,13 +462,6 @@ export const navigationItems = [
 								title: 'Feeds',
 								href: '/rss/feeds',
 								icon: '📡',
-								children: [],
-							},
-							{
-								id: 'social-rss-items',
-								title: 'Items',
-								href: '/rss/items',
-								icon: '📝',
 								children: [],
 							},
 						],
@@ -588,22 +575,10 @@ export const navigationItems = [
 		defaultIsOpen: true,
 		children: [
 			{
-				id: 'local-manage-profiles',
-				title: 'Profiles',
-				href: '/~/manage/profiles',
-				icon: '👤',
-			},
-			{
 				id: 'local-manage-sources',
 				title: 'Sources',
 				href: '/~/manage/sources',
 				icon: '📡',
-			},
-			{
-				id: 'local-manage-data',
-				title: 'Data',
-				href: '/~/manage/data',
-				icon: '🗄️',
 			},
 		],
 	},

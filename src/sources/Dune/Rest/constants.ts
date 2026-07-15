@@ -5,3 +5,10 @@
 export const origin = 'https://api.dune.com' as const
 
 export const baseUrl = origin
+
+export const duneOrigins = [
+	{
+		origin,
+		corsEnabled: false,
+	},
+] as const

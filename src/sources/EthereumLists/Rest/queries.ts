@@ -3,9 +3,9 @@
  * on [chainid.network](https://chainid.network).
  */
 import { getJson } from '$/lib/http.ts'
-import { ethereumListsOrigins } from '$/sources/EthereumLists/index.ts'
 import {
 	chainsJsonPath,
+	ethereumListsOrigins,
 	githubApiOrigin,
 	origin,
 } from '$/sources/EthereumLists/Rest/constants.ts'

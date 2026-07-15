@@ -7,8 +7,10 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { neynarOrigins } from '$/sources/Neynar/index.ts'
-import { baseUrl } from '$/sources/Neynar/Rest/constants.ts'
+import {
+	baseUrl,
+	neynarOrigins,
+} from '$/sources/Neynar/Rest/constants.ts'
 
 export const neynarRequestHeaders = (
 	publicEnv: SourcePublicEnv

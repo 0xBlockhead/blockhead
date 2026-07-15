@@ -1,0 +1,93 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	listModels,
+	retrieveFileText,
+	retrieveModel,
+} from '$/sources/HuggingFace/Rest/queries.ts'
+
+const sourceFetch = vi.hoisted(() => vi.fn())
+const sourceGetText = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceFetch,
+	sourceGetText,
+}))
+
+const binding = sourceProviderDefinitions
+	.flatMap((provider) => provider.bindings)
+	.find((candidate) => candidate.source === Source.HuggingFaceHub_Rest)
+
+if (binding == null)
+	throw new Error('Hugging Face test binding is missing')
+
+describe('Hugging Face typed queries', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+		sourceGetText.mockReset()
+	})
+
+	it('returns typed model list and detail payloads without requiring a token', async () => {
+		sourceFetch.mockResolvedValue({
+			ok: true,
+			json: async () => [{
+				id: 'org/model',
+				sha: 'abc123',
+			}],
+		})
+
+		await expect(listModels({
+			binding,
+			search: 'model',
+		})).resolves.toEqual([{
+			id: 'org/model',
+			sha: 'abc123',
+		}])
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://huggingface.co/api/models?search=model',
+			{}
+		)
+
+		sourceFetch.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				id: 'org/model',
+				sha: 'abc123',
+			}),
+		})
+		await retrieveModel({
+			binding,
+			repoId: 'org/model',
+			revision: 'abc123',
+			credential: 'token',
+		})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://huggingface.co/api/models/org/model?revision=abc123',
+			{
+				headers: {
+					authorization: 'Bearer token',
+				},
+			}
+		)
+	})
+
+	it('reads repository documents through the source delivery boundary', async () => {
+		sourceGetText.mockResolvedValue('# Model card')
+
+		await expect(retrieveFileText({
+			binding,
+			repoId: 'org/model',
+			revision: 'abc123',
+			path: 'README.md',
+		})).resolves.toBe('# Model card')
+		expect(sourceGetText).toHaveBeenCalledWith(
+			binding,
+			'https://huggingface.co/org/model/resolve/abc123/README.md'
+		)
+	})
+})

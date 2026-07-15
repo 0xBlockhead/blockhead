@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Reddit comment observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditComment_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.RedditComment_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,11 +113,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: redditCommentTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditComment_Timestamp> })}
+				{#snippet Item({ item: redditCommentTimestamp })}
 					{@const redditCommentTimestampFields = { ...redditCommentTimestamp[EntityMetaKey.Selector], ...redditCommentTimestamp }}
+					{@const selection = select(EntityType.RedditComment_Timestamp, redditCommentTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const redditCommentTimestampHrefFields = { ...redditCommentTimestamp, ...redditCommentTimestamp[EntityMetaKey.Selector] }}
 					<RedditComment_TimestampView
-						selection={select(EntityType.RedditComment_Timestamp, redditCommentTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={redditCommentTimestampFields}
 						href={
 							(redditCommentTimestampHrefFields.timestampMs !== undefined && redditCommentTimestampHrefFields.source !== undefined && redditCommentTimestampHrefFields.$comment !== undefined && redditCommentTimestampHrefFields.$comment.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {

@@ -1,11 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum AptosNetwork_TimestampSelector {
-	NetworkTimestampMsSource = 'NetworkTimestampMsSource',
+	NetworkLedgerVersionSource = 'NetworkLedgerVersionSource',
 }
 export const AptosNetwork_Timestamp = entity({
 	entityType: EntityType.AptosNetwork_Timestamp,
@@ -20,11 +21,10 @@ export const AptosNetwork_Timestamp = entity({
 		entityType: EntityType.AptosNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
-	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
+	ledgerVersion: {
+		label: 'ledger version',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
+		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
@@ -34,10 +34,11 @@ export const AptosNetwork_Timestamp = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	ledgerVersion: {
-		label: 'ledger version',
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The Aptos ledger timestamp in Unix milliseconds when supplied by the Fullnode response.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
+		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	blockHeight: {
@@ -79,9 +80,9 @@ export const AptosNetwork_Timestamp = entity({
 	},
 })({
 	selectors: {
-		NetworkTimestampMsSource: [
+		NetworkLedgerVersionSource: [
 			'$network',
-			'timestampMs',
+			'ledgerVersion',
 			'source',
 		],
 	},

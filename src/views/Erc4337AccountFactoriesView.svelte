@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'ERC-4337 account factories',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Erc4337AccountFactory>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Erc4337AccountFactory>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,16 +112,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: erc4337AccountFactory }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337AccountFactory> })}
+				{#snippet Item({ item: erc4337AccountFactory })}
 					{@const erc4337AccountFactoryFields = { ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }}
+					{@const selection = select(EntityType.Erc4337AccountFactory, erc4337AccountFactory[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const erc4337AccountFactoryHrefFields = { ...erc4337AccountFactory, ...erc4337AccountFactory[EntityMetaKey.Selector] }}
 					<Erc4337AccountFactoryView
-						selection={select(EntityType.Erc4337AccountFactory, erc4337AccountFactory[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={erc4337AccountFactoryFields}
 						href={
-							(erc4337AccountFactoryHrefFields.$network !== undefined && erc4337AccountFactoryHrefFields.$network.slug !== undefined && erc4337AccountFactoryHrefFields.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
-								network: String(erc4337AccountFactoryHrefFields.$network.slug ?? ''),
+							(erc4337AccountFactoryHrefFields.address !== undefined && erc4337AccountFactoryHrefFields.$network !== undefined && erc4337AccountFactoryHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
 								address: String(erc4337AccountFactoryHrefFields.address ?? ''),
+								network: String(caip2StringFromValue(erc4337AccountFactoryHrefFields.$network.caip2) ?? ''),
+							}) : erc4337AccountFactoryHrefFields.address !== undefined && erc4337AccountFactoryHrefFields.$network !== undefined && erc4337AccountFactoryHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
+								address: String(erc4337AccountFactoryHrefFields.address ?? ''),
+								network: String(erc4337AccountFactoryHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

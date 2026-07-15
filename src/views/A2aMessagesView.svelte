@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'A2A messages',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.A2aMessage>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.A2aMessage>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: a2aMessage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aMessage> })}
+				{#snippet Item({ item: a2aMessage })}
 					{@const a2aMessageFields = { ...a2aMessage[EntityMetaKey.Selector], ...a2aMessage }}
+					{@const selection = select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<A2aMessageView
-						selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={a2aMessageFields}
 						layout={EntityLayout.Summary}
 						open={false}

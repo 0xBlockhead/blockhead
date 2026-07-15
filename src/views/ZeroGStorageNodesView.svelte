@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Zero g storage nodes',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.ZeroGStorageNode>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.ZeroGStorageNode>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: zeroGStorageNode }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGStorageNode> })}
+				{#snippet Item({ item: zeroGStorageNode })}
 					{@const zeroGStorageNodeFields = { ...zeroGStorageNode[EntityMetaKey.Selector], ...zeroGStorageNode }}
+					{@const selection = select(EntityType.ZeroGStorageNode, zeroGStorageNode[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, zeroGStorageNode[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={zeroGStorageNodeFields}
 						layout={EntityLayout.Summary}
 						open={false}

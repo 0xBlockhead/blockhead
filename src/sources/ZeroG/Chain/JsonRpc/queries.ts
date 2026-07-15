@@ -6,7 +6,7 @@ import type {
 	RpcTransaction,
 } from '$/sources/Evm/JsonRpc/types.ts'
 import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/endpoints.ts'
-import { zeroGOrigins } from '$/sources/ZeroG/index.ts'
+import { zeroGOrigins } from '$/sources/ZeroG/Chain/JsonRpc/endpoints.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 type ZeroGJsonRpcResponse<_Result> = {

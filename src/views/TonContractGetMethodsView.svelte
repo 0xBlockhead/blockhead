@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'TON contract get methods',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.TonContractGetMethod>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.TonContractGetMethod>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: tonContractGetMethod }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonContractGetMethod> })}
+				{#snippet Item({ item: tonContractGetMethod })}
 					{@const tonContractGetMethodFields = { ...tonContractGetMethod[EntityMetaKey.Selector], ...tonContractGetMethod }}
+					{@const selection = select(EntityType.TonContractGetMethod, tonContractGetMethod[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<TonContractGetMethodView
-						selection={select(EntityType.TonContractGetMethod, tonContractGetMethod[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={tonContractGetMethodFields}
 						layout={EntityLayout.Summary}
 						open={false}

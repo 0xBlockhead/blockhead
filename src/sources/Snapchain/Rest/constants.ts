@@ -28,3 +28,8 @@ export const nodeEndpoints = [
 	{ id: SnapchainNodeEndpointId.Pop, url: 'https://pop.farcaster.xyz:3381' },
 	{ id: SnapchainNodeEndpointId.Haatz, url: 'https://haatz.quilibrium.com' },
 ] as const satisfies readonly SnapchainNodeEndpoint[]
+
+export const snapchainOrigins = nodeEndpoints.map((endpoint) => ({
+	origin: new URL(endpoint.url).origin,
+	corsEnabled: false,
+}))

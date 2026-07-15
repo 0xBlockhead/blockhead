@@ -1,6 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import { blobscanOrigins } from '$/sources/Blobscan/index.ts'
-import { blobscanRestApiOriginByChainId } from '$/sources/Blobscan/Rest/constants.ts'
+import {
+	blobscanOrigins,
+	blobscanRestApiOriginByChainId,
+} from '$/sources/Blobscan/Rest/constants.ts'
 
 
 import type {

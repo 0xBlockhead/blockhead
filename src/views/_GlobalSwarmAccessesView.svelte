@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Global Swarm accesses',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalSwarmAccess>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalSwarmAccess>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -64,7 +64,13 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					scope: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -104,13 +110,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: globalSwarmAccess }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalSwarmAccess> })}
+				{#snippet Item({ item: globalSwarmAccess })}
 					{@const globalSwarmAccessFields = { ...globalSwarmAccess[EntityMetaKey.Selector], ...globalSwarmAccess }}
+					{@const selection = select(EntityType._GlobalSwarmAccess, globalSwarmAccess[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const globalSwarmAccessHrefFields = { ...globalSwarmAccess, ...globalSwarmAccess[EntityMetaKey.Selector] }}
 					<GlobalSwarmAccessView
-						selection={select(EntityType._GlobalSwarmAccess, globalSwarmAccess[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={globalSwarmAccessFields}
-						href={resolve('/swarm/access')}
+						href={(globalSwarmAccess[EntityMetaKey.Selector].scope === '_GlobalSwarmAccess' ? resolve('/swarm/access') : undefined)}
 						layout={EntityLayout.Title}
 						open={false}
 					/>

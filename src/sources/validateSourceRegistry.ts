@@ -6,7 +6,12 @@ import {
 import {
 	dirname,
 	join,
+	relative,
+	resolve,
+	sep,
 } from 'node:path'
+import { pathToFileURL } from 'node:url'
+import ts from 'typescript'
 
 import { Source } from '$/sources/Source.ts'
 import {
@@ -52,7 +57,7 @@ const sourceRuntimeFiles = sourceFiles.filter((file) => !(
 	|| file === 'src/sources/index.server.ts'
 	|| file.endsWith('.remote.ts')
 	|| file.endsWith('.server.ts')
-	|| file.endsWith('/index.ts')
+	|| (file.endsWith('/index.ts') && file.split('/').length === 4)
 ))
 const httpProxyOrigins = new Set(
 	sourceBindings
@@ -107,15 +112,115 @@ const openApiManifestFailures = globSync('src/sources/*/OpenApi/schema-source.ts
 			[]),
 	]
 })
-const sourceRuntimeBindingImportFailures = globSync('src/sources/*/{queries,client}.ts').flatMap((file) => {
-	const providerDirectory = file.split('/').slice(0, 3).join('/')
-	const providerName = providerDirectory.slice('src/sources/'.length)
-	const source = readFileSync(file, 'utf8')
-	return source.includes(`$/sources/${providerName}/bindings.ts`) ?
-		[`${file}: runtime transport imports provider-local bindings instead of receiving SourceBinding selection`]
+export const providerLocalBindingImportFailures = (
+	sourceByFilePath: Readonly<Record<string, string>>
+) => {
+	const sourceByAbsoluteFilePath = new Map(
+		Object.entries(sourceByFilePath).map(([filePath, source]) => [
+			resolve(filePath),
+			source,
+		])
+	)
+	return Object.entries(sourceByFilePath).flatMap(([filePath, source]) => {
+		const absoluteFilePath = resolve(filePath)
+		const providerRelativeFilePath = relative(resolve('src/sources'), absoluteFilePath)
+		const providerName = providerRelativeFilePath.split(sep)[0]
+		if (
+			providerRelativeFilePath.startsWith(`..${sep}`)
+			|| providerRelativeFilePath === '..'
+			|| absoluteFilePath === resolve('src/sources', providerName, 'index.ts')
+		)
+			return []
+
+		const importSpecifiers: string[] = []
+		const dynamicImportFailures: string[] = []
+		const visit = (node: ts.Node) => {
+			if (
+				(ts.isImportDeclaration(node) || ts.isExportDeclaration(node))
+				&& node.moduleSpecifier != null
+				&& ts.isStringLiteralLike(node.moduleSpecifier)
+			)
+				importSpecifiers.push(node.moduleSpecifier.text)
+			else if (
+				ts.isImportEqualsDeclaration(node)
+				&& ts.isExternalModuleReference(node.moduleReference)
+				&& ts.isStringLiteralLike(node.moduleReference.expression)
+			)
+				importSpecifiers.push(node.moduleReference.expression.text)
+			else if (
+				ts.isCallExpression(node)
+				&& node.expression.kind === ts.SyntaxKind.ImportKeyword
+			) {
+				if (ts.isStringLiteralLike(node.arguments[0]))
+					importSpecifiers.push(node.arguments[0].text)
+				else
+					dynamicImportFailures.push(`${filePath}: dynamic import target must be a string literal because computed imports cannot be proven not to target provider-local bindings`)
+			}
+
+			ts.forEachChild(node, visit)
+		}
+		visit(ts.createSourceFile(
+			filePath,
+			source,
+			ts.ScriptTarget.Latest,
+			true,
+			ts.ScriptKind.TS
+		))
+
+		return [
+			...dynamicImportFailures,
+			...(importSpecifiers.some((importSpecifier) => (
+				resolve(ts.resolveModuleName(
+					importSpecifier,
+					absoluteFilePath,
+					{
+						allowImportingTsExtensions: true,
+						baseUrl: process.cwd(),
+						module: ts.ModuleKind.ESNext,
+						moduleResolution: ts.ModuleResolutionKind.Bundler,
+						paths: {
+							'$/*': [
+								'src/*',
+							],
+						},
+					},
+					{
+						fileExists: (candidateFilePath) => sourceByAbsoluteFilePath.has(resolve(candidateFilePath)) || ts.sys.fileExists(candidateFilePath),
+						readFile: (candidateFilePath) => sourceByAbsoluteFilePath.get(resolve(candidateFilePath)) ?? ts.sys.readFile(candidateFilePath),
+					}
+				).resolvedModule?.resolvedFileName ?? '') === resolve('src/sources', providerName, 'bindings.ts')
+			)) ?
+			[`${filePath}: runtime transport imports provider-local bindings instead of using protocol-local transport metadata`]
+		:
+			[]),
+		]
+	})
+}
+const sourceRuntimeBindingImportFailures = providerLocalBindingImportFailures(Object.fromEntries(
+	sourceRuntimeFiles.map((filePath) => [
+		filePath,
+		readFileSync(filePath, 'utf8'),
+	])
+))
+export const evmExecutionOpenRpcArtifactFailures = (
+	bindings: readonly {
+		source: string
+		target: {
+			kind: string
+			key: string
+		}
+		apiFamily: string
+		artifacts?: readonly {
+			kind: string
+		}[]
+	}[]
+) => bindings.flatMap((binding) => (
+	binding.apiFamily === ApiFamily.EvmExecutionJsonRpc
+	&& !binding.artifacts?.some((artifact) => artifact.kind === SourceArtifactKind.OpenRpcSpec) ?
+		[`${binding.source} / ${binding.target.kind}:${binding.target.key}: EVM execution JSON-RPC binding lacks OpenRPC artifact`]
 	:
 		[]
-})
+))
 const failures = [
 	...(audit.sourceRows.size === audit.sourceEnumMembers.length ? [] : ['source row count mismatch']),
 	...(audit.bindingSources.size === audit.sourceEnumMembers.length ? [] : ['binding source count mismatch']),
@@ -130,12 +235,14 @@ const failures = [
 			binding.wireProtocol === WireProtocol.JsonRpc2
 			&& binding.apiFamily === ApiFamily.EvmExecutionJsonRpc
 		)
+		|| (
+			binding.wireProtocol === WireProtocol.Grpc
+			&& binding.apiFamily === ApiFamily.GrpcService
+			&& binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
+		)
 		|| binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
 	)) ? [] : ['RemoteLive binding lacks dispatcher coverage']),
-	...(sourceBindings.every((binding) => (
-		binding.apiFamily !== ApiFamily.EvmExecutionJsonRpc
-		|| binding.artifacts?.some((artifact) => artifact.kind === SourceArtifactKind.OpenRpcSpec)
-	)) ? [] : ['EVM execution JSON-RPC binding lacks OpenRPC artifact']),
+	...evmExecutionOpenRpcArtifactFailures(sourceBindings),
 	...(httpProxyOrigins.has('wss://ethereum.publicnode.com') ? ['WebSocket leaked into HTTP proxy origins'] : []),
 	...(sourceBindings.some((binding) => (
 		binding.source === Source.Coingecko_OpenApi
@@ -217,9 +324,7 @@ const failures = [
 		:
 			[]
 	}),
-	...globSync('src/sources/*/index.ts')
-		.concat(globSync('src/sources/*/bindings.ts'))
-		.concat(globSync('src/sources/*/*/definition.ts'))
+	...globSync('src/sources/*/*/definition.ts')
 		.flatMap((file) => {
 			const source = readFileSync(file, 'utf8')
 			return /^(import|export).*(queries|client|schema-source|graphql-env|openapi\.d|openapi\.json|openapi\.yml)/m.test(source) ?
@@ -243,14 +348,16 @@ const failures = [
 	}),
 ]
 
-console.log(JSON.stringify({
-	providers: sourceProviders.length,
-	sourceBindings: sourceBindings.length,
-	browserSourceBindings: browserSourceBindings.length,
-	remoteLiveBindings: remoteLiveBindings.length,
-	httpProxyOrigins: httpProxyOrigins.size,
-	failures,
-}, null, 2))
+if (import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+	console.log(JSON.stringify({
+		providers: sourceProviders.length,
+		sourceBindings: sourceBindings.length,
+		browserSourceBindings: browserSourceBindings.length,
+		remoteLiveBindings: remoteLiveBindings.length,
+		httpProxyOrigins: httpProxyOrigins.size,
+		failures,
+	}, null, 2))
 
-if (failures.length)
-	process.exit(1)
+	if (failures.length)
+		process.exit(1)
+}

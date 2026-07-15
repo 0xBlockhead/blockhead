@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'EVM blocks',
 		typeAnnotationParagraphs = ['A block in an EVM-compatible execution chain.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmBlock>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmBlock>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmBlock> })}
+				{#snippet Item({ item: evmBlock })}
 					{@const evmBlockFields = { ...evmBlock[EntityMetaKey.Selector], ...evmBlock }}
+					{@const selection = select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmBlockHrefFields = { ...evmBlock, ...evmBlock[EntityMetaKey.Selector] }}
 					<EvmBlockView
-						selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmBlockFields}
 						href={
-							(evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.slug !== undefined && evmBlockHrefFields.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-								network: String(evmBlockHrefFields.$network.slug ?? ''),
+							(evmBlockHrefFields.blockNumber !== undefined && evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 								blockNumber: String(evmBlockHrefFields.blockNumber ?? ''),
+								network: String(caip2StringFromValue(evmBlockHrefFields.$network.caip2) ?? ''),
+							}) : evmBlockHrefFields.blockNumber !== undefined && evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+								blockNumber: String(evmBlockHrefFields.blockNumber ?? ''),
+								network: String(evmBlockHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

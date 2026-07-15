@@ -4,7 +4,7 @@ import {
 } from '$/sources/SourceBinding.ts'
 
 export type WebSocketLiveEvent = {
-	type: string
+	type: 'connected' | 'message'
 	source: string
 	targetKey: string
 	payload?: unknown

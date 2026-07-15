@@ -1,7 +1,9 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum SolanaAccountSelector {
@@ -26,41 +28,14 @@ export const SolanaAccount = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	lamports: {
-		label: 'Lamports',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	rentEpoch: {
-		label: 'Rent epoch',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	executable: {
-		label: 'Executable',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	dataEncoding: {
-		label: 'Data encoding',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$ownerProgram: {
-		label: 'Owner program',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.SolanaProgram,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	$$timestamps: {
 		label: 'Observations',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.SolanaAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	$$tokenAccounts: {
 		label: 'Token accounts',

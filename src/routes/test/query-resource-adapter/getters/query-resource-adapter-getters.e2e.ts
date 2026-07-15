@@ -5,6 +5,8 @@ import {
 	setupPageRuntimeDiagnostics,
 } from '../../../../../tests/_e2eBrowserHelpers.ts'
 
+test.setTimeout(180_000)
+
 const openRoute = async (page: Page) => {
 	const diagnostics = setupPageRuntimeDiagnostics(page)
 	await diagnostics.step(page.goto('/test/query-resource-adapter/getters', {

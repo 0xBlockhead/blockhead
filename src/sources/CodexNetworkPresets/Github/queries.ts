@@ -1,5 +1,5 @@
 import { getGithubContents, getGithubRawText } from '$/sources/_shared/hosts/Github/Http/client.ts'
-import { codexNetworkPresetsBindings } from '$/sources/CodexNetworkPresets/bindings.ts'
+import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
 
 const target = {
 	owner: 'codex-storage-network',
@@ -10,14 +10,14 @@ const target = {
 
 export const getContents = () => (
 	getGithubContents({
-		endpoints: codexNetworkPresetsBindings[0].endpoints,
+		endpoints: githubHttpEndpoints,
 		target,
 	})
 )
 
 export const getRawText = (path: string) => (
 	getGithubRawText({
-		endpoints: codexNetworkPresetsBindings[0].endpoints,
+		endpoints: githubHttpEndpoints,
 		target: {
 			...target,
 			path,

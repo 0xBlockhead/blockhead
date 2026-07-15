@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'RSS feed observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.RssFeed_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.RssFeed_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,17 +112,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: rssFeedTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RssFeed_Timestamp> })}
+				{#snippet Item({ item: rssFeedTimestamp })}
 					{@const rssFeedTimestampFields = { ...rssFeedTimestamp[EntityMetaKey.Selector], ...rssFeedTimestamp }}
+					{@const selection = select(EntityType.RssFeed_Timestamp, rssFeedTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const rssFeedTimestampHrefFields = { ...rssFeedTimestamp, ...rssFeedTimestamp[EntityMetaKey.Selector] }}
 					<RssFeed_TimestampView
-						selection={select(EntityType.RssFeed_Timestamp, rssFeedTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={rssFeedTimestampFields}
 						href={
-							(rssFeedTimestampHrefFields.timestampMs !== undefined && rssFeedTimestampHrefFields.source !== undefined && rssFeedTimestampHrefFields.$feed !== undefined && rssFeedTimestampHrefFields.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+							(rssFeedTimestampHrefFields.timestampMs !== undefined && rssFeedTimestampHrefFields.source !== undefined && rssFeedTimestampHrefFields.$feed !== undefined && rssFeedTimestampHrefFields.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(rssFeedTimestampHrefFields.timestampMs ?? ''),
 								source: String(rssFeedTimestampHrefFields.source ?? ''),
-								feedKey: String(rssFeedTimestampHrefFields.$feed.feedUrl ?? ''),
+								feedUrl: String(rssFeedTimestampHrefFields.$feed.feedUrl ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

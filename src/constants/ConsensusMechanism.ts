@@ -16,6 +16,7 @@ export enum ConsensusMechanismId {
 	MoneroRandomXProofOfWork = 'MoneroRandomXProofOfWork',
 	DogecoinAuxProofOfWork = 'DogecoinAuxProofOfWork',
 	TronDpos = 'TronDpos',
+	TezosLiquidProofOfStake = 'TezosLiquidProofOfStake',
 	ZeroGProofOfStake = 'ZeroGProofOfStake',
 }
 
@@ -82,6 +83,10 @@ const consensusMechanisms = [
 	{
 		consensusMechanismId: ConsensusMechanismId.TronDpos,
 		label: 'TRON delegated proof of stake',
+	},
+	{
+		consensusMechanismId: ConsensusMechanismId.TezosLiquidProofOfStake,
+		label: 'Tezos liquid proof of stake',
 	},
 	{
 		consensusMechanismId: ConsensusMechanismId.ZeroGProofOfStake,

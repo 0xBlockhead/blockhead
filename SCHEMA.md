@@ -1028,7 +1028,7 @@ SchemaVersion 1
     Sources ::
       - SourceBinding.AlgorandIndexer_Rest
       - SourceBinding.Blockscout_Rest
-      - SourceBinding.CardanoBlockfrost_Rest
+      - SourceBinding.Blockfrost_Rest
       - SourceBinding.CardanoKoios_Rest
       - SourceBinding.Etherscan_Rest
       - SourceBinding.HederaMirrorNode_Rest
@@ -1071,7 +1071,7 @@ SchemaVersion 1
       - SourceBinding.AptosFullnode_Rest
       - SourceBinding.AptosIndexer_Graphql
       - SourceBinding.Blockscout_Rest
-      - SourceBinding.CardanoBlockfrost_Rest
+      - SourceBinding.Blockfrost_Rest
       - SourceBinding.CardanoKoios_Rest
       - SourceBinding.CosmosSdk_Rest
       - SourceBinding.Etherscan_Rest
@@ -1121,7 +1121,7 @@ SchemaVersion 1
       - SourceBinding.AlgorandIndexer_Rest
       - SourceBinding.Arweave_Rest
       - SourceBinding.Blockscout_Rest
-      - SourceBinding.CardanoBlockfrost_Rest
+      - SourceBinding.Blockfrost_Rest
       - SourceBinding.CardanoKoios_Rest
       - SourceBinding.Etherscan_Rest
       - SourceBinding.HederaMirrorNode_Rest
@@ -1146,7 +1146,7 @@ SchemaVersion 1
       - SourceBinding.Algod_Rest
       - SourceBinding.AlgorandIndexer_Rest
       - SourceBinding.Blockscout_Rest
-      - SourceBinding.CardanoBlockfrost_Rest
+      - SourceBinding.Blockfrost_Rest
       - SourceBinding.CardanoKoios_Rest
       - SourceBinding.Etherscan_Rest
       - SourceBinding.HederaMirrorNode_Rest

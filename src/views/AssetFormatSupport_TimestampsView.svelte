@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Asset format support observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AssetFormatSupport_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.AssetFormatSupport_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,10 +110,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: assetFormatSupportTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetFormatSupport_Timestamp> })}
+				{#snippet Item({ item: assetFormatSupportTimestamp })}
 					{@const assetFormatSupportTimestampFields = { ...assetFormatSupportTimestamp[EntityMetaKey.Selector], ...assetFormatSupportTimestamp }}
+					{@const selection = select(EntityType.AssetFormatSupport_Timestamp, assetFormatSupportTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<AssetFormatSupport_TimestampView
-						selection={select(EntityType.AssetFormatSupport_Timestamp, assetFormatSupportTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={assetFormatSupportTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

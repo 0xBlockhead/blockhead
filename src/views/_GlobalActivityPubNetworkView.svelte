@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,8 +23,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType._GlobalActivityPubNetwork>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType._GlobalActivityPubNetwork>>
+			selection: RegisteredEntityProxyResource<EntityType._GlobalActivityPubNetwork>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType._GlobalActivityPubNetwork>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -67,7 +66,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={href ?? (pendingEntity.scope === '_GlobalActivityPubNetwork' ? resolve('/activitypub') : undefined)}
 	{layout}
 	bind:open
 	{...EntityViewProps}

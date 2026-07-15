@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Cashu keysets',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.CashuKeyset>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.CashuKeyset>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -68,8 +68,7 @@
 				fields: {
 					keysetId: true,
 					unit: true,
-					active: true,
-					inputFeePpk: true,
+					$mint: true,
 				},
 			})
 		}
@@ -112,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: cashuKeyset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CashuKeyset> })}
+				{#snippet Item({ item: cashuKeyset })}
 					{@const cashuKeysetFields = { ...cashuKeyset[EntityMetaKey.Selector], ...cashuKeyset }}
+					{@const selection = select(EntityType.CashuKeyset, cashuKeyset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<CashuKeysetView
-						selection={select(EntityType.CashuKeyset, cashuKeyset[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={cashuKeysetFields}
 						layout={EntityLayout.Summary}
 						open={false}

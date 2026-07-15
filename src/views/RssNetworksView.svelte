@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'RSS / Atom',
 		typeAnnotationParagraphs = ['RSS and Atom syndication feeds publish ordered item streams keyed by feed URL.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.RssNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.RssNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -67,6 +68,7 @@
 			selection({
 				fields: {
 					protocolName: true,
+					scope: true,
 				},
 			})
 		}
@@ -109,11 +111,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: rssNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RssNetwork> })}
+				{#snippet Item({ item: rssNetwork })}
 					{@const rssNetworkFields = { ...rssNetwork[EntityMetaKey.Selector], ...rssNetwork }}
+					{@const selection = select(EntityType.RssNetwork, rssNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const rssNetworkHrefFields = { ...rssNetwork, ...rssNetwork[EntityMetaKey.Selector] }}
 					<RssNetworkView
-						selection={select(EntityType.RssNetwork, rssNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={rssNetworkFields}
+						href={(rssNetwork[EntityMetaKey.Selector].scope === 'RssNetwork' ? resolve('/rss') : undefined)}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

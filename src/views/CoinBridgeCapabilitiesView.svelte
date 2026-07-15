@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Coin bridge capabilities',
 		typeAnnotationParagraphs = ['A supported bridge path between two EVM coin instances through a specific bridge tool.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.CoinBridgeCapability>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.CoinBridgeCapability>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,11 +113,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: coinBridgeCapability }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CoinBridgeCapability> })}
+				{#snippet Item({ item: coinBridgeCapability })}
 					{@const coinBridgeCapabilityFields = { ...coinBridgeCapability[EntityMetaKey.Selector], ...coinBridgeCapability }}
+					{@const selection = select(EntityType.CoinBridgeCapability, coinBridgeCapability[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const coinBridgeCapabilityHrefFields = { ...coinBridgeCapability, ...coinBridgeCapability[EntityMetaKey.Selector] }}
 					<CoinBridgeCapabilityView
-						selection={select(EntityType.CoinBridgeCapability, coinBridgeCapability[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={coinBridgeCapabilityFields}
 						href={
 							(coinBridgeCapabilityHrefFields.toolKey !== undefined && coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network.caip2 !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network.caip2.reference !== undefined && (coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.type !== undefined && (coinBridgeCapabilityHrefFields.$fromInstance.type === 'NativeCurrency' ? true : coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$contract !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$contract.address !== undefined)) && coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network.caip2 !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network.caip2.reference !== undefined && (coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.type !== undefined && (coinBridgeCapabilityHrefFields.$toInstance.type === 'NativeCurrency' ? true : coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$contract !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$contract.address !== undefined)) ? resolve('/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]', {

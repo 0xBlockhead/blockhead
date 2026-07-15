@@ -5,7 +5,7 @@ import type {
 	ZeroGStorageNodeFlowProof,
 	ZeroGStorageNodeStatus,
 } from '$/sources/ZeroG/StorageNode/JsonRpc/types.ts'
-import { zeroGOrigins } from '$/sources/ZeroG/index.ts'
+import { zeroGOrigins } from '$/sources/ZeroG/StorageNode/JsonRpc/endpoints.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 type ZeroGStorageNodeJsonRpcResponse<_Result> = {

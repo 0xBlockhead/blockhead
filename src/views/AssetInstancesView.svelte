@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Asset instances',
 		typeAnnotationParagraphs = ['A concrete asset on a specific network or venue, such as a native coin, token, share, or collectible.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AssetInstance>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.AssetInstance>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -69,9 +70,9 @@
 				fields: {
 					symbol: true,
 					name: true,
-					$network: true,
 					kind: true,
 					assetKey: true,
+					$network: true,
 				},
 			})
 		}
@@ -114,17 +115,22 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: assetInstance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetInstance> })}
+				{#snippet Item({ item: assetInstance })}
 					{@const assetInstanceFields = { ...assetInstance[EntityMetaKey.Selector], ...assetInstance }}
+					{@const selection = select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const assetInstanceHrefFields = { ...assetInstance, ...assetInstance[EntityMetaKey.Selector] }}
 					<AssetInstanceView
-						selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={assetInstanceFields}
 						href={
-							(assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.slug !== undefined && assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-								network: String(assetInstanceHrefFields.$network.slug ?? ''),
+							(assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
 								kind: String(assetInstanceHrefFields.kind ?? ''),
 								assetKey: String(assetInstanceHrefFields.assetKey ?? ''),
+								network: String(caip2StringFromValue(assetInstanceHrefFields.$network.caip2) ?? ''),
+							}) : assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
+								kind: String(assetInstanceHrefFields.kind ?? ''),
+								assetKey: String(assetInstanceHrefFields.assetKey ?? ''),
+								network: String(assetInstanceHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

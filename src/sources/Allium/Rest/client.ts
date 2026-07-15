@@ -1,8 +1,10 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { alliumOrigins } from '$/sources/Allium/index.ts'
-import { baseUrl } from '$/sources/Allium/Rest/constants.ts'
+import {
+	alliumOrigins,
+	baseUrl,
+} from '$/sources/Allium/Rest/constants.ts'
 
 export const alliumFetch = async <_Response>(
 	publicEnv: SourcePublicEnv,

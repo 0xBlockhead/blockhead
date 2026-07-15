@@ -2,6 +2,7 @@ export enum NetworkNamespace {
 	Bittensor = 'Bittensor',
 	Bitcoin = 'Bitcoin',
 	BitcoinCash = 'BitcoinCash',
+	Cardano = 'Cardano',
 	Cosmos = 'Cosmos',
 	Dogecoin = 'Dogecoin',
 	Elements = 'Elements',
@@ -16,6 +17,8 @@ export enum NetworkNamespace {
 	Polkadot = 'Polkadot',
 	Quilibrium = 'Quilibrium',
 	Solana = 'Solana',
+	Tezos = 'Tezos',
+	Ton = 'Ton',
 	Tron = 'Tron',
 	Zcash = 'Zcash',
 	ZeroG = 'ZeroG',
@@ -29,6 +32,8 @@ export enum Caip2Namespace {
 	Monero = 'monero',
 	Polkadot = 'polkadot',
 	Solana = 'solana',
+	Tezos = 'tezos',
+	Ton = 'ton',
 }
 
 export enum Caip2Reference {
@@ -47,6 +52,8 @@ export enum Caip2Reference {
 	Polkadot = '91b171bb158e2d3848fa23a9f1c25182',
 	Polygon = '137',
 	SolanaMainnet = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+	TezosMainnet = 'NetXdQprcVkpaWU',
+	TonMainnet = '-239',
 	Zcash = '00040fe8ec8471911baa1db1266ea15',
 }
 
@@ -70,6 +77,7 @@ export enum NetworkExecutionModel {
 	Evm = 'Evm',
 	PolkadotRuntime = 'PolkadotRuntime',
 	SolanaRuntime = 'SolanaRuntime',
+	Michelson = 'Michelson',
 	ZcashShielded = 'ZcashShielded',
 }
 
@@ -165,6 +173,14 @@ export const networks = [
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
 		executionModels: [NetworkExecutionModel.Evm],
+	},
+	{
+		slug: 'cardano',
+		name: 'Cardano',
+		namespace: NetworkNamespace.Cardano,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Utxo],
+		executionModels: [],
 	},
 	{
 		slug: 'cosmos',
@@ -335,12 +351,36 @@ export const networks = [
 		executionModels: [NetworkExecutionModel.SolanaRuntime],
 	},
 	{
+		slug: 'ton',
+		name: 'TON Mainnet',
+		caip2: {
+			namespace: 'ton',
+			reference: '-239',
+		},
+		namespace: NetworkNamespace.Ton,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
 		slug: 'tron',
 		name: 'TRON Mainnet',
 		namespace: NetworkNamespace.Tron,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
 		executionModels: [],
+	},
+	{
+		slug: 'tezos',
+		name: 'Tezos Mainnet',
+		caip2: {
+			namespace: 'tezos',
+			reference: 'NetXdQprcVkpaWU',
+		},
+		namespace: NetworkNamespace.Tezos,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Michelson],
 	},
 	{
 		slug: 'zcash',

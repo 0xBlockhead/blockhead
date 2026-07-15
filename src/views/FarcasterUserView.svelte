@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.FarcasterUser>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.FarcasterUser>>
+			selection: RegisteredEntityProxyResource<EntityType.FarcasterUser>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterUser>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -51,7 +50,6 @@
 		fields: {
 			displayName: true,
 			username: true,
-			$icon: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user')
@@ -78,7 +76,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.fid !== undefined ? resolve('/farcaster/user/[userId=farcasterFid]', {
+			userId: String(pendingEntity.fid ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

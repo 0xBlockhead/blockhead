@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.AptosCoinBalance_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.AptosCoinBalance_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.AptosCoinBalance_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AptosCoinBalance_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,10 +42,11 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosCoinBalanceTimestamp = $derived(selection({
 		fields: {
+			assetType: true,
 			amount: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || 'aptos coin balance timestamp')
+	const titleFallback = $derived([String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || 'current Aptos coin balance observation')
 	const viewDomId = $derived('aptos-coin-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
 			{#snippet Pending()}
-				{[String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || 'aptos coin balance timestamp'}
+				{[String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || 'current Aptos coin balance observation'}
 			{/snippet}
 
 			{#snippet children(entity)}
@@ -124,6 +124,12 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A current balance reported by the Aptos Indexer, anchored to the row's last transaction version. This surface does not imply retained balance history.
+		</p>
+	{/snippet}
+
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -167,6 +173,66 @@
 				</dd>
 			</div>
 
+			<div>
+				<dt>storage ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									storageId: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const storageId = pendingEntity.storageId}
+							{#if storageId !== undefined && storageId !== null}
+								{String((storageId) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const storageId = resolvedEntity.storageId}
+							{#if storageId !== undefined && storageId !== null}
+								{String((storageId) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>primary store</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									isPrimary: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const isPrimary = pendingEntity.isPrimary}
+							{#if isPrimary !== undefined && isPrimary !== null}
+								{isPrimary ? 'Yes' : 'No'}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const isPrimary = resolvedEntity.isPrimary}
+							{#if isPrimary !== undefined && isPrimary !== null}
+								{isPrimary ? 'Yes' : 'No'}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
 			<ResourceBoundary
 				resource={
 					selection({
@@ -202,45 +268,40 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							amount: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const amount = pendingEntity.amount}
-					{#if amount !== undefined && amount !== null}
-						<div>
-							<dt>amount</dt>
-							<dd>
+			<div>
+				<dt>amount</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									amount: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const amount = pendingEntity.amount}
+							{#if amount !== undefined && amount !== null}
 								<NumberValue value={Number(amount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount = resolvedEntity.amount}
-					{#if amount !== undefined && amount !== null}
-						<div>
-							<dt>amount</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const amount = resolvedEntity.amount}
+							{#if amount !== undefined && amount !== null}
 								<NumberValue value={Number(amount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<div>
-				<dt>ledger version</dt>
+				<dt>last transaction version</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
@@ -334,40 +395,35 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							ownerAddress: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const ownerAddress = pendingEntity.ownerAddress}
-					{#if ownerAddress !== undefined && ownerAddress !== null}
-						<div>
-							<dt>owner address</dt>
-							<dd>
+			<div>
+				<dt>owner address</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									ownerAddress: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const ownerAddress = pendingEntity.ownerAddress}
+							{#if ownerAddress !== undefined && ownerAddress !== null}
 								<TruncatedValue value={String((ownerAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ownerAddress = resolvedEntity.ownerAddress}
-					{#if ownerAddress !== undefined && ownerAddress !== null}
-						<div>
-							<dt>owner address</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const ownerAddress = resolvedEntity.ownerAddress}
+							{#if ownerAddress !== undefined && ownerAddress !== null}
 								<TruncatedValue value={String((ownerAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 </EntityView>

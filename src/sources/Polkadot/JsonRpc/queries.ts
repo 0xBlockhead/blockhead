@@ -1,5 +1,4 @@
 import { TransportType } from '$/constants/TransportType.ts'
-import { polkadotBindings } from '$/sources/Polkadot/bindings.ts'
 import {
 	getBlock as getSubstrateBlock,
 	getBlockHash as getSubstrateBlockHash,
@@ -11,25 +10,18 @@ import {
 
 export const polkadotMainnetRpcEndpoints = [
 	{
-		url: polkadotBindings[0].endpoints[0].locator,
+		url: 'https://rpc.polkadot.io',
 		transportType: TransportType.Http,
 		providerName: 'Parity',
 	},
 ] as const
 
 export const polkadotOrigins = [
-	...new Map(
-		polkadotBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: 'https://rpc.polkadot.io',
+		corsEnabled: true,
+	},
+] as const
 
 const polkadotJsonRpc = {
 	origins: polkadotOrigins,

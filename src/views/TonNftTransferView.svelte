@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.TonNftTransfer>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.TonNftTransfer>>
+			selection: RegisteredEntityProxyResource<EntityType.TonNftTransfer>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TonNftTransfer>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -49,7 +50,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import TonNetworkView from '$/views/TonNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import TonNftItemView from '$/views/TonNftItemView.svelte'
 	import TonNftCollectionView from '$/views/TonNftCollectionView.svelte'
 	import TonAccountView from '$/views/TonAccountView.svelte'
@@ -86,8 +87,15 @@
 			<div>
 				<dt>network</dt>
 				<dd>
-					<TonNetworkView
-						selection={select(EntityType.TonNetwork, selection.entitySelector.$network, {})}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -211,6 +219,15 @@
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
+									href={
+										(tonAccount[EntityMetaKey.Selector].address !== undefined && tonAccount[EntityMetaKey.Selector].$network !== undefined && tonAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
+											network: String(caip2StringFromValue(tonAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : tonAccount[EntityMetaKey.Selector].address !== undefined && tonAccount[EntityMetaKey.Selector].$network !== undefined && tonAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
+											network: String(tonAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -233,6 +250,15 @@
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
+									href={
+										(tonAccount[EntityMetaKey.Selector].address !== undefined && tonAccount[EntityMetaKey.Selector].$network !== undefined && tonAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
+											network: String(caip2StringFromValue(tonAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : tonAccount[EntityMetaKey.Selector].address !== undefined && tonAccount[EntityMetaKey.Selector].$network !== undefined && tonAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
+											network: String(tonAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

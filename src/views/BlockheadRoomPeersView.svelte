@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Contacts',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadRoomPeer>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadRoomPeer>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -69,6 +70,7 @@
 					displayName: true,
 					isConnected: true,
 					peerId: true,
+					id: true,
 				},
 			})
 		}
@@ -111,11 +113,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: blockheadRoomPeer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadRoomPeer> })}
+				{#snippet Item({ item: blockheadRoomPeer })}
 					{@const blockheadRoomPeerFields = { ...blockheadRoomPeer[EntityMetaKey.Selector], ...blockheadRoomPeer }}
+					{@const selection = select(EntityType.BlockheadRoomPeer, blockheadRoomPeer[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const blockheadRoomPeerHrefFields = { ...blockheadRoomPeer, ...blockheadRoomPeer[EntityMetaKey.Selector] }}
 					<BlockheadRoomPeerView
-						selection={select(EntityType.BlockheadRoomPeer, blockheadRoomPeer[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={blockheadRoomPeerFields}
+						href={
+							(blockheadRoomPeerHrefFields.id !== undefined ? resolve('/~/multiplayer/contact/[contactId=stringSegment]', {
+								contactId: String(blockheadRoomPeerHrefFields.id ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

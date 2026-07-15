@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'global AI model catalog observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalAiModelCatalog_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalAiModelCatalog_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: globalAiModelCatalogTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalAiModelCatalog_Timestamp> })}
+				{#snippet Item({ item: globalAiModelCatalogTimestamp })}
 					{@const globalAiModelCatalogTimestampFields = { ...globalAiModelCatalogTimestamp[EntityMetaKey.Selector], ...globalAiModelCatalogTimestamp }}
+					{@const selection = select(EntityType._GlobalAiModelCatalog_Timestamp, globalAiModelCatalogTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<GlobalAiModelCatalog_TimestampView
-						selection={select(EntityType._GlobalAiModelCatalog_Timestamp, globalAiModelCatalogTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={globalAiModelCatalogTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

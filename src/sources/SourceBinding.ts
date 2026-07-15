@@ -1,149 +1,153 @@
-import type { Type } from 'arktype'
+// Generated from APP.ts. Do not edit by hand.
 
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type { Source } from '$/sources/Source.ts'
 import type { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import type { Type } from 'arktype'
 
 export enum SourceTargetKind {
-	Global = 'Global',
 	Caip2Network = 'Caip2Network',
-	Eip155Chain = 'Eip155Chain',
-	GitRepository = 'GitRepository',
-	ContentAddressScheme = 'ContentAddressScheme',
-	SqlDataset = 'SqlDataset',
-	LocalDevice = 'LocalDevice',
-	Feed = 'Feed',
 	Canister = 'Canister',
+	ContentAddressScheme = 'ContentAddressScheme',
+	Eip155Chain = 'Eip155Chain',
+	Feed = 'Feed',
+	GitRepository = 'GitRepository',
+	Global = 'Global',
+	LocalDevice = 'LocalDevice',
+	SqlDataset = 'SqlDataset',
 	TorrentSwarm = 'TorrentSwarm',
 }
 
 export enum SourceEndpointKind {
-	HttpUrl = 'HttpUrl',
-	WebSocketUrl = 'WebSocketUrl',
-	TcpAddress = 'TcpAddress',
-	UdpAddress = 'UdpAddress',
-	PostgresDsn = 'PostgresDsn',
-	LocalFilePath = 'LocalFilePath',
-	LocalProcess = 'LocalProcess',
-	InjectedBrowserProvider = 'InjectedBrowserProvider',
 	BrowserWalletProvider = 'BrowserWalletProvider',
 	CanisterId = 'CanisterId',
+	HttpUrl = 'HttpUrl',
+	InjectedBrowserProvider = 'InjectedBrowserProvider',
 	InProcess = 'InProcess',
+	LocalFilePath = 'LocalFilePath',
+	LocalProcess = 'LocalProcess',
+	PostgresDsn = 'PostgresDsn',
+	TcpAddress = 'TcpAddress',
+	UdpAddress = 'UdpAddress',
+	WebSocketUrl = 'WebSocketUrl',
 }
 
 export enum WireProtocol {
-	HttpRest = 'HttpRest',
-	JsonRpc2 = 'JsonRpc2',
-	Graphql = 'Graphql',
-	Xrpc = 'Xrpc',
-	Grpc = 'Grpc',
-	Wrpc = 'Wrpc',
-	Git = 'Git',
-	Bencode = 'Bencode',
-	Prometheus = 'Prometheus',
-	Sql = 'Sql',
-	WalletProvider = 'WalletProvider',
-	Canister = 'Canister',
-	OciDistribution = 'OciDistribution',
-	InProcess = 'InProcess',
-	Uri = 'Uri',
 	Adnl = 'Adnl',
-	WebSocketMessages = 'WebSocketMessages',
-	RawHttp = 'RawHttp',
+	Bencode = 'Bencode',
+	Canister = 'Canister',
+	Git = 'Git',
+	Graphql = 'Graphql',
+	Grpc = 'Grpc',
+	HttpRest = 'HttpRest',
+	InProcess = 'InProcess',
+	JsonRpc2 = 'JsonRpc2',
 	LocalFile = 'LocalFile',
+	OciDistribution = 'OciDistribution',
+	Prometheus = 'Prometheus',
+	RawHttp = 'RawHttp',
+	Sql = 'Sql',
+	Uri = 'Uri',
+	WalletProvider = 'WalletProvider',
+	WebSocketMessages = 'WebSocketMessages',
+	Wrpc = 'Wrpc',
+	Xrpc = 'Xrpc',
 }
 
 export enum ApiFamily {
-	RestJson = 'RestJson',
-	StaticWebsite = 'StaticWebsite',
-	OpenApiHttp = 'OpenApiHttp',
-	GraphqlHttp = 'GraphqlHttp',
-	XrpcLexicon = 'XrpcLexicon',
-	EvmExecutionJsonRpc = 'EvmExecutionJsonRpc',
-	EthereumBeaconRest = 'EthereumBeaconRest',
-	SourcifyRestV2 = 'SourcifyRestV2',
-	BitcoinJsonRpc = 'BitcoinJsonRpc',
-	FilecoinLotusJsonRpc = 'FilecoinLotusJsonRpc',
-	MoneroDaemonJsonRpc = 'MoneroDaemonJsonRpc',
-	SubstrateJsonRpc = 'SubstrateJsonRpc',
-	SolanaJsonRpc = 'SolanaJsonRpc',
-	JsonRpcApi = 'JsonRpcApi',
-	CelestiaNodeJsonRpc = 'CelestiaNodeJsonRpc',
-	StarknetJsonRpc = 'StarknetJsonRpc',
-	BlockscoutRestV2 = 'BlockscoutRestV2',
-	EtherscanModuleAction = 'EtherscanModuleAction',
+	A2aProtocol = 'A2aProtocol',
+	AcpProtocol = 'AcpProtocol',
+	ArweaveGateway = 'ArweaveGateway',
+	AtprotoSync = 'AtprotoSync',
 	AvailExplorerApi = 'AvailExplorerApi',
+	BitcoinJsonRpc = 'BitcoinJsonRpc',
+	BitTorrentClient = 'BitTorrentClient',
+	BitTorrentDht = 'BitTorrentDht',
+	BitTorrentTracker = 'BitTorrentTracker',
+	BlockscoutRestV2 = 'BlockscoutRestV2',
+	CardanoLocalStateQuery = 'CardanoLocalStateQuery',
+	CatalogRows = 'CatalogRows',
+	CelestiaNodeJsonRpc = 'CelestiaNodeJsonRpc',
+	CertifiedHttpGateway = 'CertifiedHttpGateway',
 	CosmosLcdApi = 'CosmosLcdApi',
 	DydxIndexerRest = 'DydxIndexerRest',
-	TezosNodeRpc = 'TezosNodeRpc',
-	Postgres = 'Postgres',
-	PrometheusText = 'PrometheusText',
-	CardanoLocalStateQuery = 'CardanoLocalStateQuery',
+	EthereumBeaconRest = 'EthereumBeaconRest',
+	EtherscanModuleAction = 'EtherscanModuleAction',
+	EnvioHyperSyncApi = 'EnvioHyperSyncApi',
+	EvmExecutionJsonRpc = 'EvmExecutionJsonRpc',
 	FedimintGatewaydApi = 'FedimintGatewaydApi',
-	KaspaRestApi = 'KaspaRestApi',
-	KaspaWrpcApi = 'KaspaWrpcApi',
-	LocalStateStore = 'LocalStateStore',
-	UriScheme = 'UriScheme',
-	TonLiteServerAdnl = 'TonLiteServerAdnl',
-	WebTorrentApi = 'WebTorrentApi',
+	FilecoinLotusJsonRpc = 'FilecoinLotusJsonRpc',
+	ForgejoRestApi = 'ForgejoRestApi',
 	GithubContentsApi = 'GithubContentsApi',
 	GithubRestApi = 'GithubRestApi',
 	GitlabRestApi = 'GitlabRestApi',
-	ForgejoRestApi = 'ForgejoRestApi',
 	GitObject = 'GitObject',
-	AtprotoSync = 'AtprotoSync',
-	IpfsGateway = 'IpfsGateway',
-	SwarmGateway = 'SwarmGateway',
-	ArweaveGateway = 'ArweaveGateway',
-	NostrRelay = 'NostrRelay',
-	BitTorrentTracker = 'BitTorrentTracker',
-	BitTorrentDht = 'BitTorrentDht',
-	BitTorrentClient = 'BitTorrentClient',
-	SigstoreRekorApi = 'SigstoreRekorApi',
-	A2aProtocol = 'A2aProtocol',
-	AcpProtocol = 'AcpProtocol',
-	McpProtocol = 'McpProtocol',
-	OciDistributionApi = 'OciDistributionApi',
-	X402Protocol = 'X402Protocol',
-	LocalParser = 'LocalParser',
-	CatalogRows = 'CatalogRows',
-	WalletApi = 'WalletApi',
-	XmtpClientApi = 'XmtpClientApi',
+	GoldRushFoundationalApi = 'GoldRushFoundationalApi',
+	GraphqlHttp = 'GraphqlHttp',
 	GrpcService = 'GrpcService',
 	IcCanister = 'IcCanister',
-	CertifiedHttpGateway = 'CertifiedHttpGateway',
+	IpfsGateway = 'IpfsGateway',
+	JsonRpcApi = 'JsonRpcApi',
+	KaspaRestApi = 'KaspaRestApi',
+	KaspaWrpcApi = 'KaspaWrpcApi',
+	LocalParser = 'LocalParser',
+	LocalStateStore = 'LocalStateStore',
+	McpProtocol = 'McpProtocol',
+	MoneroDaemonJsonRpc = 'MoneroDaemonJsonRpc',
+	NostrRelay = 'NostrRelay',
+	OciDistributionApi = 'OciDistributionApi',
+	OpenApiHttp = 'OpenApiHttp',
+	Postgres = 'Postgres',
+	PrometheusText = 'PrometheusText',
+	RestJson = 'RestJson',
 	RosettaApi = 'RosettaApi',
+	SigstoreRekorApi = 'SigstoreRekorApi',
+	SolanaJsonRpc = 'SolanaJsonRpc',
+	SourcifyRestV2 = 'SourcifyRestV2',
+	SqdPortalStream = 'SqdPortalStream',
+	StarknetJsonRpc = 'StarknetJsonRpc',
+	StaticWebsite = 'StaticWebsite',
+	SubstrateJsonRpc = 'SubstrateJsonRpc',
+	SwarmGateway = 'SwarmGateway',
+	TezosNodeRpc = 'TezosNodeRpc',
+	TonLiteServerAdnl = 'TonLiteServerAdnl',
+	UriScheme = 'UriScheme',
+	WalletApi = 'WalletApi',
+	WebTorrentApi = 'WebTorrentApi',
+	X402Protocol = 'X402Protocol',
+	XmtpClientApi = 'XmtpClientApi',
+	XrpcLexicon = 'XrpcLexicon',
 }
 
 export enum SourceOperationGroup {
-	GenericRead = 'GenericRead',
-	GenericSubscribe = 'GenericSubscribe',
 	AgentCapabilityCatalog = 'AgentCapabilityCatalog',
-	AiModelCatalog = 'AiModelCatalog',
-	AiProviderOperationCatalog = 'AiProviderOperationCatalog',
+	AgentRuntimeInvocation = 'AgentRuntimeInvocation',
 	AiArtifactCatalog = 'AiArtifactCatalog',
 	AiDatasetMetadata = 'AiDatasetMetadata',
-	AgentRuntimeInvocation = 'AgentRuntimeInvocation',
-	DocumentClaimExtraction = 'DocumentClaimExtraction',
-	PaymentNegotiation = 'PaymentNegotiation',
-	RepositoryMetadata = 'RepositoryMetadata',
-	SoftwareArtifactRegistry = 'SoftwareArtifactRegistry',
-	GitRepositoryContents = 'GitRepositoryContents',
-	EvmRpcCore = 'EvmRpcCore',
-	EvmRpcTrace = 'EvmRpcTrace',
-	EvmRpcTxpool = 'EvmRpcTxpool',
-	EvmRpcSubscribe = 'EvmRpcSubscribe',
-	BlockscoutAccountAbstraction = 'BlockscoutAccountAbstraction',
-	EtherscanAccountModule = 'EtherscanAccountModule',
-	EtherscanContractModule = 'EtherscanContractModule',
-	GithubRepositoryContents = 'GithubRepositoryContents',
-	IssueTracking = 'IssueTracking',
-	PullRequestReview = 'PullRequestReview',
-	ReleaseMetadata = 'ReleaseMetadata',
-	ContentGatewayRead = 'ContentGatewayRead',
-	NostrRelayRead = 'NostrRelayRead',
+	AiModelCatalog = 'AiModelCatalog',
+	AiProviderOperationCatalog = 'AiProviderOperationCatalog',
 	BitTorrentAnnounce = 'BitTorrentAnnounce',
 	BitTorrentDhtLookup = 'BitTorrentDhtLookup',
+	BlockscoutAccountAbstraction = 'BlockscoutAccountAbstraction',
+	ContentGatewayRead = 'ContentGatewayRead',
+	DocumentClaimExtraction = 'DocumentClaimExtraction',
+	EtherscanAccountModule = 'EtherscanAccountModule',
+	EtherscanContractModule = 'EtherscanContractModule',
+	EvmRpcCore = 'EvmRpcCore',
+	EvmRpcSubscribe = 'EvmRpcSubscribe',
+	EvmRpcTrace = 'EvmRpcTrace',
+	EvmRpcTxpool = 'EvmRpcTxpool',
+	GenericRead = 'GenericRead',
+	GenericSubscribe = 'GenericSubscribe',
+	GithubRepositoryContents = 'GithubRepositoryContents',
+	GitRepositoryContents = 'GitRepositoryContents',
+	IssueTracking = 'IssueTracking',
+	NostrRelayRead = 'NostrRelayRead',
+	PaymentNegotiation = 'PaymentNegotiation',
+	PullRequestReview = 'PullRequestReview',
+	ReleaseMetadata = 'ReleaseMetadata',
+	RepositoryMetadata = 'RepositoryMetadata',
+	SoftwareArtifactRegistry = 'SoftwareArtifactRegistry',
 	WalletAccountRead = 'WalletAccountRead',
 	WalletSign = 'WalletSign',
 }
@@ -151,34 +155,34 @@ export enum SourceOperationGroup {
 export enum SourceDelivery {
 	BrowserDirect = 'BrowserDirect',
 	HttpProxy = 'HttpProxy',
-	RemoteQuery = 'RemoteQuery',
-	RemoteLive = 'RemoteLive',
-	ServerOnly = 'ServerOnly',
 	LocalOnly = 'LocalOnly',
+	RemoteLive = 'RemoteLive',
+	RemoteQuery = 'RemoteQuery',
+	ServerOnly = 'ServerOnly',
 	Unsupported = 'Unsupported',
 }
 
 export enum SourceCredentialScope {
+	LocalSecret = 'LocalSecret',
 	None = 'None',
 	PublicConfig = 'PublicConfig',
 	RuntimeSecret = 'RuntimeSecret',
-	LocalSecret = 'LocalSecret',
 	UserDelegated = 'UserDelegated',
 }
 
 export enum SourceArtifactKind {
+	Candid = 'Candid',
+	GenerationManifest = 'GenerationManifest',
+	GoogleDiscovery = 'GoogleDiscovery',
+	GraphqlSchema = 'GraphqlSchema',
+	GraphqlTypes = 'GraphqlTypes',
+	HandwrittenTypes = 'HandwrittenTypes',
+	Lexicon = 'Lexicon',
 	OpenApiSpec = 'OpenApiSpec',
 	OpenApiTypes = 'OpenApiTypes',
 	OpenRpcSpec = 'OpenRpcSpec',
 	OpenRpcTypes = 'OpenRpcTypes',
-	GraphqlSchema = 'GraphqlSchema',
-	GraphqlTypes = 'GraphqlTypes',
-	GoogleDiscovery = 'GoogleDiscovery',
-	Lexicon = 'Lexicon',
 	Proto = 'Proto',
-	Candid = 'Candid',
-	GenerationManifest = 'GenerationManifest',
-	HandwrittenTypes = 'HandwrittenTypes',
 }
 
 export type SourceTarget = {
@@ -193,17 +197,57 @@ export type SourceEndpoint = {
 	corsEnabled?: boolean
 }
 
-export type SourceArtifact = {
+type SourceArtifactBase = {
 	kind: SourceArtifactKind
 	path: string
 	generated: boolean
-	officialUrl?: string
 }
+
+export type SourceArtifact =
+	| SourceArtifactBase & {
+		kind: SourceArtifactKind.HandwrittenTypes
+		referenceUrl?: string
+		officialUrl?: never
+	}
+	| SourceArtifactBase & {
+		kind: Exclude<SourceArtifactKind, SourceArtifactKind.HandwrittenTypes>
+		officialUrl?: string
+		referenceUrl?: never
+	}
 
 export type SourceCredentialRequirement = {
 	scope: SourceCredentialScope
 	env?: Type<SourcePublicEnv>
 	keys?: readonly string[]
+}
+
+export type SourceServerCredentialInjection =
+	| {
+		header: {
+			name: string
+			prefix?: string
+		}
+		query?: never
+		endpointTemplate?: never
+	}
+	| {
+		query: {
+			name: string
+		}
+		header?: never
+		endpointTemplate?: never
+	}
+	| {
+		endpointTemplate: {
+			slot: string
+		}
+		header?: never
+		query?: never
+	}
+
+export type SourceServerCredentialDefinition = {
+	envKey: string
+	injection: SourceServerCredentialInjection
 }
 
 export type SourceBinding = {
@@ -217,4 +261,6 @@ export type SourceBinding = {
 	delivery: SourceDelivery
 	credentials: readonly SourceCredentialRequirement[]
 	artifacts?: readonly SourceArtifact[]
+	proxyId?: string
+	serverCredentialId?: string
 }

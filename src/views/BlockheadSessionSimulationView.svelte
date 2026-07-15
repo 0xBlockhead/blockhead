@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BlockheadSessionSimulation>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BlockheadSessionSimulation>>
+			selection: RegisteredEntityProxyResource<EntityType.BlockheadSessionSimulation>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadSessionSimulation>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -48,7 +48,6 @@
 			Source.Local_Internal,
 		],
 		fields: {
-			$session: true,
 			status: true,
 			createdAt: true,
 			paramsHash: true,
@@ -122,6 +121,11 @@
 							<BlockheadSessionView
 								selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
 								prefetched={blockheadSession}
+								href={
+									(blockheadSession[EntityMetaKey.Selector].id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
+										sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
+									}) : undefined)
+								}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
@@ -140,6 +144,11 @@
 							<BlockheadSessionView
 								selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
 								prefetched={blockheadSession}
+								href={
+									(blockheadSession[EntityMetaKey.Selector].id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
+										sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
+									}) : undefined)
+								}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
@@ -163,6 +172,11 @@
 								<BlockheadSessionView
 									selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
 									prefetched={blockheadSession}
+									href={
+										(blockheadSession[EntityMetaKey.Selector].id !== undefined ? resolve('/~/session/[sessionId=stringSegment]', {
+											sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

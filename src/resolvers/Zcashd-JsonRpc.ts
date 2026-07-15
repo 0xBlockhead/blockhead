@@ -6,6 +6,7 @@ import {
 } from '$/constants/BitcoinNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -50,16 +51,18 @@ const zcashShieldedActionRows = (
 			actionKind: ZcashShieldedActionKind.Spend,
 			indexInTransaction,
 		},
-		$pool: {
-			[EntityMetaKey.Selector]: {
-				$network: entitySelector.$network,
-				pool: ZcashShieldedPoolKind.Sapling,
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], '$pool')]: {
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$network,
+					pool: ZcashShieldedPoolKind.Sapling,
+				},
 			},
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'actionKind')]: ZcashShieldedActionKind.Spend,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'nullifier')]: spend.nullifier,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'noteCommitment')]: undefined,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'valueCommitment')]: spend.cv,
 		},
-		actionKind: ZcashShieldedActionKind.Spend,
-		nullifier: spend.nullifier,
-		noteCommitment: undefined,
-		valueCommitment: spend.cv,
 	})),
 	...(transaction.vShieldedOutput ?? []).map((output, indexInTransaction) => ({
 		[EntityMetaKey.Selector]: {
@@ -68,16 +71,18 @@ const zcashShieldedActionRows = (
 			actionKind: ZcashShieldedActionKind.Output,
 			indexInTransaction,
 		},
-		$pool: {
-			[EntityMetaKey.Selector]: {
-				$network: entitySelector.$network,
-				pool: ZcashShieldedPoolKind.Sapling,
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], '$pool')]: {
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$network,
+					pool: ZcashShieldedPoolKind.Sapling,
+				},
 			},
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'actionKind')]: ZcashShieldedActionKind.Output,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'nullifier')]: undefined,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'noteCommitment')]: output.cmu,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'valueCommitment')]: output.cv,
 		},
-		actionKind: ZcashShieldedActionKind.Output,
-		nullifier: undefined,
-		noteCommitment: output.cmu,
-		valueCommitment: output.cv,
 	})),
 	...(transaction.orchard?.actions ?? []).map((action, indexInTransaction) => ({
 		[EntityMetaKey.Selector]: {
@@ -86,16 +91,18 @@ const zcashShieldedActionRows = (
 			actionKind: ZcashShieldedActionKind.Action,
 			indexInTransaction,
 		},
-		$pool: {
-			[EntityMetaKey.Selector]: {
-				$network: entitySelector.$network,
-				pool: ZcashShieldedPoolKind.Orchard,
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], '$pool')]: {
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$network,
+					pool: ZcashShieldedPoolKind.Orchard,
+				},
 			},
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'actionKind')]: ZcashShieldedActionKind.Action,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'nullifier')]: action.nullifier,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'noteCommitment')]: action.cmx,
+			[entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'valueCommitment')]: action.cv,
 		},
-		actionKind: ZcashShieldedActionKind.Action,
-		nullifier: action.nullifier,
-		noteCommitment: action.cmx,
-		valueCommitment: action.cv,
 	})),
 ]
 
@@ -203,11 +210,11 @@ export default {
 				}
 			},
 		})({
-				$pool: (snapshot) => snapshot.$pool,
-				actionKind: (snapshot) => snapshot.actionKind,
-				nullifier: (snapshot) => snapshot.nullifier,
-				noteCommitment: (snapshot) => snapshot.noteCommitment,
-				valueCommitment: (snapshot) => snapshot.valueCommitment,
+				$pool: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], '$pool')],
+				actionKind: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'actionKind')],
+				nullifier: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'nullifier')],
+				noteCommitment: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'noteCommitment')],
+				valueCommitment: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ZcashShieldedAction, [], 'valueCommitment')],
 			}),
 	],
 }

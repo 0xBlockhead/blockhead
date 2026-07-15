@@ -1,5 +1,4 @@
 import { getJson } from '$/lib/http.ts'
-import { filfoxOrigins } from '$/sources/Filfox/index.ts'
 import type {
 	FilfoxAddress,
 	FilfoxBlock,
@@ -8,6 +7,13 @@ import type {
 	FilfoxOverview,
 	FilfoxTipset,
 } from '$/sources/Filfox/Rest/types.ts'
+
+const filfoxOrigins = [
+	{
+		origin: 'https://filfox.info',
+		corsEnabled: true,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

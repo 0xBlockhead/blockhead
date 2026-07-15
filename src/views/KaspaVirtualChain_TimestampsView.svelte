@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Kaspa virtual-chain observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.KaspaVirtualChain_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.KaspaVirtualChain_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: kaspaVirtualChainTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.KaspaVirtualChain_Timestamp> })}
+				{#snippet Item({ item: kaspaVirtualChainTimestamp })}
 					{@const kaspaVirtualChainTimestampFields = { ...kaspaVirtualChainTimestamp[EntityMetaKey.Selector], ...kaspaVirtualChainTimestamp }}
+					{@const selection = select(EntityType.KaspaVirtualChain_Timestamp, kaspaVirtualChainTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<KaspaVirtualChain_TimestampView
-						selection={select(EntityType.KaspaVirtualChain_Timestamp, kaspaVirtualChainTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={kaspaVirtualChainTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

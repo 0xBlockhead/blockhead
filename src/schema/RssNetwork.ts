@@ -1,7 +1,9 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
@@ -32,13 +34,13 @@ export const RssNetwork = entity({
 	homeUrl: {
 		label: 'Home URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: (UrlString),
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
 		label: 'Docs URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: (UrlString),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	registryName: {
@@ -60,16 +62,6 @@ export const RssNetwork = entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
-		],
-	},
-	$$observedItems: {
-		label: 'Items',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.RssItem,
-		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Rss_Rest,
-			Source.Rss2Json_Rest,
 		],
 	},
 })({

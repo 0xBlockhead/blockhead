@@ -27,7 +27,6 @@
 			$logo: true,
 			symbol: true,
 			name: true,
-			decimals: true,
 		},
 	}))
 	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.symbol) ?? ''), String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || 'Coin' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).symbol) ?? ''), String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Coin')))

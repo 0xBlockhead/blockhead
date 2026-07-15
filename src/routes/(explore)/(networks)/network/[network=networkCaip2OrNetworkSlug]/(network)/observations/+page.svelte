@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,6 +45,9 @@
 				title='Observations'
 				selection={
 					projection.$$timestamps({
+						sources: [
+							Source.Voltaire_JsonRpc,
+						],
 						count: true,
 					})
 				}

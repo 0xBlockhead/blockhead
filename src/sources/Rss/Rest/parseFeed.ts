@@ -141,12 +141,8 @@ const parseItemBlock = (
 		:
 			linkHrefFromBlock(block)
 	)
-	const guid = (
-		firstTagText(block, ['guid', 'id'])
-		?? link
-		?? title
-	)
-	if (guid == null || guid.trim() === '') return null
+	const guid = firstTagText(block, ['guid', 'id'])
+	if ((guid == null || guid.trim() === '') && link == null) return null
 	const author = authorFromBlock(block, options.feedAuthor)
 	const publishedAtStrict = publishedAtFromBlock(block)
 	const updatedAtRaw = updatedAtFromBlock(block)
@@ -163,7 +159,7 @@ const parseItemBlock = (
 	const enclosureUrl = enclosureUrlFromBlock(block)
 	const commentsUrl = commentsUrlFromBlock(block)
 	return {
-		guid: guid.trim(),
+		...(guid != null && guid.trim() !== '' && { guid: guid.trim() }),
 		...(title != null && { title }),
 		...(link != null && { link }),
 		...(firstTagText(block, ['description', 'summary']) != null && {

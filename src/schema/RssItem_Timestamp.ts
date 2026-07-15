@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -32,22 +33,28 @@ export const RssItem_Timestamp = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	title: {
-		label: 'Title',
+	observed: {
+		label: 'Observed',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	reachable: {
+		label: 'Feed reachable',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	fetchWindowKind: {
+		label: 'Fetch window',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.unit('Feed'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	error: {
+		label: 'Error',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	link: {
-		label: 'Link',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	publishedAt: {
-		label: 'Published',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

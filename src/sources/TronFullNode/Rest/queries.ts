@@ -1,5 +1,4 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { tronFullNodeBindings } from '$/sources/TronFullNode/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	TronNodeAccount,
@@ -11,23 +10,16 @@ import type {
 export const tronFullNodeRestEndpoints = [
 	{
 		slug: 'full_node_local',
-		restBaseUrl: tronFullNodeBindings[0].endpoints[0].locator,
+		restBaseUrl: 'http://127.0.0.1:8090',
 	},
 ] as const
 
 export const tronFullNodeOrigins = [
-	...new Map(
-		tronFullNodeBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: 'http://127.0.0.1:8090',
+		corsEnabled: false,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'X users',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.XUser>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.XUser>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,11 +114,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: xUser }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XUser> })}
+				{#snippet Item({ item: xUser })}
 					{@const xUserFields = { ...xUser[EntityMetaKey.Selector], ...xUser }}
+					{@const selection = select(EntityType.XUser, xUser[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const xUserHrefFields = { ...xUser, ...xUser[EntityMetaKey.Selector] }}
 					<XUserView
-						selection={select(EntityType.XUser, xUser[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={xUserFields}
+						href={
+							(xUserHrefFields.id !== undefined ? resolve('/x/user/[userId=stringSegment]', {
+								userId: String(xUserHrefFields.id ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

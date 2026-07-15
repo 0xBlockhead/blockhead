@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.HederaToken>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.HederaToken>>
+			selection: RegisteredEntityProxyResource<EntityType.HederaToken>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.HederaToken>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -50,7 +51,7 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import HederaNetworkView from '$/views/HederaNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import HederaTokenAssociationsView from '$/views/HederaTokenAssociationsView.svelte'
 	import HederaNftsView from '$/views/HederaNftsView.svelte'
 	import HederaToken_TimestampsView from '$/views/HederaToken_TimestampsView.svelte'
@@ -85,8 +86,15 @@
 			<div>
 				<dt>network</dt>
 				<dd>
-					<HederaNetworkView
-						selection={select(EntityType.HederaNetwork, selection.entitySelector.$network, {})}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+								network: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

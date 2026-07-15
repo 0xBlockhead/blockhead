@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'EIP-8004 validation observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Eip8004Validation_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Eip8004Validation_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: eip8004ValidationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Eip8004Validation_Timestamp> })}
+				{#snippet Item({ item: eip8004ValidationTimestamp })}
 					{@const eip8004ValidationTimestampFields = { ...eip8004ValidationTimestamp[EntityMetaKey.Selector], ...eip8004ValidationTimestamp }}
+					{@const selection = select(EntityType.Eip8004Validation_Timestamp, eip8004ValidationTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<Eip8004Validation_TimestampView
-						selection={select(EntityType.Eip8004Validation_Timestamp, eip8004ValidationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={eip8004ValidationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

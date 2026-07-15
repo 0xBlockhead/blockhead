@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Liquidity pools',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.LiquidityPool>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.LiquidityPool>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -118,11 +118,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: liquidityPool }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LiquidityPool> })}
+				{#snippet Item({ item: liquidityPool })}
 					{@const liquidityPoolFields = { ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }}
+					{@const selection = select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const liquidityPoolHrefFields = { ...liquidityPool, ...liquidityPool[EntityMetaKey.Selector] }}
 					<LiquidityPoolView
-						selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={liquidityPoolFields}
 						href={
 							(liquidityPoolHrefFields.id !== undefined && liquidityPoolHrefFields.$network !== undefined && liquidityPoolHrefFields.$network.caip2 !== undefined && liquidityPoolHrefFields.$network.caip2.reference !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {

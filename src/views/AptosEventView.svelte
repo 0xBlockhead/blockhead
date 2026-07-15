@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.AptosEvent>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.AptosEvent>>
+			selection: RegisteredEntityProxyResource<EntityType.AptosEvent>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AptosEvent>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -108,27 +107,25 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={selection.$transaction}
-			>
-				{#snippet Pending()}{/snippet}
-
-				{#snippet children(aptosTransaction)}
-					{#if aptosTransaction != null && aptosTransaction[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>transaction</dt>
-							<dd>
+			<div>
+				<dt>transaction</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$transaction}
+					>
+						{#snippet children(aptosTransaction)}
+							{#if aptosTransaction != null && aptosTransaction[EntityMetaKey.Selector] != null}
 								<AptosTransactionView
 									selection={select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector])}
 									prefetched={aptosTransaction}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>event type</dt>
@@ -222,110 +219,95 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							accountAddress: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const accountAddress = pendingEntity.accountAddress}
-					{#if accountAddress !== undefined && accountAddress !== null}
-						<div>
-							<dt>account address</dt>
-							<dd>
+			<div>
+				<dt>account address</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									accountAddress: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const accountAddress = pendingEntity.accountAddress}
+							{#if accountAddress !== undefined && accountAddress !== null}
 								<TruncatedValue value={String((accountAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const accountAddress = resolvedEntity.accountAddress}
-					{#if accountAddress !== undefined && accountAddress !== null}
-						<div>
-							<dt>account address</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const accountAddress = resolvedEntity.accountAddress}
+							{#if accountAddress !== undefined && accountAddress !== null}
 								<TruncatedValue value={String((accountAddress) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							creationNumber: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const creationNumber = pendingEntity.creationNumber}
-					{#if creationNumber !== undefined && creationNumber !== null}
-						<div>
-							<dt>creation number</dt>
-							<dd>
+			<div>
+				<dt>creation number</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									creationNumber: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const creationNumber = pendingEntity.creationNumber}
+							{#if creationNumber !== undefined && creationNumber !== null}
 								<NumberValue value={Number(creationNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const creationNumber = resolvedEntity.creationNumber}
-					{#if creationNumber !== undefined && creationNumber !== null}
-						<div>
-							<dt>creation number</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const creationNumber = resolvedEntity.creationNumber}
+							{#if creationNumber !== undefined && creationNumber !== null}
 								<NumberValue value={Number(creationNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							sequenceNumber: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const sequenceNumber = pendingEntity.sequenceNumber}
-					{#if sequenceNumber !== undefined && sequenceNumber !== null}
-						<div>
-							<dt>sequence number</dt>
-							<dd>
+			<div>
+				<dt>sequence number</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									sequenceNumber: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const sequenceNumber = pendingEntity.sequenceNumber}
+							{#if sequenceNumber !== undefined && sequenceNumber !== null}
 								<NumberValue value={Number(sequenceNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sequenceNumber = resolvedEntity.sequenceNumber}
-					{#if sequenceNumber !== undefined && sequenceNumber !== null}
-						<div>
-							<dt>sequence number</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const sequenceNumber = resolvedEntity.sequenceNumber}
+							{#if sequenceNumber !== undefined && sequenceNumber !== null}
 								<NumberValue value={Number(sequenceNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 </EntityView>

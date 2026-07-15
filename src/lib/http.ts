@@ -55,6 +55,10 @@ export type CorsAwareFetchOptions = {
 	origins: readonly SourceOrigin[]
 	delivery?: SourceDelivery
 	init?: RequestInit
+	proxy?: {
+		proxyId: string
+		endpointIndex: number
+	}
 	retry?: RetryOptions
 }
 
@@ -86,8 +90,15 @@ const doFetch = async (
 	)
 		throw new Error(`${options.delivery} source HTTP is unavailable in the browser for ${url}`)
 
-	if (options.delivery === SourceDelivery.HttpProxy)
-		return fetch(`/api-proxy/${url}`, withTimeout(options.init))
+	if (options.delivery === SourceDelivery.HttpProxy) {
+		if (options.proxy == null)
+			throw new Error(`HttpProxy source is missing proxy identity for ${url}`)
+
+		return fetch(
+			`/api-proxy/${encodeURIComponent(options.proxy.proxyId)}/${options.proxy.endpointIndex}/${encodeURIComponent(url)}`,
+			withTimeout(options.init)
+		)
+	}
 
 	if (options.delivery === SourceDelivery.BrowserDirect && !sourceOrigin.corsEnabled)
 		throw new Error(`BrowserDirect source origin is not CORS-enabled for ${url}`)
@@ -95,7 +106,7 @@ const doFetch = async (
 	return sourceOrigin.corsEnabled ?
 		fetch(url, withTimeout(options.init))
 	:
-		fetch(`/api-proxy/${url}`, withTimeout(options.init))
+		Promise.reject(new Error(`Non-CORS source is missing HttpProxy delivery for ${url}`))
 }
 
 export const corsFetch = async (

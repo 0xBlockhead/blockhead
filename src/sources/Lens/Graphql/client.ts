@@ -7,9 +7,9 @@ import {
 import { getJson } from '$/lib/http.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
+	lensApiOrigins,
 	lensGraphqlUrl,
 } from '$/sources/Lens/Graphql/constants.ts'
-import { lensOrigins } from '$/sources/Lens/index.ts'
 
 import type { introspection } from './graphql-env.d.ts'
 
@@ -54,7 +54,7 @@ export const queryLens = async <
 	for (const url of lensGraphqlUrls) {
 		try {
 			const out = await getJson<LensGqlResponse<_Result>>(url, {
-				origins: lensOrigins,
+				origins: lensApiOrigins,
 				init: {
 					method: 'POST',
 					headers: {

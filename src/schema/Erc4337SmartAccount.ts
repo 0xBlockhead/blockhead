@@ -1,8 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum Erc4337SmartAccountSelector {
@@ -27,12 +29,6 @@ export const Erc4337SmartAccount = entity({
 		primitiveType: (EvmAddress),
 		cardinality: EntityFieldCardinality.One,
 	},
-	userOperationsCount: {
-		label: 'User operations',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	$contract: {
 		label: 'Contract',
 		type: EntityFieldType.EntityReference,
@@ -50,6 +46,9 @@ export const Erc4337SmartAccount = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Erc4337SmartAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockscout_Rest,
+		],
 	},
 	$$userOperations: {
 		label: 'User operations',

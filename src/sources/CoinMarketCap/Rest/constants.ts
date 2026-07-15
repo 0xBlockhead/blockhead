@@ -4,6 +4,13 @@ export const origin = 'https://pro-api.coinmarketcap.com' as const
 
 export const baseUrl = origin
 
+export const coinMarketCapOrigins = [
+	{
+		origin,
+		corsEnabled: false,
+	},
+] as const
+
 const catalog = [
 	{ coinId: CoinId.AAVE, wireId: 7278 },
 	{ coinId: CoinId.ADA, wireId: 2010 },

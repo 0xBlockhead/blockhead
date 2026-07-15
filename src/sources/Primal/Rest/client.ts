@@ -1,6 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import { primalOrigins } from '$/sources/Primal/index.ts'
-import { primalApiBaseUrl } from '$/sources/Primal/Rest/constants.ts'
+import {
+	primalApiBaseUrl,
+	primalOrigins,
+} from '$/sources/Primal/Rest/constants.ts'
 import type { PrimalPostBody } from '$/sources/Primal/Rest/types.ts'
 
 const primalUrl = (path: string) => (

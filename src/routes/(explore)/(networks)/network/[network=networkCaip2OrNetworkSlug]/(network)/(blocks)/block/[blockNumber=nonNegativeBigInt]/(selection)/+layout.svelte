@@ -39,7 +39,7 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.EvmBlock ? EvmBlockView : data.selectorMapping.entityType === EntityType.SolanaBlock ? SolanaBlockView : data.selectorMapping.entityType === EntityType.UtxoBlock ? UtxoBlockView : PolkadotBlockView}
+			{@const DetailView = data.selectorMapping.entityType === EntityType.EvmBlock && data.selectorMapping.selectorName === 'EvmNetworkBlockNumber' ? EvmBlockView : data.selectorMapping.entityType === EntityType.SolanaBlock && data.selectorMapping.selectorName === 'Slot' ? SolanaBlockView : data.selectorMapping.entityType === EntityType.UtxoBlock && data.selectorMapping.selectorName === 'NetworkHeight' ? UtxoBlockView : PolkadotBlockView}
 
 			<DetailView
 				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}

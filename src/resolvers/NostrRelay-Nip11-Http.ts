@@ -2,38 +2,20 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
+import {
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
+import { NostrRelay_TimestampSelector } from '$/schema/NostrRelay_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	isJsonArray,
-	isJsonBoolean,
-	isJsonNumber,
-	isJsonObject,
-	isJsonString,
-} from '$/typescript/JsonValue.ts'
 
-const relayFieldValuesFromInformationDocument = (document: Awaited<ReturnType<typeof import('$/sources/NostrRelay/Http/queries.ts').fetchRelayInformation>>) => {
-	if (!isJsonObject(document))
-		throw new Error('NostrRelay_Nip11_Http: relay information document is not an object')
+const normalizeRelayUrl = (relayUrl: string) => {
+	const url = new URL(relayUrl.includes('://') ? relayUrl : `wss://${relayUrl}`)
+	if (url.protocol !== 'wss:' && url.protocol !== 'ws:')
+		throw new Error('NostrRelay_Nip11_Http: relay url must use ws or wss')
 
-	const limitation = isJsonObject(document.limitation) ? document.limitation : undefined
-
-	return {
-		name: isJsonString(document.name) ? optionalNonemptyString(document.name) : undefined,
-		description: isJsonString(document.description) ? optionalNonemptyString(document.description) : undefined,
-		software: isJsonString(document.software) ? optionalNonemptyString(document.software) : undefined,
-		version: isJsonString(document.version) ? optionalNonemptyString(document.version) : undefined,
-		...(isJsonArray(document.supported_nips) && {
-			supportedNipCount: document.supported_nips.length,
-		}),
-		...(isJsonBoolean(document.payment_required) && {
-			isPaid: document.payment_required,
-		}),
-		...(limitation != null && isJsonNumber(limitation.max_limit) && {
-			limit: limitation.max_limit,
-		}),
-	}
+	return `${url.protocol}//${url.host}${url.pathname.replace(/\/$/, '')}`
 }
 
 export default {
@@ -44,20 +26,108 @@ export default {
 			entityType: EntityType.NostrRelay,
 			resolve: {
 				[NostrRelaySelector.RelayUrl]: async ({ relayUrl }) => {
-					const { fetchRelayInformation } = await import('$/sources/NostrRelay/Http/queries.ts')
-					return relayFieldValuesFromInformationDocument(
-						await fetchRelayInformation({ relayUrl })
-					)
+					const normalizedRelayUrl = normalizeRelayUrl(relayUrl)
+					return {
+						relayUrl: normalizedRelayUrl,
+						$$timestamps: [{
+							[EntityMetaKey.Selector]: {
+								$relay: { relayUrl: normalizedRelayUrl },
+								timestampMs: Date.now(),
+								source: Source.NostrRelay_Nip11_Http,
+							},
+						}],
+					}
 				},
 			},
 		})({
-				name: (relay) => relay.name,
-				description: (relay) => relay.description,
-				software: (relay) => relay.software,
-				version: (relay) => relay.version,
-				supportedNipCount: (relay) => relay.supportedNipCount,
-				isPaid: (relay) => relay.isPaid,
-				limit: (relay) => relay.limit,
-			}),
+			relayUrl: (relay) => relay.relayUrl,
+			$$timestamps: (relay) => relay.$$timestamps,
+		}),
+
+		defineResolver(Source.NostrRelay_Nip11_Http, {
+			entityType: EntityType.NostrRelay_Timestamp,
+			resolve: {
+				[NostrRelay_TimestampSelector.RelayTimestampMsSource]: async ({
+					$relay,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.NostrRelay_Nip11_Http)
+						throw new Error(`NostrRelay_Nip11_Http: unsupported source ${source}`)
+
+					const relayUrl = normalizeRelayUrl($relay.relayUrl)
+					try {
+						const { fetchRelayInformation } = await import('$/sources/NostrRelay/Http/queries.ts')
+						const document = await fetchRelayInformation({ relayUrl })
+						return {
+							$relay: { [EntityMetaKey.Selector]: { relayUrl } },
+							timestampMs,
+							source,
+							reachable: true,
+							name: optionalNonemptyString(document.name),
+							description: optionalNonemptyString(document.description),
+							software: optionalNonemptyString(document.software),
+							version: optionalNonemptyString(document.version),
+							pubkey: optionalNonemptyString(document.pubkey),
+							contact: optionalNonemptyString(document.contact),
+							paymentsUrl: optionalNonemptyString(document.payments_url),
+							termsOfServiceUrl: optionalNonemptyString(document.terms_of_service),
+							iconUrl: optionalNonemptyString(document.icon),
+							bannerUrl: optionalNonemptyString(document.banner),
+							...(document.supported_nips != null && { supportedNips: document.supported_nips }),
+							...(document.limitation != null && {
+								limitation: {
+									...(document.limitation.max_message_length != null && { maxMessageLength: document.limitation.max_message_length }),
+									...(document.limitation.max_subscriptions != null && { maxSubscriptions: document.limitation.max_subscriptions }),
+									...(document.limitation.max_filters != null && { maxFilters: document.limitation.max_filters }),
+									...(document.limitation.max_limit != null && { maxLimit: document.limitation.max_limit }),
+									...(document.limitation.max_subid_length != null && { maxSubscriptionIdLength: document.limitation.max_subid_length }),
+									...(document.limitation.max_event_tags != null && { maxEventTags: document.limitation.max_event_tags }),
+									...(document.limitation.max_content_length != null && { maxContentLength: document.limitation.max_content_length }),
+									...(document.limitation.min_pow_difficulty != null && { minimumProofOfWorkDifficulty: document.limitation.min_pow_difficulty }),
+									...(document.limitation.auth_required != null && { authenticationRequired: document.limitation.auth_required }),
+									...(document.limitation.payment_required != null && { paymentRequired: document.limitation.payment_required }),
+									...(document.limitation.restricted_writes != null && { restrictedWrites: document.limitation.restricted_writes }),
+									...(document.limitation.created_at_lower_limit != null && { createdAtLowerLimit: document.limitation.created_at_lower_limit }),
+									...(document.limitation.created_at_upper_limit != null && { createdAtUpperLimit: document.limitation.created_at_upper_limit }),
+								},
+							}),
+							...(document.fees != null && { fees: document.fees }),
+							...(document.limitation?.payment_required != null && {
+								isPaid: document.limitation.payment_required,
+							}),
+						}
+					} catch (error) {
+						return {
+							$relay: { [EntityMetaKey.Selector]: { relayUrl } },
+							timestampMs,
+							source,
+							reachable: false,
+							error: error instanceof Error ? error.message : String(error),
+						}
+					}
+				},
+			},
+		})({
+			$relay: (observation) => observation.$relay,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			name: (observation) => observation.name,
+			description: (observation) => observation.description,
+			software: (observation) => observation.software,
+			version: (observation) => observation.version,
+			supportedNips: (observation) => observation.supportedNips,
+			limitation: (observation) => observation.limitation,
+			fees: (observation) => observation.fees,
+			paymentsUrl: (observation) => observation.paymentsUrl,
+			termsOfServiceUrl: (observation) => observation.termsOfServiceUrl,
+			iconUrl: (observation) => observation.iconUrl,
+			bannerUrl: (observation) => observation.bannerUrl,
+			pubkey: (observation) => observation.pubkey,
+			contact: (observation) => observation.contact,
+			isPaid: (observation) => observation.isPaid,
+			reachable: (observation) => observation.reachable,
+			error: (observation) => observation.error,
+		}),
 	],
 }

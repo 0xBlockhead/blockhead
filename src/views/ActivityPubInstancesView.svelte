@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'ActivityPub instances',
 		typeAnnotationParagraphs = ['A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.ActivityPubInstance>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.ActivityPubInstance>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,10 +112,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: activityPubInstance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ActivityPubInstance> })}
+				{#snippet Item({ item: activityPubInstance })}
 					{@const activityPubInstanceFields = { ...activityPubInstance[EntityMetaKey.Selector], ...activityPubInstance }}
+					{@const selection = select(EntityType.ActivityPubInstance, activityPubInstance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<ActivityPubInstanceView
-						selection={select(EntityType.ActivityPubInstance, activityPubInstance[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={activityPubInstanceFields}
 						layout={EntityLayout.Summary}
 						open={false}

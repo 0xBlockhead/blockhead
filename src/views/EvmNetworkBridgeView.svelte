@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmNetworkBridge>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmNetworkBridge>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmNetworkBridge>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmNetworkBridge>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -66,10 +65,14 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.slug !== undefined && pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.url !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
-			network: String(pendingEntity.$fromNetwork.slug ?? ''),
+		href ?? (pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.url !== undefined && pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
 			toCaip2: String(caip2StringFromValue(pendingEntity.$toNetwork.caip2) ?? ''),
 			url: String(pendingEntity.url ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$fromNetwork.caip2) ?? ''),
+		}) : pendingEntity.$toNetwork !== undefined && pendingEntity.$toNetwork.caip2 !== undefined && pendingEntity.url !== undefined && pendingEntity.$fromNetwork !== undefined && pendingEntity.$fromNetwork.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]', {
+			toCaip2: String(caip2StringFromValue(pendingEntity.$toNetwork.caip2) ?? ''),
+			url: String(pendingEntity.url ?? ''),
+			network: String(pendingEntity.$fromNetwork.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}

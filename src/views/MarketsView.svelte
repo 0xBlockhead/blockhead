@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 
 
@@ -22,7 +20,7 @@
 		selection,
 		title = 'Markets',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -33,7 +31,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Market>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Market>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -51,6 +49,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -133,11 +133,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: market }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Market> })}
+				{#snippet Item({ item: market })}
 					{@const marketFields = { ...market[EntityMetaKey.Selector], ...market }}
+					{@const selection = select(EntityType.Market, market[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const marketHrefFields = { ...market, ...market[EntityMetaKey.Selector] }}
 					<MarketView
-						selection={select(EntityType.Market, market[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={marketFields}
 						href={
 							(marketHrefFields.marketKind !== undefined && marketHrefFields.$base !== undefined && marketHrefFields.$base.assetKey !== undefined && marketHrefFields.$quote !== undefined && marketHrefFields.$quote.assetKey !== undefined && marketHrefFields.$marketVenue !== undefined && marketHrefFields.$marketVenue.marketVenueId !== undefined && marketHrefFields.$base.kind !== undefined && marketHrefFields.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {

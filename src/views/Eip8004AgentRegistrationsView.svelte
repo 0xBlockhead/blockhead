@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'EIP-8004 agent registrations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Eip8004AgentRegistration>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Eip8004AgentRegistration>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: eip8004AgentRegistration }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Eip8004AgentRegistration> })}
+				{#snippet Item({ item: eip8004AgentRegistration })}
 					{@const eip8004AgentRegistrationFields = { ...eip8004AgentRegistration[EntityMetaKey.Selector], ...eip8004AgentRegistration }}
+					{@const selection = select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<Eip8004AgentRegistrationView
-						selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={eip8004AgentRegistrationFields}
 						layout={EntityLayout.Summary}
 						open={false}

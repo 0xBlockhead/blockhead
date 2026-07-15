@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'UTXO blocks',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.UtxoBlock>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.UtxoBlock>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,17 +114,22 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: utxoBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoBlock> })}
+				{#snippet Item({ item: utxoBlock })}
 					{@const utxoBlockFields = { ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }}
+					{@const selection = select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const utxoBlockHrefFields = { ...utxoBlock, ...utxoBlock[EntityMetaKey.Selector] }}
 					<UtxoBlockView
-						selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={utxoBlockFields}
 						href={
-							(utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.slug !== undefined && utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-								network: String(utxoBlockHrefFields.$network.slug ?? ''),
+							(utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
 								blockNumber: String(utxoBlockHrefFields.height ?? ''),
 								hash: String(utxoBlockHrefFields.hash ?? ''),
+								network: String(caip2StringFromValue(utxoBlockHrefFields.$network.caip2) ?? ''),
+							}) : utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								blockNumber: String(utxoBlockHrefFields.height ?? ''),
+								hash: String(utxoBlockHrefFields.hash ?? ''),
+								network: String(utxoBlockHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

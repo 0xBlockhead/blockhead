@@ -19,3 +19,14 @@ export const directoryOrigin = 'https://www.4byte.directory' as const
 export const directoryPathPrefix = '/api/v1' as const
 
 export const directoryBaseUrl = `${directoryOrigin}${directoryPathPrefix}` as const
+
+export const openchainOrigins = [
+	{
+		origin: signatureOrigin,
+		corsEnabled: false,
+	},
+	{
+		origin: directoryOrigin,
+		corsEnabled: false,
+	},
+] as const

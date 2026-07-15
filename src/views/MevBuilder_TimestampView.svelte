@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.MevBuilder_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.MevBuilder_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.MevBuilder_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MevBuilder_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -66,11 +66,16 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$builder !== undefined && pendingEntity.$builder.$network !== undefined && pendingEntity.$builder.$network.slug !== undefined && pendingEntity.$builder.builderPubkey !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			network: String(pendingEntity.$builder.$network.slug ?? ''),
-			builderPubkey: String(pendingEntity.$builder.builderPubkey ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$builder !== undefined && pendingEntity.$builder.builderPubkey !== undefined && pendingEntity.$builder.$network !== undefined && pendingEntity.$builder.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			builderPubkey: String(pendingEntity.$builder.builderPubkey ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$builder.$network.caip2) ?? ''),
+		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$builder !== undefined && pendingEntity.$builder.builderPubkey !== undefined && pendingEntity.$builder.$network !== undefined && pendingEntity.$builder.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			builderPubkey: String(pendingEntity.$builder.builderPubkey ?? ''),
+			network: String(pendingEntity.$builder.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -120,9 +125,12 @@
 					<MevBuilderView
 						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
 						href={
-							(selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined && selection.entitySelector.$builder.builderPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-								network: String(selection.entitySelector.$builder.$network.slug ?? ''),
+							(selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
 								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$builder.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+								network: String(selection.entitySelector.$builder.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -137,9 +145,12 @@
 					<MevBuilderView
 						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
 						href={
-							(selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined && selection.entitySelector.$builder.builderPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-								network: String(selection.entitySelector.$builder.$network.slug ?? ''),
+							(selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
 								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$builder.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+								network: String(selection.entitySelector.$builder.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -436,9 +447,12 @@
 					<MevBuilderView
 						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder, {})}
 						href={
-							(selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined && selection.entitySelector.$builder.builderPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-								network: String(selection.entitySelector.$builder.$network.slug ?? ''),
+							(selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
 								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$builder.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$builder.builderPubkey !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
+								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
+								network: String(selection.entitySelector.$builder.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

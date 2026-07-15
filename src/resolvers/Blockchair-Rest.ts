@@ -3,6 +3,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
@@ -490,7 +491,25 @@ export default {
 				}
 			},
 		})({
-				$$timestamps: (timestamps) => timestamps,
+				$$timestamps: (timestamps) => timestamps.map((timestamp) => ({
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'blockchainSizeBytes')]: timestamp.blockchainSizeBytes,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'suggestedTransactionFeePerByteSats')]: timestamp.suggestedTransactionFeePerByteSats,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'medianTransactionFee24hSats')]: timestamp.medianTransactionFee24hSats,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'averageTransactionFee24hSats')]: timestamp.averageTransactionFee24hSats,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'mempoolTps')]: timestamp.mempoolTps,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'mempoolSizeBytes')]: timestamp.mempoolSizeBytes,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'mempoolTransactionCount')]: timestamp.mempoolTransactionCount,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'transactions24h')]: timestamp.transactions24h,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'blocks24h')]: timestamp.blocks24h,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'transactionCount')]: timestamp.transactionCount,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'blockCount')]: timestamp.blockCount,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'bestBlockTimeMs')]: timestamp.bestBlockTimeMs,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'bestBlockHash')]: timestamp.bestBlockHash,
+						[entityFieldAddressKey(EntityType.Network_Timestamp, [], 'bestBlockHeight')]: timestamp.bestBlockHeight,
+					},
+				})),
 			}),
 
 		defineResolver(Source.Blockchair_Rest, {

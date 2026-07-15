@@ -22,7 +22,12 @@ export const coinInstanceRefFromLifiToken = (
 			NATIVE_LIFI_TOKEN_ADDRESSES.has(address) ?
 				{
 					[EntityMetaKey.Selector]: {
-						$network: { chainId: token.chainId },
+						$network: {
+							caip2: {
+								namespace: 'eip155' as const,
+								reference: String(token.chainId),
+							},
+						},
 						type: CoinInstanceType.NativeCurrency,
 					},
 				}
@@ -33,10 +38,20 @@ export const coinInstanceRefFromLifiToken = (
 					:
 						{
 							[EntityMetaKey.Selector]: {
-								$network: { chainId: token.chainId },
+								$network: {
+									caip2: {
+										namespace: 'eip155' as const,
+										reference: String(token.chainId),
+									},
+								},
 								type: CoinInstanceType.Erc20Token,
 								$contract: {
-									$network: { chainId: token.chainId },
+									$network: {
+										caip2: {
+											namespace: 'eip155' as const,
+											reference: String(token.chainId),
+										},
+									},
 									address: contractAddress,
 								},
 							},
@@ -79,10 +94,20 @@ export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
 		stepType: step.type,
 		tool: toolKey === '' ? step.tool : toolKey,
 		$fromNetwork: {
-			[EntityMetaKey.Selector]: { chainId: step.action.fromChainId },
+			[EntityMetaKey.Selector]: {
+				caip2: {
+					namespace: 'eip155' as const,
+					reference: String(step.action.fromChainId),
+				},
+			},
 		},
 		$toNetwork: {
-			[EntityMetaKey.Selector]: { chainId: step.action.toChainId },
+			[EntityMetaKey.Selector]: {
+				caip2: {
+					namespace: 'eip155' as const,
+					reference: String(step.action.toChainId),
+				},
+			},
 		},
 		...(fromTokenRef != null && { $fromToken: fromTokenRef }),
 		...(toTokenRef != null && { $toToken: toTokenRef }),

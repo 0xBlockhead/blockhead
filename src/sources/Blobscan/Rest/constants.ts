@@ -25,6 +25,11 @@ export const blobscanRestApiOrigins = [
 	},
 ] as const
 
+export const blobscanOrigins = blobscanRestApiOrigins.map((endpoint) => ({
+	origin: endpoint.origin,
+	corsEnabled: endpoint.corsEnabled,
+}))
+
 
 export const blobscanRestApiOriginByChainId: Partial<Record<number, string>> = Object.fromEntries(
 	blobscanRestApiOrigins.map((endpoint) => [

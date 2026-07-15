@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -26,8 +26,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.CashuMint_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.CashuMint_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.CashuMint_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CashuMint_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -201,6 +201,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.CashuMint_Rest,
+						],
 						fields: {
 							reachable: true,
 						},
@@ -238,6 +241,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.CashuMint_Rest,
+						],
 						fields: {
 							name: true,
 						},
@@ -273,6 +279,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.CashuMint_Rest,
+						],
 						fields: {
 							version: true,
 						},
@@ -345,6 +354,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.CashuMint_Rest,
+						],
 						fields: {
 							pubkey: true,
 						},
@@ -380,6 +392,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.CashuMint_Rest,
+						],
 						fields: {
 							description: true,
 						},

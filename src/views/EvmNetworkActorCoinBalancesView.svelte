@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Balances',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmNetworkActorCoinBalance>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -69,6 +70,7 @@
 					symbol: true,
 					$actor: true,
 					$coinInstance: true,
+					$contract: true,
 				},
 			})
 		}
@@ -111,11 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmNetworkActorCoinBalance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetworkActorCoinBalance> })}
+				{#snippet Item({ item: evmNetworkActorCoinBalance })}
 					{@const evmNetworkActorCoinBalanceFields = { ...evmNetworkActorCoinBalance[EntityMetaKey.Selector], ...evmNetworkActorCoinBalance }}
+					{@const selection = select(EntityType.EvmNetworkActorCoinBalance, evmNetworkActorCoinBalance[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const evmNetworkActorCoinBalanceHrefFields = { ...evmNetworkActorCoinBalance, ...evmNetworkActorCoinBalance[EntityMetaKey.Selector] }}
 					<EvmNetworkActorCoinBalanceView
-						selection={select(EntityType.EvmNetworkActorCoinBalance, evmNetworkActorCoinBalance[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmNetworkActorCoinBalanceFields}
+						href={
+							(evmNetworkActorCoinBalanceHrefFields.$actor !== undefined && evmNetworkActorCoinBalanceHrefFields.$actor.address !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract.$network !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract.$network.caip2 !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract.$network.caip2.reference !== undefined && evmNetworkActorCoinBalanceHrefFields.$contract.address !== undefined ? resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
+								owner: String(evmNetworkActorCoinBalanceHrefFields.$actor.address ?? ''),
+								chainId: String(evmNetworkActorCoinBalanceHrefFields.$contract.$network.caip2.reference ?? ''),
+								coin: String(evmNetworkActorCoinBalanceHrefFields.$contract.address ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -23,7 +21,7 @@
 		selection,
 		title = 'OHLC',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = 'Loading OHLC candles...',
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -33,7 +31,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Market_TimeInterval_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Market_TimeInterval_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -50,6 +48,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -94,6 +94,7 @@
 					$base: true,
 					$quote: true,
 				},
+				limit: 4096,
 			})
 		}
 		{placeholderText}
@@ -135,23 +136,24 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: marketTimeIntervalTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Market_TimeInterval_Timestamp> })}
+				{#snippet Item({ item: marketTimeIntervalTimestamp })}
 					{@const marketTimeIntervalTimestampFields = { ...marketTimeIntervalTimestamp[EntityMetaKey.Selector], ...marketTimeIntervalTimestamp }}
+					{@const selection = select(EntityType.Market_TimeInterval_Timestamp, marketTimeIntervalTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const marketTimeIntervalTimestampHrefFields = { ...marketTimeIntervalTimestamp, ...marketTimeIntervalTimestamp[EntityMetaKey.Selector] }}
 					<Market_TimeInterval_TimestampView
-						selection={select(EntityType.Market_TimeInterval_Timestamp, marketTimeIntervalTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={marketTimeIntervalTimestampFields}
 						href={
-							(marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.marketKind !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.assetKey !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.assetKey !== undefined && marketTimeIntervalTimestampHrefFields.$market.$marketVenue !== undefined && marketTimeIntervalTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketTimeIntervalTimestampHrefFields.$base !== undefined && marketTimeIntervalTimestampHrefFields.$base.kind !== undefined && marketTimeIntervalTimestampHrefFields.$quote !== undefined && marketTimeIntervalTimestampHrefFields.$quote.kind !== undefined && marketTimeIntervalTimestampHrefFields.timestampMs !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval.unit !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval.value !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', {
+							(marketTimeIntervalTimestampHrefFields.timestampMs !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval.unit !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval.value !== undefined && marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.marketKind !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.assetKey !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.assetKey !== undefined && marketTimeIntervalTimestampHrefFields.$market.$marketVenue !== undefined && marketTimeIntervalTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketTimeIntervalTimestampHrefFields.$base !== undefined && marketTimeIntervalTimestampHrefFields.$base.kind !== undefined && marketTimeIntervalTimestampHrefFields.$quote !== undefined && marketTimeIntervalTimestampHrefFields.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=stringSegment]/[timestampMs=nonNegativeInteger]', {
+								timestampMs: String(marketTimeIntervalTimestampHrefFields.timestampMs ?? ''),
+								timeIntervalUnit: String(marketTimeIntervalTimestampHrefFields.timeInterval.unit ?? ''),
+								timeIntervalValue: String(marketTimeIntervalTimestampHrefFields.timeInterval.value ?? ''),
 								marketKind: String(marketTimeIntervalTimestampHrefFields.$market.marketKind ?? ''),
 								base: String(marketTimeIntervalTimestampHrefFields.$market.$base.assetKey ?? ''),
 								quote: String(marketTimeIntervalTimestampHrefFields.$market.$quote.assetKey ?? ''),
 								marketVenue: String(marketTimeIntervalTimestampHrefFields.$market.$marketVenue.marketVenueId ?? ''),
 								baseKind: String(marketAssetRouteLabelByKind[String(marketTimeIntervalTimestampHrefFields.$base.kind)] ?? ''),
 								quoteKind: String(marketAssetRouteLabelByKind[String(marketTimeIntervalTimestampHrefFields.$quote.kind)] ?? ''),
-								timestampMs: String(marketTimeIntervalTimestampHrefFields.timestampMs ?? ''),
-								timeIntervalUnit: String(marketTimeIntervalTimestampHrefFields.timeInterval.unit ?? ''),
-								timeIntervalValue: String(marketTimeIntervalTimestampHrefFields.timeInterval.value ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

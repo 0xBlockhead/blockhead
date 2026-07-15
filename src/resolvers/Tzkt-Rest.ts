@@ -35,8 +35,17 @@ const tzktRestBaseUrl = async () => (
 )
 
 const assertTezosMainnet = (network: NetworkId) => {
-	if (!('slug' in network) || network.slug !== tezosSlug)
-		throw new Error('Tzkt_Rest: unsupported network')
+	if (
+		('slug' in network && network.slug === tezosSlug)
+		|| (
+			'caip2' in network
+			&& network.caip2.namespace === 'tezos'
+			&& network.caip2.reference === 'NetXdQprcVkpaWU'
+		)
+	)
+		return
+
+	throw new Error('Tzkt_Rest: unsupported network')
 }
 
 const timestampMsFromIso = (iso: string) => (

@@ -33,6 +33,7 @@ import {
 
 
 const probePath = process.env.E2E_PROBE_PATH?.trim()
+const expectedVisibleText = process.env.E2E_EXPECT_VISIBLE_TEXT?.trim()
 
 const selectPathnames = async () => {
 	return discoverFilteredPathnamesFromRoutes()
@@ -79,6 +80,9 @@ const visitRouteFailFast = async (
 			timeout: routeViewSmokeTimeoutsMs.mainSelector,
 		}))
 		await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics))
+		if (expectedVisibleText != null && expectedVisibleText !== '')
+			await step(expect(main).toContainText(expectedVisibleText))
+
 		await step(assertNoGeneratedRouteArtifacts(page, pathname))
 	}
 	catch (e) {

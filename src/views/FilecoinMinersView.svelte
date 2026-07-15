@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Filecoin miners',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FilecoinMiner>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.FilecoinMiner>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -116,10 +116,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: filecoinMiner }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinMiner> })}
+				{#snippet Item({ item: filecoinMiner })}
 					{@const filecoinMinerFields = { ...filecoinMiner[EntityMetaKey.Selector], ...filecoinMiner }}
+					{@const selection = select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<FilecoinMinerView
-						selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={filecoinMinerFields}
 						layout={EntityLayout.Summary}
 						open={false}

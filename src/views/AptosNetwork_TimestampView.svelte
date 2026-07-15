@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.AptosNetwork_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.AptosNetwork_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.AptosNetwork_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AptosNetwork_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -43,11 +42,11 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const aptosNetworkTimestamp = $derived(selection({
 		fields: {
-			ledgerVersion: true,
 			blockHeight: true,
+			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'aptos network timestamp')
+	const titleFallback = $derived([String((pendingEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || 'aptos network timestamp')
 	const viewDomId = $derived('aptos-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
@@ -72,17 +71,17 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const timestampMs0 = pendingEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const ledgerVersion0 = pendingEntity.ledgerVersion}
+				{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
+					<NumberValue value={Number(ledgerVersion0)} />
 				{/if}
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const ledgerVersion0 = resolvedEntity.ledgerVersion}
+				{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
+					<NumberValue value={Number(ledgerVersion0)} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -91,12 +90,12 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosNetworkTimestamp}>
 			{#snippet Pending()}
-				{[String((pendingEntity.ledgerVersion) ?? ''), String((pendingEntity.blockHeight) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'aptos network timestamp'}
+				{[String((pendingEntity.blockHeight) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || title || 'aptos network timestamp'}
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.ledgerVersion) ?? ''), String((resolvedEntity.blockHeight) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[String((resolvedEntity.blockHeight) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -137,35 +136,40 @@
 				</dd>
 			</div>
 
-			<div>
-				<dt>Timestamp</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet Pending()}
-							{@const timestampMs = pendingEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							timestampMs: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const timestampMs = pendingEntity.timestampMs}
+					{#if timestampMs !== undefined && timestampMs !== null}
+						<div>
+							<dt>Timestamp</dt>
+							<dd>
 								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
 
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs = resolvedEntity.timestampMs}
+					{#if timestampMs !== undefined && timestampMs !== null}
+						<div>
+							<dt>Timestamp</dt>
+							<dd>
 								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<div>
 				<dt>Source</dt>
@@ -234,40 +238,35 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							ledgerVersion: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const ledgerVersion = pendingEntity.ledgerVersion}
-					{#if ledgerVersion !== undefined && ledgerVersion !== null}
-						<div>
-							<dt>ledger version</dt>
-							<dd>
+			<div>
+				<dt>ledger version</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									ledgerVersion: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const ledgerVersion = pendingEntity.ledgerVersion}
+							{#if ledgerVersion !== undefined && ledgerVersion !== null}
 								<NumberValue value={Number(ledgerVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerVersion = resolvedEntity.ledgerVersion}
-					{#if ledgerVersion !== undefined && ledgerVersion !== null}
-						<div>
-							<dt>ledger version</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const ledgerVersion = resolvedEntity.ledgerVersion}
+							{#if ledgerVersion !== undefined && ledgerVersion !== null}
 								<NumberValue value={Number(ledgerVersion)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={

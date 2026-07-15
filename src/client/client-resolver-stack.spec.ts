@@ -2,6 +2,7 @@ import {
 	describe,
 	expect,
 	it,
+	vi,
 } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
 import {
@@ -23,23 +24,35 @@ import {
 	PersistedCollectionLoadStatus,
 	PersistedCollectionSourceStatus,
 	client,
+	entityResolverSourcesForSelectorKeys,
 	persistedCollectionHydrationPlan,
 	persistedCollectionRemoteResult,
 } from '$/client/$client.svelte.ts'
-import { subscribeEntityField } from '$/client/$subscribe.svelte.ts'
+import {
+	materializeResolverOutput,
+	ResolverOutputMaterialization,
+} from '$/collections/assertLoadedCollectionRows.ts'
+import {
+	subscribeEntity,
+	subscribeEntityField,
+} from '$/client/$subscribe.svelte.ts'
+import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 import type {
 	ResolverContext,
 	SourceResolverModule,
 } from '$/resolvers/$resolvers.ts'
 import {
-	EntityFieldCardinality,
-	EntityFieldType,
 	EntityMetaKey,
 	entity,
 	entityFieldAddressKey,
 	entitySelectorKey,
 	facet,
+	indexSchema,
 } from '$/schema/$schema.ts'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+} from '$/schema/EntityField.ts'
 
 
 const clientDirectory = resolve(
@@ -57,15 +70,105 @@ const source = (
 	'utf8'
 )
 
+const materializationFixtureSchema = [
+	entity({
+		entityType: 'MaterializationParent',
+		labels: {
+			singular: 'Materialization parent',
+			plural: 'Materialization parents',
+		},
+	})({
+		slug: {
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		values: {
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('number'),
+			cardinality: EntityFieldCardinality.Many,
+		},
+		$$children: {
+			type: EntityFieldType.EntitiesReference,
+			entityType: 'MaterializationChild',
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+		},
+	})({
+		selectors: {
+			Slug: ['slug'],
+		},
+	}),
+	entity({
+		entityType: 'MaterializationChild',
+		labels: {
+			singular: 'Materialization child',
+			plural: 'Materialization children',
+		},
+	})({
+		id: {
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		title: {
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		kind: {
+			type: EntityFieldType.Primitive,
+			primitiveType: arktype('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+	})({
+		selectors: {
+			Id: ['id'],
+		},
+		facets: {
+			Left: facet({
+				path: ['kind'],
+				is: 'left',
+			})({
+				label: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+			}),
+			Right: facet({
+				path: ['kind'],
+				is: 'right',
+			})({
+				label: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+			}),
+		},
+	}),
+] as const
+
+const materializationFixtureSchemaIndex = indexSchema(materializationFixtureSchema)
+
+const materializationParentSelector = { slug: 'parent' }
+const materializationParentSelectorKey = entitySelectorKey(
+	materializationFixtureSchema,
+	materializationFixtureSchema[0],
+	materializationParentSelector
+)
+
 
 describe('client resolver stack architecture', () => {
 	it('keeps the client implementation in the original files', () => {
 		expect(readdirSync(clientDirectory)
-			.filter((fileName) => !fileName.endsWith('.spec.ts'))
+			.filter((fileName) => (
+				!fileName.endsWith('.spec.ts')
+				&& !fileName.endsWith('.test.ts')
+				&& !fileName.endsWith('.types.ts')
+			))
 			.toSorted()).toEqual([
 			'$client.svelte.ts',
-			'$e2eProbe.ts',
-			'$e2eTrace.ts',
 			'$proxy.svelte.ts',
 			'$subscribe.svelte.ts',
 		])
@@ -79,11 +182,19 @@ describe('client resolver stack architecture', () => {
 	})
 
 	it('keeps E2E tracing isolated from the production client', () => {
+		const productionLayoutSource = readFileSync(
+			resolve(
+				process.cwd(),
+				'src/routes/+layout.svelte'
+			),
+			'utf8'
+		)
+
 		expect(source('$client.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
 		expect(source('$subscribe.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
-		expect(source('$e2eProbe.ts')).toMatch(/__blockheadClientProbe/)
-		expect(source('$e2eProbe.ts')).toMatch(/PersistenceTraceEvent/)
-		expect(source('$e2eTrace.ts')).toMatch(/traceE2ECollections/)
+		expect(productionLayoutSource).not.toMatch(/\$e2eProbe|E2E|__blockhead/)
+		expect(productionLayoutSource).toMatch(/openBrowserWASQLiteOPFSDatabase/)
+		expect(productionLayoutSource).toMatch(/createBrowserWASQLitePersistence/)
 	})
 
 	it('keeps Persisted collection query functions from using hydrated rows for the persistence gate', () => {
@@ -194,6 +305,9 @@ describe('client resolver stack architecture', () => {
 			sourceRowCounts: {
 				'source-a': 0,
 			},
+			sourceRowKeys: {
+				'source-a': [],
+			},
 		})
 		expect(persistedCollectionHydrationPlan(
 			'fields',
@@ -237,7 +351,7 @@ describe('client resolver stack architecture', () => {
 		})
 	})
 
-	it('round-trips asynchronously persisted row and zero-row loaded markers', async () => {
+	it('reconciles persisted field and count rows through partial, live, refresh, and malformed replay', async () => {
 		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
 		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
 		const persistence = {
@@ -303,24 +417,106 @@ describe('client resolver stack architecture', () => {
 		const sourceProviders = [{
 			provider: 'PersistenceFixture',
 			label: 'Persistence fixture',
-			sources: [{
-				provider: 'PersistenceFixture',
-				source: 'PersistenceFixture',
-				label: 'Persistence fixture',
-			}],
-		}] as const
-		const resolvers = [{
-			source: 'PersistenceFixture',
-			resolvers: [{
-				entityType: 'PersistenceFixture',
-				resolve: {
-					Slug: async () => ({}),
+			sources: [
+				{
+					provider: 'PersistenceFixture',
+					source: 'source-a',
+					label: 'Source A',
 				},
-				projections: {
-					items: () => [],
+				{
+					provider: 'PersistenceFixture',
+					source: 'source-b',
+					label: 'Source B',
 				},
-			}],
+			],
 		}] as const
+		let sourceAValues = ['a']
+		let sourceACount = 1
+		let sourceBValues = ['b']
+		let sourceBCount = 1
+		let sourceBFailure = true
+		let sourceASubsetRefresh = false
+		let replaceLiveValues = (_values: readonly string[]) => {
+			throw new Error('live field publisher not mounted')
+		}
+		let replaceLiveCount = (_count: number) => {
+			throw new Error('live count publisher not mounted')
+		}
+		let invalidateLive = () => {
+			throw new Error('live publisher not mounted')
+		}
+		const resolvers = [
+			{
+				source: 'source-a',
+				resolvers: [{
+					entityType: 'PersistenceFixture',
+					resolve: {
+						Slug: async () => ({}),
+					},
+					resolveLive: {
+						items: {
+							facetPath: [],
+							publishes: {
+								items: true,
+							},
+							start: ({ fields }) => {
+								replaceLiveValues = (values) => fields.items.replaceRows([{
+									source: 'source-a',
+									value: values,
+								}])
+								replaceLiveCount = (count) => fields.items.count.replaceRows([{
+									source: 'source-a',
+									value: count,
+								}])
+								invalidateLive = () => {
+									fields.items.invalidate()
+									fields.items.count.invalidate()
+								}
+							},
+						},
+					},
+					projections: {
+						items: {
+							select: (_snapshot, _selector, context) => {
+								if (sourceASubsetRefresh && context.sorts[0]?.direction === 'asc')
+									return []
+
+								if (sourceASubsetRefresh && context.sorts[0]?.direction === 'desc')
+									throw new Error('source-a descending subset failed')
+
+								return sourceAValues
+							},
+							resolveCount: () => sourceACount,
+						},
+					},
+				}],
+			},
+			{
+				source: 'source-b',
+				resolvers: [{
+					entityType: 'PersistenceFixture',
+					resolve: {
+						Slug: async () => ({}),
+					},
+					projections: {
+						items: {
+							select: () => {
+								if (sourceBFailure)
+									throw new Error('source-b field failed')
+
+								return sourceBValues
+							},
+							resolveCount: () => {
+								if (sourceBFailure)
+									throw new Error('source-b count failed')
+
+								return sourceBCount
+							},
+						},
+					},
+				}],
+			},
+		] as const
 		const createContext = () => client({
 			schema: fixtureSchema,
 			sourceProviders,
@@ -332,6 +528,7 @@ describe('client resolver stack architecture', () => {
 			persistence,
 			schemaVersion: 1,
 		})
+		const fieldAddressKey = entityFieldAddressKey('PersistenceFixture', [], 'items')
 
 		const cold = createContext()
 		expect((await cold.select(
@@ -341,61 +538,54 @@ describe('client resolver stack architecture', () => {
 			}
 		)({
 			fields: {
-				items: true,
+				items: {
+					sources: [
+						'source-a',
+						'source-b',
+					],
+					count: true,
+				},
 			},
-		})).fields.items.values).toEqual([])
-		expect(cold.events).toContainEqual(expect.objectContaining({
-			decision: CollectionLoadDecision.Remote,
-			status: PersistedCollectionLoadStatus.Completed,
-			rowCount: 0,
-			sourceRowCounts: {
-				PersistenceFixture: 0,
-			},
-		}))
-		await expect.poll(() => cold.events.some((event) => (
-			event.decision === CollectionLoadDecision.Remote
-			&& event.status === PersistedCollectionLoadStatus.Completed
-			&& event.rowCount === 1
-			&& event.sourceRowCounts?.PersistenceFixture === 1
-		))).toBe(true)
-		expect(cold.events).toContainEqual(expect.objectContaining({
-			decision: CollectionLoadDecision.Remote,
-			status: PersistedCollectionLoadStatus.Completed,
+		})).fields.items).toMatchObject({
+			values: ['a'],
+			totalCount: 1,
+		})
+		const fieldCollectionId = cold.entityFieldCollections.PersistenceFixture[fieldAddressKey].id
+		const countCollectionId = cold.entityFieldCountCollections.PersistenceFixture[fieldAddressKey]?.id
+		if (countCollectionId === undefined)
+			throw new Error('PersistenceFixture.items count collection missing')
+
+		await expect.poll(() => cold.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.decision === CollectionLoadDecision.Remote
+			&& event.status === PersistedCollectionLoadStatus.Partial
+		))).toContainEqual(expect.objectContaining({
 			rowCount: 1,
 			sourceRowCounts: {
-				PersistenceFixture: 1,
+				'source-a': 1,
 			},
 		}))
-		expect([...collectionMetadataByCollectionId.values()]
-			.flatMap((collectionMetadata) => [...collectionMetadata])
-			.map(([key, value]) => [
-				key,
-				JSON.parse(value),
-			]))
-			.toContainEqual([
-				expect.stringMatching(/^loadedSubset:1:/),
-				expect.objectContaining({
-				rowCount: 0,
+		await expect.poll(() => cold.events.filter((event) => (
+			event.collectionId === countCollectionId
+			&& event.decision === CollectionLoadDecision.Remote
+			&& event.status === PersistedCollectionLoadStatus.Partial
+		))).toContainEqual(expect.objectContaining({
+			rowCount: 1,
+			sourceRowCounts: {
+				'source-a': 1,
+			},
+		}))
+		expect([...collectionRowsByCollectionId.get(fieldCollectionId)?.values() ?? []]).toHaveLength(1)
+		expect([...collectionRowsByCollectionId.get(countCollectionId)?.values() ?? []]).toHaveLength(1)
+		expect([...collectionMetadataByCollectionId.get(fieldCollectionId)?.values() ?? []].map(JSON.parse))
+			.toContainEqual(expect.objectContaining({
+				rowCount: 1,
 				sourceRowCounts: {
-					PersistenceFixture: 0,
+					'source-a': 1,
 				},
-				}),
-			])
-		expect([...collectionMetadataByCollectionId.values()]
-			.flatMap((collectionMetadata) => [...collectionMetadata])
-			.map(([key, value]) => [
-				key,
-				JSON.parse(value),
-			]))
-			.toContainEqual([
-				expect.stringMatching(/^loadedSubset:1:/),
-				expect.objectContaining({
-					rowCount: 1,
-					sourceRowCounts: {
-						PersistenceFixture: 1,
-					},
-				}),
-			])
+			}))
+
+		sourceBFailure = false
 
 		const warm = createContext()
 		expect((await warm.select(
@@ -405,31 +595,514 @@ describe('client resolver stack architecture', () => {
 			}
 		)({
 			fields: {
-				items: true,
+				items: {
+					sources: [
+						'source-a',
+						'source-b',
+					],
+					count: true,
+				},
 			},
-		})).fields.items.values).toEqual([])
-		expect(warm.events).toContainEqual(expect.objectContaining({
-			decision: CollectionLoadDecision.LoadedMarker,
-			status: PersistedCollectionLoadStatus.Completed,
-			rowCount: 0,
-			sourceRowCounts: {
-				PersistenceFixture: 0,
-			},
-		}))
-		await expect.poll(() => warm.events.some((event) => (
-			event.decision === CollectionLoadDecision.HydratedRows
+		})).fields.items).toMatchObject({
+			values: [
+				'a',
+				'b',
+			],
+			totalCount: 1,
+		})
+		await expect.poll(() => warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.decision === CollectionLoadDecision.Remote
 			&& event.status === PersistedCollectionLoadStatus.Completed
-			&& event.rowCount === 1
-			&& event.sourceRowCounts?.PersistenceFixture === 1
-		))).toBe(true)
-		expect(warm.events).toContainEqual(expect.objectContaining({
-			decision: CollectionLoadDecision.HydratedRows,
+		))).toContainEqual(expect.objectContaining({
+			decision: CollectionLoadDecision.Remote,
 			status: PersistedCollectionLoadStatus.Completed,
-			rowCount: 1,
+			rowCount: 2,
 			sourceRowCounts: {
-				PersistenceFixture: 1,
+				'source-a': 1,
+				'source-b': 1,
 			},
 		}))
+		expect(warm.entityFieldCollections.PersistenceFixture[fieldAddressKey].toArray.map((row) => (
+			row[EntityMetaKey.Value]
+		))).toEqual([
+			'a',
+			'b',
+		])
+		await expect.poll(() => (
+			warm.entityFieldCountCollections.PersistenceFixture[fieldAddressKey]?.toArray.length
+		)).toBe(2)
+		const warmFieldCollection = warm.entityFieldCollections.PersistenceFixture[fieldAddressKey]
+		const warmCountCollection = warm.entityFieldCountCollections.PersistenceFixture[fieldAddressKey]
+		if (warmCountCollection === undefined)
+			throw new Error('PersistenceFixture.items count collection missing')
+
+		const parentSelectorKey = stringify({
+			slug: 'fixture',
+		})
+		const liveFieldQuery = createLiveQueryCollection({
+			gcTime: 1,
+			startSync: true,
+			query: (query) => query
+				.from({
+					row: warmFieldCollection,
+				})
+				.where(({ row }) => eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)),
+		})
+		const liveCountQuery = createLiveQueryCollection({
+			gcTime: 1,
+			startSync: true,
+			query: (query) => query
+				.from({
+					row: warmCountCollection,
+				})
+				.where(({ row }) => eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)),
+		})
+		const liveFieldSubscription = liveFieldQuery.subscribeChanges(() => {}, {
+			includeInitialState: true,
+		})
+		const liveCountSubscription = liveCountQuery.subscribeChanges(() => {}, {
+			includeInitialState: true,
+		})
+		await Promise.all([
+			liveFieldQuery.preload(),
+			liveCountQuery.preload(),
+		])
+
+		sourceAValues = [
+			'live-a',
+			'live-b',
+		]
+		sourceACount = 2
+		replaceLiveValues(sourceAValues)
+		replaceLiveCount(sourceACount)
+		await expect.poll(() => (
+			[...collectionRowsByCollectionId.get(fieldCollectionId)?.values() ?? []]
+				.filter((row) => row[EntityMetaKey.Source] === 'source-a')
+				.length
+		)).toBe(2)
+		expect([...collectionMetadataByCollectionId.get(fieldCollectionId)?.values() ?? []].map(JSON.parse))
+			.toContainEqual(expect.objectContaining({
+				sourceRowCounts: {
+					'source-a': 1,
+					'source-b': 1,
+				},
+			}))
+		const completedFieldEventsBeforeLiveInvalidation = warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Completed
+		)).length
+		const completedCountEventsBeforeLiveInvalidation = warm.events.filter((event) => (
+			event.collectionId === countCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Completed
+		)).length
+		invalidateLive()
+		await expect.poll(() => (
+			[...collectionMetadataByCollectionId.get(fieldCollectionId)?.values() ?? []]
+				.map(JSON.parse)
+				.some((marker) => marker.sourceRowCounts['source-a'] === 2)
+		)).toBe(true)
+		await expect.poll(() => warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Completed
+		)).length).toBeGreaterThan(completedFieldEventsBeforeLiveInvalidation)
+		await expect.poll(() => warm.events.filter((event) => (
+			event.collectionId === countCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Completed
+		)).length).toBeGreaterThan(completedCountEventsBeforeLiveInvalidation)
+		await expect.poll(() => (
+			[...collectionRowsByCollectionId.get(countCollectionId)?.values() ?? []]
+				.some((row) => (
+					row[EntityMetaKey.Source] === 'source-a'
+					&& row[EntityMetaKey.Value] === 2
+				))
+		)).toBe(true)
+
+		sourceAValues = []
+		sourceACount = 0
+		sourceBFailure = true
+		const partialFieldEventsBeforeEmptyInvalidation = warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Partial
+		)).length
+		const partialCountEventsBeforeEmptyInvalidation = warm.events.filter((event) => (
+			event.collectionId === countCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Partial
+		)).length
+		invalidateLive()
+		await expect.poll(() => warm.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Partial
+		)).length).toBeGreaterThan(partialFieldEventsBeforeEmptyInvalidation)
+		await expect.poll(() => warm.events.filter((event) => (
+			event.collectionId === countCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Partial
+		)).length).toBeGreaterThan(partialCountEventsBeforeEmptyInvalidation)
+		await expect.poll(() => (
+			[...collectionRowsByCollectionId.get(fieldCollectionId)?.values() ?? []]
+				.filter((row) => row[EntityMetaKey.Source] === 'source-a')
+				.length
+		)).toBe(0)
+		expect([...collectionRowsByCollectionId.get(fieldCollectionId)?.values() ?? []])
+			.toContainEqual(expect.objectContaining({
+				[EntityMetaKey.Source]: 'source-b',
+				[EntityMetaKey.Value]: 'b',
+			}))
+		expect([...collectionRowsByCollectionId.get(countCollectionId)?.values() ?? []])
+			.toEqual(expect.arrayContaining([
+				expect.objectContaining({
+					[EntityMetaKey.Source]: 'source-a',
+					[EntityMetaKey.Value]: 0,
+				}),
+				expect.objectContaining({
+					[EntityMetaKey.Source]: 'source-b',
+					[EntityMetaKey.Value]: 1,
+				}),
+			]))
+		expect([...collectionMetadataByCollectionId.get(fieldCollectionId)?.values() ?? []].map(JSON.parse))
+			.toContainEqual(expect.objectContaining({
+				sourceRowCounts: {
+					'source-a': 0,
+					'source-b': 1,
+				},
+			}))
+		liveFieldSubscription.unsubscribe()
+		liveCountSubscription.unsubscribe()
+
+		sourceAValues = ['subset-shared']
+		const ascendingSubsetContext = createContext()
+		const descendingSubsetContext = createContext()
+		const createSubsetQuery = (
+			context: ReturnType<typeof createContext>,
+			direction: 'asc' | 'desc'
+		) => createLiveQueryCollection({
+			gcTime: 1,
+			startSync: true,
+			query: (query) => query
+				.from({
+					row: context.entityFieldCollections.PersistenceFixture[fieldAddressKey],
+				})
+				.where(({ row }) => and(
+					eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					eq(row[EntityMetaKey.Source], 'source-a'),
+					eq(row[EntityMetaKey.Value], 'subset-shared')
+				))
+				.orderBy(({ row }) => row[EntityMetaKey.Value], direction)
+				.limit(1),
+		})
+		const ascendingSubsetQuery = createSubsetQuery(ascendingSubsetContext, 'asc')
+		const descendingSubsetQuery = createSubsetQuery(descendingSubsetContext, 'desc')
+		const ascendingSubsetSubscription = ascendingSubsetQuery.subscribeChanges(() => {}, {
+			includeInitialState: true,
+		})
+		const descendingSubsetSubscription = descendingSubsetQuery.subscribeChanges(() => {}, {
+			includeInitialState: true,
+		})
+		await Promise.all([
+			ascendingSubsetQuery.preload(),
+			descendingSubsetQuery.preload(),
+		])
+		await expect.poll(() => (
+			[...collectionRowsByCollectionId.get(fieldCollectionId)?.values() ?? []]
+				.some((row) => row[EntityMetaKey.Value] === 'subset-shared')
+		)).toBe(true)
+		const sharedSubsetRow = [...collectionRowsByCollectionId.get(fieldCollectionId) ?? []]
+			.find(([, row]) => row[EntityMetaKey.Value] === 'subset-shared')
+		if (sharedSubsetRow === undefined)
+			throw new Error('shared subset row did not persist')
+
+		await expect.poll(() => (
+			[...collectionMetadataByCollectionId.get(fieldCollectionId)?.values() ?? []]
+				.map(JSON.parse)
+				.filter((marker) => marker.sourceRowKeys['source-a']?.includes(sharedSubsetRow[0]))
+				.length
+		)).toBe(2)
+		const malformedSharedSourceRowKey = stringify([
+			'source-a',
+			sharedSubsetRow[1][EntityMetaKey.ParentSelectorKey],
+			'malformed',
+			sharedSubsetRow[1].valueKey,
+			sharedSubsetRow[1].valueIndex,
+		])
+		collectionRowsByCollectionId.get(fieldCollectionId)?.set(malformedSharedSourceRowKey, {
+			...sharedSubsetRow[1],
+			facetPathKey: 'malformed',
+			fieldName: 'wrong-field',
+		})
+		const sharedSubsetMetadataKeys: string[] = []
+		for (const [metadataKey, markerValue] of collectionMetadataByCollectionId.get(fieldCollectionId) ?? []) {
+			const marker = JSON.parse(markerValue)
+			if (!marker.sourceRowKeys['source-a']?.includes(sharedSubsetRow[0]))
+				continue
+
+			sharedSubsetMetadataKeys.push(metadataKey)
+			collectionMetadataByCollectionId.get(fieldCollectionId)?.set(metadataKey, JSON.stringify({
+				...marker,
+				rowCount: marker.rowCount + 1,
+				sourceRowCounts: {
+					...marker.sourceRowCounts,
+					'source-a': 2,
+				},
+				sourceRowKeys: {
+					...marker.sourceRowKeys,
+					'source-a': [
+						sharedSubsetRow[0],
+						malformedSharedSourceRowKey,
+					],
+				},
+			}))
+		}
+		expect(sharedSubsetMetadataKeys).toHaveLength(2)
+		sourceASubsetRefresh = true
+		const ownershipSubsetContext = createContext()
+		const ownershipSubsetQuery = createSubsetQuery(ownershipSubsetContext, 'asc')
+		const ownershipSubsetSubscription = ownershipSubsetQuery.subscribeChanges(() => {}, {
+			includeInitialState: true,
+		})
+		await ownershipSubsetQuery.preload()
+		await expect.poll(() => (
+			sharedSubsetMetadataKeys.map((metadataKey) => JSON.parse(
+				collectionMetadataByCollectionId.get(fieldCollectionId)?.get(metadataKey) ?? 'null'
+			).sourceRowKeys)
+		)).toEqual(expect.arrayContaining([
+			{
+				'source-a': [],
+			},
+			{
+				'source-a': [sharedSubsetRow[0]],
+			},
+		]))
+		expect(collectionRowsByCollectionId.get(fieldCollectionId)?.has(malformedSharedSourceRowKey))
+			.toBe(false)
+		expect(collectionRowsByCollectionId.get(fieldCollectionId)?.get(sharedSubsetRow[0]))
+			.toMatchObject({
+				[EntityMetaKey.Source]: 'source-a',
+				[EntityMetaKey.Value]: 'subset-shared',
+			})
+		const descendingPartialEvents = descendingSubsetContext.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Partial
+		)).length
+		descendingSubsetContext.entityFieldCollections.PersistenceFixture[fieldAddressKey].utils.refresh()
+		await expect.poll(() => descendingSubsetContext.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+			&& event.status === PersistedCollectionLoadStatus.Partial
+		)).length).toBeGreaterThan(descendingPartialEvents)
+		expect(collectionRowsByCollectionId.get(fieldCollectionId)?.get(sharedSubsetRow[0]))
+			.toMatchObject({
+				[EntityMetaKey.Source]: 'source-a',
+				[EntityMetaKey.Value]: 'subset-shared',
+			})
+		ascendingSubsetSubscription.unsubscribe()
+		descendingSubsetSubscription.unsubscribe()
+		ownershipSubsetSubscription.unsubscribe()
+		sourceASubsetRefresh = false
+		sourceAValues = []
+
+		const persistedSourceBField = [...collectionRowsByCollectionId.get(fieldCollectionId) ?? []]
+			.find(([, row]) => row[EntityMetaKey.Source] === 'source-b')
+		expect(persistedSourceBField).toBeDefined()
+		if (persistedSourceBField !== undefined) {
+			const duplicateValueKey = `Value:${stringify('duplicate')}`
+			const duplicateRowKey = stringify([
+				'source-b',
+				persistedSourceBField[1][EntityMetaKey.ParentSelectorKey],
+				persistedSourceBField[1].facetPathKey,
+				duplicateValueKey,
+				persistedSourceBField[1].valueIndex,
+			])
+			collectionRowsByCollectionId.get(fieldCollectionId)?.set(duplicateRowKey, {
+				...persistedSourceBField[1],
+				[EntityMetaKey.Value]: 'duplicate',
+				valueKey: duplicateValueKey,
+			})
+			const sourceBMarkerMetadataKeys: string[] = []
+			for (const [metadataKey, markerValue] of collectionMetadataByCollectionId.get(fieldCollectionId) ?? []) {
+				const marker = JSON.parse(markerValue)
+				if (!marker.sourceRowKeys['source-b']?.includes(persistedSourceBField[0]))
+					continue
+
+				sourceBMarkerMetadataKeys.push(metadataKey)
+				collectionMetadataByCollectionId.get(fieldCollectionId)?.set(metadataKey, JSON.stringify({
+					...marker,
+					rowCount: marker.rowCount + 1,
+					sourceRowCounts: {
+						...marker.sourceRowCounts,
+						'source-b': marker.sourceRowCounts['source-b'] + 1,
+					},
+					sourceRowKeys: {
+						...marker.sourceRowKeys,
+						'source-b': [
+							...marker.sourceRowKeys['source-b'],
+							duplicateRowKey,
+						],
+					},
+				}))
+			}
+			expect(sourceBMarkerMetadataKeys.length).toBeGreaterThan(0)
+
+			const duplicateReplay = createContext()
+			void (await duplicateReplay.select(
+				'PersistenceFixture',
+				{
+					slug: 'fixture',
+				}
+			)({
+				fields: {
+					items: {
+						sources: [
+							'source-a',
+							'source-b',
+						],
+						},
+					},
+				})).fields.items
+			await expect.poll(() => duplicateReplay.events.filter((event) => (
+				event.collectionId === fieldCollectionId
+			))).toContainEqual(expect.objectContaining({
+				decision: CollectionLoadDecision.Remote,
+				status: PersistedCollectionLoadStatus.Partial,
+				reason: 'invalid-persisted-source:source-b',
+			}))
+			await expect.poll(() => (
+				[...collectionRowsByCollectionId.get(fieldCollectionId)?.values() ?? []]
+					.filter((row) => row[EntityMetaKey.Source] === 'source-b')
+					.length
+			)).toBe(0)
+
+			const malformedRowKey = stringify([
+				'source-b',
+				persistedSourceBField[1][EntityMetaKey.ParentSelectorKey],
+				'malformed',
+				persistedSourceBField[1].valueKey,
+				persistedSourceBField[1].valueIndex,
+			])
+			collectionRowsByCollectionId.get(fieldCollectionId)?.set(malformedRowKey, {
+				...persistedSourceBField[1],
+				facetPathKey: 'malformed',
+				fieldName: 'wrong-field',
+			})
+			for (const metadataKey of sourceBMarkerMetadataKeys) {
+				const markerValue = collectionMetadataByCollectionId.get(fieldCollectionId)?.get(metadataKey)
+				if (markerValue === undefined)
+					throw new Error('source-b loaded marker missing after duplicate replay')
+
+				const marker = JSON.parse(markerValue)
+				collectionMetadataByCollectionId.get(fieldCollectionId)?.set(metadataKey, JSON.stringify({
+					...marker,
+					rowCount: marker.rowCount + 1,
+					sourceRowCounts: {
+						...marker.sourceRowCounts,
+						'source-b': 1,
+					},
+					sourceRowKeys: {
+						...marker.sourceRowKeys,
+						'source-b': [malformedRowKey],
+					},
+				}))
+			}
+		}
+		const persistedSourceBCount = [...collectionRowsByCollectionId.get(countCollectionId) ?? []]
+			.find(([, row]) => row[EntityMetaKey.Source] === 'source-b')
+		expect(persistedSourceBCount).toBeDefined()
+		if (persistedSourceBCount !== undefined) {
+			const malformedCountRowKey = stringify([
+				'source-b',
+				persistedSourceBCount[1][EntityMetaKey.ParentSelectorKey],
+				'malformed',
+				persistedSourceBCount[1].filterKey,
+			])
+			collectionRowsByCollectionId.get(countCollectionId)?.delete(persistedSourceBCount[0])
+			collectionRowsByCollectionId.get(countCollectionId)?.set(malformedCountRowKey, {
+				...persistedSourceBCount[1],
+				facetPathKey: 'malformed',
+				fieldName: 'wrong-field',
+			})
+			for (const [metadataKey, markerValue] of collectionMetadataByCollectionId.get(countCollectionId) ?? []) {
+				const marker = JSON.parse(markerValue)
+				if (!marker.sourceRowKeys['source-b']?.includes(persistedSourceBCount[0]))
+					continue
+
+				collectionMetadataByCollectionId.get(countCollectionId)?.set(metadataKey, JSON.stringify({
+					...marker,
+					sourceRowKeys: {
+						...marker.sourceRowKeys,
+						'source-b': [malformedCountRowKey],
+					},
+				}))
+			}
+		}
+
+		const malformedReplay = createContext()
+		void (await malformedReplay.select(
+			'PersistenceFixture',
+			{
+				slug: 'fixture',
+			}
+		)({
+			fields: {
+				items: {
+					sources: [
+						'source-a',
+						'source-b',
+					],
+					count: true,
+					},
+				},
+			})).fields.items
+		await expect.poll(() => malformedReplay.events.filter((event) => (
+			event.collectionId === fieldCollectionId
+		))).toContainEqual(expect.objectContaining({
+			decision: CollectionLoadDecision.Remote,
+			status: PersistedCollectionLoadStatus.Partial,
+			reason: 'invalid-persisted-source:source-b',
+			sourceRowCounts: {
+				'source-a': 0,
+			},
+		}))
+		await expect.poll(() => malformedReplay.events.filter((event) => (
+			event.collectionId === countCollectionId
+		))).toContainEqual(expect.objectContaining({
+			decision: CollectionLoadDecision.Remote,
+			status: PersistedCollectionLoadStatus.Partial,
+			reason: 'invalid-persisted-source:source-b',
+			sourceRowCounts: {
+				'source-a': 1,
+			},
+		}))
+		expect([...collectionRowsByCollectionId.get(fieldCollectionId)?.values() ?? []])
+			.not.toContainEqual(expect.objectContaining({
+				facetPathKey: 'malformed',
+			}))
+		expect([...collectionRowsByCollectionId.get(countCollectionId)?.values() ?? []])
+			.not.toContainEqual(expect.objectContaining({
+				facetPathKey: 'malformed',
+			}))
+		expect(malformedReplay.entityFieldCollections.PersistenceFixture[fieldAddressKey].toArray)
+			.not.toContainEqual(expect.objectContaining({
+				facetPathKey: 'malformed',
+			}))
+		expect(malformedReplay.entityFieldCollections.PersistenceFixture[fieldAddressKey].toArray)
+			.toContainEqual(expect.objectContaining({
+				[EntityMetaKey.Source]: 'source-a',
+				[EntityMetaKey.Value]: 'subset-shared',
+			}))
+		expect(malformedReplay.entityFieldCountCollections.PersistenceFixture[fieldAddressKey]?.toArray)
+			.not.toContainEqual(expect.objectContaining({
+				facetPathKey: 'malformed',
+			}))
+		expect([...collectionMetadataByCollectionId.get(fieldCollectionId)?.values() ?? []].map(JSON.parse))
+			.toContainEqual(expect.objectContaining({
+				sourceRowCounts: {
+					'source-a': 0,
+				},
+			}))
+		expect([...collectionMetadataByCollectionId.get(countCollectionId)?.values() ?? []].map(JSON.parse))
+			.toContainEqual(expect.objectContaining({
+				sourceRowCounts: {
+					'source-a': 1,
+				},
+			}))
 	})
 
 	it('replays incomplete persisted subsets and rejects implicit-source marker incompatibility', () => {
@@ -466,7 +1139,27 @@ describe('client resolver stack architecture', () => {
 			['source-a']
 		)).toMatchObject({
 			decision: CollectionLoadDecision.Remote,
-			missReason: 'row-count-undercount:2:1',
+			missReason: 'row-count-mismatch:2:1',
+			remoteSources: ['source-a'],
+		})
+		expect(persistedCollectionHydrationPlan(
+			'fields',
+			'network',
+			{
+				...completed.nextMarker,
+				rowCount: 1,
+				sourceRowCounts: {
+					'source-a': 1,
+				},
+				sourceRowKeys: {
+					'source-a': ['first'],
+				},
+			},
+			persistedRows,
+			['source-a']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.Remote,
+			missReason: 'row-count-mismatch:1:2',
 			remoteSources: ['source-a'],
 		})
 		expect(persistedCollectionHydrationPlan(
@@ -529,21 +1222,55 @@ describe('client resolver stack architecture', () => {
 		})
 	})
 
-	it('count refresh failure keeps hydrated rows while surfacing later errors', () => {
+	it('atomically replaces successful source refreshes and preserves failed warm sources', () => {
 		const hydratedCount = {
 			key: 'count',
 			value: 7,
 			[EntityMetaKey.Source]: 'source-a',
 		}
+		const successfulEmptyRefresh = persistedCollectionRemoteResult({
+			collectionId: 'counts',
+			loadedKey: 'network',
+			marker: {
+				collectionId: 'counts',
+				loadedKey: 'network',
+				rowCount: 1,
+				sourceRowCounts: {
+					'source-a': 1,
+				},
+				sourceRowKeys: {
+					'source-a': ['count'],
+				},
+			},
+			persistedRows: [hydratedCount],
+			loaded: {
+				rows: [],
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Completed,
+				}],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			getKey: (row) => row.key,
+		})
+		expect(successfulEmptyRefresh.rows).toEqual([])
+		expect(successfulEmptyRefresh.nextMarker.sourceRowCounts).toEqual({
+			'source-a': 0,
+		})
+
 		const failedRefresh = persistedCollectionRemoteResult({
 			collectionId: 'counts',
 			loadedKey: 'network',
 			marker: {
 				collectionId: 'counts',
 				loadedKey: 'network',
-				rowCount: 2,
+				rowCount: 1,
 				sourceRowCounts: {
-					'source-a': 2,
+					'source-a': 1,
+				},
+				sourceRowKeys: {
+					'source-a': ['count'],
 				},
 			},
 			persistedRows: [hydratedCount],
@@ -569,10 +1296,83 @@ describe('client resolver stack architecture', () => {
 		expect(failedRefresh.nextMarker).toEqual({
 			collectionId: 'counts',
 			loadedKey: 'network',
-			rowCount: 0,
-			sourceRowCounts: {},
+			rowCount: 1,
+			sourceRowCounts: {
+				'source-a': 1,
+			},
+			sourceRowKeys: {
+				'source-a': ['count'],
+			},
 		})
 		expect(source('$client.svelte.ts')).toMatch(/collectionLoadFailures\.add\(\{[\s\S]*sources: \[outcome\.source\]/)
+		expect(source('$client.svelte.ts')).toMatch(/console\.error\([\s\S]*\[Blockhead collection-load-failure\]/)
+		expect(source('$client.svelte.ts')).not.toMatch(/console\.warn\([^)]*partially failed/)
+	})
+
+	it('rejects an entire malformed hydrated source and forces replay without preserving its marker', () => {
+		const validSibling = {
+			key: 'valid',
+			[EntityMetaKey.Source]: 'source-a',
+		}
+		expect(persistedCollectionHydrationPlan(
+			'fields',
+			'network',
+			{
+				collectionId: 'fields',
+				loadedKey: 'network',
+				rowCount: 2,
+				sourceRowCounts: {
+					'source-a': 2,
+				},
+				sourceRowKeys: {
+					'source-a': [
+						'malformed-a',
+						'malformed-b',
+					],
+				},
+			},
+			[],
+			['source-a'],
+			['source-a']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.Remote,
+			missReason: 'invalid-persisted-source:source-a',
+			remoteSources: ['source-a'],
+		})
+
+		const failedReplay = persistedCollectionRemoteResult({
+			collectionId: 'fields',
+			loadedKey: 'network',
+			marker: {
+				collectionId: 'fields',
+				loadedKey: 'network',
+				rowCount: 2,
+				sourceRowCounts: {
+					'source-a': 2,
+				},
+				sourceRowKeys: {
+					'source-a': [
+						'malformed-a',
+						'malformed-b',
+					],
+				},
+			},
+			persistedRows: [],
+			loaded: {
+				rows: [validSibling],
+				outcomes: [{
+					source: 'source-a',
+					status: PersistedCollectionSourceStatus.Failed,
+					error: 'malformed source replay failed',
+				}],
+			},
+			remoteSources: ['source-a'],
+			requestedSources: ['source-a'],
+			invalidSources: ['source-a'],
+			getKey: (row) => row.key,
+		})
+		expect(failedReplay.rows).toEqual([])
+		expect(failedReplay.nextMarker.sourceRowCounts).toEqual({})
 	})
 
 	it('keeps undefined snapshot completion gated by schema cardinality', () => {
@@ -612,6 +1412,21 @@ describe('client resolver stack architecture', () => {
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
+				value: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				$child: {
+					type: EntityFieldType.EntityReference,
+					entityType: 'SelectionChildFixture',
+					cardinality: EntityFieldCardinality.One,
+				},
+				$$children: {
+					type: EntityFieldType.EntitiesReference,
+					entityType: 'SelectionChildFixture',
+					cardinality: EntityFieldCardinality.Many,
+				},
 				kind: {
 					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
@@ -650,12 +1465,73 @@ describe('client resolver stack architecture', () => {
 					}),
 				},
 			}),
+			entity({
+				entityType: 'SelectionChildFixture',
+				labels: {
+					singular: 'Selection child fixture',
+					plural: 'Selection child fixtures',
+				},
+			})({
+				id: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				label: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+			})({
+				selectors: {
+					Id: ['id'],
+				},
+			}),
 		] as const
 		const context = client({
 			schema: fixtureSchema,
-			sourceProviders: [],
+			sourceProviders: [{
+				provider: 'selection-fixture',
+				label: 'Selection fixture',
+				sources: [{
+					provider: 'selection-fixture',
+					source: 'selection-fixture',
+					label: 'Selection fixture',
+				}],
+			}],
 		})({
-			resolvers: [],
+			resolvers: [{
+				source: 'selection-fixture',
+				resolvers: [
+					{
+						entityType: 'SelectionFixture',
+						resolve: {
+							Slug: async () => ({}),
+						},
+						projections: {
+							$child: () => ({
+								[EntityMetaKey.Selector]: {
+									id: 'child',
+								},
+							}),
+							$$children: () => [{
+								[EntityMetaKey.Selector]: {
+									id: 'child',
+								},
+							}],
+						},
+					},
+					{
+						entityType: 'SelectionChildFixture',
+						resolve: {
+							Id: async () => ({}),
+						},
+						projections: {
+							label: () => 'Loaded child',
+						},
+					},
+				],
+			}],
 			env: {},
 		})({
 			queryClient: new QueryClient(),
@@ -692,26 +1568,539 @@ describe('client resolver stack architecture', () => {
 				},
 			},
 		})
+		const nestedReferenceResource = selection({
+			fields: {
+				$child: {
+					fields: {
+						label: true,
+					},
+				},
+				$$children: {
+					fields: {
+						label: true,
+					},
+				},
+			},
+		})
+		const invalidFieldResource = selection(JSON.parse('{"fields":{"missing":true}}'))
+		const invalidNestedFacetFieldResource = selection(JSON.parse('{"fields":{"Parent":{"fields":{"missing":true}}}}'))
+		const invalidSiblingFacetFieldResource = selection(JSON.parse('{"fields":{"Parent":{"fields":{"namespace":true}}}}'))
+		const invalidFacetResource = selection(JSON.parse('{"fields":{"Missing":{"fields":{}}}}'))
+		const invalidReferenceFieldResource = selection(JSON.parse('{"fields":{"$child":{"fields":{"missing":true}}}}'))
+		const selectedChildFieldResource = selection.$child({
+			fields: {
+				label: true,
+			},
+		})
+		const selectedChildrenFieldResource = selection.$$children({
+			fields: {
+				label: true,
+			},
+		})
+		const selectedFirstChildResource = selection.$$children.first({
+			fields: {
+				label: true,
+			},
+		})
+		const selectedChildFromSelectedParentResource = nestedReferenceResource.$child({
+			fields: {
+				label: true,
+			},
+		})
 
 		expect((await baseFieldResource).fields).toEqual({
 			namespace: undefined,
 		})
-		expect((await nestedFacetResource).fields).toEqual({})
+		expect((await nestedFacetResource).fields).toEqual({
+			Parent: {
+				fields: {
+					Child: {
+						fields: {
+							childField: undefined,
+						},
+					},
+				},
+			},
+		})
 		expect((await nestedFacetResource).fieldValuesByAddress).toEqual({
 			[entityFieldAddressKey('SelectionFixture', [
 				'Parent',
 				'Child',
 			], 'childField')]: undefined,
 		})
+		expect((await nestedReferenceResource).fields.$child.label).toBe('Loaded child')
+		expect((await nestedReferenceResource).fields.$$children.values[0]?.label).toBe('Loaded child')
+		expect((await selectedChildFieldResource)?.label).toBe('Loaded child')
+		expect((await selectedChildrenFieldResource).values[0]?.label).toBe('Loaded child')
+		expect((await selectedFirstChildResource)?.label).toBe('Loaded child')
+		expect((await selectedChildFromSelectedParentResource)?.label).toBe('Loaded child')
+		await expect(invalidFieldResource).rejects.toThrow('SelectionFixture.missing does not exist')
+		await expect(invalidNestedFacetFieldResource).rejects.toThrow('SelectionFixture.Parent.missing does not exist')
+		await expect(invalidSiblingFacetFieldResource).rejects.toThrow('SelectionFixture.Parent.namespace does not exist')
+		await expect(invalidFacetResource).rejects.toThrow('SelectionFixture.Missing does not exist')
+		await expect(invalidReferenceFieldResource).rejects.toThrow('SelectionChildFixture.missing does not exist')
+		expect(() => selection[EntityProxyField](JSON.parse('"missing"'))).toThrow('SelectionFixture.missing does not exist')
+		expect(() => selection[EntityProxyField](JSON.parse('"namespace"'))).toThrow('SelectionFixture.namespace does not collide with an entity resource property')
+		expect(selection[EntityProxyField]('value').fieldName).toBe('value')
+		expect(() => selection.Parent[EntityProxyField](JSON.parse('"parentKind"'))).toThrow('SelectionFixture.Parent.parentKind does not collide with a projection resource property')
+		expect(() => selection[JSON.parse('"missing"')]).toThrow('SelectionFixture.missing does not exist')
+		expect(() => selection.Parent[JSON.parse('"missing"')]).toThrow('SelectionFixture.Parent.missing does not exist')
+		expect(() => selection.Parent.Child[JSON.parse('"missing"')]).toThrow('SelectionFixture.Parent.Child.missing does not exist')
+		expect(() => selection.current).not.toThrow()
+		expect(() => selection.Parent.current).not.toThrow()
 	})
 
 	it('validates resolver field value shape before writing persisted field rows', () => {
 		const clientSource = source('$client.svelte.ts')
-		expect(clientSource).toMatch(/returned non-array value for multiple-cardinality field/)
-		expect(clientSource).toMatch(/returned array value for single-cardinality field/)
-		expect(clientSource).toMatch(/entityFieldPrimitiveValueIsValid/)
-		expect(clientSource).toMatch(/validateEntitySelector\(/)
+		const materializerSource = readFileSync(
+			resolve(
+				process.cwd(),
+				'src/collections/assertLoadedCollectionRows.ts'
+			),
+			'utf8'
+		)
+		expect(clientSource).toMatch(/materializeResolverOutput/)
+		expect(clientSource).toMatch(/ResolverOutputMaterialization\.Field/)
+		expect(clientSource).toMatch(/ResolverOutputMaterialization\.Count/)
+		expect(clientSource).toMatch(/const schemaIndex = indexSchema\(schema\)/)
 		expect(clientSource).not.toMatch(/Array\.isArray\(value\) \?[\s\S]*:\s*\[value\]/)
+		expect(materializerSource).toMatch(/schemaIndex\.entityFieldDefinitionByEntityTypePathAndName\[fieldDefinition\.entityType\]/)
+		expect(materializerSource).not.toMatch(/indexSchema\(|entityFieldDefinitions\(/)
+	})
+
+	it('hydrates identity from selector defaults without activating unrelated selector resolvers', async () => {
+		const fixtureSchema = [
+			entity({
+				entityType: 'SelectorSourceFixture',
+				labels: {
+					singular: 'Selector source fixture',
+					plural: 'Selector source fixtures',
+				},
+			})({
+				slug: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+					defaultSources: ['identity-source'],
+				},
+				kind: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+			})({
+				selectors: {
+					Slug: ['slug'],
+				},
+				facets: {
+					Details: facet({
+						path: ['kind'],
+						is: 'details',
+					})({
+						status: {
+							type: EntityFieldType.Primitive,
+							primitiveType: arktype('string'),
+							cardinality: EntityFieldCardinality.One,
+							defaultSources: ['facet-source'],
+						},
+					}),
+				},
+			}),
+		] as const
+		const calls = {
+			'identity-source': 0,
+			'unrelated-source': 0,
+			'facet-source': 0,
+		}
+		const resolvers = [
+			{
+				entityType: 'SelectorSourceFixture',
+				source: 'identity-source',
+				resolve: {
+					Slug: async () => {
+						calls['identity-source'] += 1
+						return {}
+					},
+				},
+				projections: {
+					kind: () => 'details',
+				},
+			},
+			{
+				entityType: 'SelectorSourceFixture',
+				source: 'unrelated-source',
+				resolve: {
+					Slug: async () => {
+						calls['unrelated-source'] += 1
+						return {}
+					},
+				},
+				projections: {
+					kind: () => 'details',
+				},
+			},
+			{
+				entityType: 'SelectorSourceFixture',
+				source: 'facet-source',
+				resolve: {
+					Slug: async () => {
+						calls['facet-source'] += 1
+						return 'resolved'
+					},
+				},
+				projections: {
+					Details: {
+						status: (status) => status,
+					},
+				},
+			},
+		] satisfies SourceResolverModule<
+			typeof fixtureSchema,
+			'identity-source' | 'unrelated-source' | 'facet-source',
+			ResolverContext
+		>['resolvers']
+
+		expect(entityResolverSourcesForSelectorKeys(
+			fixtureSchema,
+			fixtureSchema[0],
+			[stringify({ slug: 'fixture' })],
+			resolvers
+		)).toEqual(['identity-source'])
+		expect(entityResolverSourcesForSelectorKeys(
+			fixtureSchema,
+			fixtureSchema[0],
+			[stringify({ slug: 'fixture' })],
+			resolvers,
+			['facet-source']
+		)).toEqual(['facet-source'])
+
+		const context = client({
+			schema: fixtureSchema,
+			sourceProviders: [{
+				provider: 'selector-source-fixture',
+				label: 'Selector source fixture',
+				sources: [
+					{
+						provider: 'selector-source-fixture',
+						source: 'identity-source',
+						label: 'Identity source',
+					},
+					{
+						provider: 'selector-source-fixture',
+						source: 'unrelated-source',
+						label: 'Unrelated source',
+					},
+					{
+						provider: 'selector-source-fixture',
+						source: 'facet-source',
+						label: 'Facet source',
+					},
+				],
+			}],
+		})({
+			resolvers: [
+				{
+					source: 'identity-source',
+					resolvers: [resolvers[0]],
+				},
+				{
+					source: 'unrelated-source',
+					resolvers: [resolvers[1]],
+				},
+				{
+					source: 'facet-source',
+					resolvers: [resolvers[2]],
+				},
+			],
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence: {
+				adapter: {
+					loadSubset: async () => [],
+					applyCommittedTx: async () => {},
+					ensureIndex: async () => {},
+				} satisfies PersistenceAdapter,
+			},
+			schemaVersion: 1,
+		})
+
+		expect((await subscribeEntity(
+			context,
+			'SelectorSourceFixture',
+			{ slug: 'fixture' },
+			{
+				fields: {
+					Details: {
+						fields: {
+							status: true,
+						},
+					},
+				},
+			}
+		)).fields.Details.fields.status).toBe('resolved')
+		expect(calls).toEqual({
+			'identity-source': 1,
+			'unrelated-source': 0,
+			'facet-source': 1,
+		})
+	})
+
+	it('materializes exact entity, field, reference, and count rows', () => {
+		const childSelector = { id: 'child' }
+		const childSelectorKey = entitySelectorKey(
+			materializationFixtureSchema,
+			materializationFixtureSchema[1],
+			childSelector
+		)
+
+		expect(materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Entity,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			selector: materializationParentSelector,
+			selectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			snapshot: {
+				providerWireField: 'not a schema field',
+			},
+		})).toEqual([{
+			[EntityMetaKey.Selector]: materializationParentSelector,
+			[EntityMetaKey.SelectorKey]: materializationParentSelectorKey,
+			[EntityMetaKey.Source]: 'source-a',
+		}])
+
+		expect(materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Field,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			parentSelector: materializationParentSelector,
+			parentSelectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			fieldDefinition: materializationFixtureSchema[0].fields[1],
+			value: [
+				1,
+				2,
+			],
+		})).toEqual([
+			expect.objectContaining({
+				valueIndex: 0,
+				[EntityMetaKey.Value]: 1,
+			}),
+			expect.objectContaining({
+				valueIndex: 1,
+				[EntityMetaKey.Value]: 2,
+			}),
+		])
+		expect(materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Field,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			parentSelector: materializationParentSelector,
+			parentSelectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			fieldDefinition: materializationFixtureSchema[0].fields[1],
+			value: [
+				1,
+				1,
+				2,
+			],
+		})).toMatchObject([
+			{
+				valueIndex: 0,
+				valueKey: 'Value:[1]',
+			},
+			{
+				valueIndex: 1,
+				valueKey: 'Value:[1]',
+			},
+			{
+				valueIndex: 2,
+				valueKey: 'Value:[2]',
+			},
+		])
+		expect(() => materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Field,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			parentSelector: materializationParentSelector,
+			parentSelectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			fieldDefinition: materializationFixtureSchema[0].fields[1],
+			value: [
+				1,
+				'not-a-number',
+			],
+		})).toThrow(/must be a number/)
+		expect(source('$client.svelte.ts').match(/row\.valueKey,\n\s+row\.valueIndex,/g)).toHaveLength(5)
+
+		expect(materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Field,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			parentSelector: materializationParentSelector,
+			parentSelectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			fieldDefinition: materializationFixtureSchema[0].fields[2],
+			value: [{
+				[EntityMetaKey.Selector]: childSelector,
+				[EntityMetaKey.SelectorKey]: childSelectorKey,
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey('MaterializationChild', [], 'title')]: 'Child title',
+					[entityFieldAddressKey('MaterializationChild', ['Left'], 'label')]: 'Left label',
+					[entityFieldAddressKey('MaterializationChild', ['Right'], 'label')]: 'Right label',
+				},
+			}],
+		})).toEqual([expect.objectContaining({
+			[EntityMetaKey.Value]: {
+				[EntityMetaKey.Selector]: childSelector,
+				[EntityMetaKey.SelectorKey]: childSelectorKey,
+				title: 'Child title',
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey('MaterializationChild', [], 'title')]: 'Child title',
+					[entityFieldAddressKey('MaterializationChild', ['Left'], 'label')]: 'Left label',
+					[entityFieldAddressKey('MaterializationChild', ['Right'], 'label')]: 'Right label',
+				},
+			},
+		})])
+
+		expect(materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Count,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			parentSelector: materializationParentSelector,
+			parentSelectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			fieldDefinition: materializationFixtureSchema[0].fields[2],
+			value: 2,
+			filterKey: '{}',
+		})).toEqual([expect.objectContaining({
+			[EntityMetaKey.Value]: 2,
+			filterKey: '{}',
+		})])
+	})
+
+	it('rejects every malformed resolver materialization atomically', () => {
+		const fieldInput = {
+			kind: ResolverOutputMaterialization.Field,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			parentSelector: materializationParentSelector,
+			parentSelectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			fieldDefinition: materializationFixtureSchema[0].fields[2],
+		}
+
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			parentSelectorKey: 'wrong',
+			value: [],
+		})).toThrow(/selector key/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			value: {
+				[EntityMetaKey.Selector]: { id: 'child' },
+			},
+		})).toThrow(/non-array/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			fieldDefinition: materializationFixtureSchema[0].fields[1],
+			value: ['not a number'],
+		})).toThrow(/must be a number/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			value: [{
+				[EntityMetaKey.Selector]: { slug: 'wrong entity type' },
+			}],
+		})).toThrow(/invalid selector/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			value: [{
+				[EntityMetaKey.Selector]: { id: 'child' },
+				[EntityMetaKey.SelectorKey]: 'wrong',
+			}],
+		})).toThrow(/does not match selector/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			value: [{
+				[EntityMetaKey.Selector]: { id: 'child' },
+				__source: 'injected',
+			}],
+		})).toThrow(/direct denormalized sibling fields/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			value: [{
+				[EntityMetaKey.Selector]: { id: 'child' },
+				[EntityMetaKey.Fields]: {
+					title: 'legacy terminal-name bag',
+				},
+			}],
+		})).toThrow(/invalid canonical field address/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			value: [{
+				[EntityMetaKey.Selector]: { id: 'child' },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey('MaterializationParent', [], 'slug')]: 'wrong entity',
+				},
+			}],
+		})).toThrow(/invalid canonical field address/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			value: [{
+				[EntityMetaKey.Selector]: { id: 'child' },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey('MaterializationChild', ['Missing'], 'label')]: 'wrong facet',
+				},
+			}],
+		})).toThrow(/invalid canonical field address/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			value: [{
+				[EntityMetaKey.Selector]: { id: 'child' },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey('MaterializationChild', [], 'missing')]: true,
+				},
+			}],
+		})).toThrow(/invalid canonical field address/)
+		expect(() => materializeResolverOutput({
+			...fieldInput,
+			value: [{
+				[EntityMetaKey.Selector]: { id: 'child' },
+				title: 'direct',
+			}],
+		})).toThrow(/direct denormalized sibling fields/)
+		expect(() => materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Count,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			parentSelector: materializationParentSelector,
+			parentSelectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			fieldDefinition: materializationFixtureSchema[0].fields[2],
+			value: Number.MAX_SAFE_INTEGER + 1,
+			filterKey: '{}',
+		})).toThrow(/invalid count/)
+		expect(() => materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Count,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			parentSelector: materializationParentSelector,
+			parentSelectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			fieldDefinition: materializationFixtureSchema[0].fields[2],
+			value: -1,
+			filterKey: '{}',
+		})).toThrow(/invalid count/)
 	})
 
 	it('keeps count rows are authoritative for paged and windowed list totals', () => {
@@ -719,7 +2108,7 @@ describe('client resolver stack architecture', () => {
 		expect(source('$subscribe.svelte.ts')).not.toMatch(/loaded row length/)
 	})
 
-	it('selects authoritative count rows by field-local source priority', async () => {
+	it('selects authoritative count rows by field-local source priority without preloading passive raw collections', async () => {
 		const fixtureSchema = [
 			entity({
 				entityType: 'CountFixture',
@@ -744,6 +2133,10 @@ describe('client resolver stack architecture', () => {
 				},
 			}),
 		] as const
+		const countCalls = {
+			'source-a': 0,
+			'source-b': 0,
+		}
 		const resolverModule = (source: 'source-a' | 'source-b', count: number) => ({
 			source,
 			resolvers: [{
@@ -754,12 +2147,15 @@ describe('client resolver stack architecture', () => {
 				projections: {
 					items: {
 						select: () => [],
-						resolveCount: () => count,
+						resolveCount: () => {
+							countCalls[source] += 1
+							return count
+						},
 					},
 				},
 			}],
 		}) satisfies SourceResolverModule<typeof fixtureSchema, 'source-a' | 'source-b', ResolverContext>
-		const context = client({
+		const createContext = () => client({
 			schema: fixtureSchema,
 			sourceProviders: [{
 				provider: 'fixture',
@@ -794,6 +2190,7 @@ describe('client resolver stack architecture', () => {
 			},
 			schemaVersion: 1,
 		})
+		const context = createContext()
 		const entitySelector = {
 			slug: 'fixture',
 		}
@@ -831,6 +2228,101 @@ describe('client resolver stack architecture', () => {
 				stringify(entitySelector),
 			],
 		])
+		expect(context.collectionLoadFailures.list).toEqual([])
+		expect(countCalls).toEqual({
+			'source-a': 1,
+			'source-b': 1,
+		})
+
+		countCalls['source-a'] = 0
+		countCalls['source-b'] = 0
+		const sourceBOnlyContext = createContext()
+		const sourceBOnlyFieldCollection = sourceBOnlyContext.entityFieldCollections.CountFixture[
+			entityFieldAddressKey('CountFixture', [], 'items')
+		]
+		const sourceBOnlyCountCollection = sourceBOnlyContext.entityFieldCountCollections.CountFixture[
+			entityFieldAddressKey('CountFixture', [], 'items')
+		]
+		if (sourceBOnlyCountCollection === undefined)
+			throw new Error('CountFixture.items count collection missing')
+
+		const sourceBOnlyFieldPreload = vi.spyOn(sourceBOnlyFieldCollection, 'preload')
+		const sourceBOnlyCountPreload = vi.spyOn(sourceBOnlyCountCollection, 'preload')
+		expect((await subscribeEntityField(
+			sourceBOnlyContext,
+			'CountFixture',
+			entitySelector,
+			'items',
+			{
+				sources: ['source-b'],
+				count: true,
+			}
+		)).totalCount).toBe(7)
+		expect(countCalls).toEqual({
+			'source-a': 0,
+			'source-b': 1,
+		})
+		expect(sourceBOnlyFieldPreload).not.toHaveBeenCalled()
+		expect(sourceBOnlyCountPreload).not.toHaveBeenCalled()
+		expect(sourceBOnlyContext.collectionLoadFailures.list).toEqual([])
+
+		countCalls['source-a'] = 0
+		countCalls['source-b'] = 0
+		const getterOnlyContext = createContext()
+		const getterOnlyFieldCollection = getterOnlyContext.entityFieldCollections.CountFixture[
+			entityFieldAddressKey('CountFixture', [], 'items')
+		]
+		const getterOnlyCountCollection = getterOnlyContext.entityFieldCountCollections.CountFixture[
+			entityFieldAddressKey('CountFixture', [], 'items')
+		]
+		if (getterOnlyCountCollection === undefined)
+			throw new Error('CountFixture.items count collection missing')
+
+		const getterOnlyFieldPreload = vi.spyOn(getterOnlyFieldCollection, 'preload')
+		const getterOnlyCountPreload = vi.spyOn(getterOnlyCountCollection, 'preload')
+		const getterOnlyResource = subscribeEntityField(
+			getterOnlyContext,
+			'CountFixture',
+			entitySelector,
+			'items',
+			{
+				sources: ['source-b'],
+				count: true,
+			}
+		)
+		expect(countCalls).toEqual({
+			'source-a': 0,
+			'source-b': 0,
+		})
+		expect(getterOnlyResource.current).toBeUndefined()
+		await vi.waitFor(() => {
+			expect(getterOnlyResource.current?.totalCount).toBe(7)
+		})
+		expect(countCalls).toEqual({
+			'source-a': 0,
+			'source-b': 1,
+		})
+		expect(getterOnlyFieldPreload).not.toHaveBeenCalled()
+		expect(getterOnlyCountPreload).not.toHaveBeenCalled()
+		expect(getterOnlyContext.collectionLoadFailures.list).toEqual([])
+
+		countCalls['source-a'] = 0
+		countCalls['source-b'] = 0
+		const allSourcesContext = createContext()
+		expect((await subscribeEntityField(
+			allSourcesContext,
+			'CountFixture',
+			entitySelector,
+			'items',
+			{
+				count: true,
+			}
+		)).totalCount).toBe(5)
+		expect(countCalls).toEqual({
+			'source-a': 1,
+			'source-b': 1,
+		})
+		expect(allSourcesContext.collectionLoadFailures.list).toEqual([])
 	})
 
 	it('shares projection live publishers and cleans up after the last field subscriber', async () => {
@@ -887,12 +2379,34 @@ describe('client resolver stack architecture', () => {
 							},
 							start: ({ fields }) => {
 								starts += 1
+								expect(() => fields.items.replaceRows([{
+									source: 'wrong-source',
+									value: ['wrong source'],
+								}])).toThrow(/cannot write/)
+								expect(() => fields.items.replaceRows([{
+									source: 'live-source',
+									value: [1],
+								}])).toThrow(/must be a string/)
+								expect(() => fields.items.count.replaceRows([{
+									source: 'live-source',
+									value: -1,
+								}])).toThrow(/invalid count/)
 								fields.items.replaceRows([{
 									source: 'live-source',
 									value: [
 										'live',
 									],
 								}])
+								expect(() => fields.items.replaceRows([
+									{
+										source: 'live-source',
+										value: ['replacement'],
+									},
+									{
+										source: 'live-source',
+										value: [1],
+									},
+								])).toThrow(/must be a string/)
 								fields.items.count.replaceRows([{
 									source: 'live-source',
 									value: 1,

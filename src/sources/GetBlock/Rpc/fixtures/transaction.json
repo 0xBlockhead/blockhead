@@ -1,0 +1,20 @@
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+		"hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		"blockHash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		"blockNumber": "0x10",
+		"transactionIndex": "0x2",
+		"from": "0x1111111111111111111111111111111111111111",
+		"to": "0x2222222222222222222222222222222222222222",
+		"value": "0x64",
+		"nonce": "0x3",
+		"gas": "0x5208",
+		"gasPrice": "0x3b9aca00",
+		"input": "0x",
+		"r": "0x01",
+		"s": "0x02",
+		"v": "0x1b"
+	}
+}

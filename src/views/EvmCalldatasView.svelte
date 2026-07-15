@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'EVM calldata',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmCalldata>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmCalldata>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,13 +110,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmCalldata }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmCalldata> })}
+				{#snippet Item({ item: evmCalldata })}
 					{@const evmCalldataFields = { ...evmCalldata[EntityMetaKey.Selector], ...evmCalldata }}
+					{@const selection = select(EntityType.EvmCalldata, evmCalldata[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmCalldataHrefFields = { ...evmCalldata, ...evmCalldata[EntityMetaKey.Selector] }}
 					<EvmCalldataView
-						selection={select(EntityType.EvmCalldata, evmCalldata[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmCalldataFields}
-						href={resolve('/evm/calldata')}
+						href={
+							(evmCalldataHrefFields.hex !== undefined ? resolve('/evm/calldata/[hex=zeroExHex]', {
+								hex: String(evmCalldataHrefFields.hex ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

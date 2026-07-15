@@ -15,16 +15,24 @@ export const normalizeRssFeedUrl = (feedUrl: string) => (
 	new URL(feedUrl.trim()).href
 )
 
-export const rssItemGuidFromParts = (
+export const rssItemIdentityFromParts = (
 	guid: string | undefined,
-	link: string | undefined,
-	title: string | undefined
-) => (
-	guid?.trim()
-	|| link?.trim()
-	|| title?.trim()
-	|| 'unknown'
-)
+	link: string | undefined
+) => {
+	const normalizedGuid = guid?.trim()
+	if (normalizedGuid)
+		return {
+			itemIdentityKind: 'Guid',
+			itemIdentity: normalizedGuid,
+		} as const
+
+	const normalizedLink = link?.trim()
+	if (normalizedLink)
+		return {
+			itemIdentityKind: 'Link',
+			itemIdentity: new URL(normalizedLink).href,
+		} as const
+}
 
 export const rssPublishedAtMs = (value: string | undefined) => {
 	const trimmed = value?.trim()

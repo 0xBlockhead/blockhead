@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.MevRelay_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.MevRelay_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.MevRelay_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MevRelay_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -66,11 +66,16 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$relay !== undefined && pendingEntity.$relay.$network !== undefined && pendingEntity.$relay.$network.slug !== undefined && pendingEntity.$relay.host !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			network: String(pendingEntity.$relay.$network.slug ?? ''),
-			host: String(pendingEntity.$relay.host ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$relay !== undefined && pendingEntity.$relay.host !== undefined && pendingEntity.$relay.$network !== undefined && pendingEntity.$relay.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			host: String(pendingEntity.$relay.host ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$relay.$network.caip2) ?? ''),
+		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$relay !== undefined && pendingEntity.$relay.host !== undefined && pendingEntity.$relay.$network !== undefined && pendingEntity.$relay.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			host: String(pendingEntity.$relay.host ?? ''),
+			network: String(pendingEntity.$relay.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -110,9 +115,12 @@
 					<MevRelayView
 						selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
 						href={
-							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
+							(selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
 								host: String(selection.entitySelector.$relay.host ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$relay.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+								host: String(selection.entitySelector.$relay.host ?? ''),
+								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -127,9 +135,12 @@
 					<MevRelayView
 						selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
 						href={
-							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
+							(selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
 								host: String(selection.entitySelector.$relay.host ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$relay.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+								host: String(selection.entitySelector.$relay.host ?? ''),
+								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -492,9 +503,12 @@
 					<MevRelayView
 						selection={select(EntityType.MevRelay, selection.entitySelector.$relay, {})}
 						href={
-							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
+							(selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
 								host: String(selection.entitySelector.$relay.host ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$relay.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$relay.host !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+								host: String(selection.entitySelector.$relay.host ?? ''),
+								network: String(selection.entitySelector.$relay.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

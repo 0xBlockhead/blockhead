@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'AT Protocol account observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AtprotoActor_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.AtprotoActor_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,11 +113,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: atprotoActorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AtprotoActor_Timestamp> })}
+				{#snippet Item({ item: atprotoActorTimestamp })}
 					{@const atprotoActorTimestampFields = { ...atprotoActorTimestamp[EntityMetaKey.Selector], ...atprotoActorTimestamp }}
+					{@const selection = select(EntityType.AtprotoActor_Timestamp, atprotoActorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const atprotoActorTimestampHrefFields = { ...atprotoActorTimestamp, ...atprotoActorTimestamp[EntityMetaKey.Selector] }}
 					<AtprotoActor_TimestampView
-						selection={select(EntityType.AtprotoActor_Timestamp, atprotoActorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={atprotoActorTimestampFields}
 						href={
 							(atprotoActorTimestampHrefFields.timestampMs !== undefined && atprotoActorTimestampHrefFields.$actor !== undefined && atprotoActorTimestampHrefFields.$actor.did !== undefined ? resolve('/atproto/actor/[did=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {

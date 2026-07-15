@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Git commits',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.GitCommit>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.GitCommit>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: gitCommit }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitCommit> })}
+				{#snippet Item({ item: gitCommit })}
 					{@const gitCommitFields = { ...gitCommit[EntityMetaKey.Selector], ...gitCommit }}
+					{@const selection = select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<GitCommitView
-						selection={select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={gitCommitFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BeaconSlot>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BeaconSlot>>
+			selection: RegisteredEntityProxyResource<EntityType.BeaconSlot>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BeaconSlot>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -68,9 +68,12 @@
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.slot ?? '')}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.slot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-			network: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.slot !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
 			slot: String(pendingEntity.slot ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.slot !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+			slot: String(pendingEntity.slot ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -110,9 +113,12 @@
 								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 								prefetched={beaconEpoch}
 								href={
-									(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-										network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+									(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
 										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+										network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+									}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+										network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -134,9 +140,12 @@
 								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 								prefetched={beaconEpoch}
 								href={
-									(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-										network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+									(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
 										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+										network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+									}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+										network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -198,9 +207,12 @@
 									selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 									prefetched={beaconEpoch}
 									href={
-										(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-											network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
+										(beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
 											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+											network: String(caip2StringFromValue(beaconEpoch[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : beaconEpoch[EntityMetaKey.Selector].epoch !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
+											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
+											network: String(beaconEpoch[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

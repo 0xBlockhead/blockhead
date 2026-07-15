@@ -1,0 +1,16 @@
+{
+	"archive_height": 19000020,
+	"next_block": 19000002,
+	"total_execution_time": 2,
+	"data": {
+		"blocks": [],
+		"transactions": []
+	},
+	"rollback_guard": {
+		"block_number": 19000001,
+		"timestamp": 1700000012,
+		"hash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		"first_block_number": 19000001,
+		"first_parent_hash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+	}
+}

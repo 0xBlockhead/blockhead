@@ -38,7 +38,7 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : UtxoBlockView}
+			{@const DetailView = data.selectorMapping.entityType === EntityType.PolkadotBlock && data.selectorMapping.selectorName === 'NetworkBlockNumberHash' ? PolkadotBlockView : UtxoBlockView}
 
 			<DetailView
 				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}

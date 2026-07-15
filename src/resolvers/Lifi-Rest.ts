@@ -164,18 +164,23 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 }
 
 const coinBridgeCapabilityRowsForCoin = async (
-	{ coinId }: EntitySelector<typeof schema, EntityType.Coin>,
-	context: SourceResolverContext<Source.Lifi_Rest>
+	{ coinId }: EntitySelector<typeof schema, EntityType.Coin>
 ) => {
-	const { fetchTools } = await import('$/sources/Lifi/Rest/queries.ts')
-	const { fetchCoinInstanceStubsForCoin } = await import(
-		'$/resolvers/Coingecko/Rest/coinInstances.ts'
+	const { fetchTokens, fetchTools } = await import('$/sources/Lifi/Rest/queries.ts')
+	const { coinInstanceRefFromLifiToken } = await import(
+		'$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
 	)
 	const { coinBridgeCapabilityRowsFromInstancesAndTools } = await import(
 		'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 	)
 	return coinBridgeCapabilityRowsFromInstancesAndTools(
-		await fetchCoinInstanceStubsForCoin(coinId, context.publicEnv),
+		Object.values((await fetchTokens()).tokens)
+			.flat()
+			.filter((token) => token.coinKey === coinId)
+			.flatMap((token) => {
+				const coinInstance = coinInstanceRefFromLifiToken(token)
+				return coinInstance == null ? [] : [coinInstance]
+			}),
 		await fetchTools()
 	)
 }
@@ -315,8 +320,8 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: async (entitySelector, context) => {
-					return coinBridgeCapabilityRowsForCoin(entitySelector, context)
+				[CoinSelector.CoinId]: async (entitySelector) => {
+					return coinBridgeCapabilityRowsForCoin(entitySelector)
 				}
 			},
 		})({
@@ -331,7 +336,7 @@ export default {
 						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
 					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
-					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
+					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
 					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'outbound')
 				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async (entitySelector, context) => {
@@ -339,12 +344,17 @@ export default {
 						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
 					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
-					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
+					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
 					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'outbound')
 				},
 			},
 		})({
-				$$outboundBridgeCapabilities: (capabilities) => capabilities,
+				NativeCurrency: {
+					$$outboundBridgeCapabilities: (capabilities) => capabilities,
+				},
+				Erc20Token: {
+					$$outboundBridgeCapabilities: (capabilities) => capabilities,
+				},
 			}),
 
 		defineResolver(Source.Lifi_Rest, {
@@ -355,7 +365,7 @@ export default {
 						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
 					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
-					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
+					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
 					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'inbound')
 				},
 				[EvmCoinInstanceSelector.NetworkTypeContract]: async (entitySelector, context) => {
@@ -363,12 +373,17 @@ export default {
 						'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
 					)
 					const coinId = await coinIdForBridgeInstanceSelector(entitySelector, context)
-					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
+					const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId })
 					return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'inbound')
 				},
 			},
 		})({
-				$$inboundBridgeCapabilities: (capabilities) => capabilities,
+				NativeCurrency: {
+					$$inboundBridgeCapabilities: (capabilities) => capabilities,
+				},
+				Erc20Token: {
+					$$inboundBridgeCapabilities: (capabilities) => capabilities,
+				},
 			}),
 
 		defineResolver(Source.Lifi_Rest, {

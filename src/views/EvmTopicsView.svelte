@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +20,7 @@
 		selection,
 		title = 'EVM topics',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -31,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmTopic>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmTopic>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -114,11 +114,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmTopic }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmTopic> })}
+				{#snippet Item({ item: evmTopic })}
 					{@const evmTopicFields = { ...evmTopic[EntityMetaKey.Selector], ...evmTopic }}
+					{@const selection = select(EntityType.EvmTopic, evmTopic[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmTopicHrefFields = { ...evmTopic, ...evmTopic[EntityMetaKey.Selector] }}
 					<EvmTopicView
-						selection={select(EntityType.EvmTopic, evmTopic[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmTopicFields}
 						href={
 							(evmTopicHrefFields.hex !== undefined ? resolve('/evm/topic/[hex=zeroExHex]', {

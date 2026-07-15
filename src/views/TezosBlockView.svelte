@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.TezosBlock>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.TezosBlock>>
+			selection: RegisteredEntityProxyResource<EntityType.TezosBlock>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TezosBlock>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -89,75 +88,65 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							level: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const level = pendingEntity.level}
-					{#if level !== undefined && level !== null}
-						<div>
-							<dt>level</dt>
-							<dd>
+			<div>
+				<dt>level</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									level: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const level = pendingEntity.level}
+							{#if level !== undefined && level !== null}
 								{String((level) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const level = resolvedEntity.level}
-					{#if level !== undefined && level !== null}
-						<div>
-							<dt>level</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const level = resolvedEntity.level}
+							{#if level !== undefined && level !== null}
 								{String((level) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							hash: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const hash = pendingEntity.hash}
-					{#if hash !== undefined && hash !== null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
+			<div>
+				<dt>Hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									hash: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const hash = pendingEntity.hash}
+							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hash = resolvedEntity.hash}
-					{#if hash !== undefined && hash !== null}
-						<div>
-							<dt>Hash</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const hash = resolvedEntity.hash}
+							{#if hash !== undefined && hash !== null}
 								<TruncatedValue value={String((hash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={

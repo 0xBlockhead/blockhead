@@ -1,5 +1,4 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { nostrNetworkSeedRelays } from '$/constants/Social/Nostr.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -24,6 +23,7 @@ import { isJsonArray, isJsonString, type JsonObject } from '$/typescript/JsonVal
 import { NostrProfileSelector } from '$/schema/NostrProfile.ts'
 import { NostrNoteSelector } from '$/schema/NostrNote.ts'
 import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
+import { NostrRelay_TimestampSelector } from '$/schema/NostrRelay_Timestamp.ts'
 import { NostrRepostSelector } from '$/schema/NostrRepost.ts'
 import { NostrReactionSelector } from '$/schema/NostrReaction.ts'
 import { NostrArticleSelector } from '$/schema/NostrArticle.ts'
@@ -537,32 +537,6 @@ const profileMetadataFromProfileWire = (wire: {
 	)
 )
 
-const relayFieldValuesFromWire = (relay: NostrBandRelayStats) => ({
-	name: optionalNonemptyString(relay.name),
-	description: optionalNonemptyString(relay.description),
-	software: optionalNonemptyString(relay.software),
-	version: optionalNonemptyString(relay.version),
-	...(
-		relay.nips?.length != null && Number.isFinite(relay.nips.length) ?
-			{ supportedNipCount: relay.nips.length }
-		:
-			{}
-	),
-	...(relay.is_paid === true || relay.paid === true ?
-		{ isPaid: true }
-	:
-		relay.is_paid === false || relay.paid === false ?
-			{ isPaid: false }
-		:
-			{}),
-	...(
-		relay.limit != null && Number.isFinite(relay.limit) ?
-			{ limit: relay.limit }
-		:
-			{}
-	),
-})
-
 export default {
 	source: Source.NostrBand_Rest,
 
@@ -625,44 +599,104 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrRelay,
 			resolve: {
-				[NostrRelaySelector.RelayUrl]: async ({ relayUrl: relayUrlSelector }, context) => {
-					const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
+				[NostrRelaySelector.RelayUrl]: async ({ relayUrl: relayUrlSelector }) => {
 					const relayUrl = normalizeRelayUrl(relayUrlSelector)
 					if (relayUrl == null)
 						throw new Error('NostrBand_Rest: relay url invalid')
-					const relay = (
-						((await listTopRelays(100)).relays ?? [])
-							.find((relay) => relayUrlFromWire(relay) === relayUrl)
-					)
-					if (relay != null)
-						return relayFieldValuesFromWire(relay)
-					if (
-					nostrNetworkSeedRelays.some((seedRelay) => (
-						normalizeRelayUrl(seedRelay.relayUrl) === relayUrl
-					))
-					) {
-						return {
-							name: relayUrl.replace(/^wss:\/\//i, ''),
-							description: undefined,
-							software: undefined,
-							version: undefined,
-							supportedNipCount: undefined,
-							isPaid: undefined,
-							limit: undefined,
-						}
+
+					return {
+						relayUrl,
+						$$timestamps: [{
+							[EntityMetaKey.Selector]: {
+								$relay: { relayUrl },
+								timestampMs: Date.now(),
+								source: Source.NostrBand_Rest,
+							},
+						}],
 					}
-					throw new Error('NostrBand_Rest: relay not found')
 				}
 			},
 		})({
-				name: (relay) => relay.name,
-				description: (relay) => relay.description,
-				software: (relay) => relay.software,
-				version: (relay) => relay.version,
-				supportedNipCount: (relay) => relay.supportedNipCount,
-				isPaid: (relay) => relay.isPaid,
-				limit: (relay) => relay.limit,
-			}),
+			relayUrl: (relay) => relay.relayUrl,
+			$$timestamps: (relay) => relay.$$timestamps,
+		}),
+
+		defineResolver(Source.NostrBand_Rest, {
+			entityType: EntityType.NostrRelay_Timestamp,
+			resolve: {
+				[NostrRelay_TimestampSelector.RelayTimestampMsSource]: async ({
+					$relay,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.NostrBand_Rest)
+						throw new Error(`NostrBand_Rest: unsupported source ${source}`)
+
+					const relayUrl = normalizeRelayUrl($relay.relayUrl)
+					if (relayUrl == null)
+						throw new Error('NostrBand_Rest: relay url invalid')
+
+					try {
+						const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
+						const relays = (await listTopRelays(100)).relays ?? []
+						const relayIndex = relays.findIndex((relay) => relayUrlFromWire(relay) === relayUrl)
+						if (relayIndex < 0)
+							return {
+								$relay: { [EntityMetaKey.Selector]: { relayUrl } },
+								timestampMs,
+								source,
+								reachable: false,
+								error: 'NostrBand_Rest: relay not found',
+							}
+
+						const relay = relays[relayIndex]
+						return {
+							$relay: { [EntityMetaKey.Selector]: { relayUrl } },
+							timestampMs,
+							source,
+							reachable: true,
+							name: optionalNonemptyString(relay.name),
+							description: optionalNonemptyString(relay.description),
+							software: optionalNonemptyString(relay.software),
+							version: optionalNonemptyString(relay.version),
+							...(relay.nips != null && { supportedNips: relay.nips }),
+							...(relay.is_paid != null && { isPaid: relay.is_paid }),
+							...(relay.is_paid == null && relay.paid != null && { isPaid: relay.paid }),
+							...(relay.limit != null && { limitation: { maxLimit: relay.limit } }),
+							...(relay.users != null && { activeUsers: relay.users }),
+							...(relay.users == null && relay.users_count != null && { activeUsers: relay.users_count }),
+							...(relay.events != null && { eventsPerDay: relay.events }),
+							...(relay.events == null && relay.events_count != null && { eventsPerDay: relay.events_count }),
+							rank: relayIndex + 1,
+						}
+					} catch (error) {
+						return {
+							$relay: { [EntityMetaKey.Selector]: { relayUrl } },
+							timestampMs,
+							source,
+							reachable: false,
+							error: error instanceof Error ? error.message : String(error),
+						}
+					}
+				},
+			},
+		})({
+			$relay: (observation) => observation.$relay,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			name: (observation) => observation.name,
+			description: (observation) => observation.description,
+			software: (observation) => observation.software,
+			version: (observation) => observation.version,
+			supportedNips: (observation) => observation.supportedNips,
+			limitation: (observation) => observation.limitation,
+			isPaid: (observation) => observation.isPaid,
+			activeUsers: (observation) => observation.activeUsers,
+			eventsPerDay: (observation) => observation.eventsPerDay,
+			rank: (observation) => observation.rank,
+			reachable: (observation) => observation.reachable,
+			error: (observation) => observation.error,
+		}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrRepost,

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -27,8 +26,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.CoinBridgeCapability>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.CoinBridgeCapability>>
+			selection: RegisteredEntityProxyResource<EntityType.CoinBridgeCapability>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CoinBridgeCapability>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -290,10 +289,10 @@
 					<EvmCoinInstanceView
 						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$fromInstance, {})}
 						href={
-							(selection.entitySelector.$fromInstance.type !== undefined && selection.entitySelector.$fromInstance.type === 'NativeCurrency' && selection.entitySelector.$fromInstance.$network !== undefined && selection.entitySelector.$fromInstance.$network.caip2 !== undefined && selection.entitySelector.$fromInstance.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+							(selection.entitySelector.$fromInstance.type === 'NativeCurrency' && selection.entitySelector.$fromInstance.type === 'NativeCurrency' && selection.entitySelector.$fromInstance.$network !== undefined && selection.entitySelector.$fromInstance.$network.caip2 !== undefined && selection.entitySelector.$fromInstance.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 								chainId: String(selection.entitySelector.$fromInstance.$network.caip2.reference ?? ''),
 								coinInstanceSlug: String('native' ?? ''),
-							}) : selection.entitySelector.$fromInstance.type !== undefined && selection.entitySelector.$fromInstance.type === 'Erc20Token' && selection.entitySelector.$fromInstance.$contract !== undefined && selection.entitySelector.$fromInstance.$contract.address !== undefined && selection.entitySelector.$fromInstance.$network !== undefined && selection.entitySelector.$fromInstance.$network.caip2 !== undefined && selection.entitySelector.$fromInstance.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+							}) : selection.entitySelector.$fromInstance.type === 'Erc20Token' && selection.entitySelector.$fromInstance.type === 'Erc20Token' && selection.entitySelector.$fromInstance.$contract !== undefined && selection.entitySelector.$fromInstance.$contract.address !== undefined && selection.entitySelector.$fromInstance.$network !== undefined && selection.entitySelector.$fromInstance.$network.caip2 !== undefined && selection.entitySelector.$fromInstance.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 								coinInstanceSlug: String(selection.entitySelector.$fromInstance.$contract.address ?? ''),
 								chainId: String(selection.entitySelector.$fromInstance.$network.caip2.reference ?? ''),
 							}) : undefined)
@@ -310,10 +309,10 @@
 					<EvmCoinInstanceView
 						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$toInstance, {})}
 						href={
-							(selection.entitySelector.$toInstance.type !== undefined && selection.entitySelector.$toInstance.type === 'NativeCurrency' && selection.entitySelector.$toInstance.$network !== undefined && selection.entitySelector.$toInstance.$network.caip2 !== undefined && selection.entitySelector.$toInstance.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+							(selection.entitySelector.$toInstance.type === 'NativeCurrency' && selection.entitySelector.$toInstance.type === 'NativeCurrency' && selection.entitySelector.$toInstance.$network !== undefined && selection.entitySelector.$toInstance.$network.caip2 !== undefined && selection.entitySelector.$toInstance.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 								chainId: String(selection.entitySelector.$toInstance.$network.caip2.reference ?? ''),
 								coinInstanceSlug: String('native' ?? ''),
-							}) : selection.entitySelector.$toInstance.type !== undefined && selection.entitySelector.$toInstance.type === 'Erc20Token' && selection.entitySelector.$toInstance.$contract !== undefined && selection.entitySelector.$toInstance.$contract.address !== undefined && selection.entitySelector.$toInstance.$network !== undefined && selection.entitySelector.$toInstance.$network.caip2 !== undefined && selection.entitySelector.$toInstance.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+							}) : selection.entitySelector.$toInstance.type === 'Erc20Token' && selection.entitySelector.$toInstance.type === 'Erc20Token' && selection.entitySelector.$toInstance.$contract !== undefined && selection.entitySelector.$toInstance.$contract.address !== undefined && selection.entitySelector.$toInstance.$network !== undefined && selection.entitySelector.$toInstance.$network.caip2 !== undefined && selection.entitySelector.$toInstance.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 								coinInstanceSlug: String(selection.entitySelector.$toInstance.$contract.address ?? ''),
 								chainId: String(selection.entitySelector.$toInstance.$network.caip2.reference ?? ''),
 							}) : undefined)

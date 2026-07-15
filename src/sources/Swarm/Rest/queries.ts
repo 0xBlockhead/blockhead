@@ -1,8 +1,12 @@
 import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
-import { swarmBindings } from '$/sources/Swarm/bindings.ts'
+import { gatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
 import type { SwarmBrowseResult } from '$/sources/Swarm/Rest/types.ts'
 
-const swarmGatewayEndpoints = swarmBindings[0].endpoints
+const swarmGatewayEndpoints = gatewayUrls.map((origin) => ({
+	locator: origin,
+	origin,
+	corsEnabled: true,
+}))
 
 const swarmGatewayOrigins = swarmGatewayEndpoints.flatMap((endpoint) => (
 	[{

@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +20,7 @@
 		selection,
 		title = 'EVM error observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -31,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmError_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmError_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -116,11 +116,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmErrorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmError_Timestamp> })}
+				{#snippet Item({ item: evmErrorTimestamp })}
 					{@const evmErrorTimestampFields = { ...evmErrorTimestamp[EntityMetaKey.Selector], ...evmErrorTimestamp }}
+					{@const selection = select(EntityType.EvmError_Timestamp, evmErrorTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmErrorTimestampHrefFields = { ...evmErrorTimestamp, ...evmErrorTimestamp[EntityMetaKey.Selector] }}
 					<EvmError_TimestampView
-						selection={select(EntityType.EvmError_Timestamp, evmErrorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmErrorTimestampFields}
 						href={
 							(evmErrorTimestampHrefFields.timestampMs !== undefined && evmErrorTimestampHrefFields.source !== undefined && evmErrorTimestampHrefFields.$error !== undefined && evmErrorTimestampHrefFields.$error.hex !== undefined ? resolve('/evm/error/[hex=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -27,8 +26,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.RedditComment_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.RedditComment_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.RedditComment_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RedditComment_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -240,6 +239,11 @@
 				<dd>
 					<RedditCommentView
 						selection={select(EntityType.RedditComment, selection.entitySelector.$comment, {})}
+						href={
+							(selection.entitySelector.$comment.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]', {
+								fullname: String(selection.entitySelector.$comment.fullname ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

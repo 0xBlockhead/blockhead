@@ -34,6 +34,9 @@ test.describe('assertLoaded resolver probes', () => {
 		expect(res.status(), text).toBe(200)
 
 		const body: AssertLoadedResolverProbeResult = JSON.parse(text)
+		expect(body.cases.filter((probeCase) => probeCase.kind === 'count')).toHaveLength(
+			body.countResolverPartCount
+		)
 
 		expect(
 			body.fulfilledButAssertFailed,

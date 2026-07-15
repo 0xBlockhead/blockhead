@@ -5,4 +5,4 @@ export const pipedApiOrigins = [
 		origin: pipedApiDefaultOrigin,
 		corsEnabled: true,
 	},
-]
+] as const

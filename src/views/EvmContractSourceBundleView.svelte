@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmContractSourceBundle>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmContractSourceBundle>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmContractSourceBundle>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmContractSourceBundle>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -69,9 +69,12 @@
 				<EvmContractView
 					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 					href={
-						(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
+						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -84,9 +87,12 @@
 				<EvmContractView
 					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 					href={
-						(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
+						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -102,9 +108,12 @@
 				<EvmContractView
 					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 					href={
-						(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
+						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Value}
@@ -117,9 +126,12 @@
 				<EvmContractView
 					selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 					href={
-						(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
+						(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+							address: String(selection.entitySelector.$contract.address ?? ''),
+							network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Value}
@@ -137,9 +149,12 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract, {})}
 						href={
-							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
+							(selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 								address: String(selection.entitySelector.$contract.address ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$contract.address !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+								address: String(selection.entitySelector.$contract.address ?? ''),
+								network: String(selection.entitySelector.$contract.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

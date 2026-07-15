@@ -3,10 +3,36 @@
 	* @see https://docs.blockscout.com/devs/apis/rest
 	*/
 
-import { corsFetch, throwIfHttpNotOk } from '$/lib/http.ts'
-import { blockscoutOrigins } from '$/sources/Blockscout/index.ts'
+import { throwIfHttpNotOk } from '$/lib/http.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { restPath } from '$/sources/Blockscout/Rest/constants.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
+import { ApiFamily, SourceEndpointKind } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+
+const blockscoutRestBindingByOrigin = Object.fromEntries(
+	sourceProviderDefinitions
+		.flatMap((provider) => provider.bindings)
+		.filter((binding) => (
+			binding.source === Source.Blockscout_Rest
+			&& binding.apiFamily === ApiFamily.BlockscoutRestV2
+		))
+		.flatMap((binding) => binding.endpoints.flatMap((endpoint) => (
+			endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
+				[[endpoint.origin, binding] as const]
+			:
+				[]
+		)))
+)
+
+const blockscoutRestBindingForExplorerOrigin = (explorerOrigin: string) => {
+	const binding = blockscoutRestBindingByOrigin[new URL(explorerOrigin).origin]
+	if (binding == null)
+		throw new Error(`Blockscout_Rest: no REST v2 binding for ${explorerOrigin}`)
+
+	return binding
+}
 
 const blockscoutLegacyApiUrl = ({
 	explorerOrigin,
@@ -57,10 +83,11 @@ export const getBlockscoutLegacyJson = async <T>({
 		explorerOrigin,
 		query,
 	})
-	const res = await corsFetch(url, {
-		origins: blockscoutOrigins,
-		init: { headers: { accept: 'application/json' } },
-	})
+	const res = await sourceFetch(
+		blockscoutRestBindingForExplorerOrigin(explorerOrigin),
+		url,
+		{ headers: { accept: 'application/json' } }
+	)
 	await throwIfHttpNotOk(res, url)
 	return res.json<T>()
 }
@@ -75,9 +102,10 @@ export const postBlockscoutEthRpc = async <T>({
 	params: readonly JsonValue[]
 }): Promise<T | null> => {
 	const url = blockscoutEthRpcUrl(explorerOrigin)
-	const res = await corsFetch(url, {
-		origins: blockscoutOrigins,
-		init: {
+	const res = await sourceFetch(
+		blockscoutRestBindingForExplorerOrigin(explorerOrigin),
+		url,
+		{
 			method: 'POST',
 			headers: {
 				accept: 'application/json',
@@ -89,8 +117,8 @@ export const postBlockscoutEthRpc = async <T>({
 				method,
 				params,
 			}),
-		},
-	})
+		}
+	)
 	await throwIfHttpNotOk(res, url)
 	const wire: {
 		result?: T
@@ -114,10 +142,11 @@ export const getJson = async <T>({
 		path,
 		searchParams,
 	})
-	const res = await corsFetch(url, {
-		origins: blockscoutOrigins,
-		init: { headers: { accept: 'application/json' } },
-	})
+	const res = await sourceFetch(
+		blockscoutRestBindingForExplorerOrigin(explorerOrigin),
+		url,
+		{ headers: { accept: 'application/json' } }
+	)
 	await throwIfHttpNotOk(res, url)
 
 	return res.json<T>()

@@ -1,51 +1,42 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
-import type { OpenAIJson } from '$/sources/OpenAI/Rest/types.ts'
+import type {
+	OpenAIModel,
+	OpenAIModelList,
+} from '$/sources/OpenAI/Rest/types.ts'
 
-const getJson = async ({
+const getJson = async <_Response>({
 	binding,
 	path,
-	credential,
 }: {
 	binding: SourceBinding
 	path: string
-	credential: string
 }) => {
-	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
-		headers: {
-			'authorization': `Bearer ${credential}`,
-		},
-	})
+	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString())
 
 	if (!response.ok)
 		await throwHttpError(binding.source, response)
 
-	return response.json<OpenAIJson>()
+	return response.json<_Response>()
 }
 
 export const listModels = ({
 	binding,
-	credential,
 }: {
 	binding: SourceBinding
-	credential: string
-}) => getJson({
+}) => getJson<OpenAIModelList>({
 	binding,
 	path: '/v1/models',
-	credential,
 })
 
 export const retrieveModel = ({
 	binding,
 	modelId,
-	credential,
 }: {
 	binding: SourceBinding
 	modelId: string
-	credential: string
-}) => getJson({
+}) => getJson<OpenAIModel>({
 	binding,
 	path: `/v1/models/${encodeURIComponent(modelId)}`,
-	credential,
 })

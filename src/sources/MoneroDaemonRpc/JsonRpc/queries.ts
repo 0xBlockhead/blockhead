@@ -1,7 +1,6 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { moneroDaemonRpcBindings } from '$/sources/MoneroDaemonRpc/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	MoneroRpcDecodedTransaction,
@@ -10,33 +9,33 @@ import type {
 	MoneroRpcTransaction,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
 
-export const moneroMainnetRpcEndpoints = moneroDaemonRpcBindings
-	.slice(0, 1)
-	.flatMap((binding) => binding.endpoints)
-	.map((endpoint) => ({
-		url: endpoint.locator,
+export const moneroMainnetRpcEndpoints = [
+	{
+		url: 'https://xmr-node.cakewallet.com:18081/json_rpc',
 		transportType: TransportType.Http,
 		providerName: 'Monero daemon',
-	}))
+	},
+	{
+		url: 'http://nodes.hashvault.pro:18081/json_rpc',
+		transportType: TransportType.Http,
+		providerName: 'Monero daemon',
+	},
+] as const
 
 export const moneroDaemonRpcOrigins = [
-	...new Map(
-		moneroDaemonRpcBindings
-			.flatMap((binding) => binding.endpoints)
-			.flatMap((endpoint) => (
-				endpoint.origin == null ?
-					[]
-				:
-					[[
-						endpoint.origin,
-						{
-							origin: endpoint.origin,
-							corsEnabled: endpoint.corsEnabled === true,
-						},
-					]]
-			))
-	).values(),
-]
+	{
+		origin: 'https://xmr-node.cakewallet.com:18081',
+		corsEnabled: false,
+	},
+	{
+		origin: 'http://nodes.hashvault.pro:18081',
+		corsEnabled: false,
+	},
+	{
+		origin: 'http://127.0.0.1:18081',
+		corsEnabled: false,
+	},
+] as const
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion

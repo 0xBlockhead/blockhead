@@ -1,6 +1,11 @@
 import { type as arktype } from 'arktype'
 import { stringify } from 'devalue'
 
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+} from '$/schema/EntityField.ts'
+
 export enum EntityMetaKey {
 	ParentSelector = '__parentSelector',
 	ParentSelectorKey = '__parentSelectorKey',
@@ -9,12 +14,6 @@ export enum EntityMetaKey {
 	Source = '__source',
 	Fields = '__fields',
 	Value = '__value',
-}
-
-export enum EntityFieldType {
-	Primitive = 'Primitive',
-	EntityReference = 'EntityReference',
-	EntitiesReference = 'EntitiesReference',
 }
 
 type SchemaType<
@@ -57,14 +56,6 @@ export type EntitySelectorDefinition = {
 export type EntityFieldValueNormalizer = (
 	(value: unknown) => unknown
 )
-
-export enum EntityFieldCardinality {
-	Zero = 'Zero',
-	One = 'One',
-	ZeroOrOne = 'ZeroOrOne',
-	Many = 'Many',
-	ZeroOrMany = 'ZeroOrMany',
-}
 
 export type EntityFacetPath = readonly string[]
 
@@ -122,11 +113,27 @@ export const entityFieldAddress = (
 	fieldName: fieldDefinition.name,
 })
 
-export const entityFieldAddressKey = (
+export function entityFieldAddressKey<
+	const _EntityType extends string,
+	const _FacetPath extends EntityFacetPath,
+	const _FieldName extends string,
+>(
+	entityType: _EntityType,
+	facetPath: _FacetPath,
+	fieldName: _FieldName
+): `${_EntityType}\x1e${EntityFacetPathKey<_FacetPath>}\x1e${_FieldName}`
+export function entityFieldAddressKey(
 	entityType: string,
 	facetPath: EntityFacetPath,
 	fieldName: string
-) => `${entityType}${facetPath.join('')}${fieldName}`
+): string
+export function entityFieldAddressKey(
+	entityType: string,
+	facetPath: EntityFacetPath,
+	fieldName: string
+) {
+	return `${entityType}${facetPath.join('')}${fieldName}`
+}
 
 export const entityFieldPrimitiveValueIsValid = (
 	fieldDefinition: Extract<EntityFieldDefinition, {
@@ -535,8 +542,23 @@ export const entity = <
 			readonly selectors: {
 				readonly [
 					_SelectorName in keyof _Selectors
-				]: _Selectors[_SelectorName][number] extends keyof _Fields & string ?
-					_Selectors[_SelectorName]
+				]: _Selectors[_SelectorName] extends readonly [string, ...string[]] ?
+					_Selectors[_SelectorName][number] extends keyof _Fields & string ?
+						_Fields[_Selectors[_SelectorName][number]]['type'] extends (
+							| EntityFieldType.Primitive
+							| EntityFieldType.EntityReference
+						) ?
+							_Fields[_Selectors[_SelectorName][number]]['cardinality'] extends (
+								| EntityFieldCardinality.One
+								| EntityFieldCardinality.ZeroOrOne
+							) ?
+								_Selectors[_SelectorName]
+							:
+								never
+						:
+							never
+					:
+						never
 				:
 					never
 			}
@@ -964,6 +986,46 @@ type EntityFacetDefinitionAtPath<
 		: never
 	: never
 
+type EntityFacetPathsFromDefinition<
+	_Facet extends EntityFacetDefinition,
+	_ParentPath extends readonly string[],
+> = _Facet extends EntityFacetDefinition ?
+	string extends _Facet['name'] ?
+		readonly string[]
+	:
+		(
+			| readonly [..._ParentPath, _Facet['name']]
+			| EntityFacetPathsFromDefinitions<
+				_Facet['facets'],
+				readonly [..._ParentPath, _Facet['name']]
+			>
+		)
+:
+	never
+
+type EntityFacetPathsFromDefinitions<
+	_Facets extends readonly EntityFacetDefinition[] | undefined,
+	_ParentPath extends readonly string[] = readonly [],
+> = _Facets extends readonly EntityFacetDefinition[] ?
+	_Facets[number] extends infer _Facet extends EntityFacetDefinition ?
+		EntityFacetPathsFromDefinition<_Facet, _ParentPath>
+	:
+		never
+:
+	never
+
+export type EntityFacetPathFor<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = EntityFacetPathsFromDefinitions<
+	EntityDefinitionForEntityType<_Schema, _EntityType>['facets']
+>
+
+export type EntityProjectionPath<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = readonly [] | EntityFacetPathFor<_Schema, _EntityType>
+
 export type EntityFacetDefinitionForPath<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -993,7 +1055,7 @@ export type EntityFacetName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_FacetPath extends readonly string[] = [],
-> = _FacetPath extends [] ?
+> = _FacetPath extends readonly [] ?
 	NonNullable<EntityDefinitionForEntityType<_Schema, _EntityType>['facets']>[number]['name']
 :
 	NonNullable<EntityFacetDefinitionForPath<_Schema, _EntityType, _FacetPath>['facets']>[number]['name']
@@ -1027,6 +1089,88 @@ export type EntityBaseFieldName<
 	_EntityType extends EntityType<_Schema>,
 > = EntityBaseFieldDefinition<_Schema, _EntityType>['name']
 
+export type EntityFieldDefinitionAtPath<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[],
+> = _FacetPath extends readonly [] ?
+	EntityBaseFieldDefinition<_Schema, _EntityType>
+:
+	EntityFacetDefinitionForPath<_Schema, _EntityType, _FacetPath>['fields'][number]
+
+export type EntityFieldNameAtPath<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[],
+> = EntityFieldDefinitionAtPath<_Schema, _EntityType, _FacetPath>['name']
+
+type EntityFieldAddressForPath<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends EntityProjectionPath<_Schema, _EntityType>,
+> = _FacetPath extends EntityProjectionPath<_Schema, _EntityType> ? {
+	readonly entityType: _EntityType
+	readonly facetPath: _FacetPath
+	readonly fieldName: EntityFieldNameAtPath<_Schema, _EntityType, _FacetPath>
+} : never
+
+export type EntityFieldAddressFor<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema> = EntityType<_Schema>,
+> = _EntityType extends EntityType<_Schema> ?
+	EntityFieldAddressForPath<
+		_Schema,
+		_EntityType,
+		EntityProjectionPath<_Schema, _EntityType>
+	>
+:
+	never
+
+type EntityFacetPathKey<_FacetPath extends readonly string[]> = (
+	_FacetPath extends readonly [
+		infer _FacetName extends string,
+		...infer _RemainingFacetPath extends readonly string[],
+	] ?
+		_RemainingFacetPath extends readonly [] ?
+			_FacetName
+		:
+			`${_FacetName}\x1e${EntityFacetPathKey<_RemainingFacetPath>}`
+	:
+		''
+)
+
+type EntityFieldAddressKeyForPath<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends EntityProjectionPath<_Schema, _EntityType>,
+> = _FacetPath extends EntityProjectionPath<_Schema, _EntityType> ?
+	`${_EntityType}\x1e${EntityFacetPathKey<_FacetPath>}\x1e${EntityFieldNameAtPath<_Schema, _EntityType, _FacetPath>}`
+:
+	never
+
+export type EntityFieldAddressKeyFor<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema> = EntityType<_Schema>,
+> = _EntityType extends EntityType<_Schema> ?
+	EntityFieldAddressKeyForPath<
+		_Schema,
+		_EntityType,
+		EntityProjectionPath<_Schema, _EntityType>
+	>
+:
+	never
+
+export type EntityFieldValuesByAddress<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = Partial<Record<
+	EntityFieldAddressKeyFor<_Schema, _EntityType>,
+	EntityFieldValueFromDefinition<
+		_Schema,
+		EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>
+	>
+>>
+
 export type EntityFieldDefinitionByName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -1050,7 +1194,8 @@ export type EntityReferenceValue<
 > = {
 	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
 	readonly [EntityMetaKey.SelectorKey]?: string
-} & Partial<EntityFieldValues<_Schema, _EntityType>>
+	readonly [EntityMetaKey.Fields]?: EntityFieldValuesByAddress<_Schema, _EntityType>
+}
 
 export type EntityFieldSingleResolvedValueFromDefinition<
 	_Schema extends Schema,
@@ -1148,6 +1293,115 @@ export type EntityFieldValueFromDefinition<
 	:
 		never
 )
+
+export type EntityFieldDefinitionAtPathByName<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[],
+	_FieldName extends EntityFieldNameAtPath<_Schema, _EntityType, _FacetPath>,
+> = Extract<
+	EntityFieldDefinitionAtPath<_Schema, _EntityType, _FacetPath>,
+	{ readonly name: _FieldName }
+>
+
+type EntitySelectionField<
+	_Schema extends Schema,
+	_FieldDefinition extends EntityFieldDefinition,
+> = _FieldDefinition extends {
+	readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+	readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+} ?
+	true | EntitySelection<_Schema, _ReferencedEntityType>
+:
+	true
+
+export type EntitySelectedFields<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[] = readonly [],
+> = {
+	readonly [
+		_FieldName in EntityFieldNameAtPath<_Schema, _EntityType, _FacetPath>
+	]?: EntitySelectionField<
+		_Schema,
+		EntityFieldDefinitionAtPathByName<_Schema, _EntityType, _FacetPath, _FieldName>
+	>
+}
+
+export type EntitySelection<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[] = readonly [],
+> = {
+	readonly fields?: EntitySelectedFields<_Schema, _EntityType, _FacetPath>
+}
+
+type EntitySelectedFieldSingleValue<
+	_Schema extends Schema,
+	_FieldDefinition extends EntityFieldDefinition,
+	_FieldSelection,
+> = _FieldDefinition extends {
+	readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+	readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+} ?
+	_FieldSelection extends EntitySelection<_Schema, _ReferencedEntityType> ?
+		& Pick<
+			EntityReferenceValue<_Schema, _ReferencedEntityType>,
+			EntityMetaKey.Selector | EntityMetaKey.SelectorKey
+		>
+		& EntitySelectedValue<
+			_Schema,
+			_ReferencedEntityType,
+			readonly [],
+			_FieldSelection
+		>
+	:
+		EntityReferenceValue<_Schema, _ReferencedEntityType>
+:
+	EntityFieldSingleResolvedValueFromDefinition<_Schema, _FieldDefinition>
+
+type EntitySelectedFieldValue<
+	_Schema extends Schema,
+	_FieldDefinition extends EntityFieldDefinition,
+	_FieldSelection,
+> = _FieldDefinition extends {
+	readonly cardinality: EntityFieldCardinality.Zero
+} ?
+	undefined
+: _FieldDefinition extends {
+	readonly cardinality: EntityFieldCardinality.ZeroOrOne
+} ?
+	EntitySelectedFieldSingleValue<_Schema, _FieldDefinition, _FieldSelection> | undefined
+: _FieldDefinition extends {
+	readonly cardinality: EntityFieldCardinality.Many
+} ?
+	EntitySelectedFieldSingleValue<_Schema, _FieldDefinition, _FieldSelection>[]
+: _FieldDefinition extends {
+	readonly cardinality: EntityFieldCardinality.ZeroOrMany
+} ?
+	EntitySelectedFieldSingleValue<_Schema, _FieldDefinition, _FieldSelection>[] | undefined
+:
+	EntitySelectedFieldSingleValue<_Schema, _FieldDefinition, _FieldSelection>
+
+export type EntitySelectedValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends readonly string[],
+	_Selection extends EntitySelection<_Schema, _EntityType, _FacetPath>,
+> = _Selection extends {
+	readonly fields: infer _Fields extends EntitySelectedFields<_Schema, _EntityType, _FacetPath>
+} ? {
+		readonly [
+			_FieldName in keyof _Fields & EntityFieldNameAtPath<_Schema, _EntityType, _FacetPath>
+		]: EntitySelectedFieldValue<
+			_Schema,
+			EntityFieldDefinitionAtPathByName<_Schema, _EntityType, _FacetPath, _FieldName>,
+			_Fields[_FieldName]
+		>
+} : Partial<EntityFieldValuesFromDefinitions<
+	_Schema,
+	EntityFieldDefinitionAtPath<_Schema, _EntityType, _FacetPath>
+>>
 
 type EntityZeroCapableFieldCardinality = (
 	| EntityFieldCardinality.Zero

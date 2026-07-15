@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Coin observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Coin_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Coin_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -115,11 +115,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: coinTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Coin_Timestamp> })}
+				{#snippet Item({ item: coinTimestamp })}
 					{@const coinTimestampFields = { ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }}
+					{@const selection = select(EntityType.Coin_Timestamp, coinTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const coinTimestampHrefFields = { ...coinTimestamp, ...coinTimestamp[EntityMetaKey.Selector] }}
 					<Coin_TimestampView
-						selection={select(EntityType.Coin_Timestamp, coinTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={coinTimestampFields}
 						href={
 							(coinTimestampHrefFields.timestampMs !== undefined && coinTimestampHrefFields.source !== undefined && coinTimestampHrefFields.$coin !== undefined && coinTimestampHrefFields.$coin.coinId !== undefined ? resolve('/coin/[coinId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {

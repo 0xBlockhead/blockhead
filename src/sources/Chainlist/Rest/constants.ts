@@ -3,3 +3,10 @@
  * @see https://chainlist.org/rpcs.json
  */
 export const origin = 'https://chainlist.org'
+
+export const chainlistOrigins = [
+	{
+		origin,
+		corsEnabled: true,
+	},
+] as const

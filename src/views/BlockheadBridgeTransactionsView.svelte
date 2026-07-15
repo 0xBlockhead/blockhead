@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Transactions',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadBridgeTransaction>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadBridgeTransaction>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,11 +112,21 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: blockheadBridgeTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadBridgeTransaction> })}
+				{#snippet Item({ item: blockheadBridgeTransaction })}
 					{@const blockheadBridgeTransactionFields = { ...blockheadBridgeTransaction[EntityMetaKey.Selector], ...blockheadBridgeTransaction }}
+					{@const selection = select(EntityType.BlockheadBridgeTransaction, blockheadBridgeTransaction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const blockheadBridgeTransactionHrefFields = { ...blockheadBridgeTransaction, ...blockheadBridgeTransaction[EntityMetaKey.Selector] }}
 					<BlockheadBridgeTransactionView
-						selection={select(EntityType.BlockheadBridgeTransaction, blockheadBridgeTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={blockheadBridgeTransactionFields}
+						href={
+							(blockheadBridgeTransactionHrefFields.createdAt !== undefined && blockheadBridgeTransactionHrefFields.$account !== undefined && blockheadBridgeTransactionHrefFields.$account.address !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx.$network !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx.$network.caip2 !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx.$network.caip2.reference !== undefined && blockheadBridgeTransactionHrefFields.$sourceTx.txHash !== undefined ? resolve('/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', {
+								createdAt: String(blockheadBridgeTransactionHrefFields.createdAt ?? ''),
+								address: String(blockheadBridgeTransactionHrefFields.$account.address ?? ''),
+								chainId: String(blockheadBridgeTransactionHrefFields.$sourceTx.$network.caip2.reference ?? ''),
+								sourceTxHash: String(blockheadBridgeTransactionHrefFields.$sourceTx.txHash ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

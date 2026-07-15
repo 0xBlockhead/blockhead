@@ -5,9 +5,9 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import {
+	beaconOrigins,
 	beaconRestEndpointByExecutionChainId,
-	beaconBindings,
-} from '$/sources/Beacon/bindings.ts'
+} from '$/sources/Beacon/Rest/constants.ts'
 import type {
 	BeaconFinalityCheckpoints,
 	BeaconForkScheduleEntry,
@@ -21,25 +21,6 @@ import type {
 	BeaconValidatorSummary,
 } from '$/sources/Beacon/Rest/types.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
-
-export const beaconOrigins = [
-	...new Map(
-		beaconBindings
-			.flatMap((binding) => binding.endpoints)
-			.flatMap((endpoint) => (
-				endpoint.origin == null ?
-					[]
-				:
-					[[
-						endpoint.origin,
-						{
-							origin: endpoint.origin,
-							corsEnabled: endpoint.corsEnabled === true,
-						},
-					]]
-			))
-	).values(),
-]
 
 export const beaconRestBaseUrlForChain = (chainId: number) =>
 	beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl

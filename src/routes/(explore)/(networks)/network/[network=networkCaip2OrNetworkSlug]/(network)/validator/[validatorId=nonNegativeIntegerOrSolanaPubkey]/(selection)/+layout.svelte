@@ -37,7 +37,7 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.BeaconValidator ? BeaconValidatorView : SolanaValidatorView}
+			{@const DetailView = data.selectorMapping.entityType === EntityType.BeaconValidator && data.selectorMapping.selectorName === 'NetworkIndexInNetwork' ? BeaconValidatorView : SolanaValidatorView}
 
 			<DetailView
 				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}

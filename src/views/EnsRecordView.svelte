@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EnsRecord>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EnsRecord>>
+			selection: RegisteredEntityProxyResource<EntityType.EnsRecord>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EnsRecord>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -56,6 +55,7 @@
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EnsRecord_TimestampsView from '$/views/EnsRecord_TimestampsView.svelte'
 	import EnsNameView from '$/views/EnsNameView.svelte'
 </script>
 
@@ -65,7 +65,12 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.recordKey !== undefined && pendingEntity.$name !== undefined && pendingEntity.$name.name !== undefined ? resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
+			recordId: String(pendingEntity.recordKey ?? ''),
+			ensName: String(pendingEntity.$name.name ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -233,5 +238,20 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<EnsRecord_TimestampsView
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
+				title='Observations'
+				emptyText='No ENS record observations yet.'
+				id='EnsRecord_TimestampsView-timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

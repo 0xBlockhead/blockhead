@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -14,26 +13,12 @@
 
 	// State
 	let {
+		data,
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.NostrRelay, {
-		relayUrl: params.relayKey,
-	}, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			name: true,
-			description: true,
-			software: true,
-			version: true,
-			supportedNipCount: true,
-			isPaid: true,
-			limit: true,
-		},
-	}))
-	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || [String((pageSelection.entitySelector.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay'))
+	const pageSelection = $derived(select(EntityType.NostrRelay, data.selector))
+	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay')))
 
 
 	// Components

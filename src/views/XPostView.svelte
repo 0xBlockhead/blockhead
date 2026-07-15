@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.XPost>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.XPost>>
+			selection: RegisteredEntityProxyResource<EntityType.XPost>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XPost>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -50,11 +50,7 @@
 		fields: {
 			text: true,
 			createdAt: true,
-			$author: true,
 			postUrl: true,
-			$replyToPost: true,
-			$quotedPost: true,
-			$$media: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.text) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'X post')
@@ -65,6 +61,8 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import MediaListView from '$/views/MediaListView.svelte'
+	import XPost_TimestampsView from '$/views/XPost_TimestampsView.svelte'
 	import XUserView from '$/views/XUserView.svelte'
 	import XPostView from '$/views/XPostView.svelte'
 </script>
@@ -75,7 +73,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
+			postId: String(pendingEntity.id ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -150,6 +152,11 @@
 								<XUserView
 									selection={select(EntityType.XUser, xUser[EntityMetaKey.Selector])}
 									prefetched={xUser}
+									href={
+										(xUser[EntityMetaKey.Selector].id !== undefined ? resolve('/x/user/[userId=stringSegment]', {
+											userId: String(xUser[EntityMetaKey.Selector].id ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -262,6 +269,11 @@
 								<XPostView
 									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
 									prefetched={xPost}
+									href={
+										(xPost[EntityMetaKey.Selector].id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
+											postId: String(xPost[EntityMetaKey.Selector].id ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -286,6 +298,11 @@
 								<XPostView
 									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
 									prefetched={xPost}
+									href={
+										(xPost[EntityMetaKey.Selector].id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
+											postId: String(xPost[EntityMetaKey.Selector].id ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -313,5 +330,31 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<MediaListView
+				selection={
+						selection.$$media({
+							count: true,
+						})
+					}
+				title='Media'
+				emptyText='No media here yet.'
+				id='MediaListView-media'
+			/>
+
+			<XPost_TimestampsView
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
+				title='Observations'
+				emptyText='No X post observations yet.'
+				id='XPost_TimestampsView-timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

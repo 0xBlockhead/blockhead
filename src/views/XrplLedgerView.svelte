@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.XrplLedger>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.XrplLedger>>
+			selection: RegisteredEntityProxyResource<EntityType.XrplLedger>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XrplLedger>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -89,75 +88,65 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							ledgerIndex: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const ledgerIndex = pendingEntity.ledgerIndex}
-					{#if ledgerIndex !== undefined && ledgerIndex !== null}
-						<div>
-							<dt>ledger index</dt>
-							<dd>
+			<div>
+				<dt>ledger index</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									ledgerIndex: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const ledgerIndex = pendingEntity.ledgerIndex}
+							{#if ledgerIndex !== undefined && ledgerIndex !== null}
 								{String((ledgerIndex) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerIndex = resolvedEntity.ledgerIndex}
-					{#if ledgerIndex !== undefined && ledgerIndex !== null}
-						<div>
-							<dt>ledger index</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const ledgerIndex = resolvedEntity.ledgerIndex}
+							{#if ledgerIndex !== undefined && ledgerIndex !== null}
 								{String((ledgerIndex) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							ledgerHash: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const ledgerHash = pendingEntity.ledgerHash}
-					{#if ledgerHash !== undefined && ledgerHash !== null}
-						<div>
-							<dt>ledger hash</dt>
-							<dd>
+			<div>
+				<dt>ledger hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									ledgerHash: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const ledgerHash = pendingEntity.ledgerHash}
+							{#if ledgerHash !== undefined && ledgerHash !== null}
 								<TruncatedValue value={String((ledgerHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerHash = resolvedEntity.ledgerHash}
-					{#if ledgerHash !== undefined && ledgerHash !== null}
-						<div>
-							<dt>ledger hash</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const ledgerHash = resolvedEntity.ledgerHash}
+							{#if ledgerHash !== undefined && ledgerHash !== null}
 								<TruncatedValue value={String((ledgerHash) ?? '')} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={

@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BlockheadSocialPostSession>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BlockheadSocialPostSession>>
+			selection: RegisteredEntityProxyResource<EntityType.BlockheadSocialPostSession>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadSocialPostSession>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -302,6 +302,11 @@
 								<BlockheadWalletConnectionView
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
+									href={
+										(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey !== undefined ? resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
+											connectionKey: String(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -324,6 +329,11 @@
 								<BlockheadAgentConversationView
 									selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConversation}
+									href={
+										(blockheadAgentConversation[EntityMetaKey.Selector].id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]', {
+											conversationId: String(blockheadAgentConversation[EntityMetaKey.Selector].id ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

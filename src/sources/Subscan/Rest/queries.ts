@@ -1,6 +1,5 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { subscanBindings } from '$/sources/Subscan/bindings.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	SubscanBlock,
@@ -11,25 +10,18 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export const subscanPolkadotRestEndpoints = [
 	{
-		url: subscanBindings[0].endpoints[0].locator,
+		url: 'https://polkadot.api.subscan.io',
 		transportType: TransportType.Http,
 		providerName: 'Subscan',
 	},
 ] as const
 
 export const subscanOrigins = [
-	...new Map(
-		subscanBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+	{
+		origin: 'https://polkadot.api.subscan.io',
+		corsEnabled: false,
+	},
+] as const
 
 const post = async <_Result>({
 	restBaseUrl,

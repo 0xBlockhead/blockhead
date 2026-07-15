@@ -1,4 +1,5 @@
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { type MediaType } from '$/schema/Media.ts'
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
 
@@ -12,8 +13,10 @@ export const mediaFromUrl = <_MediaType extends MediaType>(
 		:
 			{
 				[EntityMetaKey.Selector]: { url: resolved.url },
-				type,
-				transport: resolved.transport,
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Media, [], 'type')]: type,
+					[entityFieldAddressKey(EntityType.Media, [], 'transport')]: resolved.transport,
+				},
 			}
 	))(resolveMediaUrlTransport(url))
 )

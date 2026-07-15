@@ -1,52 +1,18 @@
-import { Source } from '$/sources/Source.ts'
-import { getText } from '$/lib/http.ts'
 import {
-	ApiFamily,
-	SourceTargetKind,
-} from '$/sources/SourceBinding.ts'
-import {
-	getGithubContents,
-	getGithubRawText,
 	githubContentsUrl,
 	githubRawUrl,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
-import { ethereumEipsBindings } from '$/sources/EthereumEips/bindings.ts'
-
+import type { GithubContentsEntry } from '$/sources/_shared/hosts/Github/Http/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { sourceGetJson, sourceGetText } from '$/sources/_runtime/http.ts'
 import {
 	ethereumEipSpecGithubRepoByLedger,
 	ethereumEipSpecMarkdownPrefixByLedger,
-} from './constants.ts'
-import type { EthereumEipSpecLedger } from './types.ts'
-
-const ethereumEipsBindingByTargetKey = Object.fromEntries(
-	ethereumEipsBindings
-		.filter((binding) => (
-			binding.source === Source.EthereumEips_Github
-			&& binding.apiFamily === ApiFamily.GithubContentsApi
-			&& binding.target.kind === SourceTargetKind.GitRepository
-		))
-		.map((binding) => [
-			binding.target.key,
-			binding,
-		])
-)
+} from '$/sources/EthereumEips/Github/constants.ts'
+import type { EthereumEipSpecLedger } from '$/sources/EthereumEips/Github/types.ts'
 
 const githubTargetForLedger = (ledger: EthereumEipSpecLedger) => (
 	ethereumEipSpecGithubRepoByLedger[ledger]
-)
-
-const bindingForLedger = (ledger: EthereumEipSpecLedger) => {
-	const target = githubTargetForLedger(ledger)
-	return ethereumEipsBindingByTargetKey[`${target.owner}/${target.repo}@${target.ref}:${target.path}`]
-}
-
-const originsForLedger = (ledger: EthereumEipSpecLedger) => (
-	bindingForLedger(ledger).endpoints.flatMap((endpoint) => (
-		[{
-			origin: endpoint.origin,
-			corsEnabled: endpoint.corsEnabled,
-		}]
-	))
 )
 
 export const getContentsUrl = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
@@ -88,49 +54,45 @@ export const getProposalMarkdownUrl = ({
 	})
 }
 
-export const getContents = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
-	getGithubContents({
-		endpoints: bindingForLedger(ledger).endpoints,
-		target: githubTargetForLedger(ledger),
-	})
+export const getContents = ({
+	binding,
+	ledger,
+}: {
+	binding: SourceBinding
+	ledger: EthereumEipSpecLedger
+}) => (
+	sourceGetJson<GithubContentsEntry[]>(binding, getContentsUrl({ ledger }))
 )
 
 export const getRawMarkdownText = ({
 	ledger,
 	fileName,
 	downloadUrl,
+	binding,
 }: {
 	ledger: EthereumEipSpecLedger
 	fileName: string
 	downloadUrl: string | null | undefined
+	binding: SourceBinding
 }) => (
-	downloadUrl == null ?
-		getGithubRawText({
-			endpoints: bindingForLedger(ledger).endpoints,
-			target: {
-				...githubTargetForLedger(ledger),
-				path: `${githubTargetForLedger(ledger).path}/${fileName}`,
-			},
-		})
-	:
-		getText(downloadUrl, {
-			origins: originsForLedger(ledger),
-		})
+	sourceGetText(binding, getRawMarkdownUrl({
+		ledger,
+		fileName,
+		downloadUrl,
+	}))
 )
 
 export const getProposalMarkdownText = ({
 	ledger,
 	number,
+	binding,
 }: {
 	ledger: EthereumEipSpecLedger
 	number: number
+	binding: SourceBinding
 }) => {
-	const target = githubTargetForLedger(ledger)
-	return getGithubRawText({
-		endpoints: bindingForLedger(ledger).endpoints,
-		target: {
-			...target,
-			path: `${target.path}/${ethereumEipSpecMarkdownPrefixByLedger[ledger]}-${number}.md`,
-		},
-	})
+	return sourceGetText(binding, getProposalMarkdownUrl({
+		ledger,
+		number,
+	}))
 }

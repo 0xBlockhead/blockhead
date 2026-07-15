@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +26,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmNetworkActorCoinBalance_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmNetworkActorCoinBalance_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmNetworkActorCoinBalance_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmNetworkActorCoinBalance_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -327,6 +327,13 @@
 				<dd>
 					<EvmNetworkActorCoinBalanceView
 						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin, {})}
+						href={
+							(selection.entitySelector.$actorCoin.$actor !== undefined && selection.entitySelector.$actorCoin.$actor.address !== undefined && selection.entitySelector.$actorCoin.$contract !== undefined && selection.entitySelector.$actorCoin.$contract.$network !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2 !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$actorCoin.$contract.address !== undefined ? resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
+								owner: String(selection.entitySelector.$actorCoin.$actor.address ?? ''),
+								chainId: String(selection.entitySelector.$actorCoin.$contract.$network.caip2.reference ?? ''),
+								coin: String(selection.entitySelector.$actorCoin.$contract.address ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

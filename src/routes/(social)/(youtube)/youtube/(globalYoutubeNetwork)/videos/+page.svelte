@@ -32,7 +32,6 @@
 			}).$$observedVideos({
 				sources: [
 					Source.Constants_Internal,
-					Source.Youtube_Rest,
 				],
 				count: true,
 			})

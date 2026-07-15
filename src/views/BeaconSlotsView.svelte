@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Slots',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BeaconSlot>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconSlot>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: beaconSlot }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconSlot> })}
+				{#snippet Item({ item: beaconSlot })}
 					{@const beaconSlotFields = { ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }}
+					{@const selection = select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const beaconSlotHrefFields = { ...beaconSlot, ...beaconSlot[EntityMetaKey.Selector] }}
 					<BeaconSlotView
-						selection={select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={beaconSlotFields}
 						href={
-							(beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.slug !== undefined && beaconSlotHrefFields.slot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-								network: String(beaconSlotHrefFields.$network.slug ?? ''),
+							(beaconSlotHrefFields.slot !== undefined && beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
 								slot: String(beaconSlotHrefFields.slot ?? ''),
+								network: String(caip2StringFromValue(beaconSlotHrefFields.$network.caip2) ?? ''),
+							}) : beaconSlotHrefFields.slot !== undefined && beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
+								slot: String(beaconSlotHrefFields.slot ?? ''),
+								network: String(beaconSlotHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

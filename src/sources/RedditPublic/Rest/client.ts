@@ -2,9 +2,9 @@ import {
 	getJson,
 	getText,
 } from '$/lib/http.ts'
-import { redditPublicOrigins } from '$/sources/RedditPublic/index.ts'
 import {
 	redditPublicOrigin,
+	redditPublicOrigins,
 	redditUserAgent,
 } from '$/sources/RedditPublic/Rest/constants.ts'
 

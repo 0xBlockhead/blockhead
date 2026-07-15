@@ -1,0 +1,511 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { AptosAccountSelector } from '$/schema/AptosAccount.ts'
+import { AptosAccountResource_TimestampSelector } from '$/schema/AptosAccountResource_Timestamp.ts'
+import { AptosAccount_TimestampSelector } from '$/schema/AptosAccount_Timestamp.ts'
+import { AptosBlockSelector } from '$/schema/AptosBlock.ts'
+import { AptosEventSelector } from '$/schema/AptosEvent.ts'
+import { AptosNetworkSelector } from '$/schema/AptosNetwork.ts'
+import { AptosNetwork_TimestampSelector } from '$/schema/AptosNetwork_Timestamp.ts'
+import { AptosStateChangeSelector } from '$/schema/AptosStateChange.ts'
+import { AptosTransactionSelector } from '$/schema/AptosTransaction.ts'
+import { AptosTransaction_TimestampSelector } from '$/schema/AptosTransaction_Timestamp.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+
+const sourceFetch = vi.fn()
+
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	firstHttpUrlForBinding: () => 'https://fullnode.test/v1/',
+	sourceFetch,
+}))
+
+const queries = await import('$/sources/AptosFullnode/Rest/queries.ts')
+const { default: aptosFullnodeResolvers } = await import('$/resolvers/AptosFullnode-Rest.ts')
+
+const resolverFor = (entityType: EntityType) => {
+	const resolver = aptosFullnodeResolvers.resolvers.find((candidate) => candidate.entityType === entityType)
+	if (resolver == null)
+		throw new Error(`AptosFullnode-Rest spec missing ${entityType} resolver`)
+
+	return resolver
+}
+
+const canonicalNetwork = {
+	slug: 'ethereum',
+} as const
+
+const aptosNetwork = {
+	$network: canonicalNetwork,
+}
+
+const aptosAccount = {
+	$network: aptosNetwork,
+	address: '0xa11ce',
+}
+
+const aptosTransaction = {
+	$network: aptosNetwork,
+	version: 42n,
+}
+
+const ledgerInfo = {
+	chain_id: 1,
+	epoch: '7',
+	ledger_version: '42',
+	oldest_ledger_version: '1',
+	ledger_timestamp: '1720000000123456',
+	node_role: 'full_node',
+	oldest_block_height: '1',
+	block_height: '9',
+}
+
+const metadata = {
+	chainId: '1',
+	ledgerVersion: '42',
+	oldestLedgerVersion: '1',
+	ledgerTimestampUsec: '1720000000123456',
+	epoch: '7',
+	blockHeight: '9',
+	oldestBlockHeight: '1',
+}
+
+const response = <_Body>(body: _Body) => ({
+	body,
+	metadata,
+})
+
+const transaction = {
+	type: 'user_transaction',
+	version: '42',
+	hash: '0x42',
+	state_change_hash: '0xstatechange',
+	event_root_hash: '0xeventroot',
+	sender: '0xa11ce',
+	sequence_number: '8',
+	max_gas_amount: '1000',
+	expiration_timestamp_secs: '1720001000',
+	payload: {
+		type: 'module_bundle_payload',
+	},
+	timestamp: '1720000000123456',
+	gas_unit_price: '100',
+	gas_used: '21',
+	success: true,
+	vm_status: 'Executed successfully',
+	accumulator_root_hash: '0xacc',
+	events: [{
+		guid: {
+			creation_number: '3',
+			account_address: '0xa11ce',
+		},
+		sequence_number: '4',
+		type: '0x1::coin::DepositEvent',
+		data: {
+			amount: '5',
+		},
+	}],
+	changes: [{
+		type: 'write_resource',
+		state_key_hash: '0xstate',
+		address: '0xa11ce',
+		data: {
+			type: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
+			data: {
+				coin: {
+					value: '5',
+				},
+			},
+		},
+	}, {
+		type: 'delete_resource',
+		state_key_hash: '0xdeleted-resource-state',
+		address: '0xa11ce',
+		resource: '0x1::resource::Deleted',
+	}, {
+		type: 'write_module',
+		state_key_hash: '0xmodule-state',
+		address: '0xa11ce',
+		data: {
+			bytecode: '0xmodule',
+			abi: {
+				address: '0xa11ce',
+				name: 'payments',
+				friends: [],
+				exposed_functions: [],
+				structs: [],
+			},
+		},
+	}, {
+		type: 'delete_module',
+		state_key_hash: '0xdeleted-module-state',
+		address: '0xa11ce',
+		module: '0xa11ce::legacy',
+	}, {
+		type: 'write_table_item',
+		state_key_hash: '0xtable-state',
+		handle: '0xhandle',
+		key: '0xkey',
+		value: '0xvalue',
+		data: {
+			key: 'alice',
+			key_type: 'address',
+			value: '7',
+			value_type: 'u64',
+		},
+	}, {
+		type: 'delete_table_item',
+		state_key_hash: '0xdeleted-table-state',
+		handle: '0xhandle',
+		key: '0xkey',
+		data: {
+			key: 'alice',
+			key_type: 'address',
+		},
+	}],
+}
+
+const block = {
+	block_height: '9',
+	block_hash: '0xblock',
+	block_timestamp: '1720000000123456',
+	first_version: '40',
+	last_version: '44',
+	transactions: [transaction],
+}
+
+const resolverContext = {
+	filters: [],
+	sorts: [],
+	pagination: {},
+	selectorKeys: [],
+	parentSelectorKeys: [],
+	sources: [],
+	publicEnv: {},
+}
+
+describe('Aptos Fullnode typed operations', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks()
+		sourceFetch.mockReset()
+		sourceFetch.mockImplementation(async () => new Response('{}', {
+			status: 200,
+			headers: {
+				'x-aptos-chain-id': metadata.chainId,
+				'x-aptos-ledger-version': metadata.ledgerVersion,
+				'x-aptos-ledger-oldest-version': metadata.oldestLedgerVersion,
+				'x-aptos-ledger-timestampusec': metadata.ledgerTimestampUsec,
+				'x-aptos-epoch': metadata.epoch,
+				'x-aptos-block-height': metadata.blockHeight,
+				'x-aptos-oldest-block-height': metadata.oldestBlockHeight,
+			},
+		}))
+	})
+
+	it('addresses every core REST operation without a generic query surface', async () => {
+		const binding = sourceProviderDefinitions
+			.flatMap((provider) => provider.bindings)
+			.find((candidate) => candidate.source === Source.AptosFullnode_Rest)
+		if (binding == null)
+			throw new Error('Aptos Fullnode source binding is missing')
+
+		const ledgerResponse = await queries.getLedgerInfo(binding)
+		await queries.getAccount(binding, '0xa/b', 42n)
+		await queries.getAccountResources(binding, '0xa/b', 42n)
+		await queries.getAccountModules(binding, '0xa/b', 42n)
+		await queries.getBlockByHeight(binding, 9n)
+		await queries.getBlockByVersion(binding, 42n, false)
+		await queries.getEventsByEventHandle(binding, '0xa/b', '0x1::event::Handle', 'events', 2n, 10)
+		await queries.getTableItem(binding, '0xtable/handle', {
+			key_type: 'address',
+			value_type: 'u64',
+			key: '0xa11ce',
+		}, 42n)
+		await queries.getTransactionByHash(binding, '0xhash/value')
+		await queries.getTransactionByVersion(binding, 42n)
+
+		expect(sourceFetch.mock.calls.map((call) => call[1])).toEqual([
+			'https://fullnode.test/v1/',
+			'https://fullnode.test/v1/accounts/0xa%2Fb?ledger_version=42',
+			'https://fullnode.test/v1/accounts/0xa%2Fb/resources?ledger_version=42',
+			'https://fullnode.test/v1/accounts/0xa%2Fb/modules?ledger_version=42',
+			'https://fullnode.test/v1/blocks/by_height/9?with_transactions=true',
+			'https://fullnode.test/v1/blocks/by_version/42?with_transactions=false',
+			'https://fullnode.test/v1/accounts/0xa%2Fb/events/0x1%3A%3Aevent%3A%3AHandle/events?start=2&limit=10',
+			'https://fullnode.test/v1/tables/0xtable%2Fhandle/item?ledger_version=42',
+			'https://fullnode.test/v1/transactions/by_hash/0xhash%2Fvalue',
+			'https://fullnode.test/v1/transactions/by_version/42',
+		])
+		expect(ledgerResponse).toEqual({
+			body: {},
+			metadata,
+		})
+		expect(sourceFetch.mock.calls[7][2]).toEqual({
+			method: 'POST',
+			headers: {
+				'content-type': 'application/json',
+			},
+			body: JSON.stringify({
+				key_type: 'address',
+				value_type: 'u64',
+				key: '0xa11ce',
+			}),
+		})
+	})
+})
+
+describe('Aptos Fullnode resolver materialization', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks()
+	})
+
+	it('keys network observations by the source ledger version and maps only source time', async () => {
+		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
+		const networkResolver = resolverFor(EntityType.AptosNetwork)
+		const observations = await networkResolver.resolve[AptosNetworkSelector.Network](aptosNetwork, resolverContext)
+		expect(observations).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: aptosNetwork,
+				ledgerVersion: 42n,
+				source: Source.AptosFullnode_Rest,
+			},
+		}])
+
+		const observationResolver = resolverFor(EntityType.AptosNetwork_Timestamp)
+		await expect(observationResolver.resolve[AptosNetwork_TimestampSelector.NetworkLedgerVersionSource](
+			observations[0][EntityMetaKey.Selector],
+			resolverContext
+		)).resolves.toMatchObject({
+			ledgerVersion: 42n,
+			timestampMs: 1_720_000_000_123,
+			blockHeight: 9n,
+			chainId: 1,
+			epoch: 7n,
+		})
+	})
+
+	it('materializes account observations, resources, and modules with exact parents', async () => {
+		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
+		vi.spyOn(queries, 'getAccount').mockResolvedValue(response({
+			sequence_number: '8',
+			authentication_key: '0xauth',
+		}))
+		vi.spyOn(queries, 'getAccountResources').mockResolvedValue(response([{
+			type: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
+			data: {
+				coin: {
+					value: '5',
+				},
+			},
+		}]))
+		vi.spyOn(queries, 'getAccountModules').mockResolvedValue(response([{
+			bytecode: '0xa11ce',
+			abi: {
+				address: '0xa11ce',
+				name: 'payments',
+				friends: [],
+				exposed_functions: [],
+				structs: [],
+			},
+		}]))
+
+		const accountResolvers = aptosFullnodeResolvers.resolvers.filter((candidate) => candidate.entityType === EntityType.AptosAccount)
+		expect(accountResolvers).toHaveLength(3)
+		const accountSnapshots = await Promise.all(accountResolvers.map((resolver) => resolver.resolve[AptosAccountSelector.NetworkAddress](aptosAccount, resolverContext)))
+		expect(accountSnapshots).toContainEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: aptosAccount,
+				ledgerVersion: 42n,
+				source: Source.AptosFullnode_Rest,
+			},
+		}])
+		expect(accountSnapshots).toContainEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: aptosAccount,
+				resourceType: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
+			},
+		}])
+		expect(accountSnapshots).toContainEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: canonicalNetwork,
+				address: '0xa11ce',
+				moduleName: 'payments',
+			},
+		}])
+
+		await expect(resolverFor(EntityType.AptosAccount_Timestamp).resolve[
+			AptosAccount_TimestampSelector.AccountLedgerVersionSource
+		]({
+			$account: aptosAccount,
+			ledgerVersion: 42n,
+			source: Source.AptosFullnode_Rest,
+		}, resolverContext)).resolves.toEqual({
+			sequenceNumber: 8n,
+			authenticationKey: '0xauth',
+			timestampMs: 1_720_000_000_123,
+			blockHeight: 9n,
+			epoch: 7n,
+		})
+	})
+
+	it('converges block and transaction selector paths and materializes event and change children', async () => {
+		vi.spyOn(queries, 'getBlockByHeight').mockResolvedValue(response(block))
+		vi.spyOn(queries, 'getBlockByVersion').mockResolvedValue(response(block))
+		vi.spyOn(queries, 'getTransactionByHash').mockResolvedValue(response(transaction))
+		vi.spyOn(queries, 'getTransactionByVersion').mockResolvedValue(response(transaction))
+
+		const blockResolver = resolverFor(EntityType.AptosBlock)
+		const heightBlock = await blockResolver.resolve[AptosBlockSelector.NetworkHeight]({
+			$network: aptosNetwork,
+			height: 9n,
+		}, resolverContext)
+		const versionBlock = await blockResolver.resolve[AptosBlockSelector.NetworkVersion]({
+			$network: aptosNetwork,
+			version: 42n,
+		}, resolverContext)
+		expect(heightBlock).toEqual({
+			height: 9n,
+			firstVersion: 40n,
+			lastVersion: 44n,
+			timestampMs: 1_720_000_000_123,
+			transactions: [{
+				[EntityMetaKey.Selector]: aptosTransaction,
+			}],
+		})
+		expect(versionBlock).toEqual(heightBlock)
+
+		const transactionResolver = resolverFor(EntityType.AptosTransaction)
+		const byVersion = await transactionResolver.resolve[AptosTransactionSelector.NetworkVersion](aptosTransaction, resolverContext)
+		const byHash = await transactionResolver.resolve[AptosTransactionSelector.NetworkHash]({
+			$network: aptosNetwork,
+			hash: '0x42',
+		}, resolverContext)
+		expect(byVersion).toEqual(byHash)
+		expect(byVersion.stateChanges[0][EntityMetaKey.Selector]).toEqual({
+			$transaction: aptosTransaction,
+			changeIndex: 0,
+		})
+		expect(byVersion.events[0][EntityMetaKey.Selector]).toEqual({
+			$network: aptosNetwork,
+			transactionVersion: 42n,
+			eventIndex: 0,
+		})
+
+		await expect(resolverFor(EntityType.AptosEvent).resolve[
+			AptosEventSelector.NetworkTransactionVersionEventIndex
+		]({
+			$network: aptosNetwork,
+			transactionVersion: 42n,
+			eventIndex: 0,
+		}, resolverContext)).resolves.toMatchObject({
+			eventType: '0x1::coin::DepositEvent',
+			creationNumber: 3n,
+			sequenceNumber: 4n,
+		})
+
+		await expect(resolverFor(EntityType.AptosStateChange).resolve[
+			AptosStateChangeSelector.TransactionChangeIndex
+		]({
+			$transaction: aptosTransaction,
+			changeIndex: 0,
+		}, resolverContext)).resolves.toMatchObject({
+			changeKind: 'write_resource',
+			address: '0xa11ce',
+			resourceType: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
+		})
+		await expect(Promise.all([1, 2, 3, 4, 5].map((changeIndex) => resolverFor(EntityType.AptosStateChange).resolve[
+			AptosStateChangeSelector.TransactionChangeIndex
+		]({
+			$transaction: aptosTransaction,
+			changeIndex,
+		}, resolverContext)))).resolves.toMatchObject([
+			{
+				changeKind: 'delete_resource',
+				resourceType: '0x1::resource::Deleted',
+			},
+			{
+				changeKind: 'write_module',
+				moduleAddress: '0xa11ce',
+				moduleName: 'payments',
+			},
+			{
+				changeKind: 'delete_module',
+				moduleAddress: '0xa11ce',
+				moduleName: 'legacy',
+			},
+			{
+				changeKind: 'write_table_item',
+				stateKeyHash: '0xtable-state',
+			},
+			{
+				changeKind: 'delete_table_item',
+				stateKeyHash: '0xdeleted-table-state',
+			},
+		])
+	})
+
+	it('resolves resource and transaction observations without inventing clocks', async () => {
+		vi.spyOn(queries, 'getAccountResources').mockResolvedValue(response([{
+			type: '0x1::resource::Value',
+			data: {
+				value: '7',
+			},
+		}]))
+		vi.spyOn(queries, 'getTransactionByVersion').mockResolvedValue(response(transaction))
+
+		await expect(resolverFor(EntityType.AptosAccountResource_Timestamp).resolve[
+			AptosAccountResource_TimestampSelector.ResourceLedgerVersionSource
+		]({
+			$resource: {
+				$account: aptosAccount,
+				resourceType: '0x1::resource::Value',
+			},
+			ledgerVersion: 42n,
+			source: Source.AptosFullnode_Rest,
+		}, resolverContext)).resolves.toEqual({
+			value: '7',
+		})
+
+		const transactionObservation = await resolverFor(EntityType.AptosTransaction_Timestamp).resolve[
+			AptosTransaction_TimestampSelector.TransactionLedgerVersionSource
+		]({
+			$transaction: aptosTransaction,
+			ledgerVersion: 42n,
+			source: Source.AptosFullnode_Rest,
+		}, resolverContext)
+		expect(transactionObservation.timestampMs).toBe(1_720_000_000_123)
+	})
+
+	it('rejects malformed wire identities, mismatched clocks, and foreign provenance', async () => {
+		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue({
+			body: ledgerInfo,
+			metadata: {
+				...metadata,
+				ledgerVersion: 'not-a-version',
+			},
+		})
+		await expect(resolverFor(EntityType.AptosNetwork).resolve[AptosNetworkSelector.Network](
+			aptosNetwork,
+			resolverContext
+		)).rejects.toThrow('malformed ledger version')
+
+		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
+		await expect(resolverFor(EntityType.AptosNetwork_Timestamp).resolve[
+			AptosNetwork_TimestampSelector.NetworkLedgerVersionSource
+		]({
+			$network: aptosNetwork,
+			ledgerVersion: 41n,
+			source: Source.AptosFullnode_Rest,
+		}, resolverContext)).rejects.toThrow('ledger version mismatch')
+
+		await expect(resolverFor(EntityType.AptosNetwork_Timestamp).resolve[
+			AptosNetwork_TimestampSelector.NetworkLedgerVersionSource
+		]({
+			$network: aptosNetwork,
+			ledgerVersion: 42n,
+			source: Source.Constants_Internal,
+		}, resolverContext)).rejects.toThrow('observation source mismatch')
+	})
+})

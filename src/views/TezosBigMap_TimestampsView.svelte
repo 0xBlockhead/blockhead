@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Tezos big map observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.TezosBigMap_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.TezosBigMap_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: tezosBigMapTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosBigMap_Timestamp> })}
+				{#snippet Item({ item: tezosBigMapTimestamp })}
 					{@const tezosBigMapTimestampFields = { ...tezosBigMapTimestamp[EntityMetaKey.Selector], ...tezosBigMapTimestamp }}
+					{@const selection = select(EntityType.TezosBigMap_Timestamp, tezosBigMapTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<TezosBigMap_TimestampView
-						selection={select(EntityType.TezosBigMap_Timestamp, tezosBigMapTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={tezosBigMapTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

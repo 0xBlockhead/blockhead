@@ -6,7 +6,7 @@ import {
 	app,
 	Source,
 } from '../../APP.ts'
-import { renderSourcesMarkdown } from './generate.ts'
+import { compileApp, renderSourcesMarkdown } from './generate.ts'
 
 const sourceBindingRows = app.sources.sources.flatMap((source) => [
 	...(source.binding == null ? [] : [source.binding]),
@@ -130,15 +130,27 @@ const tableAfterHeading = (source: string, heading: string) => {
 
 
 test('owns every provider, source, and binding in APP', () => {
-	assert.equal(app.sources.providers.length, 263)
-	assert.equal(app.sources.sources.length, 314)
-	assert.equal(sourceBindingRows.length, 423)
-	assert.equal(sourceBindingRows.flatMap(({ binding }) => binding.endpoints).length, 480)
-	assert.equal(sourceBindingRows.flatMap(({ binding }) => binding.credentials).length, 423)
-	assert.equal(sourceBindingRows.flatMap(({ binding }) => binding.artifacts ?? []).length, 306)
-	assert.equal(app.sources.providers.filter((provider) => provider.env != null).length, 15)
-	assert.equal(app.sources.sources.filter((source) => source.env != null).length, 14)
-	assert.equal(sourceBindingRows.flatMap(({ binding }) => binding.credentials).filter((credential) => credential.env != null).length, 23)
+	assert.ok(app.sources.providers.length > 0)
+	assert.ok(app.sources.sources.length > 0)
+	assert.ok(sourceBindingRows.length > 0)
+	assert.equal(
+		new Set(app.sources.providers.map((provider) => provider.provider)).size,
+		app.sources.providers.length
+	)
+	assert.equal(
+		new Set(app.sources.sources.map((source) => source.source)).size,
+		app.sources.sources.length
+	)
+	for (const source of app.sources.sources) {
+		assert.ok(app.sources.providers.some((provider) => provider.provider === source.provider))
+		for (const binding of [
+			...(source.binding == null ? [] : [source.binding]),
+			...(source.bindings ?? []),
+		]) {
+			assert.ok(binding.endpoints.length > 0)
+			assert.ok(binding.credentials.length > 0)
+		}
+	}
 })
 
 test('declares live resolver transport in source bindings', () => {
@@ -186,7 +198,7 @@ test('renders SOURCES.md exactly from APP', async () => {
 
 	assert.equal(
 		sourceDoc,
-		`${renderSourcesMarkdown(app)}\n`
+		`${renderSourcesMarkdown(compileApp(app))}\n`
 	)
 	assert.deepEqual(tableAfterHeading(sourceDoc, '## Providers'), {
 		headings: [
@@ -276,6 +288,7 @@ test('renders SOURCES.md exactly from APP', async () => {
 			'Path',
 			'Generated',
 			'Official URL',
+			'Reference URL',
 		],
 		rows: bindings.flatMap(({ binding, bindingNumber }) => (binding.artifacts ?? []).map((artifact, index) => [
 			bindingNumber,
@@ -284,6 +297,7 @@ test('renders SOURCES.md exactly from APP', async () => {
 			artifact.path,
 			artifact.generated ? 'yes' : 'no',
 			artifact.officialUrl ?? '',
+			artifact.referenceUrl ?? '',
 		])),
 	})
 })

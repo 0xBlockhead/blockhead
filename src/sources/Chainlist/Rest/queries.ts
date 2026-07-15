@@ -4,8 +4,10 @@
  */
 
 import { getJson } from '$/lib/http.ts'
-import { chainlistOrigins } from '$/sources/Chainlist/index.ts'
-import { origin } from '$/sources/Chainlist/Rest/constants.ts'
+import {
+	chainlistOrigins,
+	origin,
+} from '$/sources/Chainlist/Rest/constants.ts'
 import type { ChainlistRpcsJsonChain } from '$/sources/Chainlist/Rest/types.ts'
 
 export const fetchRpcsJson = async (): Promise<ChainlistRpcsJsonChain[]> => {

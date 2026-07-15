@@ -23,6 +23,7 @@ export enum NetworkNamespace {
 	Quilibrium = 'Quilibrium',
 	Solana = 'Solana',
 	Tron = 'Tron',
+	Tezos = 'Tezos',
 	Zcash = 'Zcash',
 	ZeroG = 'ZeroG',
 }
@@ -220,6 +221,17 @@ const networkNamespaces = [
 			ConsensusMechanismId.TronDpos,
 		],
 		nativeAssetCoinId: CoinId.TRX,
+	},
+	{
+		namespace: NetworkNamespace.Tezos,
+		networkStackId: NetworkStackId.Tezos,
+		executionEnvironmentIds: [
+		ExecutionEnvironmentId.Michelson,
+	],
+		consensusMechanismIds: [
+			ConsensusMechanismId.TezosLiquidProofOfStake,
+		],
+		nativeAssetCoinId: CoinId.XTZ,
 	},
 	{
 		namespace: NetworkNamespace.Zcash,

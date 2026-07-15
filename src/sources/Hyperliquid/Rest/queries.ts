@@ -1,6 +1,5 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { hyperliquidBindings } from '$/sources/Hyperliquid/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	HyperliquidClearinghouseState,
@@ -10,39 +9,23 @@ import type {
 	HyperliquidValidatorSummary,
 } from '$/sources/Hyperliquid/Rest/types.ts'
 
-export const hyperliquidOrigins = [
-	...new Map(
-		hyperliquidBindings
-			.flatMap((binding) => binding.endpoints)
-			.flatMap((endpoint) => (
-				endpoint.origin == null ?
-					[]
-				:
-					[[
-						endpoint.origin,
-						{
-							origin: endpoint.origin,
-							corsEnabled: endpoint.corsEnabled === true,
-						},
-					]]
-			))
-	).values(),
-]
+const hyperliquidRestOrigin = 'https://api.hyperliquid.xyz' as const
 
-export const hyperliquidMainnetRestEndpoints = hyperliquidBindings
-	.slice(0, 1)
-	.flatMap((binding) => binding.endpoints)
-	.flatMap((endpoint) => (
-		endpoint.origin == null ?
-			[]
-		:
-			[{
-				restBaseUrl: endpoint.origin,
-				url: endpoint.locator,
-				transportType: TransportType.Http,
-				providerName: 'Hyperliquid info API',
-			}]
-	))
+export const hyperliquidOrigins = [
+	{
+		origin: hyperliquidRestOrigin,
+		corsEnabled: true,
+	},
+] as const
+
+export const hyperliquidMainnetRestEndpoints = [
+	{
+		restBaseUrl: hyperliquidRestOrigin,
+		url: `${hyperliquidRestOrigin}/info`,
+		transportType: TransportType.Http,
+		providerName: 'Hyperliquid info API',
+	},
+] as const
 
 const info = async <_Result>({
 	restBaseUrl,

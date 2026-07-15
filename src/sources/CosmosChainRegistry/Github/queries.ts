@@ -1,12 +1,12 @@
 import { getJson } from '$/lib/http.ts'
-import { cosmosChainRegistryBindings } from '$/sources/CosmosChainRegistry/bindings.ts'
 import type {
 	CosmosChainRegistryAssetList,
 	CosmosChainRegistryChain,
 } from '$/sources/CosmosChainRegistry/Github/types.ts'
 import { githubRawUrl } from '$/sources/_shared/hosts/Github/Http/client.ts'
+import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
 
-const origins = cosmosChainRegistryBindings[0].endpoints.map((endpoint) => ({
+const origins = githubHttpEndpoints.map((endpoint) => ({
 	origin: endpoint.origin,
 	corsEnabled: endpoint.corsEnabled,
 }))

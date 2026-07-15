@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Sources',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadSource>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadSource>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,11 +112,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: blockheadSource }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadSource> })}
+				{#snippet Item({ item: blockheadSource })}
 					{@const blockheadSourceFields = { ...blockheadSource[EntityMetaKey.Selector], ...blockheadSource }}
+					{@const selection = select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const blockheadSourceHrefFields = { ...blockheadSource, ...blockheadSource[EntityMetaKey.Selector] }}
 					<BlockheadSourceView
-						selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={blockheadSourceFields}
+						href={
+							(blockheadSourceHrefFields.id !== undefined ? resolve('/~/manage/source/[sourceId=stringSegment]', {
+								sourceId: String(blockheadSourceHrefFields.id ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

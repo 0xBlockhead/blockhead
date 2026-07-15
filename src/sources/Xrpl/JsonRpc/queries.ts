@@ -1,17 +1,14 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
-
-export const request = (
-	binding: SourceBinding,
-	method: string,
-	params?: readonly JsonValue[]
-) => jsonRpc2<JsonValue>(binding, method, params)
+import type {
+	XrplLedgerResult,
+	XrplServerInfoResult,
+} from '$/sources/Xrpl/JsonRpc/types.ts'
 
 export const getServerInfo = (binding: SourceBinding) => (
-	request(binding, 'server_info')
+	jsonRpc2<XrplServerInfoResult>(binding, 'server_info')
 )
 
-export const getLedgerClosed = (binding: SourceBinding) => (
-	request(binding, 'ledger_closed')
+export const getValidatedLedger = (binding: SourceBinding) => (
+	jsonRpc2<XrplLedgerResult>(binding, 'ledger', [{ ledger_index: 'validated' }])
 )

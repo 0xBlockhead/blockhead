@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,8 +23,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.XNetwork>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.XNetwork>>
+			selection: RegisteredEntityProxyResource<EntityType.XNetwork>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XNetwork>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -57,6 +57,8 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import XUsersView from '$/views/XUsersView.svelte'
+	import XPostsView from '$/views/XPostsView.svelte'
 </script>
 
 
@@ -65,7 +67,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={href ?? (pendingEntity.scope === 'XNetwork' ? resolve('/x') : undefined)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -305,5 +307,39 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<XUsersView
+				selection={
+						selection.$$xUsers({
+							sources: [
+								Source.X_FxEmbed_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Users'
+				href={resolve('/x/users')}
+				emptyText='No X users here yet.'
+				id='XUsersView-x-users'
+			/>
+
+			<XPostsView
+				selection={
+						selection.$$xPosts({
+							sources: [
+								Source.X_FxEmbed_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Posts'
+				href={resolve('/x/posts')}
+				emptyText='No X posts here yet.'
+				id='XPostsView-x-posts'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

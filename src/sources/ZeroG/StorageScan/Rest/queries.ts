@@ -1,6 +1,6 @@
 import { getJson } from '$/lib/http.ts'
 import { zeroGMainnetStorageEndpoints } from '$/sources/ZeroG/StorageScan/Rest/endpoints.ts'
-import { zeroGOrigins } from '$/sources/ZeroG/index.ts'
+import { zeroGOrigins } from '$/sources/ZeroG/StorageScan/Rest/endpoints.ts'
 import type {
 	ZeroGStorageScanList,
 	ZeroGStorageScanMiner,

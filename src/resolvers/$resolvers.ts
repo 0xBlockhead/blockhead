@@ -2,8 +2,9 @@ import type { QueryClient } from '@tanstack/query-core'
 import { extractSimpleComparisons, parseOrderByExpression } from '@tanstack/db'
 import type { LoadSubsetOptions } from '@tanstack/db'
 
-import { EntityFieldCardinality, EntityFieldType, EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
-import type { EntityDefinition, EntityDefinitionForEntityType, EntityFacetDefinition, EntityFacetPath, EntityFieldDefinition, EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValueFromDefinition, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import type { EntityDefinition, EntityDefinitionForEntityType, EntityFacetDefinition, EntityFacetPath, EntityFieldDefinition, EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValueFromDefinition, EntityReferenceValue, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type ResolverValue =
@@ -37,14 +38,6 @@ export type LoadSubsetKeyValue =
 
 export type LoadSubsetKeyObject = { readonly [key: string]: LoadSubsetKeyValue }
 
-type ResolverEntityReferenceValue<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-> = {
-	readonly [EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
-	readonly [EntityMetaKey.SelectorKey]?: string
-} & ResolverObject
-
 type ResolverFieldSingleValue<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -61,7 +54,7 @@ type ResolverFieldSingleValue<
 		readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
 		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
 	} ?
-		ResolverEntityReferenceValue<_Schema, _ReferencedEntityType>
+		EntityReferenceValue<_Schema, _ReferencedEntityType>
 	:
 		never
 )
@@ -109,8 +102,13 @@ type ProjectionResolverFieldSingleValue<
 		readonly type: EntityFieldType.Primitive
 	} ?
 		EntityFieldSingleResolvedValueFromDefinition<_Schema, _FieldDefinition>
+	: _FieldDefinition extends {
+		readonly type: EntityFieldType.EntityReference | EntityFieldType.EntitiesReference
+		readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+	} ?
+		EntityReferenceValue<_Schema, _ReferencedEntityType>
 	:
-		ResolverObject
+		never
 )
 
 type ProjectionResolverFieldValue<

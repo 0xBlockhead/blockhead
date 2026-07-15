@@ -703,8 +703,6 @@ import CardanoNativeAssetsView from '$/views/CardanoNativeAssetsView.svelte'
 import CardanoNativeAssetView from '$/views/CardanoNativeAssetView.svelte'
 import CardanoNetwork_TimestampsView from '$/views/CardanoNetwork_TimestampsView.svelte'
 import CardanoNetwork_TimestampView from '$/views/CardanoNetwork_TimestampView.svelte'
-import CardanoNetworksView from '$/views/CardanoNetworksView.svelte'
-import CardanoNetworkView from '$/views/CardanoNetworkView.svelte'
 import CardanoProtocolParameters_EpochsView from '$/views/CardanoProtocolParameters_EpochsView.svelte'
 import CardanoProtocolParameters_EpochView from '$/views/CardanoProtocolParameters_EpochView.svelte'
 import CardanoScriptWitnessesView from '$/views/CardanoScriptWitnessesView.svelte'
@@ -1135,8 +1133,6 @@ import HederaNetworkStake_TimestampsView from '$/views/HederaNetworkStake_Timest
 import HederaNetworkStake_TimestampView from '$/views/HederaNetworkStake_TimestampView.svelte'
 import HederaNetworkSupply_TimestampsView from '$/views/HederaNetworkSupply_TimestampsView.svelte'
 import HederaNetworkSupply_TimestampView from '$/views/HederaNetworkSupply_TimestampView.svelte'
-import HederaNetworksView from '$/views/HederaNetworksView.svelte'
-import HederaNetworkView from '$/views/HederaNetworkView.svelte'
 import HederaNft_TimestampsView from '$/views/HederaNft_TimestampsView.svelte'
 import HederaNft_TimestampView from '$/views/HederaNft_TimestampView.svelte'
 import HederaNftsView from '$/views/HederaNftsView.svelte'
@@ -1195,8 +1191,6 @@ import HyperliquidPerpMarket_TimestampsView from '$/views/HyperliquidPerpMarket_
 import HyperliquidPerpMarket_TimestampView from '$/views/HyperliquidPerpMarket_TimestampView.svelte'
 import HyperliquidPerpMarketsView from '$/views/HyperliquidPerpMarketsView.svelte'
 import HyperliquidPerpMarketView from '$/views/HyperliquidPerpMarketView.svelte'
-import HyperliquidSpotAsset_TimestampsView from '$/views/HyperliquidSpotAsset_TimestampsView.svelte'
-import HyperliquidSpotAsset_TimestampView from '$/views/HyperliquidSpotAsset_TimestampView.svelte'
 import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
 import HyperliquidSpotAssetView from '$/views/HyperliquidSpotAssetView.svelte'
 import HyperliquidSpotPair_TimestampsView from '$/views/HyperliquidSpotPair_TimestampsView.svelte'
@@ -1835,8 +1829,6 @@ import TonMessagesView from '$/views/TonMessagesView.svelte'
 import TonMessageView from '$/views/TonMessageView.svelte'
 import TonNetwork_TimestampsView from '$/views/TonNetwork_TimestampsView.svelte'
 import TonNetwork_TimestampView from '$/views/TonNetwork_TimestampView.svelte'
-import TonNetworksView from '$/views/TonNetworksView.svelte'
-import TonNetworkView from '$/views/TonNetworkView.svelte'
 import TonNftCollection_TimestampsView from '$/views/TonNftCollection_TimestampsView.svelte'
 import TonNftCollection_TimestampView from '$/views/TonNftCollection_TimestampView.svelte'
 import TonNftCollectionsView from '$/views/TonNftCollectionsView.svelte'
@@ -1877,8 +1869,6 @@ import TronContractsView from '$/views/TronContractsView.svelte'
 import TronContractView from '$/views/TronContractView.svelte'
 import TronNetwork_TimestampsView from '$/views/TronNetwork_TimestampsView.svelte'
 import TronNetwork_TimestampView from '$/views/TronNetwork_TimestampView.svelte'
-import TronNetworksView from '$/views/TronNetworksView.svelte'
-import TronNetworkView from '$/views/TronNetworkView.svelte'
 import TronToken_TimestampsView from '$/views/TronToken_TimestampsView.svelte'
 import TronToken_TimestampView from '$/views/TronToken_TimestampView.svelte'
 import TronTokensView from '$/views/TronTokensView.svelte'
@@ -2514,6 +2504,10 @@ export const View = {
 	BlockheadLitecoinMwebWalletStates: BlockheadLitecoinMwebWalletStatesView,
 	BlockheadLitecoinMwebWalletState_Timestamp: BlockheadLitecoinMwebWalletState_TimestampView,
 	BlockheadLitecoinMwebWalletState_Timestamps: BlockheadLitecoinMwebWalletState_TimestampsView,
+	BlockheadLocalMediaIngest: BlockheadLocalMediaIngestView,
+	BlockheadLocalMediaIngests: BlockheadLocalMediaIngestsView,
+	BlockheadLocalMediaIngest_Timestamp: BlockheadLocalMediaIngest_TimestampView,
+	BlockheadLocalMediaIngest_Timestamps: BlockheadLocalMediaIngest_TimestampsView,
 	BlockheadLogosBlockchainNodeState: BlockheadLogosBlockchainNodeStateView,
 	BlockheadLogosBlockchainNodeStates: BlockheadLogosBlockchainNodeStatesView,
 	BlockheadLogosBlockchainNodeState_Timestamp: BlockheadLogosBlockchainNodeState_TimestampView,
@@ -2538,12 +2532,10 @@ export const View = {
 	BlockheadMoneroWalletStates: BlockheadMoneroWalletStatesView,
 	BlockheadMoneroWalletState_Timestamp: BlockheadMoneroWalletState_TimestampView,
 	BlockheadMoneroWalletState_Timestamps: BlockheadMoneroWalletState_TimestampsView,
-	BlockheadWorkspace: BlockheadWorkspaceView,
-	BlockheadWorkspaces: BlockheadWorkspacesView,
-	BlockheadPanelTree: BlockheadPanelTreeView,
-	BlockheadPanelTrees: BlockheadPanelTreesView,
 	BlockheadPanel: BlockheadPanelView,
 	BlockheadPanels: BlockheadPanelsView,
+	BlockheadPanelTree: BlockheadPanelTreeView,
+	BlockheadPanelTrees: BlockheadPanelTreesView,
 	BlockheadPayjoinSession: BlockheadPayjoinSessionView,
 	BlockheadPayjoinSessions: BlockheadPayjoinSessionsView,
 	BlockheadQuilibriumAccountState: BlockheadQuilibriumAccountStateView,
@@ -2586,10 +2578,6 @@ export const View = {
 	BlockheadSharedAddresses: BlockheadSharedAddressesView,
 	BlockheadSiweChallenge: BlockheadSiweChallengeView,
 	BlockheadSiweChallenges: BlockheadSiweChallengesView,
-	BlockheadLocalMediaIngest: BlockheadLocalMediaIngestView,
-	BlockheadLocalMediaIngests: BlockheadLocalMediaIngestsView,
-	BlockheadLocalMediaIngest_Timestamp: BlockheadLocalMediaIngest_TimestampView,
-	BlockheadLocalMediaIngest_Timestamps: BlockheadLocalMediaIngest_TimestampsView,
 	BlockheadSocialPostSession: BlockheadSocialPostSessionView,
 	BlockheadSocialPostSessions: BlockheadSocialPostSessionsView,
 	BlockheadSource: BlockheadSourceView,
@@ -2632,12 +2620,14 @@ export const View = {
 	BlockheadWalletConnections: BlockheadWalletConnectionsView,
 	BlockheadWalletRequest: BlockheadWalletRequestView,
 	BlockheadWalletRequests: BlockheadWalletRequestsView,
-	BlockheadWalletRequestCall: BlockheadWalletRequestCallView,
-	BlockheadWalletRequestCalls: BlockheadWalletRequestCallsView,
 	BlockheadWalletRequest_Timestamp: BlockheadWalletRequest_TimestampView,
 	BlockheadWalletRequest_Timestamps: BlockheadWalletRequest_TimestampsView,
+	BlockheadWalletRequestCall: BlockheadWalletRequestCallView,
+	BlockheadWalletRequestCalls: BlockheadWalletRequestCallsView,
 	BlockheadWalletTransportSession: BlockheadWalletTransportSessionView,
 	BlockheadWalletTransportSessions: BlockheadWalletTransportSessionsView,
+	BlockheadWorkspace: BlockheadWorkspaceView,
+	BlockheadWorkspaces: BlockheadWorkspacesView,
 	BlockheadZcashNoteState: BlockheadZcashNoteStateView,
 	BlockheadZcashNoteStates: BlockheadZcashNoteStatesView,
 	BlockheadZcashNoteState_Timestamp: BlockheadZcashNoteState_TimestampView,
@@ -2718,8 +2708,6 @@ export const View = {
 	CardanoNativeAssets: CardanoNativeAssetsView,
 	CardanoNativeAsset_Timestamp: CardanoNativeAsset_TimestampView,
 	CardanoNativeAsset_Timestamps: CardanoNativeAsset_TimestampsView,
-	CardanoNetwork: CardanoNetworkView,
-	CardanoNetworks: CardanoNetworksView,
 	CardanoNetwork_Timestamp: CardanoNetwork_TimestampView,
 	CardanoNetwork_Timestamps: CardanoNetwork_TimestampsView,
 	CardanoProtocolParameters_Epoch: CardanoProtocolParameters_EpochView,
@@ -3142,8 +3130,6 @@ export const View = {
 	HederaContractState_Timestamps: HederaContractState_TimestampsView,
 	HederaHbarTransfer: HederaHbarTransferView,
 	HederaHbarTransfers: HederaHbarTransfersView,
-	HederaNetwork: HederaNetworkView,
-	HederaNetworks: HederaNetworksView,
 	HederaNetwork_Timestamp: HederaNetwork_TimestampView,
 	HederaNetwork_Timestamps: HederaNetwork_TimestampsView,
 	HederaNetworkExchangeRate_Timestamp: HederaNetworkExchangeRate_TimestampView,
@@ -3214,8 +3200,6 @@ export const View = {
 	HyperliquidPerpMarket_Timestamps: HyperliquidPerpMarket_TimestampsView,
 	HyperliquidSpotAsset: HyperliquidSpotAssetView,
 	HyperliquidSpotAssets: HyperliquidSpotAssetsView,
-	HyperliquidSpotAsset_Timestamp: HyperliquidSpotAsset_TimestampView,
-	HyperliquidSpotAsset_Timestamps: HyperliquidSpotAsset_TimestampsView,
 	HyperliquidSpotPair: HyperliquidSpotPairView,
 	HyperliquidSpotPairs: HyperliquidSpotPairsView,
 	HyperliquidSpotPair_Timestamp: HyperliquidSpotPair_TimestampView,
@@ -3366,8 +3350,6 @@ export const View = {
 	MagnetLinks: MagnetLinksView,
 	MagnetResolution_Timestamp: MagnetResolution_TimestampView,
 	MagnetResolution_Timestamps: MagnetResolution_TimestampsView,
-	MarketAsset: MarketAssetView,
-	MarketAssets: MarketAssetsView,
 	Market: MarketView,
 	Markets: MarketsView,
 	Market_Derivative_Timestamp: Market_Derivative_TimestampView,
@@ -3376,6 +3358,8 @@ export const View = {
 	Market_TimeInterval_Timestamps: Market_TimeInterval_TimestampsView,
 	Market_Timestamp: Market_TimestampView,
 	Market_Timestamps: Market_TimestampsView,
+	MarketAsset: MarketAssetView,
+	MarketAssets: MarketAssetsView,
 	MarketPrice: MarketPriceView,
 	MarketPrices: MarketPricesView,
 	MarketVenue: MarketVenueView,
@@ -3850,8 +3834,6 @@ export const View = {
 	TonJettonTransfers: TonJettonTransfersView,
 	TonMessage: TonMessageView,
 	TonMessages: TonMessagesView,
-	TonNetwork: TonNetworkView,
-	TonNetworks: TonNetworksView,
 	TonNetwork_Timestamp: TonNetwork_TimestampView,
 	TonNetwork_Timestamps: TonNetwork_TimestampsView,
 	TonNftCollection: TonNftCollectionView,
@@ -3892,8 +3874,6 @@ export const View = {
 	TronContracts: TronContractsView,
 	TronContract_Timestamp: TronContract_TimestampView,
 	TronContract_Timestamps: TronContract_TimestampsView,
-	TronNetwork: TronNetworkView,
-	TronNetworks: TronNetworksView,
 	TronNetwork_Timestamp: TronNetwork_TimestampView,
 	TronNetwork_Timestamps: TronNetwork_TimestampsView,
 	TronToken: TronTokenView,
@@ -4281,6 +4261,8 @@ export const entityViewComponentByType = {
 	[EntityType.BlockheadLitecoinMwebOutputState_Timestamp]: View.BlockheadLitecoinMwebOutputState_Timestamp,
 	[EntityType.BlockheadLitecoinMwebWalletState]: View.BlockheadLitecoinMwebWalletState,
 	[EntityType.BlockheadLitecoinMwebWalletState_Timestamp]: View.BlockheadLitecoinMwebWalletState_Timestamp,
+	[EntityType.BlockheadLocalMediaIngest]: View.BlockheadLocalMediaIngest,
+	[EntityType.BlockheadLocalMediaIngest_Timestamp]: View.BlockheadLocalMediaIngest_Timestamp,
 	[EntityType.BlockheadLogosBlockchainNodeState]: View.BlockheadLogosBlockchainNodeState,
 	[EntityType.BlockheadLogosBlockchainNodeState_Timestamp]: View.BlockheadLogosBlockchainNodeState_Timestamp,
 	[EntityType.BlockheadLogosBlockchainWalletKeyState]: View.BlockheadLogosBlockchainWalletKeyState,
@@ -4293,9 +4275,8 @@ export const entityViewComponentByType = {
 	[EntityType.BlockheadMoneroTransferState_Timestamp]: View.BlockheadMoneroTransferState_Timestamp,
 	[EntityType.BlockheadMoneroWalletState]: View.BlockheadMoneroWalletState,
 	[EntityType.BlockheadMoneroWalletState_Timestamp]: View.BlockheadMoneroWalletState_Timestamp,
-	[EntityType.BlockheadWorkspace]: View.BlockheadWorkspace,
-	[EntityType.BlockheadPanelTree]: View.BlockheadPanelTree,
 	[EntityType.BlockheadPanel]: View.BlockheadPanel,
+	[EntityType.BlockheadPanelTree]: View.BlockheadPanelTree,
 	[EntityType.BlockheadPayjoinSession]: View.BlockheadPayjoinSession,
 	[EntityType.BlockheadQuilibriumAccountState]: View.BlockheadQuilibriumAccountState,
 	[EntityType.BlockheadQuilibriumAccountState_Timestamp]: View.BlockheadQuilibriumAccountState_Timestamp,
@@ -4317,8 +4298,6 @@ export const entityViewComponentByType = {
 	[EntityType.BlockheadSessionSimulationLog]: View.BlockheadSessionSimulationLog,
 	[EntityType.BlockheadSharedAddress]: View.BlockheadSharedAddress,
 	[EntityType.BlockheadSiweChallenge]: View.BlockheadSiweChallenge,
-	[EntityType.BlockheadLocalMediaIngest]: View.BlockheadLocalMediaIngest,
-	[EntityType.BlockheadLocalMediaIngest_Timestamp]: View.BlockheadLocalMediaIngest_Timestamp,
 	[EntityType.BlockheadSocialPostSession]: View.BlockheadSocialPostSession,
 	[EntityType.BlockheadSource]: View.BlockheadSource,
 	[EntityType.BlockheadSource_Timestamp]: View.BlockheadSource_Timestamp,
@@ -4340,9 +4319,10 @@ export const entityViewComponentByType = {
 	[EntityType.BlockheadWalletCapabilityGrant]: View.BlockheadWalletCapabilityGrant,
 	[EntityType.BlockheadWalletConnection]: View.BlockheadWalletConnection,
 	[EntityType.BlockheadWalletRequest]: View.BlockheadWalletRequest,
-	[EntityType.BlockheadWalletRequestCall]: View.BlockheadWalletRequestCall,
 	[EntityType.BlockheadWalletRequest_Timestamp]: View.BlockheadWalletRequest_Timestamp,
+	[EntityType.BlockheadWalletRequestCall]: View.BlockheadWalletRequestCall,
 	[EntityType.BlockheadWalletTransportSession]: View.BlockheadWalletTransportSession,
+	[EntityType.BlockheadWorkspace]: View.BlockheadWorkspace,
 	[EntityType.BlockheadZcashNoteState]: View.BlockheadZcashNoteState,
 	[EntityType.BlockheadZcashNoteState_Timestamp]: View.BlockheadZcashNoteState_Timestamp,
 	[EntityType.BlockheadZcashViewingKey]: View.BlockheadZcashViewingKey,
@@ -4383,7 +4363,6 @@ export const entityViewComponentByType = {
 	[EntityType.CardanoGovernanceVote]: View.CardanoGovernanceVote,
 	[EntityType.CardanoNativeAsset]: View.CardanoNativeAsset,
 	[EntityType.CardanoNativeAsset_Timestamp]: View.CardanoNativeAsset_Timestamp,
-	[EntityType.CardanoNetwork]: View.CardanoNetwork,
 	[EntityType.CardanoNetwork_Timestamp]: View.CardanoNetwork_Timestamp,
 	[EntityType.CardanoProtocolParameters_Epoch]: View.CardanoProtocolParameters_Epoch,
 	[EntityType.CardanoScriptWitness]: View.CardanoScriptWitness,
@@ -4595,7 +4574,6 @@ export const entityViewComponentByType = {
 	[EntityType.HederaContractResult]: View.HederaContractResult,
 	[EntityType.HederaContractState_Timestamp]: View.HederaContractState_Timestamp,
 	[EntityType.HederaHbarTransfer]: View.HederaHbarTransfer,
-	[EntityType.HederaNetwork]: View.HederaNetwork,
 	[EntityType.HederaNetwork_Timestamp]: View.HederaNetwork_Timestamp,
 	[EntityType.HederaNetworkExchangeRate_Timestamp]: View.HederaNetworkExchangeRate_Timestamp,
 	[EntityType.HederaNetworkFee_Timestamp]: View.HederaNetworkFee_Timestamp,
@@ -4631,7 +4609,6 @@ export const entityViewComponentByType = {
 	[EntityType.HyperliquidPerpMarket]: View.HyperliquidPerpMarket,
 	[EntityType.HyperliquidPerpMarket_Timestamp]: View.HyperliquidPerpMarket_Timestamp,
 	[EntityType.HyperliquidSpotAsset]: View.HyperliquidSpotAsset,
-	[EntityType.HyperliquidSpotAsset_Timestamp]: View.HyperliquidSpotAsset_Timestamp,
 	[EntityType.HyperliquidSpotPair]: View.HyperliquidSpotPair,
 	[EntityType.HyperliquidSpotPair_Timestamp]: View.HyperliquidSpotPair_Timestamp,
 	[EntityType.HyperliquidTransaction]: View.HyperliquidTransaction,
@@ -4707,11 +4684,11 @@ export const entityViewComponentByType = {
 	[EntityType.LogosBlockchainNetwork_Timestamp]: View.LogosBlockchainNetwork_Timestamp,
 	[EntityType.MagnetLink]: View.MagnetLink,
 	[EntityType.MagnetResolution_Timestamp]: View.MagnetResolution_Timestamp,
-	[EntityType.MarketAsset]: View.MarketAsset,
 	[EntityType.Market]: View.Market,
 	[EntityType.Market_Derivative_Timestamp]: View.Market_Derivative_Timestamp,
 	[EntityType.Market_TimeInterval_Timestamp]: View.Market_TimeInterval_Timestamp,
 	[EntityType.Market_Timestamp]: View.Market_Timestamp,
+	[EntityType.MarketAsset]: View.MarketAsset,
 	[EntityType.MarketPrice]: View.MarketPrice,
 	[EntityType.MarketVenue]: View.MarketVenue,
 	[EntityType.McpPrompt]: View.McpPrompt,
@@ -4949,7 +4926,6 @@ export const entityViewComponentByType = {
 	[EntityType.TonJettonBalance_Timestamp]: View.TonJettonBalance_Timestamp,
 	[EntityType.TonJettonTransfer]: View.TonJettonTransfer,
 	[EntityType.TonMessage]: View.TonMessage,
-	[EntityType.TonNetwork]: View.TonNetwork,
 	[EntityType.TonNetwork_Timestamp]: View.TonNetwork_Timestamp,
 	[EntityType.TonNftCollection]: View.TonNftCollection,
 	[EntityType.TonNftCollection_Timestamp]: View.TonNftCollection_Timestamp,
@@ -4970,7 +4946,6 @@ export const entityViewComponentByType = {
 	[EntityType.TronBlock]: View.TronBlock,
 	[EntityType.TronContract]: View.TronContract,
 	[EntityType.TronContract_Timestamp]: View.TronContract_Timestamp,
-	[EntityType.TronNetwork]: View.TronNetwork,
 	[EntityType.TronNetwork_Timestamp]: View.TronNetwork_Timestamp,
 	[EntityType.TronToken]: View.TronToken,
 	[EntityType.TronToken_Timestamp]: View.TronToken_Timestamp,

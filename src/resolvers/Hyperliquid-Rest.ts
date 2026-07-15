@@ -14,7 +14,6 @@ import { HyperliquidNetworkSelector } from '$/schema/HyperliquidNetwork.ts'
 import { HyperliquidPerpMarketSelector } from '$/schema/HyperliquidPerpMarket.ts'
 import { HyperliquidPerpMarket_TimestampSelector } from '$/schema/HyperliquidPerpMarket_Timestamp.ts'
 import { HyperliquidSpotAssetSelector } from '$/schema/HyperliquidSpotAsset.ts'
-import { HyperliquidSpotAsset_TimestampSelector } from '$/schema/HyperliquidSpotAsset_Timestamp.ts'
 import { HyperliquidAccountSelector } from '$/schema/HyperliquidAccount.ts'
 import { HyperliquidValidatorSelector } from '$/schema/HyperliquidValidator.ts'
 import { HyperliquidValidator_TimestampSelector } from '$/schema/HyperliquidValidator_Timestamp.ts'
@@ -122,34 +121,13 @@ export default {
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidSpotAsset,
 			resolve: {
-				[HyperliquidSpotAssetSelector.NetworkAssetId]: async (entitySelector) => {
-					const { $network } = entitySelector
+				[HyperliquidSpotAssetSelector.NetworkAssetId]: async ({ $network, assetId }) => {
 					assertHyperliquidMainnet($network)
-					return [
-						{
-							[EntityMetaKey.Selector]: {
-								$spotAsset: entitySelector,
-								timestampMs: Date.now(),
-								source: Source.Hyperliquid_Rest,
-							},
-						},
-					]
-				}
-			},
-		})({
-				$$timestamps: (snapshot) => snapshot,
-			}),
-
-		defineResolver(Source.Hyperliquid_Rest, {
-			entityType: EntityType.HyperliquidSpotAsset_Timestamp,
-			resolve: {
-				[HyperliquidSpotAsset_TimestampSelector.SpotAssetTimestampMsSource]: async ({ $spotAsset }) => {
-					assertHyperliquidMainnet($spotAsset.$network)
 					const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 					const spotToken = (await getSpotMeta({ restBaseUrl: await hyperliquidMainnetRestBaseUrl() })).tokens
-						.find((token) => token.index === $spotAsset.assetId)
+						.find((token) => token.index === assetId)
 					if (spotToken == null)
-						throw new Error(`Hyperliquid_Rest: spot asset not found for ${String($spotAsset.assetId)}`)
+						throw new Error(`Hyperliquid_Rest: spot asset not found for ${String(assetId)}`)
 					return {
 						name: spotToken.name,
 						szDecimals: spotToken.szDecimals,
@@ -161,11 +139,11 @@ export default {
 				}
 			},
 		})({
-				name: (snapshot) => snapshot.name,
-				szDecimals: (snapshot) => snapshot.szDecimals,
-				weiDecimals: (snapshot) => snapshot.weiDecimals,
-				tokenId: (snapshot) => snapshot.tokenId,
-			}),
+			name: (snapshot) => snapshot.name,
+			szDecimals: (snapshot) => snapshot.szDecimals,
+			weiDecimals: (snapshot) => snapshot.weiDecimals,
+			tokenId: (snapshot) => snapshot.tokenId,
+		}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidAccount,

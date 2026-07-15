@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,8 +23,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.XmtpNetwork>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.XmtpNetwork>>
+			selection: RegisteredEntityProxyResource<EntityType.XmtpNetwork>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.XmtpNetwork>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -57,6 +57,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import XmtpConversationsView from '$/views/XmtpConversationsView.svelte'
 </script>
 
 
@@ -65,7 +66,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={href ?? (pendingEntity.scope === 'XmtpNetwork' ? resolve('/xmtp') : undefined)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -305,5 +306,24 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<XmtpConversationsView
+				selection={
+						selection.$$xmtpConversations({
+							sources: [
+								Source.Local_Internal,
+							],
+							count: true,
+						})
+					}
+				title='Conversations'
+				href={resolve('/xmtp/conversations')}
+				emptyText='No XMTP conversations here yet.'
+				id='XmtpConversationsView-xmtp-conversations'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

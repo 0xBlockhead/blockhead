@@ -2,10 +2,10 @@ import { getJson } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import {
 	redditOauthOrigin,
+	redditOrigins,
 	redditUserAgent,
 	redditWwwOrigin,
 } from '$/sources/Reddit/Rest/constants.ts'
-import { redditOrigins } from '$/sources/Reddit/index.ts'
 import type { RedditOAuthTokenResponse } from '$/sources/Reddit/Rest/types.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 

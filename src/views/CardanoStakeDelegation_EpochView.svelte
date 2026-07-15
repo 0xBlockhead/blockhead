@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.CardanoStakeDelegation_Epoch>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.CardanoStakeDelegation_Epoch>>
+			selection: RegisteredEntityProxyResource<EntityType.CardanoStakeDelegation_Epoch>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CardanoStakeDelegation_Epoch>>
 			title?: string
 			href?: string
 			layout?: EntityLayout

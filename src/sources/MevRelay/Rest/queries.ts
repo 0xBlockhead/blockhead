@@ -4,9 +4,14 @@
  */
 
 import { getJson } from '$/lib/http.ts'
-import { mevRelayOrigins } from '$/sources/MevRelay/index.ts'
+import { mevRelayHosts } from '$/constants/MevRelayHosts.ts'
 
 import type { ProposerPayloadDelivered } from '$/sources/MevRelay/Rest/types.ts'
+
+const mevRelayOrigins = mevRelayHosts.map((relay) => ({
+	origin: `https://${relay.host}`,
+	corsEnabled: false,
+}))
 
 export const getProposerPayloadDeliveredForRelayHost = async (
 	relayHost: string,

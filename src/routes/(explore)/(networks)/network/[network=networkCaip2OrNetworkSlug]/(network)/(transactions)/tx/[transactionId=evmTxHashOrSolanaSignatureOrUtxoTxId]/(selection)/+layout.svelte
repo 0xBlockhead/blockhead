@@ -38,7 +38,7 @@
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.selectorMapping.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.selectorMapping.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : UtxoTransactionView}
+			{@const DetailView = data.selectorMapping.entityType === EntityType.EvmTransaction && data.selectorMapping.selectorName === 'EvmNetworkTxHash' ? EvmTransactionView : data.selectorMapping.entityType === EntityType.SolanaTransaction && data.selectorMapping.selectorName === 'NetworkSignature' ? SolanaTransactionView : UtxoTransactionView}
 
 			<DetailView
 				selection={select(data.selectorMapping.entityType, data.selectorMapping.selector)}

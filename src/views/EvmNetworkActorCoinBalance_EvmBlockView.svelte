@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmNetworkActorCoinBalance_EvmBlock>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmNetworkActorCoinBalance_EvmBlock>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmNetworkActorCoinBalance_EvmBlock>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmNetworkActorCoinBalance_EvmBlock>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -75,9 +75,12 @@
 				<EvmBlockView
 					selection={select(EntityType.EvmBlock, selection.entitySelector.$block)}
 					href={
-						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-							network: String(selection.entitySelector.$block.$network.slug ?? ''),
+						(selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 							blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+							blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
+							network: String(selection.entitySelector.$block.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -90,9 +93,12 @@
 				<EvmBlockView
 					selection={select(EntityType.EvmBlock, selection.entitySelector.$block)}
 					href={
-						(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-							network: String(selection.entitySelector.$block.$network.slug ?? ''),
+						(selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 							blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
+							network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
+						}) : selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+							blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
+							network: String(selection.entitySelector.$block.$network.slug ?? ''),
 						}) : undefined)
 					}
 					layout={EntityLayout.Title}
@@ -121,6 +127,13 @@
 				<span data-text="muted">
 					<EvmNetworkActorCoinBalanceView
 						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin)}
+						href={
+							(selection.entitySelector.$actorCoin.$actor !== undefined && selection.entitySelector.$actorCoin.$actor.address !== undefined && selection.entitySelector.$actorCoin.$contract !== undefined && selection.entitySelector.$actorCoin.$contract.$network !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2 !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$actorCoin.$contract.address !== undefined ? resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
+								owner: String(selection.entitySelector.$actorCoin.$actor.address ?? ''),
+								chainId: String(selection.entitySelector.$actorCoin.$contract.$network.caip2.reference ?? ''),
+								coin: String(selection.entitySelector.$actorCoin.$contract.address ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -132,6 +145,13 @@
 				<span data-text="muted">
 					<EvmNetworkActorCoinBalanceView
 						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin)}
+						href={
+							(selection.entitySelector.$actorCoin.$actor !== undefined && selection.entitySelector.$actorCoin.$actor.address !== undefined && selection.entitySelector.$actorCoin.$contract !== undefined && selection.entitySelector.$actorCoin.$contract.$network !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2 !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$actorCoin.$contract.address !== undefined ? resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
+								owner: String(selection.entitySelector.$actorCoin.$actor.address ?? ''),
+								chainId: String(selection.entitySelector.$actorCoin.$contract.$network.caip2.reference ?? ''),
+								coin: String(selection.entitySelector.$actorCoin.$contract.address ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -148,9 +168,12 @@
 					<EvmBlockView
 						selection={select(EntityType.EvmBlock, selection.entitySelector.$block, {})}
 						href={
-							(selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined && selection.entitySelector.$block.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-								network: String(selection.entitySelector.$block.$network.slug ?? ''),
+							(selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 								blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$block.blockNumber !== undefined && selection.entitySelector.$block.$network !== undefined && selection.entitySelector.$block.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+								blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
+								network: String(selection.entitySelector.$block.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -164,6 +187,13 @@
 				<dd>
 					<EvmNetworkActorCoinBalanceView
 						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin, {})}
+						href={
+							(selection.entitySelector.$actorCoin.$actor !== undefined && selection.entitySelector.$actorCoin.$actor.address !== undefined && selection.entitySelector.$actorCoin.$contract !== undefined && selection.entitySelector.$actorCoin.$contract.$network !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2 !== undefined && selection.entitySelector.$actorCoin.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$actorCoin.$contract.address !== undefined ? resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
+								owner: String(selection.entitySelector.$actorCoin.$actor.address ?? ''),
+								chainId: String(selection.entitySelector.$actorCoin.$contract.$network.caip2.reference ?? ''),
+								coin: String(selection.entitySelector.$actorCoin.$contract.address ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

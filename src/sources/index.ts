@@ -35,6 +35,10 @@ export const sourceBindings = validateSourceBindings(
 					credential.scope === SourceCredentialScope.None
 					|| credential.scope === SourceCredentialScope.PublicConfig
 					|| credential.scope === SourceCredentialScope.UserDelegated
+					|| (
+						binding.delivery === SourceDelivery.HttpProxy
+						&& credential.scope === SourceCredentialScope.RuntimeSecret
+					)
 				))
 			)
 		))

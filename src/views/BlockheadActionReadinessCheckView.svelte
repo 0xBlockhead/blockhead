@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BlockheadActionReadinessCheck>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BlockheadActionReadinessCheck>>
+			selection: RegisteredEntityProxyResource<EntityType.BlockheadActionReadinessCheck>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadActionReadinessCheck>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -48,7 +47,6 @@
 			Source.Local_Internal,
 		],
 		fields: {
-			$sessionAction: true,
 			checkKind: true,
 			createdAt: true,
 			capabilityKey: true,

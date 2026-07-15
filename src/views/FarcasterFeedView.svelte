@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,8 +23,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.FarcasterFeed>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.FarcasterFeed>>
+			selection: RegisteredEntityProxyResource<EntityType.FarcasterFeed>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterFeed>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -55,6 +55,7 @@
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
 
 
@@ -63,7 +64,15 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.variant === 'trending' ? resolve('/farcaster/feed/trending') : pendingEntity.variant === 'byUser' && pendingEntity.fid !== undefined ? resolve('/farcaster/feed/user/[userId=farcasterFid]', {
+			userId: String(pendingEntity.fid ?? ''),
+		}) : pendingEntity.variant === 'byChannel' && pendingEntity.channelId !== undefined ? resolve('/farcaster/feed/channel/[channelId=stringSegment]', {
+			channelId: String(pendingEntity.channelId ?? ''),
+		}) : pendingEntity.variant === 'following' && pendingEntity.viewerFid !== undefined ? resolve('/farcaster/feed/following/[userId=farcasterFid]', {
+			userId: String(pendingEntity.viewerFid ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -237,5 +246,26 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<FarcasterCastsView
+				selection={
+						selection.$$entries({
+							sources: [
+								Source.Neynar_Rest,
+								Source.Farcaster_Rest,
+								Source.Snapchain_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Entries'
+				href={resolve('/farcaster/feed/trending')}
+				emptyText='No Farcaster feed entries.'
+				id='FarcasterCastsView-entries'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

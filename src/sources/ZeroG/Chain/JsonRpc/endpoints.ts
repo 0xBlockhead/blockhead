@@ -1,12 +1,16 @@
 import { TransportType } from '$/constants/TransportType.ts'
-import { Source } from '$/sources/Source.ts'
-import { zeroGBindings } from '$/sources/ZeroG/bindings.ts'
 
-export const zeroGMainnetRpcEndpoints = zeroGBindings
-	.filter((binding) => binding.source === Source.ZeroGChain_JsonRpc)
-	.flatMap((binding) => binding.endpoints)
-	.map((endpoint) => ({
-		url: endpoint.locator,
+export const zeroGMainnetRpcEndpoints = [
+	{
+		url: 'https://evmrpc.0g.ai',
 		transportType: TransportType.Http,
 		providerName: '0G',
-	}))
+		origin: 'https://evmrpc.0g.ai',
+		corsEnabled: false,
+	},
+] as const
+
+export const zeroGOrigins = zeroGMainnetRpcEndpoints.map(({ origin, corsEnabled }) => ({
+	origin,
+	corsEnabled,
+}))

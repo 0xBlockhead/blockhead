@@ -1,6 +1,8 @@
 import { corsFetch, fetchFailedMessage } from '$/lib/http.ts'
-import { dexscreenerOrigins } from '$/sources/Dexscreener/index.ts'
-import { baseUrl } from '$/sources/Dexscreener/OpenApi/constants.ts'
+import {
+	baseUrl,
+	dexscreenerOrigins,
+} from '$/sources/Dexscreener/OpenApi/constants.ts'
 
 export const getDexscreenerJson = async <_Response>(
 	pathAndQuery: string

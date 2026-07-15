@@ -1,3 +1,11 @@
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+export type OpenAIModel = {
+	readonly id: string
+	readonly object: 'model'
+	readonly created: number
+	readonly owned_by: string
+}
 
-export type OpenAIJson = JsonValue
+export type OpenAIModelList = {
+	readonly object: 'list'
+	readonly data: readonly OpenAIModel[]
+}

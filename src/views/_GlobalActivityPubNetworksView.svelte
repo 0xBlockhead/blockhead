@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'ActivityPub observeds',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalActivityPubNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalActivityPubNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -109,11 +110,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: globalActivityPubNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalActivityPubNetwork> })}
+				{#snippet Item({ item: globalActivityPubNetwork })}
 					{@const globalActivityPubNetworkFields = { ...globalActivityPubNetwork[EntityMetaKey.Selector], ...globalActivityPubNetwork }}
+					{@const selection = select(EntityType._GlobalActivityPubNetwork, globalActivityPubNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const globalActivityPubNetworkHrefFields = { ...globalActivityPubNetwork, ...globalActivityPubNetwork[EntityMetaKey.Selector] }}
 					<GlobalActivityPubNetworkView
-						selection={select(EntityType._GlobalActivityPubNetwork, globalActivityPubNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={globalActivityPubNetworkFields}
+						href={(globalActivityPubNetwork[EntityMetaKey.Selector].scope === '_GlobalActivityPubNetwork' ? resolve('/activitypub') : undefined)}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

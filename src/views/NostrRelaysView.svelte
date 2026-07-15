@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Nostr relays',
 		typeAnnotationParagraphs = ['A Nostr relay is a WebSocket endpoint that can publish, store, and serve signed events; relay metadata is optional NIP-11 source data.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NostrRelay>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrRelay>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -70,7 +71,6 @@
 					Source.Constants_Internal,
 				],
 				fields: {
-					name: true,
 					relayUrl: true,
 				},
 			})
@@ -114,11 +114,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: nostrRelay }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrRelay> })}
+				{#snippet Item({ item: nostrRelay })}
 					{@const nostrRelayFields = { ...nostrRelay[EntityMetaKey.Selector], ...nostrRelay }}
+					{@const selection = select(EntityType.NostrRelay, nostrRelay[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const nostrRelayHrefFields = { ...nostrRelay, ...nostrRelay[EntityMetaKey.Selector] }}
 					<NostrRelayView
-						selection={select(EntityType.NostrRelay, nostrRelay[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={nostrRelayFields}
+						href={
+							(nostrRelayHrefFields.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]', {
+								relayKey: String(nostrRelayHrefFields.relayUrl ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Title}
 						open={false}
 					/>

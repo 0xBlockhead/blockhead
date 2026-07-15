@@ -1,6 +1,6 @@
 import { getText } from '$/lib/http.ts'
 import { zeroGMainnetExplorerEndpoints } from '$/sources/ZeroG/ChainScan/Rest/endpoints.ts'
-import { zeroGOrigins } from '$/sources/ZeroG/index.ts'
+import { zeroGOrigins } from '$/sources/ZeroG/ChainScan/Rest/endpoints.ts'
 import type { ZeroGChainScanInfo } from '$/sources/ZeroG/ChainScan/Rest/types.ts'
 
 export const getInfo = () => ({

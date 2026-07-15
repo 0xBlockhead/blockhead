@@ -22,6 +22,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 
 	const selectorMappings: {
 		entityType: EntityType
+		selectorName: string
 		selector: EntitySelector<typeof schema, EntityType>
 	}[] = []
 
@@ -35,10 +36,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(evmTransactionEvmNetworkTxHashSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.EvmTransaction, selector: evmTransactionEvmNetworkTxHashSelector })
+			selectorMappings.push({ entityType: EntityType.EvmTransaction, selectorName: 'EvmNetworkTxHash', selector: evmTransactionEvmNetworkTxHashSelector })
 	}
 
-	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')) && matchSolanaSignature(params.transactionId)) {
+	if (((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')) && projectionNetwork.namespace === 'Solana') && matchSolanaSignature(params.transactionId)) {
 		const solanaTransactionNetworkSignatureSelector = parseEntitySelector(
 			schema,
 			SolanaTransactionSchema,
@@ -48,10 +49,18 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(solanaTransactionNetworkSignatureSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.SolanaTransaction, selector: solanaTransactionNetworkSignatureSelector })
+			selectorMappings.push({ entityType: EntityType.SolanaTransaction, selectorName: 'NetworkSignature', selector: solanaTransactionNetworkSignatureSelector })
 	}
 
-	if ((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && matchUtxoTxId(params.transactionId)) {
+	if (((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && [
+	'Bitcoin',
+	'BitcoinCash',
+	'Cardano',
+	'Dogecoin',
+	'Elements',
+	'Litecoin',
+	'Zcash',
+].includes(projectionNetwork.namespace)) && matchUtxoTxId(params.transactionId)) {
 		const utxoTransactionNetworkTxIdSelector = parseEntitySelector(
 			schema,
 			UtxoTransactionSchema,
@@ -61,7 +70,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			}
 		)
 		if (!(utxoTransactionNetworkTxIdSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.UtxoTransaction, selector: utxoTransactionNetworkTxIdSelector })
+			selectorMappings.push({ entityType: EntityType.UtxoTransaction, selectorName: 'NetworkTxId', selector: utxoTransactionNetworkTxIdSelector })
 	}
 
 	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')

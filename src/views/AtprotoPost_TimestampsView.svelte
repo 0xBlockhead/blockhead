@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'AT Protocol post observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AtprotoPost_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.AtprotoPost_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,11 +113,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: atprotoPostTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AtprotoPost_Timestamp> })}
+				{#snippet Item({ item: atprotoPostTimestamp })}
 					{@const atprotoPostTimestampFields = { ...atprotoPostTimestamp[EntityMetaKey.Selector], ...atprotoPostTimestamp }}
+					{@const selection = select(EntityType.AtprotoPost_Timestamp, atprotoPostTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const atprotoPostTimestampHrefFields = { ...atprotoPostTimestamp, ...atprotoPostTimestamp[EntityMetaKey.Selector] }}
 					<AtprotoPost_TimestampView
-						selection={select(EntityType.AtprotoPost_Timestamp, atprotoPostTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={atprotoPostTimestampFields}
 						href={
 							(atprotoPostTimestampHrefFields.timestampMs !== undefined && atprotoPostTimestampHrefFields.$post !== undefined && atprotoPostTimestampHrefFields.$post.uri !== undefined ? resolve('/atproto/post/[...uri=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {

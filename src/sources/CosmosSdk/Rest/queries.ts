@@ -1,5 +1,4 @@
 import { getJson } from '$/lib/http.ts'
-import { cosmosSdkOrigins } from '$/sources/CosmosSdk/index.ts'
 import type {
 	CosmosSdkAccountResponse,
 	CosmosSdkBalancesResponse,
@@ -16,6 +15,13 @@ import type {
 	CosmosSdkValidatorResponse,
 	CosmosSdkValidatorsResponse,
 } from '$/sources/CosmosSdk/Rest/types.ts'
+
+const cosmosSdkOrigins = [
+	{
+		origin: 'https://cosmos-rest.publicnode.com',
+		corsEnabled: true,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

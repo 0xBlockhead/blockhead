@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'TON workchains',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.TonWorkchain>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.TonWorkchain>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -103,10 +103,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: tonWorkchain }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonWorkchain> })}
+				{#snippet Item({ item: tonWorkchain })}
 					{@const tonWorkchainFields = { ...tonWorkchain[EntityMetaKey.Selector], ...tonWorkchain }}
+					{@const selection = select(EntityType.TonWorkchain, tonWorkchain[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<TonWorkchainView
-						selection={select(EntityType.TonWorkchain, tonWorkchain[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={tonWorkchainFields}
 						layout={EntityLayout.Summary}
 						open={false}

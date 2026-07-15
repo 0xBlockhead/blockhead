@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Token mints',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SolanaTokenMint>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.SolanaTokenMint>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -68,7 +69,6 @@
 			selection({
 				fields: {
 					mintAddress: true,
-					supply: true,
 					$network: true,
 				},
 			})
@@ -112,16 +112,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: solanaTokenMint }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaTokenMint> })}
+				{#snippet Item({ item: solanaTokenMint })}
 					{@const solanaTokenMintFields = { ...solanaTokenMint[EntityMetaKey.Selector], ...solanaTokenMint }}
+					{@const selection = select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const solanaTokenMintHrefFields = { ...solanaTokenMint, ...solanaTokenMint[EntityMetaKey.Selector] }}
 					<SolanaTokenMintView
-						selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={solanaTokenMintFields}
 						href={
-							(solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.slug !== undefined && solanaTokenMintHrefFields.mintAddress !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-								network: String(solanaTokenMintHrefFields.$network.slug ?? ''),
+							(solanaTokenMintHrefFields.mintAddress !== undefined && solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
 								mintAddress: String(solanaTokenMintHrefFields.mintAddress ?? ''),
+								network: String(caip2StringFromValue(solanaTokenMintHrefFields.$network.caip2) ?? ''),
+							}) : solanaTokenMintHrefFields.mintAddress !== undefined && solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
+								mintAddress: String(solanaTokenMintHrefFields.mintAddress ?? ''),
+								network: String(solanaTokenMintHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

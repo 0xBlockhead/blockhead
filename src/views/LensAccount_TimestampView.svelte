@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.LensAccount_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.LensAccount_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.LensAccount_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensAccount_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -81,6 +80,11 @@
 			{#snippet Pending()}
 				<LensAccountView
 					selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
+					href={
+						(selection.entitySelector.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
+							address: String(selection.entitySelector.$account.address ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -90,6 +94,11 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<LensAccountView
 					selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
+					href={
+						(selection.entitySelector.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
+							address: String(selection.entitySelector.$account.address ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -123,6 +132,11 @@
 				<dd>
 					<LensAccountView
 						selection={select(EntityType.LensAccount, selection.entitySelector.$account, {})}
+						href={
+							(selection.entitySelector.$account.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
+								address: String(selection.entitySelector.$account.address ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

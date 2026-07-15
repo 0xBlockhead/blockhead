@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
@@ -31,8 +31,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmCoinInstance>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmCoinInstance>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmCoinInstance>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmCoinInstance>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -46,20 +46,13 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmCoinInstance = $derived(selection({
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			symbol: true,
-			name: true,
-		},
-	}))
-	const titleFallback = $derived([String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'EVM coin instance')
+	const evmCoinInstance = $derived(selection({}))
+	const titleFallback = $derived('EVM coin instance')
 	const viewDomId = $derived('evm-coin-instance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
 
 	// Components
+	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
@@ -77,10 +70,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.type !== undefined && pendingEntity.type === 'NativeCurrency' && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+		href ?? (pendingEntity.type === 'NativeCurrency' && pendingEntity.type === 'NativeCurrency' && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 			chainId: String(pendingEntity.$network.caip2.reference ?? ''),
 			coinInstanceSlug: String('native' ?? ''),
-		}) : pendingEntity.type !== undefined && pendingEntity.type === 'Erc20Token' && pendingEntity.$contract !== undefined && pendingEntity.$contract.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+		}) : pendingEntity.type === 'Erc20Token' && pendingEntity.type === 'Erc20Token' && pendingEntity.$contract !== undefined && pendingEntity.$contract.address !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
 			coinInstanceSlug: String(pendingEntity.$contract.address ?? ''),
 			chainId: String(pendingEntity.$network.caip2.reference ?? ''),
 		}) : undefined)
@@ -89,15 +82,228 @@
 	bind:open
 	{...EntityViewProps}
 >
+
+	{#snippet Icon()}
+		<ResourceBoundary resource={evmCoinInstance}>
+			{#snippet Pending()}
+				<IconComponent />
+			{/snippet}
+
+			{#snippet children(entity)}
+				<IconComponent />
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
 		<ResourceBoundary resource={evmCoinInstance}>
 			{#snippet Pending()}
-				{[String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'EVM coin instance'}
+				<ProjectionBoundary
+					resource={selection.NativeCurrency}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.symbol({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										symbol: true,
+									},
+								})
+							}
+						>
+							{#snippet children(symbol0)}
+								{#if symbol0 !== undefined && symbol0 !== null}
+									{String((symbol0) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
+
+				<ProjectionBoundary
+					resource={selection.NativeCurrency}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.name({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										name: true,
+									},
+								})
+							}
+						>
+							{#snippet children(name1)}
+								{#if name1 !== undefined && name1 !== null}
+									{String((name1) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
+
+				<ProjectionBoundary
+					resource={selection.Erc20Token}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.symbol({
+									sources: [
+										Source.Blockscout_Rest,
+										Source.Constants_Internal,
+									],
+									fields: {
+										symbol: true,
+									},
+								})
+							}
+						>
+							{#snippet children(symbol2)}
+								{#if symbol2 !== undefined && symbol2 !== null}
+									{String((symbol2) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
+
+				<ProjectionBoundary
+					resource={selection.Erc20Token}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.name({
+									sources: [
+										Source.Blockscout_Rest,
+										Source.Constants_Internal,
+									],
+									fields: {
+										name: true,
+									},
+								})
+							}
+						>
+							{#snippet children(name3)}
+								{#if name3 !== undefined && name3 !== null}
+									{String((name3) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.symbol) ?? ''), String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				<ProjectionBoundary
+					resource={selection.NativeCurrency}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.symbol({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										symbol: true,
+									},
+								})
+							}
+						>
+							{#snippet children(symbol0)}
+								{#if symbol0 !== undefined && symbol0 !== null}
+									{String((symbol0) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
+
+				<ProjectionBoundary
+					resource={selection.NativeCurrency}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.name({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										name: true,
+									},
+								})
+							}
+						>
+							{#snippet children(name1)}
+								{#if name1 !== undefined && name1 !== null}
+									{String((name1) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
+
+				<ProjectionBoundary
+					resource={selection.Erc20Token}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.symbol({
+									sources: [
+										Source.Blockscout_Rest,
+										Source.Constants_Internal,
+									],
+									fields: {
+										symbol: true,
+									},
+								})
+							}
+						>
+							{#snippet children(symbol2)}
+								{#if symbol2 !== undefined && symbol2 !== null}
+									{String((symbol2) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
+
+				<ProjectionBoundary
+					resource={selection.Erc20Token}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.name({
+									sources: [
+										Source.Blockscout_Rest,
+										Source.Constants_Internal,
+									],
+									fields: {
+										name: true,
+									},
+								})
+							}
+						>
+							{#snippet children(name3)}
+								{#if name3 !== undefined && name3 !== null}
+									{String((name3) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -105,113 +311,116 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmCoinInstance}>
 			{#snippet Pending()}
-				{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || 'EVM coin instance'}
+				<ProjectionBoundary
+					resource={selection.NativeCurrency}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.symbol({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										symbol: true,
+									},
+								})
+							}
+						>
+							{#snippet children(symbol0)}
+								{#if symbol0 !== undefined && symbol0 !== null}
+									{String((symbol0) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
+
+				<ProjectionBoundary
+					resource={selection.Erc20Token}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.symbol({
+									sources: [
+										Source.Blockscout_Rest,
+										Source.Constants_Internal,
+									],
+									fields: {
+										symbol: true,
+									},
+								})
+							}
+						>
+							{#snippet children(symbol1)}
+								{#if symbol1 !== undefined && symbol1 !== null}
+									{String((symbol1) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.symbol) ?? ''), String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				<ProjectionBoundary
+					resource={selection.NativeCurrency}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.symbol({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										symbol: true,
+									},
+								})
+							}
+						>
+							{#snippet children(symbol0)}
+								{#if symbol0 !== undefined && symbol0 !== null}
+									{String((symbol0) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
+
+				<ProjectionBoundary
+					resource={selection.Erc20Token}
+				>
+					{#snippet Applicable(projection)}
+						<ResourceBoundary
+							resource={
+								projection.symbol({
+									sources: [
+										Source.Blockscout_Rest,
+										Source.Constants_Internal,
+									],
+									fields: {
+										symbol: true,
+									},
+								})
+							}
+						>
+							{#snippet children(symbol1)}
+								{#if symbol1 !== undefined && symbol1 !== null}
+									{String((symbol1) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+				</ProjectionBoundary>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<div>
-				<dt>Symbol</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									symbol: true,
-								},
-							})
-						}
-					>
-						{#snippet Pending()}
-							{@const symbol = pendingEntity.symbol}
-							{#if symbol !== undefined && symbol !== null}
-								{String((symbol) ?? '')}
-							{/if}
-						{/snippet}
-
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const symbol = resolvedEntity.symbol}
-							{#if symbol !== undefined && symbol !== null}
-								{String((symbol) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							name: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const name = pendingEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const name = resolvedEntity.name}
-					{#if name !== undefined && name !== null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{String((name) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<div>
-				<dt>Coin ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									coinId: true,
-								},
-							})
-						}
-					>
-						{#snippet Pending()}
-							{@const coinId = pendingEntity.coinId}
-							{#if coinId !== undefined && coinId !== null}
-								{String((coinId) ?? '')}
-							{/if}
-						{/snippet}
-
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const coinId = resolvedEntity.coinId}
-							{#if coinId !== undefined && coinId !== null}
-								{String((coinId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
 			<div>
 				<dt>Type</dt>
 				<dd>
@@ -241,160 +450,7 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-		</dl>
 
-		<dl data-column-item="center">
-			<div>
-				<dt>Decimals</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									decimals: true,
-								},
-							})
-						}
-					>
-						{#snippet Pending()}
-							{@const decimals = pendingEntity.decimals}
-							{#if decimals !== undefined && decimals !== null}
-								{String((decimals) ?? '')}
-							{/if}
-						{/snippet}
-
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const decimals = resolvedEntity.decimals}
-							{#if decimals !== undefined && decimals !== null}
-								{String((decimals) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							caip19: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const caip19 = pendingEntity.caip19}
-					{#if caip19 !== undefined && caip19 !== null}
-						<div>
-							<dt>CAIP-19</dt>
-							<dd>
-								{String((caip19) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const caip19 = resolvedEntity.caip19}
-					{#if caip19 !== undefined && caip19 !== null}
-						<div>
-							<dt>CAIP-19</dt>
-							<dd>
-								{String((caip19) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							representation: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const representation = pendingEntity.representation}
-					{#if representation !== undefined && representation !== null}
-						<div>
-							<dt>Representation</dt>
-							<dd>
-								{String((representation) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const representation = resolvedEntity.representation}
-					{#if representation !== undefined && representation !== null}
-						<div>
-							<dt>Representation</dt>
-							<dd>
-								{String((representation) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							iconUrl: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const iconUrl = pendingEntity.iconUrl}
-					{#if iconUrl !== undefined && iconUrl !== null}
-						<div>
-							<dt>Icon URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(iconUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(iconUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const iconUrl = resolvedEntity.iconUrl}
-					{#if iconUrl !== undefined && iconUrl !== null}
-						<div>
-							<dt>Icon URL</dt>
-							<dd>
-								<svelte:element
-									this={'a'}
-									href={String(iconUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(iconUrl)} />
-								</svelte:element>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
 			<div>
 				<dt>Network</dt>
 				<dd>
@@ -427,67 +483,12 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
+										(evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
 											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$canonicalInstance}
-			>
-				{#snippet Pending()}{/snippet}
-
-				{#snippet children(evmCoinInstance)}
-					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>Canonical instance</dt>
-							<dd>
-								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									prefetched={evmCoinInstance}
-									href={
-										(evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-											coinInstanceSlug: String('native' ?? ''),
-										}) : evmCoinInstance[EntityMetaKey.Selector].type !== undefined && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-											coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
-											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$icon}
-			>
-				{#snippet Pending()}{/snippet}
-
-				{#snippet children(media)}
-					{#if media != null && media[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>Icon</dt>
-							<dd>
-								<MediaView
-									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
-									prefetched={media}
-									href={
-										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
-											url: String(media[EntityMetaKey.Selector].url ?? ''),
+											network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : evmContract[EntityMetaKey.Selector].address !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}
@@ -499,61 +500,704 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<dl data-column-item="center">
+			<ProjectionBoundary
+				resource={selection.NativeCurrency}
+			>
+				{#snippet Applicable(projection)}
+					<div>
+						<dt>Symbol</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection.symbol({
+										sources: [
+											Source.Constants_Internal,
+										],
+										fields: {
+											symbol: true,
+										},
+									})
+								}
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(symbol)}
+									{#if symbol !== undefined && symbol !== null}
+										{String((symbol) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<ResourceBoundary
+						resource={
+							projection.name({
+								sources: [
+									Source.Constants_Internal,
+								],
+								fields: {
+									name: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(name)}
+							{#if name !== undefined && name !== null}
+								<div>
+									<dt>Name</dt>
+									<dd>
+										{String((name) ?? '')}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<div>
+						<dt>Coin ID</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection.coinId({
+										sources: [
+											Source.Constants_Internal,
+										],
+										fields: {
+											coinId: true,
+										},
+									})
+								}
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(coinId)}
+									{#if coinId !== undefined && coinId !== null}
+										{String((coinId) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/snippet}
+			</ProjectionBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ProjectionBoundary
+				resource={selection.NativeCurrency}
+			>
+				{#snippet Applicable(projection)}
+					<div>
+						<dt>Decimals</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection.decimals({
+										sources: [
+											Source.Constants_Internal,
+										],
+										fields: {
+											decimals: true,
+										},
+									})
+								}
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(decimals)}
+									{#if decimals !== undefined && decimals !== null}
+										{String((decimals) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<ResourceBoundary
+						resource={
+							projection.caip19({
+								sources: [
+									Source.Constants_Internal,
+								],
+								fields: {
+									caip19: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(caip19)}
+							{#if caip19 !== undefined && caip19 !== null}
+								<div>
+									<dt>CAIP-19</dt>
+									<dd>
+										{String((caip19) ?? '')}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={
+							projection.representation({
+								sources: [
+									Source.Constants_Internal,
+									Source.Coingecko_Rest,
+								],
+								fields: {
+									representation: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(representation)}
+							{#if representation !== undefined && representation !== null}
+								<div>
+									<dt>Representation</dt>
+									<dd>
+										{String((representation) ?? '')}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={
+							projection.iconUrl({
+								fields: {
+									iconUrl: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(iconUrl)}
+							{#if iconUrl !== undefined && iconUrl !== null}
+								<div>
+									<dt>Icon URL</dt>
+									<dd>
+										<svelte:element
+											this={'a'}
+											href={String(iconUrl)}
+											target="_blank"
+											rel="noreferrer noopener"
+										>
+											<TruncatedValue value={String(iconUrl)} />
+										</svelte:element>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ProjectionBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ProjectionBoundary
+				resource={selection.NativeCurrency}
+			>
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={
+							projection.$canonicalInstance({
+								sources: [
+									Source.Coingecko_Rest,
+								],
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+
+						{#snippet children(evmCoinInstance)}
+							{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
+								<div>
+									<dt>Canonical instance</dt>
+									<dd>
+										<EvmCoinInstanceView
+											selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+											prefetched={evmCoinInstance}
+											href={
+												(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+													chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+													coinInstanceSlug: String('native' ?? ''),
+												}) : evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+													coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
+													chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+												}) : undefined)
+											}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.$icon}
+					>
+						{#snippet Pending()}{/snippet}
+
+						{#snippet children(media)}
+							{#if media != null && media[EntityMetaKey.Selector] != null}
+								<div>
+									<dt>Icon</dt>
+									<dd>
+										<MediaView
+											selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
+											prefetched={media}
+											href={
+												(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
+													url: String(media[EntityMetaKey.Selector].url ?? ''),
+												}) : undefined)
+											}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ProjectionBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ProjectionBoundary
+				resource={selection.Erc20Token}
+			>
+				{#snippet Applicable(projection)}
+					<div>
+						<dt>Symbol</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection.symbol({
+										sources: [
+											Source.Blockscout_Rest,
+											Source.Constants_Internal,
+										],
+										fields: {
+											symbol: true,
+										},
+									})
+								}
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(symbol)}
+									{#if symbol !== undefined && symbol !== null}
+										{String((symbol) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<ResourceBoundary
+						resource={
+							projection.name({
+								sources: [
+									Source.Blockscout_Rest,
+									Source.Constants_Internal,
+								],
+								fields: {
+									name: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(name)}
+							{#if name !== undefined && name !== null}
+								<div>
+									<dt>Name</dt>
+									<dd>
+										{String((name) ?? '')}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<div>
+						<dt>Coin ID</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection.coinId({
+										sources: [
+											Source.Blockscout_Rest,
+											Source.Constants_Internal,
+										],
+										fields: {
+											coinId: true,
+										},
+									})
+								}
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(coinId)}
+									{#if coinId !== undefined && coinId !== null}
+										{String((coinId) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/snippet}
+			</ProjectionBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ProjectionBoundary
+				resource={selection.Erc20Token}
+			>
+				{#snippet Applicable(projection)}
+					<div>
+						<dt>Decimals</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection.decimals({
+										sources: [
+											Source.Blockscout_Rest,
+											Source.Constants_Internal,
+										],
+										fields: {
+											decimals: true,
+										},
+									})
+								}
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(decimals)}
+									{#if decimals !== undefined && decimals !== null}
+										{String((decimals) ?? '')}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<ResourceBoundary
+						resource={
+							projection.caip19({
+								sources: [
+									Source.Constants_Internal,
+									Source.Coingecko_Rest,
+								],
+								fields: {
+									caip19: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(caip19)}
+							{#if caip19 !== undefined && caip19 !== null}
+								<div>
+									<dt>CAIP-19</dt>
+									<dd>
+										{String((caip19) ?? '')}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={
+							projection.representation({
+								sources: [
+									Source.Coingecko_Rest,
+								],
+								fields: {
+									representation: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(representation)}
+							{#if representation !== undefined && representation !== null}
+								<div>
+									<dt>Representation</dt>
+									<dd>
+										{String((representation) ?? '')}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={
+							projection.iconUrl({
+								sources: [
+									Source.Blockscout_Rest,
+								],
+								fields: {
+									iconUrl: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(iconUrl)}
+							{#if iconUrl !== undefined && iconUrl !== null}
+								<div>
+									<dt>Icon URL</dt>
+									<dd>
+										<svelte:element
+											this={'a'}
+											href={String(iconUrl)}
+											target="_blank"
+											rel="noreferrer noopener"
+										>
+											<TruncatedValue value={String(iconUrl)} />
+										</svelte:element>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ProjectionBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ProjectionBoundary
+				resource={selection.Erc20Token}
+			>
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={
+							projection.$canonicalInstance({
+								sources: [
+									Source.Coingecko_Rest,
+								],
+							})
+						}
+					>
+						{#snippet Pending()}{/snippet}
+
+						{#snippet children(evmCoinInstance)}
+							{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
+								<div>
+									<dt>Canonical instance</dt>
+									<dd>
+										<EvmCoinInstanceView
+											selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+											prefetched={evmCoinInstance}
+											href={
+												(evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+													chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+													coinInstanceSlug: String('native' ?? ''),
+												}) : evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].type === 'Erc20Token' && evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
+													coinInstanceSlug: String(evmCoinInstance[EntityMetaKey.Selector].$contract.address ?? ''),
+													chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+												}) : undefined)
+											}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.$icon}
+					>
+						{#snippet Pending()}{/snippet}
+
+						{#snippet children(media)}
+							{#if media != null && media[EntityMetaKey.Selector] != null}
+								<div>
+									<dt>Icon</dt>
+									<dd>
+										<MediaView
+											selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
+											prefetched={media}
+											href={
+												(media[EntityMetaKey.Selector].url !== undefined ? resolve('/media/[url=absoluteUrl]', {
+													url: String(media[EntityMetaKey.Selector].url ?? ''),
+												}) : undefined)
+											}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ProjectionBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<CoinBridgeCapabilitiesView
-				selection={
-						selection.$$outboundBridgeCapabilities({
-							sources: [
-								Source.Lifi_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Outbound bridge capabilities'
-				emptyText='No outbound bridge capabilities for this instance yet.'
-				id='CoinBridgeCapabilitiesView-outbound-bridge-capabilities'
-			/>
+			<ProjectionBoundary
+				resource={selection.NativeCurrency}
+			>
+				{#snippet Applicable(projection)}
+					<CoinBridgeCapabilitiesView
+						selection={
+							projection.$$outboundBridgeCapabilities({
+								sources: [
+									Source.Lifi_Rest,
+								],
+								count: true,
+							})
+						}
+						title='Outbound bridge capabilities'
+						emptyText='No outbound bridge capabilities for this instance yet.'
+						id='CoinBridgeCapabilitiesView-outbound-bridge-capabilities'
+					/>
+				{/snippet}
+			</ProjectionBoundary>
 
-			<CoinBridgeCapabilitiesView
-				selection={
-						selection.$$inboundBridgeCapabilities({
-							sources: [
-								Source.Lifi_Rest,
-							],
-							count: true,
-						})
-					}
-				title='Inbound bridge capabilities'
-				emptyText='No inbound bridge capabilities for this instance yet.'
-				id='CoinBridgeCapabilitiesView-inbound-bridge-capabilities'
-			/>
+			<ProjectionBoundary
+				resource={selection.NativeCurrency}
+			>
+				{#snippet Applicable(projection)}
+					<CoinBridgeCapabilitiesView
+						selection={
+							projection.$$inboundBridgeCapabilities({
+								sources: [
+									Source.Lifi_Rest,
+								],
+								count: true,
+							})
+						}
+						title='Inbound bridge capabilities'
+						emptyText='No inbound bridge capabilities for this instance yet.'
+						id='CoinBridgeCapabilitiesView-inbound-bridge-capabilities'
+					/>
+				{/snippet}
+			</ProjectionBoundary>
 
-			<MarketsView
-				selection={
-						selection.$$marketsWithInstanceAsBase({
-							count: true,
-						})
-					}
-				title='Markets with instance as base'
-				href={resolve('/markets')}
-				emptyText='No markets use this instance as base yet.'
-				id='MarketsView-markets-with-instance-as-base'
-			/>
+			<ProjectionBoundary
+				resource={selection.NativeCurrency}
+			>
+				{#snippet Applicable(projection)}
+					<MarketsView
+						selection={
+							projection.$$marketsWithInstanceAsBase({
+								count: true,
+							})
+						}
+						title='Markets with instance as base'
+						href={resolve('/markets')}
+						emptyText='No markets use this instance as base yet.'
+						id='MarketsView-markets-with-instance-as-base'
+					/>
+				{/snippet}
+			</ProjectionBoundary>
 
-			<MarketsView
-				selection={
-						selection.$$marketsWithInstanceAsQuote({
-							count: true,
-						})
-					}
-				title='Markets with instance as quote'
-				href={resolve('/markets')}
-				emptyText='No markets use this instance as quote yet.'
-				id='MarketsView-markets-with-instance-as-quote'
-			/>
+			<ProjectionBoundary
+				resource={selection.NativeCurrency}
+			>
+				{#snippet Applicable(projection)}
+					<MarketsView
+						selection={
+							projection.$$marketsWithInstanceAsQuote({
+								count: true,
+							})
+						}
+						title='Markets with instance as quote'
+						href={resolve('/markets')}
+						emptyText='No markets use this instance as quote yet.'
+						id='MarketsView-markets-with-instance-as-quote'
+					/>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Erc20Token}
+			>
+				{#snippet Applicable(projection)}
+					<CoinBridgeCapabilitiesView
+						selection={
+							projection.$$outboundBridgeCapabilities({
+								sources: [
+									Source.Lifi_Rest,
+								],
+								count: true,
+							})
+						}
+						title='Outbound bridge capabilities'
+						emptyText='No outbound bridge capabilities for this instance yet.'
+						id='CoinBridgeCapabilitiesView-outbound-bridge-capabilities'
+					/>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Erc20Token}
+			>
+				{#snippet Applicable(projection)}
+					<CoinBridgeCapabilitiesView
+						selection={
+							projection.$$inboundBridgeCapabilities({
+								sources: [
+									Source.Lifi_Rest,
+								],
+								count: true,
+							})
+						}
+						title='Inbound bridge capabilities'
+						emptyText='No inbound bridge capabilities for this instance yet.'
+						id='CoinBridgeCapabilitiesView-inbound-bridge-capabilities'
+					/>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Erc20Token}
+			>
+				{#snippet Applicable(projection)}
+					<MarketsView
+						selection={
+							projection.$$marketsWithInstanceAsBase({
+								count: true,
+							})
+						}
+						title='Markets with instance as base'
+						href={resolve('/markets')}
+						emptyText='No markets use this instance as base yet.'
+						id='MarketsView-markets-with-instance-as-base'
+					/>
+				{/snippet}
+			</ProjectionBoundary>
+
+			<ProjectionBoundary
+				resource={selection.Erc20Token}
+			>
+				{#snippet Applicable(projection)}
+					<MarketsView
+						selection={
+							projection.$$marketsWithInstanceAsQuote({
+								count: true,
+							})
+						}
+						title='Markets with instance as quote'
+						href={resolve('/markets')}
+						emptyText='No markets use this instance as quote yet.'
+						id='MarketsView-markets-with-instance-as-quote'
+					/>
+				{/snippet}
+			</ProjectionBoundary>
 		{/if}
 	{/snippet}
 </EntityView>

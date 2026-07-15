@@ -16,8 +16,8 @@ import { getJson } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
 } from '$/sources/$sources.ts'
-import { etherscanOrigins } from '$/sources/Etherscan/index.ts'
 import {
+	etherscanOrigins,
 	restBaseUrl,
 } from '$/sources/Etherscan/Rest/constants.ts'
 

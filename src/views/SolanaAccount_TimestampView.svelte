@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.SolanaAccount_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.SolanaAccount_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.SolanaAccount_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SolanaAccount_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -59,6 +59,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
+	import SolanaProgramView from '$/views/SolanaProgramView.svelte'
 </script>
 
 
@@ -141,9 +142,12 @@
 					<SolanaAccountView
 						selection={select(EntityType.SolanaAccount, selection.entitySelector.$account, {})}
 						href={
-							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined && selection.entitySelector.$account.pubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrEvmAddressOrSolanaPubkey]', {
-								network: String(selection.entitySelector.$account.$network.slug ?? ''),
+							(selection.entitySelector.$account.pubkey !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
 								accountId: String(selection.entitySelector.$account.pubkey ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$account.pubkey !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+								accountId: String(selection.entitySelector.$account.pubkey ?? ''),
+								network: String(selection.entitySelector.$account.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -184,36 +188,36 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					selection.$ownerProgram({
 						sources: [
+							Source.GetBlockYellowstone_Grpc,
 							Source.Solana_JsonRpc,
 						],
-						fields: {
-							ownerProgramId: true,
-						},
 					})
 				}
 			>
-				{#snippet Pending()}
-					{@const ownerProgramId = pendingEntity.ownerProgramId}
-					{#if ownerProgramId !== undefined && ownerProgramId !== null}
-						<div>
-							<dt>Owner program ID</dt>
-							<dd>
-								{String((ownerProgramId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+				{#snippet Pending()}{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ownerProgramId = resolvedEntity.ownerProgramId}
-					{#if ownerProgramId !== undefined && ownerProgramId !== null}
+				{#snippet children(solanaProgram)}
+					{#if solanaProgram != null && solanaProgram[EntityMetaKey.Selector] != null}
 						<div>
-							<dt>Owner program ID</dt>
+							<dt>Owner program</dt>
 							<dd>
-								{String((ownerProgramId) ?? '')}
+								<SolanaProgramView
+									selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector])}
+									prefetched={solanaProgram}
+									href={
+										(solanaProgram[EntityMetaKey.Selector].programId !== undefined && solanaProgram[EntityMetaKey.Selector].$network !== undefined && solanaProgram[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
+											programId: String(solanaProgram[EntityMetaKey.Selector].programId ?? ''),
+											network: String(caip2StringFromValue(solanaProgram[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : solanaProgram[EntityMetaKey.Selector].programId !== undefined && solanaProgram[EntityMetaKey.Selector].$network !== undefined && solanaProgram[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
+											programId: String(solanaProgram[EntityMetaKey.Selector].programId ?? ''),
+											network: String(solanaProgram[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -224,6 +228,7 @@
 				resource={
 					selection({
 						sources: [
+							Source.GetBlockYellowstone_Grpc,
 							Source.Solana_JsonRpc,
 						],
 						fields: {
@@ -262,6 +267,7 @@
 				resource={
 					selection({
 						sources: [
+							Source.GetBlockYellowstone_Grpc,
 							Source.Solana_JsonRpc,
 						],
 						fields: {
@@ -299,6 +305,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.GetBlockYellowstone_Grpc,
+						],
 						fields: {
 							spaceBytes: true,
 						},
@@ -335,6 +344,7 @@
 				resource={
 					selection({
 						sources: [
+							Source.GetBlockYellowstone_Grpc,
 							Source.Solana_JsonRpc,
 						],
 						fields: {

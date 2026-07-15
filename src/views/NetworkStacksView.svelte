@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Network stacks',
 		typeAnnotationParagraphs = ['A curated protocol-stack classification used by network catalog rows.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NetworkStack>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.NetworkStack>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,11 +111,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: networkStack }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NetworkStack> })}
+				{#snippet Item({ item: networkStack })}
 					{@const networkStackFields = { ...networkStack[EntityMetaKey.Selector], ...networkStack }}
+					{@const selection = select(EntityType.NetworkStack, networkStack[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const networkStackHrefFields = { ...networkStack, ...networkStack[EntityMetaKey.Selector] }}
 					<NetworkStackView
-						selection={select(EntityType.NetworkStack, networkStack[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={networkStackFields}
+						href={
+							(networkStackHrefFields.networkStackId !== undefined ? resolve('/network-stack/[networkStackId=stringSegment]', {
+								networkStackId: String(networkStackHrefFields.networkStackId ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Title}
 						open={false}
 					/>

@@ -1,10 +1,16 @@
 import { getJson } from '$/lib/http.ts'
-import { cashuOrigins } from '$/sources/Cashu/index.ts'
 import type {
 	CashuMintInfoWire,
 	CashuMintKeysWire,
 	CashuMintKeysetsWire,
 } from '$/sources/Cashu/Mint/Rest/types.ts'
+
+const cashuOrigins = [
+	{
+		origin: 'https://8333.space:3338',
+		corsEnabled: false,
+	},
+] as const
 
 const base = (mintUrl: string) => mintUrl.replace(/\/$/, '')
 

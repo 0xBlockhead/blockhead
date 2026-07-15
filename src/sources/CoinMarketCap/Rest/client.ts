@@ -1,8 +1,10 @@
 import { getJson } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { coinMarketCapOrigins } from '$/sources/CoinMarketCap/index.ts'
-import { baseUrl } from '$/sources/CoinMarketCap/Rest/constants.ts'
+import {
+	baseUrl,
+	coinMarketCapOrigins,
+} from '$/sources/CoinMarketCap/Rest/constants.ts'
 
 export const coinMarketCapFetch = async <_Response>(
 	publicEnv: SourcePublicEnv,

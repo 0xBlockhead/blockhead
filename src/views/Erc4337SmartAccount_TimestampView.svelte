@@ -4,12 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -27,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.Erc4337SmartAccount_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.Erc4337SmartAccount_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.Erc4337SmartAccount_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.Erc4337SmartAccount_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -66,11 +67,16 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$account !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.slug !== undefined && pendingEntity.$account.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			network: String(pendingEntity.$account.$network.slug ?? ''),
-			address: String(pendingEntity.$account.address ?? ''),
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.address !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
+			address: String(pendingEntity.$account.address ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$account.$network.caip2) ?? ''),
+		}) : pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$account !== undefined && pendingEntity.$account.address !== undefined && pendingEntity.$account.$network !== undefined && pendingEntity.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			address: String(pendingEntity.$account.address ?? ''),
+			network: String(pendingEntity.$account.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -203,6 +209,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.Blockscout_Rest,
+						],
 						fields: {
 							userOperationsCount: true,
 						},
@@ -243,9 +252,12 @@
 					<Erc4337SmartAccountView
 						selection={select(EntityType.Erc4337SmartAccount, selection.entitySelector.$account, {})}
 						href={
-							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined && selection.entitySelector.$account.address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
-								network: String(selection.entitySelector.$account.$network.slug ?? ''),
+							(selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$account.address ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$account.address !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
+								address: String(selection.entitySelector.$account.address ?? ''),
+								network: String(selection.entitySelector.$account.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

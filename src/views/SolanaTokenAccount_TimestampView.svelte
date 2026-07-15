@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.SolanaTokenAccount_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.SolanaTokenAccount_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.SolanaTokenAccount_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SolanaTokenAccount_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -140,9 +140,12 @@
 					<SolanaTokenAccountView
 						selection={select(EntityType.SolanaTokenAccount, selection.entitySelector.$tokenAccount, {})}
 						href={
-							(selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.slug !== undefined && selection.entitySelector.$tokenAccount.tokenAccountPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-								network: String(selection.entitySelector.$tokenAccount.$network.slug ?? ''),
+							(selection.entitySelector.$tokenAccount.tokenAccountPubkey !== undefined && selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
 								tokenAccountPubkey: String(selection.entitySelector.$tokenAccount.tokenAccountPubkey ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$tokenAccount.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$tokenAccount.tokenAccountPubkey !== undefined && selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
+								tokenAccountPubkey: String(selection.entitySelector.$tokenAccount.tokenAccountPubkey ?? ''),
+								network: String(selection.entitySelector.$tokenAccount.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}

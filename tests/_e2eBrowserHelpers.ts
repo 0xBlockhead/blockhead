@@ -16,12 +16,12 @@ import {
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
-import { voltaireJsonRpcTransportWithOriginsByChainId } from '$/sources/Voltaire/index.ts'
+import { voltaireJsonRpcTransportWithOriginsByChainId } from '$/sources/Voltaire/JsonRpc/queries.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	ClientProbe as BlockheadClientProbe,
 	PersistenceTraceEvent,
-} from '$/client/$e2eProbe.ts'
+} from './e2e/$e2eProbe.ts'
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
@@ -277,172 +277,220 @@ export const installBoundaryProbe = (page: Page) => (
 		const boundaryProbeIdByElement = new WeakMap<Element, string>()
 		const activeLoadingById = new Map<string, BoundaryLoadingProbeRow>()
 
-		const boundaryProbeId = (element: Element) => {
-			const existing = boundaryProbeIdByElement.get(element)
-			if (existing != null) return existing
-			const id = String(++nextBoundaryProbeId)
-			boundaryProbeIdByElement.set(element, id)
-			return id
-		}
-
-		const rowMessage = (element: Element) => {
-			const ariaLabel = element.getAttribute('aria-label')?.trim()
-			if (ariaLabel)
-				return ariaLabel.slice(0, 500)
-			return (
-				element.textContent.replace(/\s+/g, ' ').trim().slice(0, 500)
-
-			)
-		}
-		const rowContext = (element: Element) => {
-			const pieces = []
-			const detailTerm = element.closest('dd')?.previousElementSibling
-			if (detailTerm?.matches('dt'))
-				pieces.push(`field=${detailTerm.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)}`)
-
-			for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement) {
-				const entityType = parent.getAttribute('data-entity-field-type')
-				const fieldName = parent.getAttribute('data-entity-field-name')
-				if (entityType || fieldName)
-					pieces.push(`resource=${entityType || '?entity'}.${fieldName || '?field'}`)
-
-				const scrollMarkerLabel = parent.getAttribute('data-scroll-marker-label')
-				if (scrollMarkerLabel)
-					pieces.push(`section=${scrollMarkerLabel}`)
-
-				const ariaLabel = parent.getAttribute('aria-label')
+		const boundaryProbe = {
+			boundaryProbeId(element: Element) {
+				const existing = boundaryProbeIdByElement.get(element)
+				if (existing != null) return existing
+				const id = String(++nextBoundaryProbeId)
+				boundaryProbeIdByElement.set(element, id)
+				return id
+			},
+			rowMessage(element: Element) {
+				const ariaLabel = element.getAttribute('aria-label')?.trim()
 				if (ariaLabel)
-					pieces.push(ariaLabel)
-
-				const id = parent.getAttribute('id')
-				if (id)
-					pieces.push(`id=#${id}`)
-			}
-
-			const heading = element
-				.closest('section, article, details, [data-scroll-marker-label], [data-card]')
-				?.querySelector('h1, h2, h3, h4, h5, h6, summary')
-				?.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)
-			if (heading)
-				pieces.push(`heading=${heading}`)
-
-			if (pieces.length === 0) {
-				for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement)
-					pieces.push(`${parent.tagName.toLowerCase()}${parent.id ? `#${parent.id}` : ''}`)
-			}
-
-			return [...new Set(pieces)].slice(0, 8).join(' > ')
-		}
-
-		const rowKey = (element: Element) => (
-			element.getAttribute('data-error')
-			?? element.getAttribute('aria-label')
-		)
-
-		const domKindForElement = (element: Element) => (
-			element.matches('[data-error], [role="alert"]') ?
-				'dom-failed' as const
-			:
-				element.matches('[data-tag].inline-placeholder:not([aria-busy="true"])') ?
-					'dom-failed' as const
-				:
-					element.matches('.loading, [aria-busy="true"]') ?
-						'dom-loading' as const
-					:
-						null
-		)
-
-		window.__blockheadBoundaryProbe = []
-		window.__blockheadBoundaryProbeActive = []
-
-		const syncActiveRows = () => {
-			window.__blockheadBoundaryProbeActive = [...activeLoadingById.values()]
-		}
-
-		const pushBoundaryEvent = (
-			kind: BoundaryUpdateEvent['kind'],
-			id: string | null,
-			key: string | null,
-			message: string,
-			context: string
-		) => {
-			(window.__blockheadBoundaryProbe ??= []).push({
-				at: Date.now(),
-				kind,
-				id,
-				key,
-				message,
-				context,
-			})
-		}
-
-		const resolveLoading = (
-			id: string,
-			key: string | null,
-			message: string,
-			context: string
-		) => {
-			if (!activeLoadingById.has(id)) return
-			activeLoadingById.delete(id)
-			syncActiveRows()
-			pushBoundaryEvent(
-				'dom-resolved',
-				id,
-				key,
-				message,
-				context
-			)
-		}
-
-		const syncBoundaryElement = (element: Element) => {
-			const kind = domKindForElement(element)
-			const id = boundaryProbeId(element)
-			const key = rowKey(element)
-			const message = rowMessage(element)
-			const context = rowContext(element)
-
-			if (kind === 'dom-loading') {
-				if (!activeLoadingById.has(id)) {
-					activeLoadingById.set(id, {
-						id,
-						startedAt: Date.now(),
-						key,
-						message,
-						context,
-					})
-					syncActiveRows()
-					pushBoundaryEvent(
-						'dom-loading',
-						id,
-						key,
-						message,
-						context
-					)
+					return ariaLabel.slice(0, 500)
+				return (
+					element.textContent.replace(/\s+/g, ' ').trim().slice(0, 500)
+				)
+			},
+			rowContext(element: Element) {
+				const pieces = []
+				const detailTerm = element.closest('dd')?.previousElementSibling
+				if (detailTerm?.matches('dt'))
+					pieces.push(`field=${detailTerm.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)}`)
+				for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement) {
+					const entityType = parent.getAttribute('data-entity-field-type')
+					const fieldName = parent.getAttribute('data-entity-field-name')
+					if (entityType || fieldName)
+						pieces.push(`resource=${entityType || '?entity'}.${fieldName || '?field'}`)
+					const scrollMarkerLabel = parent.getAttribute('data-scroll-marker-label')
+					if (scrollMarkerLabel)
+						pieces.push(`section=${scrollMarkerLabel}`)
+					const ariaLabel = parent.getAttribute('aria-label')
+					if (ariaLabel)
+						pieces.push(ariaLabel)
+					const id = parent.getAttribute('id')
+					if (id)
+						pieces.push(`id=#${id}`)
 				}
-				return
-			}
-
-			if (kind === 'dom-failed') {
-				resolveLoading(id, key, message, context)
-				pushBoundaryEvent(
-					'dom-failed',
+				const heading = element
+					.closest('section, article, details, [data-scroll-marker-label], [data-card]')
+					?.querySelector('h1, h2, h3, h4, h5, h6, summary')
+					?.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)
+				if (heading)
+					pieces.push(`heading=${heading}`)
+				if (pieces.length === 0) {
+					for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement)
+						pieces.push(`${parent.tagName.toLowerCase()}${parent.id ? `#${parent.id}` : ''}`)
+				}
+				return [...new Set(pieces)].slice(0, 8).join(' > ')
+			},
+			rowKey(element: Element) {
+				return (
+					element.getAttribute('data-error')
+					?? element.getAttribute('aria-label')
+				)
+			},
+			domKindForElement(element: Element) {
+				return (
+					element.matches('[data-error], [role="alert"]') ?
+						'dom-failed' as const
+					:
+						element.matches('[data-tag].inline-placeholder:not([aria-busy="true"])') ?
+							'dom-failed' as const
+						:
+							element.matches('.loading, [aria-busy="true"]') ?
+								'dom-loading' as const
+							:
+								null
+				)
+			},
+			syncActiveRows() {
+				window.__blockheadBoundaryProbeActive = [...activeLoadingById.values()]
+			},
+			pushBoundaryEvent(
+				kind: BoundaryUpdateEvent['kind'],
+				id: string | null,
+				key: string | null,
+				message: string,
+				context: string
+			) {
+				(window.__blockheadBoundaryProbe ??= []).push({
+					at: Date.now(),
+					kind,
+					id,
+					key,
+					message,
+					context,
+				})
+			},
+			resolveLoading(
+				id: string,
+				key: string | null,
+				message: string,
+				context: string
+			) {
+				if (!activeLoadingById.has(id)) return
+				activeLoadingById.delete(id)
+				boundaryProbe.syncActiveRows()
+				boundaryProbe.pushBoundaryEvent(
+					'dom-resolved',
 					id,
 					key,
 					message,
 					context
 				)
-				return
-			}
-
-			resolveLoading(id, key, message, context)
+			},
+			syncBoundaryElement(element: Element) {
+				const kind = boundaryProbe.domKindForElement(element)
+				const id = boundaryProbe.boundaryProbeId(element)
+				const key = boundaryProbe.rowKey(element)
+				const message = boundaryProbe.rowMessage(element)
+				const context = boundaryProbe.rowContext(element)
+				if (kind === 'dom-loading') {
+					if (!activeLoadingById.has(id)) {
+						activeLoadingById.set(id, {
+							id,
+							startedAt: Date.now(),
+							key,
+							message,
+							context,
+						})
+						boundaryProbe.syncActiveRows()
+						boundaryProbe.pushBoundaryEvent(
+							'dom-loading',
+							id,
+							key,
+							message,
+							context
+						)
+					}
+					return
+				}
+				if (kind === 'dom-failed') {
+					boundaryProbe.resolveLoading(id, key, message, context)
+					boundaryProbe.pushBoundaryEvent(
+						'dom-failed',
+						id,
+						key,
+						message,
+						context
+					)
+					return
+				}
+				boundaryProbe.resolveLoading(id, key, message, context)
+			},
+			observeBoundaryNode(node: Node) {
+				if (!(node instanceof Element)) return
+				const candidates = (
+					node.matches(boundarySelector) ?
+						[node]
+					:
+						[...node.querySelectorAll(boundarySelector)]
+				)
+				for (const element of candidates)
+					boundaryProbe.syncBoundaryElement(element)
+			},
+			observeResolvedNode(node: Node) {
+				if (!(node instanceof Element)) return
+				const candidates = (
+					node.matches(boundarySelector) ?
+						[node]
+					:
+						[...node.querySelectorAll(boundarySelector)]
+				)
+				for (const element of candidates)
+					boundaryProbe.resolveLoading(
+						boundaryProbe.boundaryProbeId(element),
+						boundaryProbe.rowKey(element),
+						boundaryProbe.rowMessage(element),
+						boundaryProbe.rowContext(element)
+					)
+			},
+			attachMainObserver(main: Element) {
+				const observer = new MutationObserver((records) => {
+					for (const record of records) {
+						if (
+							record.type === 'attributes'
+							&& record.target instanceof Element
+						) boundaryProbe.syncBoundaryElement(record.target)
+						for (const node of record.addedNodes)
+							boundaryProbe.observeBoundaryNode(node)
+						for (const node of record.removedNodes)
+							boundaryProbe.observeResolvedNode(node)
+					}
+				})
+				observer.observe(main, {
+					childList: true,
+					subtree: true,
+					attributes: true,
+					attributeFilter: [
+						'data-error',
+						'aria-busy',
+						'class',
+					],
+				})
+				boundaryProbe.observeBoundaryNode(main)
+			},
+			tryAttach() {
+				const main = document.querySelector('#main')
+				if (main != null) {
+					boundaryProbe.attachMainObserver(main)
+					return true
+				}
+				return false
+			},
 		}
+
+		window.__blockheadBoundaryProbe = []
+		window.__blockheadBoundaryProbeActive = []
 
 		const origConsoleError = console.error
 		console.error = (...args: Parameters<typeof console.error>) => {
 			const text = args.map((arg) => String(arg)).join(' ')
 			if (text.includes('[blockhead:boundary:uncaught]')) {
 				const keyMatch = text.match(/\[blockhead:boundary:uncaught\]\s+(\S+)/)
-				pushBoundaryEvent(
+				boundaryProbe.pushBoundaryEvent(
 					'console-uncaught',
 					null,
 					keyMatch?.[1] ?? null,
@@ -452,7 +500,7 @@ export const installBoundaryProbe = (page: Page) => (
 			}
 			else if (text.includes('[blockhead:boundary]')) {
 				const keyMatch = text.match(/\[blockhead:boundary\]\s+(\S+)/)
-				pushBoundaryEvent(
+				boundaryProbe.pushBoundaryEvent(
 					'console-failed',
 					null,
 					keyMatch?.[1] ?? null,
@@ -463,78 +511,9 @@ export const installBoundaryProbe = (page: Page) => (
 			origConsoleError.apply(console, args)
 		}
 
-		const observeBoundaryNode = (node: Node) => {
-			if (!(node instanceof Element)) return
-
-			const candidates = (
-				node.matches(boundarySelector) ?
-					[node]
-				:
-					[...node.querySelectorAll(boundarySelector)]
-			)
-
-			for (const element of candidates)
-				syncBoundaryElement(element)
-		}
-
-		const observeResolvedNode = (node: Node) => {
-			if (!(node instanceof Element)) return
-
-			const candidates = (
-				node.matches(boundarySelector) ?
-					[node]
-				:
-					[...node.querySelectorAll(boundarySelector)]
-			)
-
-			for (const element of candidates)
-				resolveLoading(
-					boundaryProbeId(element),
-					rowKey(element),
-					rowMessage(element),
-					rowContext(element)
-				)
-		}
-
-		const attachMainObserver = (main: Element) => {
-			const observer = new MutationObserver((records) => {
-				for (const record of records) {
-					if (
-						record.type === 'attributes'
-						&& record.target instanceof Element
-					) syncBoundaryElement(record.target)
-
-					for (const node of record.addedNodes)
-						observeBoundaryNode(node)
-					for (const node of record.removedNodes)
-						observeResolvedNode(node)
-				}
-			})
-			observer.observe(main, {
-				childList: true,
-				subtree: true,
-				attributes: true,
-				attributeFilter: [
-					'data-error',
-					'aria-busy',
-					'class',
-				],
-			})
-			observeBoundaryNode(main)
-		}
-
-		const tryAttach = () => {
-			const main = document.querySelector('#main')
-			if (main != null) {
-				attachMainObserver(main)
-				return true
-			}
-			return false
-		}
-
-		if (!tryAttach()) {
+		if (!boundaryProbe.tryAttach()) {
 			const bootObserver = new MutationObserver(() => {
-				if (tryAttach())
+				if (boundaryProbe.tryAttach())
 					bootObserver.disconnect()
 			})
 			bootObserver.observe(document, {
@@ -577,53 +556,52 @@ export const getBoundaryProbeActive = (page: Page) => (
 
 export const snapshotBoundaryMain = (page: Page) => (
 	page.evaluate(() => {
-		const rowMessage = (element: Element) => {
-			const ariaLabel = element.getAttribute('aria-label')?.trim()
-			if (ariaLabel)
-				return ariaLabel.slice(0, 500)
-			return (
-				element.textContent.replace(/\s+/g, ' ').trim().slice(0, 500)
-
-			)
-		}
-		const rowContext = (element: Element) => {
-			const pieces = []
-			const detailTerm = element.closest('dd')?.previousElementSibling
-			if (detailTerm?.matches('dt'))
-				pieces.push(`field=${detailTerm.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)}`)
-
-			for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement) {
-				const entityType = parent.getAttribute('data-entity-field-type')
-				const fieldName = parent.getAttribute('data-entity-field-name')
-				if (entityType || fieldName)
-					pieces.push(`resource=${entityType || '?entity'}.${fieldName || '?field'}`)
-
-				const scrollMarkerLabel = parent.getAttribute('data-scroll-marker-label')
-				if (scrollMarkerLabel)
-					pieces.push(`section=${scrollMarkerLabel}`)
-
-				const ariaLabel = parent.getAttribute('aria-label')
+		const boundarySnapshot = {
+			rowMessage(element: Element) {
+				const ariaLabel = element.getAttribute('aria-label')?.trim()
 				if (ariaLabel)
-					pieces.push(ariaLabel)
+					return ariaLabel.slice(0, 500)
+				return element.textContent.replace(/\s+/g, ' ').trim().slice(0, 500)
+			},
+			rowContext(element: Element) {
+				const pieces = []
+				const detailTerm = element.closest('dd')?.previousElementSibling
+				if (detailTerm?.matches('dt'))
+					pieces.push(`field=${detailTerm.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)}`)
 
-				const id = parent.getAttribute('id')
-				if (id)
-					pieces.push(`id=#${id}`)
-			}
+				for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement) {
+					const entityType = parent.getAttribute('data-entity-field-type')
+					const fieldName = parent.getAttribute('data-entity-field-name')
+					if (entityType || fieldName)
+						pieces.push(`resource=${entityType || '?entity'}.${fieldName || '?field'}`)
 
-			const heading = element
-				.closest('section, article, details, [data-scroll-marker-label], [data-card]')
-				?.querySelector('h1, h2, h3, h4, h5, h6, summary')
-				?.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)
-			if (heading)
-				pieces.push(`heading=${heading}`)
+					const scrollMarkerLabel = parent.getAttribute('data-scroll-marker-label')
+					if (scrollMarkerLabel)
+						pieces.push(`section=${scrollMarkerLabel}`)
 
-			if (pieces.length === 0) {
-				for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement)
-					pieces.push(`${parent.tagName.toLowerCase()}${parent.id ? `#${parent.id}` : ''}`)
-			}
+					const ariaLabel = parent.getAttribute('aria-label')
+					if (ariaLabel)
+						pieces.push(ariaLabel)
 
-			return [...new Set(pieces)].slice(0, 8).join(' > ')
+					const id = parent.getAttribute('id')
+					if (id)
+						pieces.push(`id=#${id}`)
+				}
+
+				const heading = element
+					.closest('section, article, details, [data-scroll-marker-label], [data-card]')
+					?.querySelector('h1, h2, h3, h4, h5, h6, summary')
+					?.textContent.replace(/\s+/g, ' ').trim().slice(0, 120)
+				if (heading)
+					pieces.push(`heading=${heading}`)
+
+				if (pieces.length === 0) {
+					for (let parent = element.parentElement; parent != null && parent.id !== 'main'; parent = parent.parentElement)
+						pieces.push(`${parent.tagName.toLowerCase()}${parent.id ? `#${parent.id}` : ''}`)
+				}
+
+				return [...new Set(pieces)].slice(0, 8).join(' > ')
+			},
 		}
 
 		const main = document.querySelector('#main')
@@ -646,15 +624,15 @@ export const snapshotBoundaryMain = (page: Page) => (
 				?? element.getAttribute('aria-label')
 			),
 			state: 'failed' as const,
-			message: rowMessage(element),
-			context: rowContext(element),
+			message: boundarySnapshot.rowMessage(element),
+			context: boundarySnapshot.rowContext(element),
 		}))
 
 		const loading = [...main.querySelectorAll('.loading, [aria-busy="true"]')].map((element) => ({
 			key: element.getAttribute('data-error'),
 			state: 'loading' as const,
-			message: rowMessage(element),
-			context: rowContext(element),
+			message: boundarySnapshot.rowMessage(element),
+			context: boundarySnapshot.rowContext(element),
 		}))
 
 		const contentMarkerCount = main.querySelectorAll(
@@ -2448,11 +2426,181 @@ export const MOCK_SUBSCAN_BLOCK_BODY = JSON.stringify({
 export const e2eSolanaTokenAccountPubkey = 'E2eTokenAccount1111111111111111111111111111'
 export const e2eSolanaTokenMintAddress = 'So11111111111111111111111111111111111111112'
 export const e2eSolanaTokenOwnerPubkey = 'ba4df886d2a7c4224bc98efb6cbf3817b0e2b7227c287b692a7c7d0a9e3e86ff'
+export const e2eSolanaAccountPubkey = 'SysvarRent111111111111111111111111111111111'
+export const e2eSolanaAccountLamports = 2_039_280
 export const e2eSolanaSignature = 'E2eSolanaSignature11111111111111111111111111111111111111111111111'
 export const e2eSolanaProgramId = '11111111111111111111111111111111'
 export const e2eSolanaVotePubkey = 'E2eVotePubkey111111111111111111111111111111111111111'
 export const e2eSolanaNodePubkey = 'E2eNodePubkey111111111111111111111111111111111111111'
+export const solanaAccountSourceProofWireKind = (
+	url: string,
+	method: string,
+	browserBaseOrigin: string
+) => {
+	const parsedUrl = new URL(url)
+	if (
+		method === 'POST'
+		&& parsedUrl.origin === 'https://api.mainnet.solana.com'
+	)
+		return 'direct'
+	if (!parsedUrl.pathname.startsWith('/api-proxy/'))
+		return 'other'
+	const proxyTarget = decodeURIComponent(parsedUrl.pathname.slice('/api-proxy/'.length))
+	if (
+		method === 'POST'
+		&& parsedUrl.origin === new URL(browserBaseOrigin).origin
+		&& proxyTarget === 'https://api.mainnet.solana.com'
+		&& !url.includes('?')
+	)
+		return 'exact'
+	return (
+		proxyTarget.includes('api.mainnet.solana.com')
+		|| decodeURIComponent(parsedUrl.search).includes('api.mainnet.solana.com')
+	) ?
+		'near'
+	:
+		'other'
+}
+export const solanaAccountSourceProofWire = (
+	url: string,
+	method: string,
+	browserBaseOrigin: string
+) => (
+	solanaAccountSourceProofWireKind(url, method, browserBaseOrigin) === 'exact'
+)
+type SolanaAccountSourceProofRequest =
+	| {
+		id?: JsonValue
+		method: 'getAccountInfo'
+		params: [
+			pubkey: string,
+			config: {
+				encoding: 'base64'
+			},
+		]
+	}
+	| {
+		id?: JsonValue
+		method: 'getSlot'
+		params: [config: {
+			commitment: 'finalized'
+		}]
+	}
+export const solanaAccountSourceProofBody = (post: SolanaAccountSourceProofRequest) => {
+	const result = (
+		post.method === 'getAccountInfo'
+		&& post.params[0] === e2eSolanaAccountPubkey ?
+			{
+				value: {
+					lamports: e2eSolanaAccountLamports,
+					owner: e2eSolanaProgramId,
+					executable: false,
+					rentEpoch: 0,
+					data: ['', 'base64'],
+				},
+			}
+	:
+		post.method === 'getSlot' ?
+			9_500_000
+		:
+			undefined
+	)
+	if (result === undefined)
+		throw new Error(`unmatched Solana account source proof RPC: ${post.method}`)
+	return JSON.stringify({
+		jsonrpc: '2.0',
+		id: post.id ?? 1,
+		result,
+	})
+}
+type SolanaAccountSourceProofStats = {
+	apiProxyCalls: number
+	getAccountInfoCalls: number
+	getSlotCalls: number
+	directCalls: number
+	nearMatchCalls: number
+	unmatchedCalls: number
+}
+export const assertSolanaAccountSourceProof = (stats: SolanaAccountSourceProofStats) => {
+	expect(stats.apiProxyCalls, 'expected browser Solana JSON-RPC at the /api-proxy request surface').toBeGreaterThan(0)
+	expect(stats.getAccountInfoCalls, 'expected /api-proxy getAccountInfo').toBeGreaterThan(0)
+	expect(stats.getSlotCalls, 'expected /api-proxy getSlot').toBeGreaterThan(0)
+	expect(stats.directCalls, 'expected zero direct Solana RPC requests').toBe(0)
+	expect(stats.nearMatchCalls, 'expected zero near-match Solana /api-proxy requests').toBe(0)
+	expect(stats.unmatchedCalls, 'expected zero unmatched Solana RPC methods').toBe(0)
+}
+export const installSolanaAccountSourceProof = async (
+	page: Page,
+	browserBaseOrigin: string
+) => {
+	const stats: SolanaAccountSourceProofStats = {
+		apiProxyCalls: 0,
+		getAccountInfoCalls: 0,
+		getSlotCalls: 0,
+		directCalls: 0,
+		nearMatchCalls: 0,
+		unmatchedCalls: 0,
+	}
+	await page.route('**/*', async (route) => {
+		const url = route.request().url()
+		const method = route.request().method()
+		const wireKind = solanaAccountSourceProofWireKind(url, method, browserBaseOrigin)
+		if (wireKind === 'direct') {
+			stats.directCalls += 1
+			await route.abort('blockedbyclient')
+			return
+		}
+		if (wireKind === 'near') {
+			stats.nearMatchCalls += 1
+			stats.unmatchedCalls += 1
+			await route.fulfill({
+				status: 400,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					error: 'near-match Solana account source proof request rejected',
+				}),
+			})
+			return
+		}
+		if (wireKind === 'other') {
+			await route.fallback()
+			return
+		}
+		stats.apiProxyCalls += 1
+		const post: SolanaAccountSourceProofRequest = route.request().postDataJSON()
+		if (post.method === 'getAccountInfo')
+			stats.getAccountInfoCalls += 1
+		if (post.method === 'getSlot')
+			stats.getSlotCalls += 1
+		try {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: solanaAccountSourceProofBody(post),
+			})
+		}
+		catch (error) {
+			stats.unmatchedCalls += 1
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					jsonrpc: '2.0',
+					id: post.id ?? 1,
+					error: {
+						code: -32601,
+						message: error instanceof Error ? error.message : String(error),
+					},
+				}),
+			})
+		}
+	})
 
+	return {
+		stats,
+		assert: () => assertSolanaAccountSourceProof(stats),
+	}
+}
 export const solanaJsonRpcWire = (url: string, method: string) => (
 	method === 'POST'
 	&& (
@@ -2623,7 +2771,8 @@ export const solanaJsonRpcBody = (post: {
 			}
 		:
 		post.method === 'getAccountInfo' && (
-			account === e2eSolanaTokenAccountPubkey
+			account === e2eSolanaAccountPubkey
+			|| account === e2eSolanaTokenAccountPubkey
 			|| account === e2eSolanaTokenOwnerPubkey
 			|| account === e2eSolanaTokenMintAddress
 			|| account === e2eSolanaProgramId
@@ -2632,7 +2781,7 @@ export const solanaJsonRpcBody = (post: {
 		) ?
 			{
 				value: {
-					lamports: 1_000_000,
+					lamports: account === e2eSolanaAccountPubkey ? e2eSolanaAccountLamports : 1_000_000,
 					owner: e2eSolanaTokenMintAddress,
 					executable: false,
 					rentEpoch: 0,

@@ -6,8 +6,8 @@
 
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { corsFetch } from '$/lib/http.ts'
+import { blockscoutOrigins } from '$/sources/Blockscout/Http/BlockscoutRestV2/constants.ts'
 import { getJson } from '$/sources/Blockscout/Rest/client.ts'
-import { blockscoutOrigins } from '$/sources/Blockscout/index.ts'
 import {
 	blockscoutV2ItemsCountMax,
 	restPath,

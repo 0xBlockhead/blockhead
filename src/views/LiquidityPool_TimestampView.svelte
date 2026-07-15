@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.LiquidityPool_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.LiquidityPool_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.LiquidityPool_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LiquidityPool_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -73,7 +72,14 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.feedKey !== undefined && pendingEntity.$liquidityPool !== undefined && pendingEntity.$liquidityPool.$network !== undefined && pendingEntity.$liquidityPool.$network.caip2 !== undefined && pendingEntity.$liquidityPool.$network.caip2.reference !== undefined && pendingEntity.$liquidityPool.id !== undefined ? resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			feedKey: String(pendingEntity.feedKey ?? ''),
+			chainId: String(pendingEntity.$liquidityPool.$network.caip2.reference ?? ''),
+			poolId: String(pendingEntity.$liquidityPool.id ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

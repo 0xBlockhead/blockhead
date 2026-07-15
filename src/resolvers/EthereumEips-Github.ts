@@ -11,16 +11,33 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
+import { ethereumEipSpecGithubRepoByLedger } from '$/sources/EthereumEips/Github/constants.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
+
+const ethereumEipsGithubBindingForLedger = (
+	ledger: 'eip' | 'erc'
+) => {
+	const target = ethereumEipSpecGithubRepoByLedger[ledger]
+	const binding = sourceProviderDefinitions
+		.flatMap((provider) => provider.bindings)
+		.find((candidate) => (
+			candidate.source === Source.EthereumEips_Github
+			&& candidate.target.key === `${target.owner}/${target.repo}@${target.ref}:${target.path}`
+		))
+	if (binding == null)
+		throw new Error(`EthereumEips_Github: missing ${ledger.toUpperCase()} source binding`)
+
+	return binding
+}
 
 const ethereumProposalMarkdownBody = async (
 	text: string,
 	ledger: 'eip' | 'erc'
 ) => {
-	const { ethereumEipSpecGithubRepoByLedger } = await import('$/sources/EthereumEips/Github/constants.ts')
 	const target = ethereumEipSpecGithubRepoByLedger[ledger]
 	const githubBlobBase = `https://github.com/${target.owner}/${target.repo}/blob/${target.ref}`
 	const githubBlobPathBase = `${githubBlobBase}/${target.path}/`
@@ -140,6 +157,7 @@ export default {
 				const text = await getProposalMarkdownText({
 					ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
 					number: number,
+					binding: ethereumEipsGithubBindingForLedger(category === ProposalCategory.Erc ? 'erc' : 'eip'),
 				})
 				if (text.trim() === '') throw new Error('EthereumEips_Github: empty proposal markdown')
 				const body = await ethereumProposalMarkdownBody(
@@ -168,7 +186,10 @@ export default {
 				[_GlobalSelector.Scope]: async (_selector, context) => {
 				const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
 				return ethereumEipErcProposalRowsFromGithubSpecs({
-					getContents,
+					getContents: ({ ledger }) => getContents({
+						ledger,
+						binding: ethereumEipsGithubBindingForLedger(ledger),
+					}),
 					context,
 				})
 			}
@@ -194,7 +215,10 @@ export default {
 					}
 					return ethereumEipErcProposalRowsFromGithubSpecs({
 						category,
-						getContents,
+						getContents: ({ ledger }) => getContents({
+							ledger,
+							binding: ethereumEipsGithubBindingForLedger(ledger),
+						}),
 						context,
 					})
 				}

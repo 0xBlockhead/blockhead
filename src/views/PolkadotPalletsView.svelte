@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Pallets',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.PolkadotPallet>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.PolkadotPallet>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: polkadotPallet }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotPallet> })}
+				{#snippet Item({ item: polkadotPallet })}
 					{@const polkadotPalletFields = { ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }}
+					{@const selection = select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const polkadotPalletHrefFields = { ...polkadotPallet, ...polkadotPallet[EntityMetaKey.Selector] }}
 					<PolkadotPalletView
-						selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={polkadotPalletFields}
 						href={
-							(polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.slug !== undefined && polkadotPalletHrefFields.palletName !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-								network: String(polkadotPalletHrefFields.$network.slug ?? ''),
+							(polkadotPalletHrefFields.palletName !== undefined && polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
 								palletName: String(polkadotPalletHrefFields.palletName ?? ''),
+								network: String(caip2StringFromValue(polkadotPalletHrefFields.$network.caip2) ?? ''),
+							}) : polkadotPalletHrefFields.palletName !== undefined && polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
+								palletName: String(polkadotPalletHrefFields.palletName ?? ''),
+								network: String(polkadotPalletHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

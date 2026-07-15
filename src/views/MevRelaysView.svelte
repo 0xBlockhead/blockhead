@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'MEV relays',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.MevRelay>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.MevRelay>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,16 +112,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: mevRelay }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MevRelay> })}
+				{#snippet Item({ item: mevRelay })}
 					{@const mevRelayFields = { ...mevRelay[EntityMetaKey.Selector], ...mevRelay }}
+					{@const selection = select(EntityType.MevRelay, mevRelay[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const mevRelayHrefFields = { ...mevRelay, ...mevRelay[EntityMetaKey.Selector] }}
 					<MevRelayView
-						selection={select(EntityType.MevRelay, mevRelay[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={mevRelayFields}
 						href={
-							(mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.slug !== undefined && mevRelayHrefFields.host !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-								network: String(mevRelayHrefFields.$network.slug ?? ''),
+							(mevRelayHrefFields.host !== undefined && mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
 								host: String(mevRelayHrefFields.host ?? ''),
+								network: String(caip2StringFromValue(mevRelayHrefFields.$network.caip2) ?? ''),
+							}) : mevRelayHrefFields.host !== undefined && mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
+								host: String(mevRelayHrefFields.host ?? ''),
+								network: String(mevRelayHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

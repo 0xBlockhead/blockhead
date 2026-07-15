@@ -1,6 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import { fxEmbedOrigins } from '$/sources/FxEmbed/index.ts'
-import { fxEmbedApiV2Base } from '$/sources/FxEmbed/Rest/constants.ts'
+import {
+	fxEmbedApiV2Base,
+	fxEmbedOrigins,
+} from '$/sources/FxEmbed/Rest/constants.ts'
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
 	const searchParams = new URLSearchParams()

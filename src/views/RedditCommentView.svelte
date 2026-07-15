@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.RedditComment>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.RedditComment>>
+			selection: RegisteredEntityProxyResource<EntityType.RedditComment>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RedditComment>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -70,7 +70,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]', {
+			fullname: String(pendingEntity.fullname ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -272,6 +276,11 @@
 									<RedditLinkView
 										selection={select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector])}
 										prefetched={redditLink}
+										href={
+											(redditLink[EntityMetaKey.Selector].fullname !== undefined ? resolve('/reddit/link/[fullname=stringSegment]', {
+												fullname: String(redditLink[EntityMetaKey.Selector].fullname ?? ''),
+											}) : undefined)
+										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -296,6 +305,11 @@
 									<RedditCommentView
 										selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector])}
 										prefetched={redditComment}
+										href={
+											(redditComment[EntityMetaKey.Selector].fullname !== undefined ? resolve('/reddit/comment/[fullname=stringSegment]', {
+												fullname: String(redditComment[EntityMetaKey.Selector].fullname ?? ''),
+											}) : undefined)
+										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>

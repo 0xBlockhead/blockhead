@@ -2,6 +2,13 @@ export const origin = 'https://api.dexscreener.com' as const
 
 export const baseUrl = origin
 
+export const dexscreenerOrigins = [
+	{
+		origin,
+		corsEnabled: false,
+	},
+] as const
+
 const chains = [
 	{ chainId: 1, apiChainId: 'ethereum' },
 	{ chainId: 10, apiChainId: 'optimism' },

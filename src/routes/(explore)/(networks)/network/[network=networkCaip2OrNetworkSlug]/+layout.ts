@@ -14,6 +14,7 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = ({ params }) => {
 	const selectorMappings: {
 		entityType: EntityType
+		selectorName: string
 		selector: EntitySelector<typeof schema, EntityType>
 	}[] = []
 
@@ -26,7 +27,7 @@ export const load: LayoutLoad = ({ params }) => {
 			}
 		)
 		if (!(networkCaip2Selector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.Network, selector: networkCaip2Selector })
+			selectorMappings.push({ entityType: EntityType.Network, selectorName: 'Caip2', selector: networkCaip2Selector })
 	}
 
 	if (matchNetworkSlug(params.network)) {
@@ -38,7 +39,7 @@ export const load: LayoutLoad = ({ params }) => {
 			}
 		)
 		if (!(networkSlugSelector instanceof arktype.errors))
-			selectorMappings.push({ entityType: EntityType.Network, selector: networkSlugSelector })
+			selectorMappings.push({ entityType: EntityType.Network, selectorName: 'Slug', selector: networkSlugSelector })
 	}
 
 	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')

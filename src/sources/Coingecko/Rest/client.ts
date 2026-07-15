@@ -3,8 +3,8 @@ import {
 } from '$/sources/$sources.ts'
 import { corsFetch } from '$/lib/http.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { coingeckoOrigins } from '$/sources/Coingecko/index.ts'
 import {
+	coingeckoOrigins,
 	demoBaseUrl,
 	proBaseUrl,
 } from '$/sources/Coingecko/Rest/constants.ts'

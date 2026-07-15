@@ -3,8 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { type as arktype } from 'arktype'
 
 import {
-	EntityFieldCardinality,
-	EntityFieldType,
 	EntityMetaKey,
 	entity,
 	facet,
@@ -15,8 +13,13 @@ import {
 	validateEntitySelector,
 	type EntityDefinition,
 	type EntityFieldDefinition,
+	type EntitySelectorForSelectorName,
 	type Schema,
 } from '$/schema/$schema.ts'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+} from '$/schema/EntityField.ts'
 import { NetworkNamespace, networks } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -115,6 +118,29 @@ const fixtureSchema = [
 	Child,
 ] as const satisfies Schema
 
+const completeChildSelector = {
+	$parent: {
+		slug: 'ethereum',
+	},
+	slot: 1n,
+} satisfies EntitySelectorForSelectorName<
+	typeof fixtureSchema,
+	typeof Child.entityType,
+	ChildSelector.ParentSlot
+>
+
+// @ts-expect-error Every field in the chosen selector tuple is required.
+const incompleteChildSelector: EntitySelectorForSelectorName<
+	typeof fixtureSchema,
+	typeof Child.entityType,
+	ChildSelector.ParentSlot
+> = {
+	slot: 1n,
+}
+
+void completeChildSelector
+void incompleteChildSelector
+
 const selectorIsConcrete = (
 	entityDefinition: EntityDefinition,
 	selectorFields: readonly string[]
@@ -123,6 +149,63 @@ const selectorIsConcrete = (
 	&& selectorFields.every((fieldName) => entityDefinition.fields
 		.some((fieldDefinition) => fieldDefinition.name === fieldName))
 )
+
+entity({
+	entityType: 'OptionalSelectorCardinality',
+	labels: {
+		singular: 'optional selector cardinality',
+		plural: 'optional selector cardinalities',
+	},
+})({
+	optionalId: {
+		type: EntityFieldType.Primitive,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: arktype('string'),
+	},
+})({
+	selectors: {
+		Optional: ['optionalId'],
+	},
+})
+
+entity({
+	entityType: 'InvalidSelectorCardinality',
+	labels: {
+		singular: 'invalid selector cardinality',
+		plural: 'invalid selector cardinalities',
+	},
+})({
+	manyId: {
+		type: EntityFieldType.Primitive,
+		cardinality: EntityFieldCardinality.Many,
+		primitiveType: arktype('string'),
+	},
+})({
+	selectors: {
+		// @ts-expect-error Selector identity fields must be singular.
+		Invalid: ['manyId'],
+	},
+})
+
+entity({
+	entityType: 'InvalidEmptySelector',
+	labels: {
+		singular: 'invalid empty selector',
+		plural: 'invalid empty selectors',
+	},
+})({
+	id: {
+		type: EntityFieldType.Primitive,
+		cardinality: EntityFieldCardinality.One,
+		primitiveType: arktype('string'),
+	},
+})({
+	selectors: {
+		// @ts-expect-error Selector identity tuples must be nonempty.
+		Invalid: [],
+	},
+})
+
 
 describe('entity selectors', () => {
 	it('matches exact named selector field sets', () => {
@@ -679,6 +762,11 @@ describe('entity selectors', () => {
 			]?.name
 		).toBe('$$blocks')
 		expect(
+			indexes.entityFieldDefinitionByEntityTypePathAndName.IndexedEntity[
+				entityFieldAddressKey('IndexedEntity', ['Parent', 'Child'], 'childField')
+			]?.name
+		).toBe('childField')
+		expect(
 			indexes.projectionDefinitionByEntityTypeAndPath[
 				entityFieldAddressKey('IndexedEntity', ['Parent', 'Child'], '')
 			]?.directDependencies
@@ -727,7 +815,6 @@ describe('entity selectors', () => {
 			EntityType.LogosBlockchainNetwork,
 			EntityType.NearNetwork,
 			EntityType.QuilibriumShard,
-			EntityType.TronNetwork,
 			EntityType.ZeroGNetwork,
 		])
 

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'ERC-4337 bundler observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Erc4337Bundler_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Erc4337Bundler_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,18 +114,24 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: erc4337BundlerTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337Bundler_Timestamp> })}
+				{#snippet Item({ item: erc4337BundlerTimestamp })}
 					{@const erc4337BundlerTimestampFields = { ...erc4337BundlerTimestamp[EntityMetaKey.Selector], ...erc4337BundlerTimestamp }}
+					{@const selection = select(EntityType.Erc4337Bundler_Timestamp, erc4337BundlerTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const erc4337BundlerTimestampHrefFields = { ...erc4337BundlerTimestamp, ...erc4337BundlerTimestamp[EntityMetaKey.Selector] }}
 					<Erc4337Bundler_TimestampView
-						selection={select(EntityType.Erc4337Bundler_Timestamp, erc4337BundlerTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={erc4337BundlerTimestampFields}
 						href={
-							(erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.slug !== undefined && erc4337BundlerTimestampHrefFields.$bundler.address !== undefined && erc4337BundlerTimestampHrefFields.timestampMs !== undefined && erc4337BundlerTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								network: String(erc4337BundlerTimestampHrefFields.$bundler.$network.slug ?? ''),
-								address: String(erc4337BundlerTimestampHrefFields.$bundler.address ?? ''),
+							(erc4337BundlerTimestampHrefFields.timestampMs !== undefined && erc4337BundlerTimestampHrefFields.source !== undefined && erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.address !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(erc4337BundlerTimestampHrefFields.timestampMs ?? ''),
 								source: String(erc4337BundlerTimestampHrefFields.source ?? ''),
+								address: String(erc4337BundlerTimestampHrefFields.$bundler.address ?? ''),
+								network: String(caip2StringFromValue(erc4337BundlerTimestampHrefFields.$bundler.$network.caip2) ?? ''),
+							}) : erc4337BundlerTimestampHrefFields.timestampMs !== undefined && erc4337BundlerTimestampHrefFields.source !== undefined && erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.address !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								timestampMs: String(erc4337BundlerTimestampHrefFields.timestampMs ?? ''),
+								source: String(erc4337BundlerTimestampHrefFields.source ?? ''),
+								address: String(erc4337BundlerTimestampHrefFields.$bundler.address ?? ''),
+								network: String(erc4337BundlerTimestampHrefFields.$bundler.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

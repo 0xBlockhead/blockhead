@@ -3,11 +3,11 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertLoadedValue,
-	assertResolverDefinitionResult,
+	materializeResolverOutput,
+	ResolverOutputMaterialization,
 } from '$/collections/assertLoadedCollectionRows.ts'
 import {
 	assertLoadedResolverProbeCategories,
-	isExpectedAssertLoadedResolverProbeFailure,
 } from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
 import type { AssertLoadedResolverProbeResult } from '$/routes/api/e2e/assert-loaded-resolvers/_runProbes.ts'
 import RedditPublicJson from '$/resolvers/Reddit-PublicJson.ts'
@@ -16,6 +16,7 @@ import YoutubeRest from '$/resolvers/Youtube-Rest.ts'
 import {
 	EntityMetaKey,
 	entityFieldDefinitions,
+	indexSchema,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
@@ -56,27 +57,37 @@ test.describe('assertLoaded verification', () => {
 		})).toThrow()
 	})
 
-	test('assertResolverDefinitionResult accepts minimal Global row then rejects invalid __selector', () => {
+	test('resolver materialization accepts an exact Global selector then rejects a stale key', () => {
 		const definition = entityDefinitionByType[EntityType._Global]
 		expect(definition).toBeDefined()
+		const schemaIndex = indexSchema([definition])
 
-		const good = {
-			[EntityMetaKey.Selector]: { scope: 'e2e' },
-			[EntityMetaKey.SelectorKey]: stringify({ scope: 'e2e' }),
-			[EntityMetaKey.Source]: Source.Constants_Internal,
-		}
+		expect(() => materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Entity,
+			schema: [definition],
+			schemaIndex,
+			entityDefinition: definition,
+			selector: { scope: 'e2e' },
+			selectorKey: stringify({ scope: 'e2e' }),
+			source: Source.Constants_Internal,
+			snapshot: {},
+		})).not.toThrow()
 
-		expect(() => assertResolverDefinitionResult(definition, good)).not.toThrow()
-
-		expect(() => assertResolverDefinitionResult(definition, {
-			...good,
-			[EntityMetaKey.Selector]: null,
-		})).toThrow()
+		expect(() => materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Entity,
+			schema: [definition],
+			schemaIndex,
+			entityDefinition: definition,
+			selector: { scope: 'e2e' },
+			selectorKey: 'stale',
+			source: Source.Constants_Internal,
+			snapshot: {},
+		})).toThrow(/selector key/)
 	})
 
 	test('schema exposes scalar and array-item conditional fields', () => {
 		expect(entityDefinitionByType[EntityType.EvmTokenTransfer].facets?.[0]).toMatchObject({
-			id: 'Nft',
+			name: 'Nft',
 			condition: {
 				path: ['standard'],
 				isOneOf: [
@@ -130,7 +141,12 @@ test.describe('assertLoaded verification', () => {
 
 		const body: AssertLoadedResolverProbeResult = JSON.parse(text)
 
-		const { cases, resolverDefinitionCount, resolverValuePartCount } = body
+		const {
+			cases,
+			resolverDefinitionCount,
+			resolverValuePartCount,
+			countResolverPartCount,
+		} = body
 
 		expect(
 			resolverDefinitionCount,
@@ -145,8 +161,8 @@ test.describe('assertLoaded verification', () => {
 		expect(body.countResolverPartCount).toBeGreaterThan(0)
 		expect(body.countResolverFields).toEqual(expect.arrayContaining([
 			'EvmBlock.$$transactions',
-			'EvmNetwork.$$blocks',
-			'EvmNetwork.$$transactions',
+			'Network.Evm.$$blocks',
+			'Network.Evm.$$transactions',
 			'EvmNetworkAccount.$$tokenTransfers',
 			'EvmNetworkAccount.$$transactions',
 			'RedditLink.$$comments',
@@ -155,14 +171,16 @@ test.describe('assertLoaded verification', () => {
 
 		expect(
 			cases.length,
-			'one case per entity resolver + one per field resolver'
-		).toBe(resolverDefinitionCount + resolverValuePartCount)
+			'one case per entity, field-value, and field-count resolver'
+		).toBe(resolverDefinitionCount + resolverValuePartCount + countResolverPartCount)
 
 		const entityCases = cases.filter((c) => c.kind === 'entity')
 		const fieldCases = cases.filter((c) => c.kind === 'field')
+		const countCases = cases.filter((c) => c.kind === 'count')
 
 		expect(entityCases.length, 'entity case count').toBe(resolverDefinitionCount)
 		expect(fieldCases.length, 'field case count').toBe(resolverValuePartCount)
+		expect(countCases.length, 'count case count').toBe(countResolverPartCount)
 
 		expect(
 			new Set(cases.map((c) => c.key)).size,
@@ -185,7 +203,6 @@ test.describe('assertLoaded verification', () => {
 		const failedAfterResolve = cases.filter((c) => (
 			!c.resolveRejected
 			&& c.assertThrew
-			&& !isExpectedAssertLoadedResolverProbeFailure(c)
 		))
 		expect(body.fulfilledButAssertFailed).toEqual(failedAfterResolve)
 

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Validators',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SolanaValidator>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.SolanaValidator>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -68,7 +69,6 @@
 			selection({
 				fields: {
 					votePubkey: true,
-					delinquent: true,
 					$network: true,
 				},
 			})
@@ -112,16 +112,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: solanaValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaValidator> })}
+				{#snippet Item({ item: solanaValidator })}
 					{@const solanaValidatorFields = { ...solanaValidator[EntityMetaKey.Selector], ...solanaValidator }}
+					{@const selection = select(EntityType.SolanaValidator, solanaValidator[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const solanaValidatorHrefFields = { ...solanaValidator, ...solanaValidator[EntityMetaKey.Selector] }}
 					<SolanaValidatorView
-						selection={select(EntityType.SolanaValidator, solanaValidator[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={solanaValidatorFields}
 						href={
-							(solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.slug !== undefined && solanaValidatorHrefFields.votePubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								network: String(solanaValidatorHrefFields.$network.slug ?? ''),
+							(solanaValidatorHrefFields.votePubkey !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
 								validatorId: String(solanaValidatorHrefFields.votePubkey ?? ''),
+								network: String(caip2StringFromValue(solanaValidatorHrefFields.$network.caip2) ?? ''),
+							}) : solanaValidatorHrefFields.votePubkey !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+								validatorId: String(solanaValidatorHrefFields.votePubkey ?? ''),
+								network: String(solanaValidatorHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

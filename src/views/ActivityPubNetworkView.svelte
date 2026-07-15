@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,8 +23,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.ActivityPubNetwork>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.ActivityPubNetwork>>
+			selection: RegisteredEntityProxyResource<EntityType.ActivityPubNetwork>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ActivityPubNetwork>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -55,6 +55,8 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
+	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 </script>
 
 
@@ -229,5 +231,39 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<ActivityPubActorsView
+				selection={
+						selection.$$activityPubActors({
+							sources: [
+								Source.Constants_Internal,
+							],
+							count: true,
+						})
+					}
+				title='Actors'
+				href={resolve('/activitypub/actors')}
+				emptyText='No ActivityPub actors in this observed.'
+				id='ActivityPubActorsView-activity-pub-actors'
+			/>
+
+			<ActivityPubNotesView
+				selection={
+						selection.$$activityPubNotes({
+							sources: [
+								Source.Mastodon_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Notes'
+				href={resolve('/activitypub/notes')}
+				emptyText='No ActivityPub notes in this observed.'
+				id='ActivityPubNotesView-activity-pub-notes'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

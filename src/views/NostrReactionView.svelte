@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { Source } from '$/sources/Source.ts'
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.NostrReaction>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.NostrReaction>>
+			selection: RegisteredEntityProxyResource<EntityType.NostrReaction>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NostrReaction>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -53,9 +53,6 @@
 			pubkey: true,
 			createdAt: true,
 			content: true,
-			$author: true,
-			$targetNote: true,
-			$targetArticle: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.content) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction')
@@ -76,7 +73,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.eventId !== undefined ? resolve('/nostr/reaction/[eventId=stringSegment]', {
+			eventId: String(pendingEntity.eventId ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -295,6 +296,11 @@
 									<NostrProfileView
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
+										href={
+											(nostrProfile[EntityMetaKey.Selector].pubkey !== undefined ? resolve('/nostr/profile/[pubkey=stringSegment]', {
+												pubkey: String(nostrProfile[EntityMetaKey.Selector].pubkey ?? ''),
+											}) : undefined)
+										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -325,6 +331,11 @@
 									<NostrNoteView
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
+										href={
+											(nostrNote[EntityMetaKey.Selector].eventId !== undefined ? resolve('/nostr/note/[eventId=stringSegment]', {
+												eventId: String(nostrNote[EntityMetaKey.Selector].eventId ?? ''),
+											}) : undefined)
+										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -355,6 +366,12 @@
 									<NostrArticleView
 										selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
 										prefetched={nostrArticle}
+										href={
+											(nostrArticle[EntityMetaKey.Selector].kind === 30023 && nostrArticle[EntityMetaKey.Selector].pubkey !== undefined && nostrArticle[EntityMetaKey.Selector].identifier !== undefined ? resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
+												pubkey: String(nostrArticle[EntityMetaKey.Selector].pubkey ?? ''),
+												identifier: String(nostrArticle[EntityMetaKey.Selector].identifier ?? ''),
+											}) : undefined)
+										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.RssFeed_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.RssFeed_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.RssFeed_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.RssFeed_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -67,10 +66,10 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$feed !== undefined && pendingEntity.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$feed !== undefined && pendingEntity.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 			timestampMs: String(pendingEntity.timestampMs ?? ''),
 			source: String(pendingEntity.source ?? ''),
-			feedKey: String(pendingEntity.$feed.feedUrl ?? ''),
+			feedUrl: String(pendingEntity.$feed.feedUrl ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -82,6 +81,11 @@
 			{#snippet Pending()}
 				<RssFeedView
 					selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
+					href={
+						(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
+							feedUrl: String(selection.entitySelector.$feed.feedUrl ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -91,6 +95,11 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<RssFeedView
 					selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
+					href={
+						(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
+							feedUrl: String(selection.entitySelector.$feed.feedUrl ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -124,6 +133,11 @@
 				<dd>
 					<RssFeedView
 						selection={select(EntityType.RssFeed, selection.entitySelector.$feed, {})}
+						href={
+							(selection.entitySelector.$feed.feedUrl !== undefined ? resolve('/rss/feed/[feedUrl=absoluteUrl]', {
+								feedUrl: String(selection.entitySelector.$feed.feedUrl ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -196,40 +210,99 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							reachable: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const reachable = pendingEntity.reachable}
-					{#if reachable !== undefined && reachable !== null}
-						<div>
-							<dt>Reachable</dt>
-							<dd>
+			<div>
+				<dt>Reachable</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									reachable: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const reachable = pendingEntity.reachable}
+							{#if reachable !== undefined && reachable !== null}
 								{reachable ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const reachable = resolvedEntity.reachable}
-					{#if reachable !== undefined && reachable !== null}
-						<div>
-							<dt>Reachable</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const reachable = resolvedEntity.reachable}
+							{#if reachable !== undefined && reachable !== null}
 								{reachable ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Observed items</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									observedItemCount: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const observedItemCount = pendingEntity.observedItemCount}
+							{#if observedItemCount !== undefined && observedItemCount !== null}
+								<NumberValue value={Number(observedItemCount)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const observedItemCount = resolvedEntity.observedItemCount}
+							{#if observedItemCount !== undefined && observedItemCount !== null}
+								<NumberValue value={Number(observedItemCount)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Fetch window</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									fetchWindowKind: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const fetchWindowKind = pendingEntity.fetchWindowKind}
+							{#if fetchWindowKind !== undefined && fetchWindowKind !== null}
+								{String((fetchWindowKind) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const fetchWindowKind = resolvedEntity.fetchWindowKind}
+							{#if fetchWindowKind !== undefined && fetchWindowKind !== null}
+								{String((fetchWindowKind) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
@@ -237,18 +310,18 @@
 				resource={
 					selection({
 						fields: {
-							observedItemCount: true,
+							error: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const observedItemCount = pendingEntity.observedItemCount}
-					{#if observedItemCount !== undefined && observedItemCount !== null}
+					{@const error = pendingEntity.error}
+					{#if error !== undefined && error !== null}
 						<div>
-							<dt>Observed items</dt>
+							<dt>Error</dt>
 							<dd>
-								<NumberValue value={Number(observedItemCount)} />
+								{String((error) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -256,49 +329,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const observedItemCount = resolvedEntity.observedItemCount}
-					{#if observedItemCount !== undefined && observedItemCount !== null}
+					{@const error = resolvedEntity.error}
+					{#if error !== undefined && error !== null}
 						<div>
-							<dt>Observed items</dt>
+							<dt>Error</dt>
 							<dd>
-								<NumberValue value={Number(observedItemCount)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							fetchWindowKind: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const fetchWindowKind = pendingEntity.fetchWindowKind}
-					{#if fetchWindowKind !== undefined && fetchWindowKind !== null}
-						<div>
-							<dt>Fetch window</dt>
-							<dd>
-								{String((fetchWindowKind) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fetchWindowKind = resolvedEntity.fetchWindowKind}
-					{#if fetchWindowKind !== undefined && fetchWindowKind !== null}
-						<div>
-							<dt>Fetch window</dt>
-							<dd>
-								{String((fetchWindowKind) ?? '')}
+								{String((error) ?? '')}
 							</dd>
 						</div>
 					{/if}

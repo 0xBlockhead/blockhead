@@ -1,6 +1,8 @@
 import { getJson } from '$/lib/http.ts'
-import { atprotoBskySocialOrigins } from '$/sources/AtprotoBskySocial/index.ts'
-import { bskySocialXrpcBase } from '$/sources/AtprotoBskySocial/Rest/constants.ts'
+import {
+	bskySocialOrigins,
+	bskySocialXrpcBase,
+} from '$/sources/AtprotoBskySocial/Rest/constants.ts'
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
 	const sp = new URLSearchParams()
@@ -18,6 +20,6 @@ export const bskySocialXrpcGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${bskySocialXrpcBase}${path}${toQuery(params)}`,
-		{ origins: atprotoBskySocialOrigins }
+		{ origins: bskySocialOrigins }
 	)
 )

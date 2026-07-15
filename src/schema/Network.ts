@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { Caip2Namespace, Caip2Reference, networkBySlug, NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { Caip2Namespace, Caip2Reference, NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import { Source } from '$/sources/Source.ts'
@@ -30,7 +31,7 @@ export const Network = entity({
 		label: 'Slug',
 		description: 'A stable short name used by catalogs and URLs.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type.enumerated(...Object.keys(networkBySlug))),
+		primitiveType: type('string').matching('^[abcdefghijklmnopqrstuvwxyz0123456789\\-]+$').atLeastLength(1),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
@@ -997,6 +998,100 @@ export const Network = entity({
 				cardinality: EntityFieldCardinality.Many,
 			},
 		}),
+		Cardano: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Cardano',
+		})({
+			restEndpoints: {
+				label: 'REST endpoints',
+				type: EntityFieldType.Primitive,
+				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockfrost_Rest,
+				],
+			},
+			$$timestamps: {
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockfrost_Rest,
+				],
+			},
+			$$blocks: {
+				label: 'Blocks',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoBlock,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockfrost_Rest,
+				],
+			},
+			$$transactions: {
+				label: 'Transactions',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoTransaction,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$addresses: {
+				label: 'Addresses',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoAddress,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$stakeCredentials: {
+				label: 'Stake credentials',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoStakeCredential,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$stakePools: {
+				label: 'Stake pools',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoStakePool,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$dReps: {
+				label: 'DReps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoDRep,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$governanceProposals: {
+				label: 'Governance proposals',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoGovernanceProposal,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$assets: {
+				label: 'Native assets',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoNativeAsset,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$protocolParameterEpochs: {
+				label: 'Protocol parameter epochs',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoProtocolParameters_Epoch,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$constitutionEpochs: {
+				label: 'Constitution epochs',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoConstitution_Epoch,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$committeeEpochs: {
+				label: 'Committee epochs',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CardanoCommittee_Epoch,
+				cardinality: EntityFieldCardinality.Many,
+			},
+		}),
 		Tron: facet({
 			path: [
 				'namespace',
@@ -1010,8 +1105,6 @@ export const Network = entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.TronGrid_Rest,
-					Source.TronFullNode_Rest,
-					Source.TronSolidityNode_Rest,
 				],
 			},
 			$$timestamps: {
@@ -1030,21 +1123,7 @@ export const Network = entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.TronGrid_Rest,
-					Source.TronFullNode_Rest,
-					Source.TronSolidityNode_Rest,
 				],
-			},
-			$$tokens: {
-				label: 'Tokens',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.TronToken,
-				cardinality: EntityFieldCardinality.Many,
-			},
-			$$tokenTransfers: {
-				label: 'Token transfers',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.TronTokenTransfer,
-				cardinality: EntityFieldCardinality.Many,
 			},
 			$$witnesses: {
 				label: 'Witnesses',
@@ -1054,6 +1133,182 @@ export const Network = entity({
 				defaultSources: [
 					Source.TronGrid_Rest,
 				],
+			},
+		}),
+		Ton: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Ton',
+		})({
+			$$workchains: {
+				label: 'Workchains',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonWorkchain,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$blocks: {
+				label: 'Blocks',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonBlock,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$transactions: {
+				label: 'Transactions',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonTransaction,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$accounts: {
+				label: 'Accounts',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonAccount,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$contracts: {
+				label: 'Contracts',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonContract,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$messages: {
+				label: 'Messages',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonMessage,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$traces: {
+				label: 'Traces',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonTrace,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$jettons: {
+				label: 'Jettons',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonJetton,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$nftCollections: {
+				label: 'NFT collections',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonNftCollection,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$nftItems: {
+				label: 'NFT items',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonNftItem,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$timestamps: {
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+			},
+		}),
+		Hedera: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Hedera',
+		})({
+			shard: {
+				label: 'Shard',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			realm: {
+				label: 'Realm',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			$$blocks: {
+				label: 'Blocks',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaBlock,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$transactions: {
+				label: 'Transactions',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaTransaction,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$accounts: {
+				label: 'Accounts',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaAccount,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$tokens: {
+				label: 'Tokens',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaToken,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$nfts: {
+				label: 'NFTs',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaNft,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$contracts: {
+				label: 'Contracts',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaContract,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$topics: {
+				label: 'Topics',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaTopic,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$schedules: {
+				label: 'Schedules',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaSchedule,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$nodes: {
+				label: 'Nodes',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaNode,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$timestamps: {
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$feeTimestamps: {
+				label: 'Fee observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaNetworkFee_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$exchangeRateTimestamps: {
+				label: 'Exchange rate observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaNetworkExchangeRate_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$stakeTimestamps: {
+				label: 'Stake observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaNetworkStake_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+			},
+			$$supplyTimestamps: {
+				label: 'Supply observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HederaNetworkSupply_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 			},
 		}),
 		Hyperliquid: facet({

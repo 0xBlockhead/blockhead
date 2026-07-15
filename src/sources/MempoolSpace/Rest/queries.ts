@@ -1,5 +1,4 @@
 import { getJson } from '$/lib/http.ts'
-import { mempoolSpaceBindings } from '$/sources/MempoolSpace/bindings.ts'
 import type {
 	MempoolSpaceAddress,
 	MempoolSpaceBlock,
@@ -8,10 +7,12 @@ import type {
 	MempoolSpaceTransaction,
 } from '$/sources/MempoolSpace/Rest/types.ts'
 
-const mempoolSpaceOrigins = mempoolSpaceBindings[0].endpoints.map((endpoint) => ({
-	origin: endpoint.origin,
-	corsEnabled: endpoint.corsEnabled,
-}))
+const mempoolSpaceOrigins = [
+	{
+		origin: 'https://mempool.space',
+		corsEnabled: true,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

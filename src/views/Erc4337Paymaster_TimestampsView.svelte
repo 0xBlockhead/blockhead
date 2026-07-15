@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'ERC-4337 paymaster observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Erc4337Paymaster_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Erc4337Paymaster_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,18 +114,24 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: erc4337PaymasterTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337Paymaster_Timestamp> })}
+				{#snippet Item({ item: erc4337PaymasterTimestamp })}
 					{@const erc4337PaymasterTimestampFields = { ...erc4337PaymasterTimestamp[EntityMetaKey.Selector], ...erc4337PaymasterTimestamp }}
+					{@const selection = select(EntityType.Erc4337Paymaster_Timestamp, erc4337PaymasterTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const erc4337PaymasterTimestampHrefFields = { ...erc4337PaymasterTimestamp, ...erc4337PaymasterTimestamp[EntityMetaKey.Selector] }}
 					<Erc4337Paymaster_TimestampView
-						selection={select(EntityType.Erc4337Paymaster_Timestamp, erc4337PaymasterTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={erc4337PaymasterTimestampFields}
 						href={
-							(erc4337PaymasterTimestampHrefFields.$paymaster !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster.$network !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster.$network.slug !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster.address !== undefined && erc4337PaymasterTimestampHrefFields.timestampMs !== undefined && erc4337PaymasterTimestampHrefFields.source !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								network: String(erc4337PaymasterTimestampHrefFields.$paymaster.$network.slug ?? ''),
-								address: String(erc4337PaymasterTimestampHrefFields.$paymaster.address ?? ''),
+							(erc4337PaymasterTimestampHrefFields.timestampMs !== undefined && erc4337PaymasterTimestampHrefFields.source !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster.address !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster.$network !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
 								timestampMs: String(erc4337PaymasterTimestampHrefFields.timestampMs ?? ''),
 								source: String(erc4337PaymasterTimestampHrefFields.source ?? ''),
+								address: String(erc4337PaymasterTimestampHrefFields.$paymaster.address ?? ''),
+								network: String(caip2StringFromValue(erc4337PaymasterTimestampHrefFields.$paymaster.$network.caip2) ?? ''),
+							}) : erc4337PaymasterTimestampHrefFields.timestampMs !== undefined && erc4337PaymasterTimestampHrefFields.source !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster.address !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster.$network !== undefined && erc4337PaymasterTimestampHrefFields.$paymaster.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+								timestampMs: String(erc4337PaymasterTimestampHrefFields.timestampMs ?? ''),
+								source: String(erc4337PaymasterTimestampHrefFields.source ?? ''),
+								address: String(erc4337PaymasterTimestampHrefFields.$paymaster.address ?? ''),
+								network: String(erc4337PaymasterTimestampHrefFields.$paymaster.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

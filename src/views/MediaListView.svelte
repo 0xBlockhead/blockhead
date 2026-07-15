@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Media',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Media>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Media>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,11 +110,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: media }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Media> })}
+				{#snippet Item({ item: media })}
 					{@const mediaFields = { ...media[EntityMetaKey.Selector], ...media }}
+					{@const selection = select(EntityType.Media, media[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const mediaHrefFields = { ...media, ...media[EntityMetaKey.Selector] }}
 					<MediaView
-						selection={select(EntityType.Media, media[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={mediaFields}
 						href={
 							(mediaHrefFields.url !== undefined ? resolve('/media/[url=absoluteUrl]', {

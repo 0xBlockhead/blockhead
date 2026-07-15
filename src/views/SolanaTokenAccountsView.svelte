@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Token accounts',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SolanaTokenAccount>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.SolanaTokenAccount>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: solanaTokenAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaTokenAccount> })}
+				{#snippet Item({ item: solanaTokenAccount })}
 					{@const solanaTokenAccountFields = { ...solanaTokenAccount[EntityMetaKey.Selector], ...solanaTokenAccount }}
+					{@const selection = select(EntityType.SolanaTokenAccount, solanaTokenAccount[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const solanaTokenAccountHrefFields = { ...solanaTokenAccount, ...solanaTokenAccount[EntityMetaKey.Selector] }}
 					<SolanaTokenAccountView
-						selection={select(EntityType.SolanaTokenAccount, solanaTokenAccount[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={solanaTokenAccountFields}
 						href={
-							(solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.slug !== undefined && solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-								network: String(solanaTokenAccountHrefFields.$network.slug ?? ''),
+							(solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined && solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
 								tokenAccountPubkey: String(solanaTokenAccountHrefFields.tokenAccountPubkey ?? ''),
+								network: String(caip2StringFromValue(solanaTokenAccountHrefFields.$network.caip2) ?? ''),
+							}) : solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined && solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
+								tokenAccountPubkey: String(solanaTokenAccountHrefFields.tokenAccountPubkey ?? ''),
+								network: String(solanaTokenAccountHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.FarcasterChannel_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.FarcasterChannel_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.FarcasterChannel_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.FarcasterChannel_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -81,6 +80,11 @@
 			{#snippet Pending()}
 				<FarcasterChannelView
 					selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+					href={
+						(selection.entitySelector.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
+							channelId: String(selection.entitySelector.$channel.id ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -90,6 +94,11 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<FarcasterChannelView
 					selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+					href={
+						(selection.entitySelector.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
+							channelId: String(selection.entitySelector.$channel.id ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -123,6 +132,11 @@
 				<dd>
 					<FarcasterChannelView
 						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel, {})}
+						href={
+							(selection.entitySelector.$channel.id !== undefined ? resolve('/farcaster/channel/[channelId=stringSegment]', {
+								channelId: String(selection.entitySelector.$channel.id ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.ScalingDeploymentClaim>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.ScalingDeploymentClaim>>
+			selection: RegisteredEntityProxyResource<EntityType.ScalingDeploymentClaim>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ScalingDeploymentClaim>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -281,9 +280,12 @@
 									selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector])}
 									prefetched={evmRollup}
 									href={
-										(evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.slug !== undefined && evmRollup[EntityMetaKey.Selector].projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-											network: String(evmRollup[EntityMetaKey.Selector].$network.slug ?? ''),
+										(evmRollup[EntityMetaKey.Selector].projectId !== undefined && evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
 											projectId: String(evmRollup[EntityMetaKey.Selector].projectId ?? ''),
+											network: String(caip2StringFromValue(evmRollup[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : evmRollup[EntityMetaKey.Selector].projectId !== undefined && evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+											projectId: String(evmRollup[EntityMetaKey.Selector].projectId ?? ''),
+											network: String(evmRollup[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

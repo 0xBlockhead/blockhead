@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +25,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.AptosAccount_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.AptosAccount_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.AptosAccount_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.AptosAccount_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -310,75 +309,65 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							sequenceNumber: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const sequenceNumber = pendingEntity.sequenceNumber}
-					{#if sequenceNumber !== undefined && sequenceNumber !== null}
-						<div>
-							<dt>sequence number</dt>
-							<dd>
+			<div>
+				<dt>sequence number</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									sequenceNumber: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const sequenceNumber = pendingEntity.sequenceNumber}
+							{#if sequenceNumber !== undefined && sequenceNumber !== null}
 								<NumberValue value={Number(sequenceNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sequenceNumber = resolvedEntity.sequenceNumber}
-					{#if sequenceNumber !== undefined && sequenceNumber !== null}
-						<div>
-							<dt>sequence number</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const sequenceNumber = resolvedEntity.sequenceNumber}
+							{#if sequenceNumber !== undefined && sequenceNumber !== null}
 								<NumberValue value={Number(sequenceNumber)} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							authenticationKey: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const authenticationKey = pendingEntity.authenticationKey}
-					{#if authenticationKey !== undefined && authenticationKey !== null}
-						<div>
-							<dt>authentication key</dt>
-							<dd>
+			<div>
+				<dt>authentication key</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									authenticationKey: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const authenticationKey = pendingEntity.authenticationKey}
+							{#if authenticationKey !== undefined && authenticationKey !== null}
 								{String((authenticationKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authenticationKey = resolvedEntity.authenticationKey}
-					{#if authenticationKey !== undefined && authenticationKey !== null}
-						<div>
-							<dt>authentication key</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const authenticationKey = resolvedEntity.authenticationKey}
+							{#if authenticationKey !== undefined && authenticationKey !== null}
 								{String((authenticationKey) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 </EntityView>

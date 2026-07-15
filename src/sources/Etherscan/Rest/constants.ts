@@ -15,6 +15,13 @@ export const restPath = '/v2/api' as const
 /** Single Etherscan API V2 base; pass target network via **`chainid`** on each request. */
 export const restBaseUrl = `${origin}${restPath}` as const
 
+export const etherscanOrigins = [
+	{
+		origin,
+		corsEnabled: false,
+	},
+] as const
+
 /**
  * Chains this client treats as Etherscan V2–capable (numeric **`chainid`** must match supported chains).
  * Derived maps are the public contract; extend this array when adding chains.

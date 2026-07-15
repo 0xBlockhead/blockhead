@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -25,8 +24,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmError>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmError>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmError>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmError>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -55,6 +54,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import EvmError_TimestampsView from '$/views/EvmError_TimestampsView.svelte'
 </script>
 
 
@@ -154,5 +154,20 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<EvmError_TimestampsView
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
+				title='Observations'
+				emptyText='No Openchain observations for this error.'
+				id='EvmError_TimestampsView-timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

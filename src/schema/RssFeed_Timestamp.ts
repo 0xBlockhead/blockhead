@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -36,16 +37,22 @@ export const RssFeed_Timestamp = entity({
 		label: 'Reachable',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	observedItemCount: {
 		label: 'Observed items',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: (type('number.integer >= 0')),
+		cardinality: EntityFieldCardinality.One,
 	},
 	fetchWindowKind: {
 		label: 'Fetch window',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.unit('Feed'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	error: {
+		label: 'Error',
 		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

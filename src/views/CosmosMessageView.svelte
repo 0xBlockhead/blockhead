@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.CosmosMessage>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.CosmosMessage>>
+			selection: RegisteredEntityProxyResource<EntityType.CosmosMessage>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.CosmosMessage>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -526,6 +527,15 @@
 								<CosmosAccountView
 									selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
 									prefetched={cosmosAccount}
+									href={
+										(cosmosAccount[EntityMetaKey.Selector].address !== undefined && cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
+											network: String(caip2StringFromValue(cosmosAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : cosmosAccount[EntityMetaKey.Selector].address !== undefined && cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
+											accountId: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
+											network: String(cosmosAccount[EntityMetaKey.Selector].$network.slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

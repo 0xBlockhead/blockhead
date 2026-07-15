@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Blocks',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.PolkadotBlock>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.PolkadotBlock>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,20 +113,28 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: polkadotBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotBlock> })}
+				{#snippet Item({ item: polkadotBlock })}
 					{@const polkadotBlockFields = { ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }}
+					{@const selection = select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const polkadotBlockHrefFields = { ...polkadotBlock, ...polkadotBlock[EntityMetaKey.Selector] }}
 					<PolkadotBlockView
-						selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={polkadotBlockFields}
 						href={
-							(polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.slug !== undefined && polkadotBlockHrefFields.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-								network: String(polkadotBlockHrefFields.$network.slug ?? ''),
+							(polkadotBlockHrefFields.blockNumber !== undefined && polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 								blockNumber: String(polkadotBlockHrefFields.blockNumber ?? ''),
-							}) : polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.slug !== undefined && polkadotBlockHrefFields.blockNumber !== undefined && polkadotBlockHrefFields.hash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								network: String(caip2StringFromValue(polkadotBlockHrefFields.$network.caip2) ?? ''),
+							}) : polkadotBlockHrefFields.blockNumber !== undefined && polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+								blockNumber: String(polkadotBlockHrefFields.blockNumber ?? ''),
 								network: String(polkadotBlockHrefFields.$network.slug ?? ''),
+							}) : polkadotBlockHrefFields.blockNumber !== undefined && polkadotBlockHrefFields.hash !== undefined && polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
 								blockNumber: String(polkadotBlockHrefFields.blockNumber ?? ''),
 								hash: String(polkadotBlockHrefFields.hash ?? ''),
+								network: String(caip2StringFromValue(polkadotBlockHrefFields.$network.caip2) ?? ''),
+							}) : polkadotBlockHrefFields.blockNumber !== undefined && polkadotBlockHrefFields.hash !== undefined && polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
+								blockNumber: String(polkadotBlockHrefFields.blockNumber ?? ''),
+								hash: String(polkadotBlockHrefFields.hash ?? ''),
+								network: String(polkadotBlockHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Lens post observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.LensPost_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.LensPost_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,11 +111,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: lensPostTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LensPost_Timestamp> })}
+				{#snippet Item({ item: lensPostTimestamp })}
 					{@const lensPostTimestampFields = { ...lensPostTimestamp[EntityMetaKey.Selector], ...lensPostTimestamp }}
+					{@const selection = select(EntityType.LensPost_Timestamp, lensPostTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const lensPostTimestampHrefFields = { ...lensPostTimestamp, ...lensPostTimestamp[EntityMetaKey.Selector] }}
 					<LensPost_TimestampView
-						selection={select(EntityType.LensPost_Timestamp, lensPostTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={lensPostTimestampFields}
 						href={
 							(lensPostTimestampHrefFields.timestampMs !== undefined && lensPostTimestampHrefFields.$post !== undefined && lensPostTimestampHrefFields.$post.id !== undefined ? resolve('/lens/post/[postId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {

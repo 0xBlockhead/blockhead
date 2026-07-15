@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -23,7 +21,7 @@
 		selection,
 		title = 'Market prices',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -32,7 +30,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.MarketPrice>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.MarketPrice>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -48,6 +46,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -84,6 +84,7 @@
 				fields: {
 					$market: true,
 				},
+				limit: 400,
 			})
 		}
 		{placeholderText}
@@ -125,11 +126,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: marketPrice }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MarketPrice> })}
+				{#snippet Item({ item: marketPrice })}
 					{@const marketPriceFields = { ...marketPrice[EntityMetaKey.Selector], ...marketPrice }}
+					{@const selection = select(EntityType.MarketPrice, marketPrice[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const marketPriceHrefFields = { ...marketPrice, ...marketPrice[EntityMetaKey.Selector] }}
 					<MarketPriceView
-						selection={select(EntityType.MarketPrice, marketPrice[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={marketPriceFields}
 						href={
 							resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {

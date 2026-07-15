@@ -1,5 +1,4 @@
 import { getJson } from '$/lib/http.ts'
-import { lightningMempoolSpaceOrigins } from '$/sources/LightningMempoolSpace/index.ts'
 import type {
 	MempoolSpaceLightningChannel,
 	MempoolSpaceLightningChannelSummary,
@@ -8,6 +7,13 @@ import type {
 	MempoolSpaceLightningSearchResult,
 	MempoolSpaceLightningStatisticsResponse,
 } from '$/sources/LightningMempoolSpace/Rest/types.ts'
+
+const lightningMempoolSpaceOrigins = [
+	{
+		origin: 'https://mempool.space',
+		corsEnabled: true,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

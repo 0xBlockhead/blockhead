@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Reddit networks',
 		typeAnnotationParagraphs = ['Reddit protocol catalog identity for public API and listing metadata. Product observeds live on the global Reddit hub.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.RedditNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.RedditNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -109,10 +109,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: redditNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditNetwork> })}
+				{#snippet Item({ item: redditNetwork })}
 					{@const redditNetworkFields = { ...redditNetwork[EntityMetaKey.Selector], ...redditNetwork }}
+					{@const selection = select(EntityType.RedditNetwork, redditNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<RedditNetworkView
-						selection={select(EntityType.RedditNetwork, redditNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={redditNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

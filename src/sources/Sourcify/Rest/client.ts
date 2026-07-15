@@ -1,6 +1,8 @@
 import { corsFetch, throwIfHttpNotOk } from '$/lib/http.ts'
-import { sourcifyOrigins } from '$/sources/Sourcify/index.ts'
-import { baseUrl } from '$/sources/Sourcify/Rest/constants.ts'
+import {
+	baseUrl,
+	sourcifyOrigins,
+} from '$/sources/Sourcify/Rest/constants.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export const sourcifyGetJsonOrNull = async <T = JsonValue>({

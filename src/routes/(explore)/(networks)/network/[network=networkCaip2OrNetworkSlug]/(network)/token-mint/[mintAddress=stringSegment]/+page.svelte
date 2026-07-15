@@ -17,12 +17,7 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SolanaTokenMint, data.selector, {
-		fields: {
-			supply: true,
-			decimals: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.SolanaTokenMint, data.selector))
 	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.mintAddress) ?? '')].filter(Boolean).join(' ') || 'solana token mint' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).mintAddress) ?? '')].filter(Boolean).join(' ') || 'solana token mint')))
 
 

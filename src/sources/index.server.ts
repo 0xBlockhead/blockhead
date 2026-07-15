@@ -1,6 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { sourceServerCredentialsById } from '$/sources/$sourceServerCredentials.server.ts'
 import { SourceCredentialScope, SourceDelivery, SourceEndpointKind, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { validateSourceBindings } from '$/sources/validateSourceBindings.ts'
 import { env as privateEnv } from '$env/dynamic/private'
@@ -14,8 +15,26 @@ export const enabledSourceBindings = sourceBindings.filter((binding) => (
 		credential.scope === SourceCredentialScope.None
 		|| credential.scope === SourceCredentialScope.PublicConfig
 		|| credential.scope === SourceCredentialScope.UserDelegated
-		|| credential.keys == null
-		|| credential.keys.every((key) => privateEnv[key]?.trim() !== '')
+		|| (
+			credential.scope === SourceCredentialScope.RuntimeSecret
+			&& (
+				binding.serverCredentialId == null ?
+					credential.keys != null
+					&& credential.keys.every((key) => (privateEnv[key]?.trim() ?? '') !== '')
+				:
+					Object.entries(sourceServerCredentialsById).some(([serverCredentialId, definition]) => (
+						serverCredentialId === binding.serverCredentialId
+						&& (privateEnv[definition.envKey]?.trim() ?? '') !== ''
+					))
+			)
+		)
+		|| (
+			credential.scope !== SourceCredentialScope.RuntimeSecret
+			&& (
+				credential.keys == null
+				|| credential.keys.every((key) => (privateEnv[key]?.trim() ?? '') !== '')
+			)
+		)
 	))
 ))
 
@@ -29,6 +48,12 @@ export const httpProxyOrigins = new Set(
 		.flatMap((binding) => binding.endpoints)
 		.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
 		.flatMap((endpoint) => endpoint.origin == null ? [] : [endpoint.origin])
+)
+
+export const httpProxyBindingByProxyId = new Map(
+	enabledSourceBindings
+		.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
+		.map((binding) => [binding.proxyId, binding] as const)
 )
 
 export const remoteLiveBindings = enabledSourceBindings.filter((binding) => (

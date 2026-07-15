@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +20,7 @@
 		selection,
 		title = 'EVM topic observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -31,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmTopic_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmTopic_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -116,11 +116,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmTopicTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmTopic_Timestamp> })}
+				{#snippet Item({ item: evmTopicTimestamp })}
 					{@const evmTopicTimestampFields = { ...evmTopicTimestamp[EntityMetaKey.Selector], ...evmTopicTimestamp }}
+					{@const selection = select(EntityType.EvmTopic_Timestamp, evmTopicTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmTopicTimestampHrefFields = { ...evmTopicTimestamp, ...evmTopicTimestamp[EntityMetaKey.Selector] }}
 					<EvmTopic_TimestampView
-						selection={select(EntityType.EvmTopic_Timestamp, evmTopicTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmTopicTimestampFields}
 						href={
 							(evmTopicTimestampHrefFields.timestampMs !== undefined && evmTopicTimestampHrefFields.source !== undefined && evmTopicTimestampHrefFields.$topic !== undefined && evmTopicTimestampHrefFields.$topic.hex !== undefined ? resolve('/evm/topic/[hex=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {

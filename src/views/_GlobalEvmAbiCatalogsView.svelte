@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Global EVM ABI catalogs',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalEvmAbiCatalog>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalEvmAbiCatalog>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -109,10 +109,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: globalEvmAbiCatalog }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalEvmAbiCatalog> })}
+				{#snippet Item({ item: globalEvmAbiCatalog })}
 					{@const globalEvmAbiCatalogFields = { ...globalEvmAbiCatalog[EntityMetaKey.Selector], ...globalEvmAbiCatalog }}
+					{@const selection = select(EntityType._GlobalEvmAbiCatalog, globalEvmAbiCatalog[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<GlobalEvmAbiCatalogView
-						selection={select(EntityType._GlobalEvmAbiCatalog, globalEvmAbiCatalog[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={globalEvmAbiCatalogFields}
 						layout={EntityLayout.Summary}
 						open={false}

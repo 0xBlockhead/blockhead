@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'XMTP',
 		typeAnnotationParagraphs = ['XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the seeded.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.XmtpNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.XmtpNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -67,6 +68,7 @@
 			selection({
 				fields: {
 					protocolName: true,
+					scope: true,
 				},
 			})
 		}
@@ -109,11 +111,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: xmtpNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XmtpNetwork> })}
+				{#snippet Item({ item: xmtpNetwork })}
 					{@const xmtpNetworkFields = { ...xmtpNetwork[EntityMetaKey.Selector], ...xmtpNetwork }}
+					{@const selection = select(EntityType.XmtpNetwork, xmtpNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const xmtpNetworkHrefFields = { ...xmtpNetwork, ...xmtpNetwork[EntityMetaKey.Selector] }}
 					<XmtpNetworkView
-						selection={select(EntityType.XmtpNetwork, xmtpNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={xmtpNetworkFields}
+						href={(xmtpNetwork[EntityMetaKey.Selector].scope === 'XmtpNetwork' ? resolve('/xmtp') : undefined)}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

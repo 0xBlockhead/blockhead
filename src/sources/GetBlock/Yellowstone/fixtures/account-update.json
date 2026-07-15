@@ -1,0 +1,13 @@
+{
+	"account": "11111111111111111111111111111111",
+	"slot": "294000001",
+	"timestampMs": 1720000001000,
+	"lamports": "1000000",
+	"ownerProgramId": "BPFLoaderUpgradeab1e11111111111111111111111",
+	"executable": false,
+	"rentEpoch": "42",
+	"spaceBytes": 4,
+	"dataEncoding": "base64",
+	"data": "AQIDBA==",
+	"isStartup": false
+}

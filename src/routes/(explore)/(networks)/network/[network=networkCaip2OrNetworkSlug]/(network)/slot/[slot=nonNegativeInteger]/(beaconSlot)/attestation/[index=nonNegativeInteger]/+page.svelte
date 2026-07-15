@@ -18,7 +18,7 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.BeaconAttestation, {
-		$network: data.selector.$network,
+		$network: data.selector,
 		slot: Number(params.slot),
 		indexInSlot: Number(params.index),
 	}, {

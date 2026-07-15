@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'EVM rollups',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmRollup>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmRollup>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmRollup }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmRollup> })}
+				{#snippet Item({ item: evmRollup })}
 					{@const evmRollupFields = { ...evmRollup[EntityMetaKey.Selector], ...evmRollup }}
+					{@const selection = select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmRollupHrefFields = { ...evmRollup, ...evmRollup[EntityMetaKey.Selector] }}
 					<EvmRollupView
-						selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmRollupFields}
 						href={
-							(evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.slug !== undefined && evmRollupHrefFields.projectId !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-								network: String(evmRollupHrefFields.$network.slug ?? ''),
+							(evmRollupHrefFields.projectId !== undefined && evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
 								projectId: String(evmRollupHrefFields.projectId ?? ''),
+								network: String(caip2StringFromValue(evmRollupHrefFields.$network.caip2) ?? ''),
+							}) : evmRollupHrefFields.projectId !== undefined && evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
+								projectId: String(evmRollupHrefFields.projectId ?? ''),
+								network: String(evmRollupHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

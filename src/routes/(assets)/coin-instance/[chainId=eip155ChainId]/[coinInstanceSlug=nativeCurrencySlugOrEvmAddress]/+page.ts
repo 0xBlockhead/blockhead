@@ -14,6 +14,7 @@ import { type as arktype } from 'arktype'
 export const load: PageLoad = ({ params }) => {
 	const selectorMappings: {
 		entityType: EntityType
+		selectorName: string
 		selector: EntitySelector<typeof schema, EntityType>
 	}[] = []
 
@@ -32,7 +33,7 @@ export const load: PageLoad = ({ params }) => {
 			}
 		)
 		if (!(evmCoinInstanceNetworkTypeSelector instanceof arktype.errors) && evmCoinInstanceNetworkTypeSelector.type === 'NativeCurrency')
-			selectorMappings.push({ entityType: EntityType.EvmCoinInstance, selector: evmCoinInstanceNetworkTypeSelector })
+			selectorMappings.push({ entityType: EntityType.EvmCoinInstance, selectorName: 'NetworkType', selector: evmCoinInstanceNetworkTypeSelector })
 	}
 
 	if (matchEvmAddress(params.coinInstanceSlug) && matchEip155ChainId(params.chainId)) {
@@ -59,7 +60,7 @@ export const load: PageLoad = ({ params }) => {
 			}
 		)
 		if (!(evmCoinInstanceNetworkTypeContractSelector instanceof arktype.errors) && evmCoinInstanceNetworkTypeContractSelector.type === 'Erc20Token')
-			selectorMappings.push({ entityType: EntityType.EvmCoinInstance, selector: evmCoinInstanceNetworkTypeContractSelector })
+			selectorMappings.push({ entityType: EntityType.EvmCoinInstance, selectorName: 'NetworkTypeContract', selector: evmCoinInstanceNetworkTypeContractSelector })
 	}
 
 	if (selectorMappings.length === 0) error(404, 'Route selector not applicable')

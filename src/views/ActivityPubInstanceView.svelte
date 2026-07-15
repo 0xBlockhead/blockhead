@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -24,8 +23,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.ActivityPubInstance>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.ActivityPubInstance>>
+			selection: RegisteredEntityProxyResource<EntityType.ActivityPubInstance>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.ActivityPubInstance>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -56,6 +55,8 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import ActivityPubInstancePeersView from '$/views/ActivityPubInstancePeersView.svelte'
+	import ActivityPubInstanceModeratedDomainsView from '$/views/ActivityPubInstanceModeratedDomainsView.svelte'
 </script>
 
 
@@ -286,5 +287,37 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<ActivityPubInstancePeersView
+				selection={
+						selection.$$peers({
+							sources: [
+								Source.Mastodon_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Peers'
+				emptyText='No public peers reported for this ActivityPub instance.'
+				id='ActivityPubInstancePeersView-peers'
+			/>
+
+			<ActivityPubInstanceModeratedDomainsView
+				selection={
+						selection.$$moderatedDomains({
+							sources: [
+								Source.Mastodon_Rest,
+							],
+							count: true,
+						})
+					}
+				title='Moderated domains'
+				emptyText='No public moderated domains reported for this ActivityPub instance.'
+				id='ActivityPubInstanceModeratedDomainsView-moderated-domains'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

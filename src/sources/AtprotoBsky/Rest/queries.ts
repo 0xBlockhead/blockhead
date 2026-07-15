@@ -1,7 +1,7 @@
 import { getJson } from '$/lib/http.ts'
 import { atprotoAppViewBySlug } from '$/constants/AtprotoAppView.ts'
 import { bskyPublicXrpcGet } from '$/sources/AtprotoBsky/Rest/client.ts'
-import { atprotoBskyOrigins } from '$/sources/AtprotoBsky/index.ts'
+import { atprotoBskyRestOrigins } from '$/sources/AtprotoBsky/Rest/constants.ts'
 import type {
 	BskyAppViewGetAuthorFeedResponse,
 	BskyAppViewGetPostThreadResponse,
@@ -29,7 +29,7 @@ export const getPosts = async (uris: string[]) => (
 				u,
 			])).toString()
 			)}`,
-			{ origins: atprotoBskyOrigins }
+			{ origins: atprotoBskyRestOrigins }
 	)
 )
 
@@ -105,6 +105,6 @@ export const searchPosts = async ({
 				q,
 			}).toString()
 		)}`,
-		{ origins: atprotoBskyOrigins }
+		{ origins: atprotoBskyRestOrigins }
 	)
 )

@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Withdrawals',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BeaconWithdrawal>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BeaconWithdrawal>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,17 +114,22 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: beaconWithdrawal }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconWithdrawal> })}
+				{#snippet Item({ item: beaconWithdrawal })}
 					{@const beaconWithdrawalFields = { ...beaconWithdrawal[EntityMetaKey.Selector], ...beaconWithdrawal }}
+					{@const selection = select(EntityType.BeaconWithdrawal, beaconWithdrawal[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const beaconWithdrawalHrefFields = { ...beaconWithdrawal, ...beaconWithdrawal[EntityMetaKey.Selector] }}
 					<BeaconWithdrawalView
-						selection={select(EntityType.BeaconWithdrawal, beaconWithdrawal[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={beaconWithdrawalFields}
 						href={
-							(beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.slug !== undefined && beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-								network: String(beaconWithdrawalHrefFields.$network.slug ?? ''),
+							(beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined && beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
 								slot: String(beaconWithdrawalHrefFields.slot ?? ''),
 								index: String(beaconWithdrawalHrefFields.indexInSlot ?? ''),
+								network: String(caip2StringFromValue(beaconWithdrawalHrefFields.$network.caip2) ?? ''),
+							}) : beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined && beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
+								slot: String(beaconWithdrawalHrefFields.slot ?? ''),
+								index: String(beaconWithdrawalHrefFields.indexInSlot ?? ''),
+								network: String(beaconWithdrawalHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

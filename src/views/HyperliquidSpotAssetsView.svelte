@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Hyperliquid spot assets',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.HyperliquidSpotAsset>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.HyperliquidSpotAsset>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -63,7 +63,15 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					name: true,
+					assetId: true,
+					$network: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -103,10 +111,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: hyperliquidSpotAsset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidSpotAsset> })}
+				{#snippet Item({ item: hyperliquidSpotAsset })}
 					{@const hyperliquidSpotAssetFields = { ...hyperliquidSpotAsset[EntityMetaKey.Selector], ...hyperliquidSpotAsset }}
+					{@const selection = select(EntityType.HyperliquidSpotAsset, hyperliquidSpotAsset[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<HyperliquidSpotAssetView
-						selection={select(EntityType.HyperliquidSpotAsset, hyperliquidSpotAsset[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={hyperliquidSpotAssetFields}
 						layout={EntityLayout.Summary}
 						open={false}

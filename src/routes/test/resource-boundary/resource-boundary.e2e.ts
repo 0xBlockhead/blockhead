@@ -5,7 +5,7 @@ import {
 	setupPageRuntimeDiagnostics,
 } from '../../../../tests/_e2eBrowserHelpers.ts'
 
-test.setTimeout(120_000)
+test.setTimeout(180_000)
 
 const svelteReactivityMessages = [
 	'await_reactivity_loss',

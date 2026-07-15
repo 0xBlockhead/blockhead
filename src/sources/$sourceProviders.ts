@@ -221,6 +221,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Across_Rest-4',
 			},
 		],
 	},
@@ -392,6 +393,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Allium_Rest-8',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -573,13 +575,13 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				endpoints: [
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://{aptos-fullnode-api-host}',
-						origin: 'https://{aptos-fullnode-api-host}',
+						locator: 'https://fullnode.mainnet.aptoslabs.com/v1/',
+						origin: 'https://fullnode.mainnet.aptoslabs.com',
 						corsEnabled: false,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
-				apiFamily: ApiFamily.RestJson,
+				apiFamily: ApiFamily.OpenApiHttp,
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
@@ -587,6 +589,23 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.OpenApiSpec,
+						path: 'src/sources/AptosFullnode/OpenApi/spec.yaml',
+						generated: false,
+					},
+					{
+						kind: SourceArtifactKind.GenerationManifest,
+						path: 'src/sources/AptosFullnode/OpenApi/schema-source.ts',
+						generated: false,
+					},
+					{
+						kind: SourceArtifactKind.OpenApiTypes,
+						path: 'src/sources/AptosFullnode/OpenApi/openapi.d.ts',
+						generated: true,
 					},
 				],
 			},
@@ -613,8 +632,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				endpoints: [
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://{aptos-indexer-host}/v1/graphql',
-						origin: 'https://{aptos-indexer-host}',
+						locator: 'https://api.mainnet.aptoslabs.com/v1/graphql',
+						origin: 'https://api.mainnet.aptoslabs.com',
 						corsEnabled: false,
 					},
 				],
@@ -632,13 +651,19 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				artifacts: [
 					{
 						kind: SourceArtifactKind.GraphqlSchema,
-						path: 'src/sources/AptosIndexer/Graphql/introspection.json',
-						generated: false,
+						path: 'src/sources/AptosIndexer/Graphql/schema.graphql',
+						generated: true,
+						officialUrl: 'https://api.mainnet.aptoslabs.com/v1/graphql',
 					},
 					{
 						kind: SourceArtifactKind.GenerationManifest,
 						path: 'src/sources/AptosIndexer/Graphql/schema-source.ts',
 						generated: false,
+					},
+					{
+						kind: SourceArtifactKind.GraphqlTypes,
+						path: 'src/sources/AptosIndexer/Graphql/graphql-env.d.ts',
+						generated: true,
 					},
 				],
 			},
@@ -818,6 +843,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Atproto_BskySocial_Xrpc-17',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.Lexicon,
@@ -1001,6 +1027,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'AvalancheInfo_JsonRpc-21',
 			},
 		],
 	},
@@ -1041,6 +1068,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'AvalanchePlatformVm_JsonRpc-22',
 			},
 		],
 	},
@@ -1081,6 +1109,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Avascan_Rest-23',
 			},
 		],
 	},
@@ -1165,6 +1194,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Axelarscan_Rest-25',
 			},
 		],
 	},
@@ -1404,6 +1434,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'BeaconchaIn_Rest-30',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -1444,6 +1475,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'BeaconchaIn_Rest-31',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -1484,6 +1516,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'BeaconchaIn_Rest-32',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -1531,6 +1564,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'BetterCallDev_Rest-33',
 			},
 		],
 		origins: [
@@ -1577,6 +1611,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'BigDipper_Rest-34',
 			},
 		],
 	},
@@ -1617,6 +1652,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'BinanceChainApi_Rest-35',
 			},
 		],
 	},
@@ -1657,6 +1693,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'BinanceChainExplorer_Rest-36',
 			},
 		],
 	},
@@ -1799,6 +1836,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'BitcoinCashChips_Gitlab-39',
 			},
 		],
 		origins: [
@@ -1925,6 +1963,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Bithomp_Rest-42',
 			},
 		],
 	},
@@ -1971,6 +2010,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Bittensor_JsonRpc-43',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -2208,6 +2248,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blobscan_Rest-50',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -2242,6 +2283,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blobscan_Rest-51',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -2276,6 +2318,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blobscan_Rest-52',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -2310,6 +2353,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blobscan_Rest-53',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -2363,6 +2407,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Blockchair_Rest-54',
 			},
 		],
 	},
@@ -2387,7 +2432,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				endpoints: [
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://cardano-mainnet.blockfrost.io',
+						locator: 'https://cardano-mainnet.blockfrost.io/api/v0/',
 						origin: 'https://cardano-mainnet.blockfrost.io',
 						corsEnabled: false,
 					},
@@ -2397,12 +2442,14 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.ServerOnly,
+				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
 						scope: SourceCredentialScope.RuntimeSecret,
 					},
 				],
+				proxyId: 'Blockfrost_Rest-55',
+				serverCredentialId: 'Blockfrost_Rest-55',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenApiSpec,
@@ -2461,6 +2508,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-56',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2489,6 +2537,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-57',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2517,6 +2566,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-58',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2545,6 +2595,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-59',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2573,6 +2624,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-60',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2601,6 +2653,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-61',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2629,6 +2682,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-62',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2657,6 +2711,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-63',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2685,6 +2740,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-64',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2713,6 +2769,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-65',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2741,6 +2798,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-66',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2769,6 +2827,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-67',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2797,6 +2856,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-68',
 			},
 			{
 				provider: SourceProvider.Blockscout,
@@ -2825,6 +2885,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Blockscout_Rest-69',
 			},
 		],
 	},
@@ -2865,6 +2926,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'BnbBeaconArchive_Rest-70',
 			},
 		],
 	},
@@ -2905,6 +2967,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'BnbChainFusion_Rest-71',
 			},
 		],
 	},
@@ -2987,63 +3050,6 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
-					},
-				],
-			},
-		],
-	},
-	{
-		provider: SourceProvider.CardanoBlockfrost,
-		label: 'Cardano Blockfrost',
-		sources: [
-			{
-				provider: SourceProvider.CardanoBlockfrost,
-				source: Source.CardanoBlockfrost_Rest,
-				label: 'Cardano Blockfrost REST',
-			},
-		],
-		bindings: [
-			{
-				provider: SourceProvider.CardanoBlockfrost,
-				source: Source.CardanoBlockfrost_Rest,
-				target: {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'cardano-blockfrost-mainnet',
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://cardano-mainnet.blockfrost.io',
-						origin: 'https://cardano-mainnet.blockfrost.io',
-						corsEnabled: false,
-					},
-				],
-				wireProtocol: WireProtocol.HttpRest,
-				apiFamily: ApiFamily.OpenApiHttp,
-				operationGroups: [
-					SourceOperationGroup.GenericRead,
-				],
-				delivery: SourceDelivery.ServerOnly,
-				credentials: [
-					{
-						scope: SourceCredentialScope.RuntimeSecret,
-					},
-				],
-				artifacts: [
-					{
-						kind: SourceArtifactKind.OpenApiSpec,
-						path: 'src/sources/CardanoBlockfrost/OpenApi/openapi.yaml',
-						generated: false,
-					},
-					{
-						kind: SourceArtifactKind.GenerationManifest,
-						path: 'src/sources/CardanoBlockfrost/OpenApi/schema-source.ts',
-						generated: false,
-					},
-					{
-						kind: SourceArtifactKind.OpenApiTypes,
-						path: 'src/sources/CardanoBlockfrost/OpenApi/openapi.d.ts',
-						generated: true,
 					},
 				],
 			},
@@ -3163,6 +3169,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'CardanoKoios_Rest-76',
 			},
 		],
 	},
@@ -3241,6 +3248,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Cardanoscan_Rest-78',
 			},
 		],
 	},
@@ -3281,6 +3289,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'CashuMint_Rest-79',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -3328,6 +3337,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Celenium_Rest-80',
 			},
 		],
 	},
@@ -3476,6 +3486,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Chainlist_Rest-84',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -3803,6 +3814,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Coingecko_OpenApi-92',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenApiSpec,
@@ -3855,6 +3867,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Coingecko_Rest-93',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -3914,6 +3927,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'CoinMarketCap_Rest-94',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -3976,6 +3990,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Coinpaprika_OpenApi-95',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenApiSpec,
@@ -4078,6 +4093,62 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.RuntimeSecret,
 					},
 				],
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Covalent,
+		label: 'Covalent',
+		sources: [
+			{
+				provider: SourceProvider.Covalent,
+				source: Source.GoldRushFoundational_Rest,
+				label: 'GoldRush Foundational API',
+			},
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Covalent,
+				source: Source.GoldRushFoundational_Rest,
+				target: {
+					kind: SourceTargetKind.Eip155Chain,
+					key: '1',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://api.covalenthq.com',
+						origin: 'https://api.covalenthq.com',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.GoldRushFoundationalApi,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.HttpProxy,
+				credentials: [
+					{
+						scope: SourceCredentialScope.RuntimeSecret,
+					},
+				],
+				proxyId: 'GoldRushFoundational_Rest-151',
+				serverCredentialId: 'GoldRushFoundational_Rest-151',
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Covalent/GoldRush/Rest/types.ts',
+						generated: false,
+						referenceUrl: 'https://goldrush.dev/docs/skills/goldrush-foundational-api/references/endpoints-transactions/',
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://api.covalenthq.com',
+				corsEnabled: false,
 			},
 		],
 	},
@@ -4411,6 +4482,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Defillama_OpenApi-104',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenApiSpec,
@@ -4461,6 +4533,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Defillama_Rest-105',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -4508,6 +4581,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Dexscreener_OpenApi-106',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenApiSpec,
@@ -4673,6 +4747,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Dune_Rest-109',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -5317,6 +5392,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'EthereumEips_Github-124',
 			},
 			{
 				provider: SourceProvider.EthereumEips,
@@ -5350,6 +5426,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'EthereumEips_Github-125',
 			},
 		],
 	},
@@ -5396,6 +5473,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'EthereumLists_Rest-126',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -5497,6 +5575,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Etherscan_Rest-128',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -5543,6 +5622,103 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
+					},
+				],
+				proxyId: 'EthForks_Rest-129',
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Envio,
+		label: 'Envio',
+		sources: [
+			{
+				provider: SourceProvider.Envio,
+				source: Source.EnvioHyperRpc_JsonRpc,
+				label: 'Envio HyperRPC',
+			},
+			{
+				provider: SourceProvider.Envio,
+				source: Source.EnvioHyperSync_RawHttp,
+				label: 'Envio HyperSync',
+			},
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Envio,
+				source: Source.EnvioHyperRpc_JsonRpc,
+				target: {
+					kind: SourceTargetKind.Eip155Chain,
+					key: '1',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://eth.rpc.hypersync.xyz/{ENVIO_API_TOKEN}',
+						origin: 'https://eth.rpc.hypersync.xyz',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.EvmExecutionJsonRpc,
+				operationGroups: [
+					SourceOperationGroup.EvmRpcCore,
+				],
+				delivery: SourceDelivery.HttpProxy,
+				credentials: [
+					{
+						scope: SourceCredentialScope.RuntimeSecret,
+					},
+				],
+				proxyId: 'EnvioHyperRpc_JsonRpc-130',
+				serverCredentialId: 'EnvioHyperRpc_JsonRpc-130',
+				artifacts: [
+					{
+						kind: SourceArtifactKind.OpenRpcSpec,
+						path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+						generated: false,
+					},
+					{
+						kind: SourceArtifactKind.GenerationManifest,
+						path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+						generated: false,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Envio,
+				source: Source.EnvioHyperSync_RawHttp,
+				target: {
+					kind: SourceTargetKind.Eip155Chain,
+					key: '1',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://eth.hypersync.xyz',
+						origin: 'https://eth.hypersync.xyz',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.RawHttp,
+				apiFamily: ApiFamily.EnvioHyperSyncApi,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.HttpProxy,
+				credentials: [
+					{
+						scope: SourceCredentialScope.RuntimeSecret,
+					},
+				],
+				proxyId: 'EnvioHyperSync_RawHttp-131',
+				serverCredentialId: 'EnvioHyperSync_RawHttp-131',
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Envio/HyperSync/types.ts',
+						generated: false,
+						referenceUrl: 'https://docs.envio.dev/docs/HyperSync/overview',
 					},
 				],
 			},
@@ -5597,6 +5773,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Farcaster_Rest-132',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -6040,11 +6217,107 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'X_FxEmbed_Rest-143',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
 						path: 'src/sources/FxEmbed/Rest/types.ts',
 						generated: false,
+					},
+				],
+			},
+		],
+	},
+	{
+		provider: SourceProvider.GetBlock,
+		label: 'GetBlock',
+		sources: [
+			{
+				provider: SourceProvider.GetBlock,
+				source: Source.GetBlockRpc_JsonRpc,
+				label: 'GetBlock EVM JSON-RPC',
+			},
+			{
+				provider: SourceProvider.GetBlock,
+				source: Source.GetBlockYellowstone_Grpc,
+				label: 'GetBlock Yellowstone gRPC',
+			},
+		],
+		bindings: [
+			{
+				provider: SourceProvider.GetBlock,
+				source: Source.GetBlockRpc_JsonRpc,
+				target: {
+					kind: SourceTargetKind.Eip155Chain,
+					key: '1',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
+						origin: 'https://go.getblock.io',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.EvmExecutionJsonRpc,
+				operationGroups: [
+					SourceOperationGroup.EvmRpcCore,
+				],
+				delivery: SourceDelivery.HttpProxy,
+				credentials: [
+					{
+						scope: SourceCredentialScope.RuntimeSecret,
+					},
+				],
+				proxyId: 'GetBlockRpc_JsonRpc-144',
+				serverCredentialId: 'GetBlockRpc_JsonRpc-144',
+				artifacts: [
+					{
+						kind: SourceArtifactKind.OpenRpcSpec,
+						path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+						generated: false,
+					},
+					{
+						kind: SourceArtifactKind.GenerationManifest,
+						path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+						generated: false,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.GetBlock,
+				source: Source.GetBlockYellowstone_Grpc,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
+						origin: 'https://go.getblock.io',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.Grpc,
+				apiFamily: ApiFamily.GrpcService,
+				operationGroups: [
+					SourceOperationGroup.GenericSubscribe,
+				],
+				delivery: SourceDelivery.RemoteLive,
+				credentials: [
+					{
+						scope: SourceCredentialScope.RuntimeSecret,
+					},
+				],
+				serverCredentialId: 'GetBlockYellowstone_Grpc-145',
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/GetBlock/Yellowstone/types.ts',
+						generated: false,
+						referenceUrl: 'https://getblock.io/docs/yellowstone-grpc/',
 					},
 				],
 			},
@@ -6246,6 +6519,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.UserDelegated,
 					},
 				],
+				proxyId: 'Gitlab_Rest-150',
 			},
 		],
 	},
@@ -6370,6 +6644,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'HederaMirrorNode_Rest-154',
 			},
 		],
 	},
@@ -6949,6 +7224,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Ipfs_Rest-168',
 			},
 		],
 	},
@@ -7382,6 +7658,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Koios_Rest-179',
 			},
 		],
 	},
@@ -7422,6 +7699,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'L2Beat_Rest-180',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -7849,6 +8127,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'LightningLnd_Rest-189',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8082,7 +8361,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				endpoints: [
 					{
 						endpointKind: SourceEndpointKind.InProcess,
-						locator: 'src/sources/Local/Internal/catalog.ts',
+						locator: 'src/resolvers/Local/Internal/catalog.ts',
 					},
 				],
 				wireProtocol: WireProtocol.InProcess,
@@ -8437,6 +8716,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Mastodon_Rest-202',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8609,6 +8889,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'MetadataVision_Rest-206',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8696,6 +8977,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'MevRelay_Rest-208',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8730,6 +9012,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'MevRelay_Rest-209',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8764,6 +9047,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'MevRelay_Rest-210',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -8980,6 +9264,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'MoneroDaemonRpc_JsonRpc-215',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -9244,6 +9529,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'NearRpc_JsonRpc-221',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -9342,6 +9628,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Neynar_Rest-223',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenApiSpec,
@@ -9512,6 +9799,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Nodely_Algod_Rest-227',
 			},
 			{
 				provider: SourceProvider.Nodely,
@@ -9539,6 +9827,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Nodely_AlgorandIndexer_Rest-228',
 			},
 		],
 	},
@@ -9579,6 +9868,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'NostrBand_Rest-229',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -9872,15 +10162,14 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.AiProviderOperationCatalog,
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.RemoteQuery,
+				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
 						scope: SourceCredentialScope.RuntimeSecret,
-						keys: [
-							'OPENAI_API_KEY',
-						],
 					},
 				],
+				proxyId: 'OpenAI_Rest-236',
+				serverCredentialId: 'OpenAI_Rest-236',
 			},
 		],
 		origins: [
@@ -9933,6 +10222,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Openchain_Rest-237',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -10077,6 +10367,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Paraswap_Rest-240',
 			},
 		],
 	},
@@ -10239,6 +10530,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'PayjoinDirectory_Rest-244',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -10604,6 +10896,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Primal_Rest-252',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -10721,6 +11014,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'PythHermes_Rest-255',
 			},
 			{
 				provider: SourceProvider.Pyth,
@@ -10748,6 +11042,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'PythBenchmarks_Rest-256',
 			},
 			{
 				provider: SourceProvider.Pyth,
@@ -10775,6 +11070,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'PythPriceFeedsCatalog_Rest-257',
 			},
 		],
 		origins: [
@@ -11219,6 +11515,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Reddit_Rest-267',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11266,6 +11563,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Reddit_PublicJson-268',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11407,6 +11705,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Rss_Rest-271',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11441,6 +11740,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Rss_Rest-272',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11488,6 +11788,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Rss2Json_Rest-273',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11594,6 +11895,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Snapchain_Rest-275',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11641,6 +11943,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Solana_JsonRpc-276',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11815,6 +12118,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Sourcify_Rest-280',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -11859,6 +12163,54 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Sqd,
+		label: 'SQD',
+		sources: [
+			{
+				provider: SourceProvider.Sqd,
+				source: Source.SqdPortal_RawHttp,
+				label: 'SQD Portal',
+			},
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Sqd,
+				source: Source.SqdPortal_RawHttp,
+				target: {
+					kind: SourceTargetKind.Eip155Chain,
+					key: '1',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://portal.sqd.dev/datasets/ethereum-mainnet',
+						origin: 'https://portal.sqd.dev',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.RawHttp,
+				apiFamily: ApiFamily.SqdPortalStream,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.HttpProxy,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				proxyId: 'SqdPortal_RawHttp-282',
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Sqd/Portal/types.ts',
+						generated: false,
 					},
 				],
 			},
@@ -11993,6 +12345,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'StellarExpert_Rest-285',
 			},
 		],
 	},
@@ -12033,6 +12386,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'StellarHorizon_Rest-286',
 			},
 		],
 	},
@@ -12203,6 +12557,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Subscan_Rest-290',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -12256,6 +12611,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'SubstrateSidecar_Rest-291',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -12600,6 +12956,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'TheGraph_Graphql-299',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.GraphqlSchema,
@@ -12693,14 +13050,14 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.TonApi,
 				source: Source.TonApi_Rest,
 				target: {
-					kind: SourceTargetKind.Global,
-					key: 'tonapi',
+					kind: SourceTargetKind.Caip2Network,
+					key: 'ton:-239',
 				},
 				endpoints: [
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://{tonapi-host}',
-						origin: 'https://{tonapi-host}',
+						locator: 'https://tonapi.io',
+						origin: 'https://tonapi.io',
 						corsEnabled: false,
 					},
 				],
@@ -12709,10 +13066,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.RemoteQuery,
+				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
+					},
+				],
+				proxyId: 'TonApi_Rest-301',
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/TonApi/Rest/types.ts',
+						generated: false,
 					},
 				],
 			},
@@ -12983,6 +13348,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'TradingView_Rest-308',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -13076,6 +13442,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'TronFullNode_Rest-310',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -13123,6 +13490,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'TronGrid_Rest-311',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -13262,6 +13630,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'TronSolidityNode_Rest-314',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -13411,8 +13780,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				provider: SourceProvider.Tzkt,
 				source: Source.Tzkt_Rest,
 				target: {
-					kind: SourceTargetKind.Global,
-					key: 'tzkt-api',
+					kind: SourceTargetKind.Caip2Network,
+					key: 'tezos:NetXdQprcVkpaWU',
 				},
 				endpoints: [
 					{
@@ -13433,6 +13802,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Tzkt_Rest-318',
 			},
 		],
 		origins: [
@@ -13511,6 +13881,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-319',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -13601,6 +13972,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-321',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -13679,6 +14051,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-323',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -13757,6 +14130,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-325',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -13835,6 +14209,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-327',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -13913,6 +14288,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-329',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -13991,6 +14367,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-331',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14069,6 +14446,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-333',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14147,6 +14525,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-335',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14225,6 +14604,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-337',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14303,6 +14683,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-339',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14381,6 +14762,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-341',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14615,6 +14997,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-347',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14693,6 +15076,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-349',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14771,6 +15155,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-351',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14849,6 +15234,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-353',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -14933,6 +15319,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-355',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15015,6 +15402,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-357',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15093,6 +15481,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-359',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15171,6 +15560,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-361',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15249,6 +15639,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-363',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15327,6 +15718,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-365',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15405,6 +15797,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-367',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15483,6 +15876,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-369',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15561,6 +15955,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-371',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15639,6 +16034,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-373',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15717,6 +16113,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-375',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15795,6 +16192,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-377',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15873,6 +16271,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-379',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -15951,6 +16350,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-381',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -16029,6 +16429,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-383',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -16107,6 +16508,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-385',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -16185,6 +16587,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-387',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -16263,6 +16666,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-389',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -16341,6 +16745,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-391',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -16419,6 +16824,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-393',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -16497,6 +16903,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-395',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -16575,6 +16982,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'Voltaire_JsonRpc-397',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,
@@ -16981,6 +17389,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'X_Rest-407',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.HandwrittenTypes,
@@ -17284,6 +17693,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'XrpScan_Rest-415',
 			},
 		],
 	},
@@ -17336,6 +17746,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						],
 					},
 				],
+				proxyId: 'Youtube_Rest-416',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.GoogleDiscovery,
@@ -17706,6 +18117,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.None,
 					},
 				],
+				proxyId: 'ZeroGChain_JsonRpc-424',
 				artifacts: [
 					{
 						kind: SourceArtifactKind.OpenRpcSpec,

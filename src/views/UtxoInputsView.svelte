@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'UTXO inputs',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.UtxoInput>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.UtxoInput>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,17 +113,22 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: utxoInput }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoInput> })}
+				{#snippet Item({ item: utxoInput })}
 					{@const utxoInputFields = { ...utxoInput[EntityMetaKey.Selector], ...utxoInput }}
+					{@const selection = select(EntityType.UtxoInput, utxoInput[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const utxoInputHrefFields = { ...utxoInput, ...utxoInput[EntityMetaKey.Selector] }}
 					<UtxoInputView
-						selection={select(EntityType.UtxoInput, utxoInput[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={utxoInputFields}
 						href={
-							(utxoInputHrefFields.$transaction !== undefined && utxoInputHrefFields.$transaction.$network !== undefined && utxoInputHrefFields.$transaction.$network.slug !== undefined && utxoInputHrefFields.$transaction.txId !== undefined && utxoInputHrefFields.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/input/[inputIndex=nonNegativeInteger]', {
-								network: String(utxoInputHrefFields.$transaction.$network.slug ?? ''),
-								transactionId: String(utxoInputHrefFields.$transaction.txId ?? ''),
+							(utxoInputHrefFields.indexInTransaction !== undefined && utxoInputHrefFields.$transaction !== undefined && utxoInputHrefFields.$transaction.txId !== undefined && utxoInputHrefFields.$transaction.$network !== undefined && utxoInputHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/input/[inputIndex=nonNegativeInteger]', {
 								inputIndex: String(utxoInputHrefFields.indexInTransaction ?? ''),
+								transactionId: String(utxoInputHrefFields.$transaction.txId ?? ''),
+								network: String(caip2StringFromValue(utxoInputHrefFields.$transaction.$network.caip2) ?? ''),
+							}) : utxoInputHrefFields.indexInTransaction !== undefined && utxoInputHrefFields.$transaction !== undefined && utxoInputHrefFields.$transaction.txId !== undefined && utxoInputHrefFields.$transaction.$network !== undefined && utxoInputHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/input/[inputIndex=nonNegativeInteger]', {
+								inputIndex: String(utxoInputHrefFields.indexInTransaction ?? ''),
+								transactionId: String(utxoInputHrefFields.$transaction.txId ?? ''),
+								network: String(utxoInputHrefFields.$transaction.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

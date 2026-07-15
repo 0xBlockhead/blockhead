@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +26,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.EvmActorCoinAllowance_Block>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.EvmActorCoinAllowance_Block>>
+			selection: RegisteredEntityProxyResource<EntityType.EvmActorCoinAllowance_Block>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.EvmActorCoinAllowance_Block>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -283,6 +283,14 @@
 				<dd>
 					<EvmActorCoinAllowanceView
 						selection={select(EntityType.EvmActorCoinAllowance, selection.entitySelector.$allowance, {})}
+						href={
+							(selection.entitySelector.$allowance.$actor !== undefined && selection.entitySelector.$allowance.$actor.address !== undefined && selection.entitySelector.$allowance.$contract !== undefined && selection.entitySelector.$allowance.$contract.$network !== undefined && selection.entitySelector.$allowance.$contract.$network.caip2 !== undefined && selection.entitySelector.$allowance.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$allowance.$contract.address !== undefined && selection.entitySelector.$allowance.$spender !== undefined && selection.entitySelector.$allowance.$spender.address !== undefined ? resolve('/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]', {
+								owner: String(selection.entitySelector.$allowance.$actor.address ?? ''),
+								chainId: String(selection.entitySelector.$allowance.$contract.$network.caip2.reference ?? ''),
+								coin: String(selection.entitySelector.$allowance.$contract.address ?? ''),
+								spender: String(selection.entitySelector.$allowance.$spender.address ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

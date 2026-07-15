@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +20,7 @@
 		selection,
 		title = 'Turns',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -31,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadAgentConversationTurn>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.BlockheadAgentConversationTurn>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -71,10 +71,10 @@
 					Source.Local_Internal,
 				],
 				fields: {
-					$conversation: true,
 					userPrompt: true,
 					createdAt: true,
 					id: true,
+					$conversation: true,
 				},
 			})
 		}
@@ -117,11 +117,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: blockheadAgentConversationTurn }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAgentConversationTurn> })}
+				{#snippet Item({ item: blockheadAgentConversationTurn })}
 					{@const blockheadAgentConversationTurnFields = { ...blockheadAgentConversationTurn[EntityMetaKey.Selector], ...blockheadAgentConversationTurn }}
+					{@const selection = select(EntityType.BlockheadAgentConversationTurn, blockheadAgentConversationTurn[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const blockheadAgentConversationTurnHrefFields = { ...blockheadAgentConversationTurn, ...blockheadAgentConversationTurn[EntityMetaKey.Selector] }}
 					<BlockheadAgentConversationTurnView
-						selection={select(EntityType.BlockheadAgentConversationTurn, blockheadAgentConversationTurn[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={blockheadAgentConversationTurnFields}
 						href={
 							(blockheadAgentConversationTurnHrefFields.id !== undefined && blockheadAgentConversationTurnHrefFields.$conversation !== undefined && blockheadAgentConversationTurnHrefFields.$conversation.id !== undefined ? resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {

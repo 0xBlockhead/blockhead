@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.MarketPrice>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.MarketPrice>>
+			selection: RegisteredEntityProxyResource<EntityType.MarketPrice>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.MarketPrice>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -44,11 +43,7 @@
 	> = $props()
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const marketPrice = $derived(selection({
-		fields: {
-			$parentMarket: true,
-		},
-	}))
+	const marketPrice = $derived(selection({}))
 	const titleFallback = $derived('Market price')
 	const viewDomId = $derived('market-price-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 
@@ -66,7 +61,16 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.$market !== undefined && pendingEntity.$market.marketKind !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.assetKey !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.assetKey !== undefined && pendingEntity.$market.$marketVenue !== undefined && pendingEntity.$market.$marketVenue.marketVenueId !== undefined && pendingEntity.$base !== undefined && pendingEntity.$base.kind !== undefined && pendingEntity.$quote !== undefined && pendingEntity.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/price', {
+			marketKind: String(pendingEntity.$market.marketKind ?? ''),
+			base: String(pendingEntity.$market.$base.assetKey ?? ''),
+			quote: String(pendingEntity.$market.$quote.assetKey ?? ''),
+			marketVenue: String(pendingEntity.$market.$marketVenue.marketVenueId ?? ''),
+			baseKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$base.kind)] ?? ''),
+			quoteKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$quote.kind)] ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -196,15 +200,15 @@
 										})
 									}
 									href={
-										(marketTimestamp[EntityMetaKey.Selector].$market !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.marketKind !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$base !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$base.assetKey !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$quote !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$quote.assetKey !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$marketVenue !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$marketVenue.marketVenueId !== undefined && marketTimestamp[EntityMetaKey.Selector].$base !== undefined && marketTimestamp[EntityMetaKey.Selector].$base.kind !== undefined && marketTimestamp[EntityMetaKey.Selector].$quote !== undefined && marketTimestamp[EntityMetaKey.Selector].$quote.kind !== undefined && marketTimestamp[EntityMetaKey.Selector].timestampMs !== undefined && marketTimestamp[EntityMetaKey.Selector].feedKey !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/price/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
+										(marketTimestamp[EntityMetaKey.Selector].timestampMs !== undefined && marketTimestamp[EntityMetaKey.Selector].feedKey !== undefined && marketTimestamp[EntityMetaKey.Selector].$market !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.marketKind !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$base !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$base.assetKey !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$quote !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$quote.assetKey !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$marketVenue !== undefined && marketTimestamp[EntityMetaKey.Selector].$market.$marketVenue.marketVenueId !== undefined && marketTimestamp[EntityMetaKey.Selector].$base !== undefined && marketTimestamp[EntityMetaKey.Selector].$base.kind !== undefined && marketTimestamp[EntityMetaKey.Selector].$quote !== undefined && marketTimestamp[EntityMetaKey.Selector].$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/price/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
+											timestampMs: String(marketTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+											feedKey: String(marketTimestamp[EntityMetaKey.Selector].feedKey ?? ''),
 											marketKind: String(marketTimestamp[EntityMetaKey.Selector].$market.marketKind ?? ''),
 											base: String(marketTimestamp[EntityMetaKey.Selector].$market.$base.assetKey ?? ''),
 											quote: String(marketTimestamp[EntityMetaKey.Selector].$market.$quote.assetKey ?? ''),
 											marketVenue: String(marketTimestamp[EntityMetaKey.Selector].$market.$marketVenue.marketVenueId ?? ''),
 											baseKind: String(marketAssetRouteLabelByKind[String(marketTimestamp[EntityMetaKey.Selector].$base.kind)] ?? ''),
 											quoteKind: String(marketAssetRouteLabelByKind[String(marketTimestamp[EntityMetaKey.Selector].$quote.kind)] ?? ''),
-											timestampMs: String(marketTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
-											feedKey: String(marketTimestamp[EntityMetaKey.Selector].feedKey ?? ''),
 										}) : undefined)
 									}
 									prefetched={{ ...marketTimestampSelector, ...marketTimestamp }}

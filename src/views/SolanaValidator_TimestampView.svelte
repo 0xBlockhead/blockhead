@@ -4,12 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.SolanaValidator_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.SolanaValidator_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.SolanaValidator_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.SolanaValidator_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -134,9 +134,12 @@
 					<SolanaValidatorView
 						selection={select(EntityType.SolanaValidator, selection.entitySelector.$validator, {})}
 						href={
-							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.slug !== undefined && selection.entitySelector.$validator.votePubkey !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-								network: String(selection.entitySelector.$validator.$network.slug ?? ''),
+							(selection.entitySelector.$validator.votePubkey !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
 								validatorId: String(selection.entitySelector.$validator.votePubkey ?? ''),
+								network: String(caip2StringFromValue(selection.entitySelector.$validator.$network.caip2) ?? ''),
+							}) : selection.entitySelector.$validator.votePubkey !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
+								validatorId: String(selection.entitySelector.$validator.votePubkey ?? ''),
+								network: String(selection.entitySelector.$validator.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Value}
@@ -174,6 +177,44 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Solana_JsonRpc,
+						],
+						fields: {
+							nodePubkey: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const nodePubkey = pendingEntity.nodePubkey}
+					{#if nodePubkey !== undefined && nodePubkey !== null}
+						<div>
+							<dt>Node public key</dt>
+							<dd>
+								{String((nodePubkey) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const nodePubkey = resolvedEntity.nodePubkey}
+					{#if nodePubkey !== undefined && nodePubkey !== null}
+						<div>
+							<dt>Node public key</dt>
+							<dd>
+								{String((nodePubkey) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={

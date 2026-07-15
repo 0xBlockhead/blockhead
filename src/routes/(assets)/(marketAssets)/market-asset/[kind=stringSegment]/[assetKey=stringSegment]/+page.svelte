@@ -22,9 +22,9 @@
 		assetKey: params.assetKey,
 	}, {
 		fields: {
-			$coin: true,
-			$coinInstance: true,
-			$currency: true,
+			Coin,$coin: true,
+			CoinInstance,$coinInstance: true,
+			Currency,$currency: true,
 		},
 	}))
 	const pageEntityTitle = $derived((pageSelection.entity == null ? [String((pageSelection.entitySelector.assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset'))

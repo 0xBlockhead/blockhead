@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Logos blockchain networks',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.LogosBlockchainNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.LogosBlockchainNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -109,10 +109,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: logosBlockchainNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LogosBlockchainNetwork> })}
+				{#snippet Item({ item: logosBlockchainNetwork })}
 					{@const logosBlockchainNetworkFields = { ...logosBlockchainNetwork[EntityMetaKey.Selector], ...logosBlockchainNetwork }}
+					{@const selection = select(EntityType.LogosBlockchainNetwork, logosBlockchainNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<LogosBlockchainNetworkView
-						selection={select(EntityType.LogosBlockchainNetwork, logosBlockchainNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={logosBlockchainNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

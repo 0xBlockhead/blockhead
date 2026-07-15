@@ -13,7 +13,7 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { YoutubeLiveBroadcastContent } from '$/schema/YoutubeVideo.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import { youtubeNetworkSeedChannels } from '$/constants/Social/YouTube.ts'
+import { youtubeNetworkSeedChannels } from '$/constants/Social/Youtube.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	YoutubeApiChannel,

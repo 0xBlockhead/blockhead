@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Blocks',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SolanaBlock>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.SolanaBlock>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: solanaBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaBlock> })}
+				{#snippet Item({ item: solanaBlock })}
 					{@const solanaBlockFields = { ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }}
+					{@const selection = select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const solanaBlockHrefFields = { ...solanaBlock, ...solanaBlock[EntityMetaKey.Selector] }}
 					<SolanaBlockView
-						selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={solanaBlockFields}
 						href={
-							(solanaBlockHrefFields.$network !== undefined && solanaBlockHrefFields.$network.slug !== undefined && solanaBlockHrefFields.slot !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-								network: String(solanaBlockHrefFields.$network.slug ?? ''),
+							(solanaBlockHrefFields.slot !== undefined && solanaBlockHrefFields.$network !== undefined && solanaBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
 								blockNumber: String(solanaBlockHrefFields.slot ?? ''),
+								network: String(caip2StringFromValue(solanaBlockHrefFields.$network.caip2) ?? ''),
+							}) : solanaBlockHrefFields.slot !== undefined && solanaBlockHrefFields.$network !== undefined && solanaBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
+								blockNumber: String(solanaBlockHrefFields.slot ?? ''),
+								network: String(solanaBlockHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

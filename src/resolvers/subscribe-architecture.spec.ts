@@ -1262,8 +1262,6 @@ describe('client resolver architecture', () => {
 
 			if (
 				relativePath === 'routes/+layout.svelte'
-				|| relativePath === 'client/$e2eProbe.ts'
-				|| relativePath === 'client/$e2eTrace.ts'
 				|| relativePath === 'routes/~/(manage)/manage/data/+page.svelte'
 				|| relativePath.startsWith('routes/test/resource-boundary/')
 				|| relativePath.startsWith('routes/test/query-resource-adapter/')

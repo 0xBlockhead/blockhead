@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +18,7 @@
 		selection,
 		title = 'Global Farcaster networks',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +27,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalFarcasterNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalFarcasterNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +43,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -109,10 +109,11 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: globalFarcasterNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalFarcasterNetwork> })}
+				{#snippet Item({ item: globalFarcasterNetwork })}
 					{@const globalFarcasterNetworkFields = { ...globalFarcasterNetwork[EntityMetaKey.Selector], ...globalFarcasterNetwork }}
+					{@const selection = select(EntityType._GlobalFarcasterNetwork, globalFarcasterNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					<GlobalFarcasterNetworkView
-						selection={select(EntityType._GlobalFarcasterNetwork, globalFarcasterNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={globalFarcasterNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

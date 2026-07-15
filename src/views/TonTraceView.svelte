@@ -3,12 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.TonTrace>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.TonTrace>>
+			selection: RegisteredEntityProxyResource<EntityType.TonTrace>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.TonTrace>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -50,7 +51,7 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TonNetworkView from '$/views/TonNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import TonMessageView from '$/views/TonMessageView.svelte'
 	import TonTransactionsView from '$/views/TonTransactionsView.svelte'
 	import TonMessagesView from '$/views/TonMessagesView.svelte'
@@ -89,11 +90,18 @@
 					<ResourceBoundary
 						resource={selection.$network}
 					>
-						{#snippet children(tonNetwork)}
-							{#if tonNetwork != null && tonNetwork[EntityMetaKey.Selector] != null}
-								<TonNetworkView
-									selection={select(EntityType.TonNetwork, tonNetwork[EntityMetaKey.Selector])}
-									prefetched={tonNetwork}
+						{#snippet children(network)}
+							{#if network != null && network[EntityMetaKey.Selector] != null}
+								<NetworkView
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									prefetched={network}
+									href={
+										(network[EntityMetaKey.Selector].caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]', {
+											network: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : undefined)
+									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -103,62 +111,55 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							traceId: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const traceId = pendingEntity.traceId}
-					{#if traceId !== undefined && traceId !== null}
-						<div>
-							<dt>trace ID</dt>
-							<dd>
+			<div>
+				<dt>trace ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									traceId: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const traceId = pendingEntity.traceId}
+							{#if traceId !== undefined && traceId !== null}
 								{String((traceId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const traceId = resolvedEntity.traceId}
-					{#if traceId !== undefined && traceId !== null}
-						<div>
-							<dt>trace ID</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const traceId = resolvedEntity.traceId}
+							{#if traceId !== undefined && traceId !== null}
 								{String((traceId) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$rootMessage}
-			>
-				{#snippet Pending()}{/snippet}
-
-				{#snippet children(tonMessage)}
-					{#if tonMessage != null && tonMessage[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>root message</dt>
-							<dd>
+			<div>
+				<dt>root message</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$rootMessage}
+					>
+						{#snippet children(tonMessage)}
+							{#if tonMessage != null && tonMessage[EntityMetaKey.Selector] != null}
 								<TonMessageView
 									selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
 									prefetched={tonMessage}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>Source</dt>

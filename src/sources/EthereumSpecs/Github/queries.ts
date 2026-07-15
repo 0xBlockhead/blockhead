@@ -1,18 +1,13 @@
 import { getText } from '$/lib/http.ts'
-import { ethereumSpecsBindings } from '$/sources/EthereumSpecs/bindings.ts'
 import {
 	consensusHoleskyYamlUrl,
 	consensusMainnetYamlUrl,
 	consensusSepoliaYamlUrl,
+	ethereumSpecsGithubOrigins,
 	executionSpecsMainnetUpgradeMarkdownUrl,
 	goEthereumParamsConfigGoUrl,
 } from '$/sources/EthereumSpecs/Github/constants.ts'
 import type { ConsensusSpecsNetworkPreset } from '$/sources/EthereumSpecs/Github/types.ts'
-
-const origins = ethereumSpecsBindings[0].endpoints.map((endpoint) => ({
-	origin: endpoint.origin,
-	corsEnabled: endpoint.corsEnabled,
-}))
 
 const consensusSpecsConfigYamlUrlByPreset = {
 	mainnet: consensusMainnetYamlUrl,
@@ -27,14 +22,14 @@ export const fetchConsensusSpecsConfigYaml = async ({
 }) => (
 	getText(
 		consensusSpecsConfigYamlUrlByPreset[preset],
-		{ origins }
+		{ origins: ethereumSpecsGithubOrigins }
 	)
 )
 
 export const fetchGoEthereumParamsConfigGo = async () => (
 	getText(
 		goEthereumParamsConfigGoUrl,
-		{ origins }
+		{ origins: ethereumSpecsGithubOrigins }
 	)
 )
 
@@ -45,6 +40,6 @@ export const fetchExecutionSpecsMainnetUpgradeMarkdown = async ({
 }) => (
 	getText(
 		executionSpecsMainnetUpgradeMarkdownUrl(filename),
-		{ origins }
+		{ origins: ethereumSpecsGithubOrigins }
 	)
 )

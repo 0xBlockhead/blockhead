@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'ENS',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType._GlobalEnsNetwork>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType._GlobalEnsNetwork>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -64,7 +64,13 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					scope: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -104,13 +110,14 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: globalEnsNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalEnsNetwork> })}
+				{#snippet Item({ item: globalEnsNetwork })}
 					{@const globalEnsNetworkFields = { ...globalEnsNetwork[EntityMetaKey.Selector], ...globalEnsNetwork }}
+					{@const selection = select(EntityType._GlobalEnsNetwork, globalEnsNetwork[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const globalEnsNetworkHrefFields = { ...globalEnsNetwork, ...globalEnsNetwork[EntityMetaKey.Selector] }}
 					<GlobalEnsNetworkView
-						selection={select(EntityType._GlobalEnsNetwork, globalEnsNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={globalEnsNetworkFields}
-						href={resolve('/ens')}
+						href={(globalEnsNetwork[EntityMetaKey.Selector].scope === '_GlobalEnsNetwork' ? resolve('/ens') : undefined)}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

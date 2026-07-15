@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.LensAccount>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.LensAccount>>
+			selection: RegisteredEntityProxyResource<EntityType.LensAccount>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensAccount>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -52,7 +51,6 @@
 			displayName: true,
 			bio: true,
 			createdAt: true,
-			$icon: true,
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.localName) ?? ''), String((pendingEntity.address) ?? ''), String((pendingEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account')
@@ -79,7 +77,11 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.address !== undefined ? resolve('/lens/account/[address=evmAddress]', {
+			address: String(pendingEntity.address ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

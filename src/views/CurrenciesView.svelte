@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -21,7 +19,7 @@
 		selection,
 		title = 'Currencies',
 		typeAnnotationParagraphs = ['A currency unit used for quoting values, balances, and market data.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Currency>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Currency>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,11 +111,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: currency }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Currency> })}
+				{#snippet Item({ item: currency })}
 					{@const currencyFields = { ...currency[EntityMetaKey.Selector], ...currency }}
+					{@const selection = select(EntityType.Currency, currency[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const currencyHrefFields = { ...currency, ...currency[EntityMetaKey.Selector] }}
 					<CurrencyView
-						selection={select(EntityType.Currency, currency[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={currencyFields}
 						href={
 							(currencyHrefFields.iso4217 !== undefined ? resolve('/currency/[iso4217=iso4217]', {

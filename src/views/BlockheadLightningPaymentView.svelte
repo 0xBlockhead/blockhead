@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,8 +28,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.BlockheadLightningPayment>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.BlockheadLightningPayment>>
+			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningPayment>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.BlockheadLightningPayment>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -75,9 +74,12 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.paymentHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
-			network: String(pendingEntity.$network.slug ?? ''),
+		href ?? (pendingEntity.paymentHash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
 			paymentHash: String(pendingEntity.paymentHash ?? ''),
+			network: String(caip2StringFromValue(pendingEntity.$network.caip2) ?? ''),
+		}) : pendingEntity.paymentHash !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
+			paymentHash: String(pendingEntity.paymentHash ?? ''),
+			network: String(pendingEntity.$network.slug ?? ''),
 		}) : undefined)
 	}
 	{layout}
@@ -315,9 +317,12 @@
 									selection={select(EntityType.BlockheadLightningInvoice, blockheadLightningInvoice[EntityMetaKey.Selector])}
 									prefetched={blockheadLightningInvoice}
 									href={
-										(blockheadLightningInvoice[EntityMetaKey.Selector].$network !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
-											network: String(blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug ?? ''),
+										(blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].$network !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
 											paymentHash: String(blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash ?? ''),
+											network: String(caip2StringFromValue(blockheadLightningInvoice[EntityMetaKey.Selector].$network.caip2) ?? ''),
+										}) : blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].$network !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
+											paymentHash: String(blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash ?? ''),
+											network: String(blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Value}

@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { specificationRealmById, proposalCategoryById } from '$/constants/SpecificationProposal.ts'
 	import { Source } from '$/sources/Source.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -28,7 +26,7 @@
 		selection,
 		title = 'Proposal kinds',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -37,7 +35,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SpecificationProposalKind>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.SpecificationProposalKind>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -53,6 +51,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -119,11 +119,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: specificationProposalKind }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SpecificationProposalKind> })}
+				{#snippet Item({ item: specificationProposalKind })}
 					{@const specificationProposalKindFields = { ...specificationProposalKind[EntityMetaKey.Selector], ...specificationProposalKind }}
+					{@const selection = select(EntityType.SpecificationProposalKind, specificationProposalKind[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const specificationProposalKindHrefFields = { ...specificationProposalKind, ...specificationProposalKind[EntityMetaKey.Selector] }}
 					<SpecificationProposalKindView
-						selection={select(EntityType.SpecificationProposalKind, specificationProposalKind[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={specificationProposalKindFields}
 						href={
 							(specificationProposalKindHrefFields.realm !== undefined && specificationProposalKindHrefFields.category !== undefined ? resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {

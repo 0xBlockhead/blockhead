@@ -100,6 +100,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import type { EntitySelector, EntitySelectorForSelectorName } from '$/schema/$schema.ts'
@@ -384,66 +385,31 @@ const evmNetworkUpgradeEntityFromRow = (
 	])
 
 	return {
-		...networkUpgrade,
-		...(linkedNetworkExecutionUpgrade.activationBlock != null && {
-			activationBlock: linkedNetworkExecutionUpgrade.activationBlock,
-		}),
-		...(linkedNetworkExecutionUpgrade.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
-			activationBlock: linkedNetworkConsensusUpgrade.activationBlock,
-		}),
-		...(activationTimestampsMs.length > 0 && {
-			activationTimestampMs: Math.max(...activationTimestampsMs),
-		}),
-		...(linkedNetworkConsensusUpgrade?.activationEpoch != null && {
-			activationEpoch: linkedNetworkConsensusUpgrade.activationEpoch,
-		}),
-		...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
-			activationEpoch: linkedNetworkExecutionUpgrade.activationEpoch,
-		}),
-		...(proposals.length > 0 && { $$proposals: proposals }),
 		[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkUpgrade),
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.EthereumNetworkUpgrade, [], 'name')]: networkUpgrade.name,
+			[entityFieldAddressKey(EntityType.EthereumNetworkUpgrade, [], 'slug')]: networkUpgrade.slug,
+			...(linkedNetworkExecutionUpgrade.activationBlock != null && {
+				[entityFieldAddressKey(EntityType.EthereumNetworkUpgrade, [], 'activationBlock')]: linkedNetworkExecutionUpgrade.activationBlock,
+			}),
+			...(linkedNetworkExecutionUpgrade.activationBlock == null && linkedNetworkConsensusUpgrade?.activationBlock != null && {
+				[entityFieldAddressKey(EntityType.EthereumNetworkUpgrade, [], 'activationBlock')]: linkedNetworkConsensusUpgrade.activationBlock,
+			}),
+			...(activationTimestampsMs.length > 0 && {
+				[entityFieldAddressKey(EntityType.EthereumNetworkUpgrade, [], 'activationTimestampMs')]: Math.max(...activationTimestampsMs),
+			}),
+			...(linkedNetworkConsensusUpgrade?.activationEpoch != null && {
+				[entityFieldAddressKey(EntityType.EthereumNetworkUpgrade, [], 'activationEpoch')]: linkedNetworkConsensusUpgrade.activationEpoch,
+			}),
+			...(linkedNetworkConsensusUpgrade?.activationEpoch == null && linkedNetworkExecutionUpgrade.activationEpoch != null && {
+				[entityFieldAddressKey(EntityType.EthereumNetworkUpgrade, [], 'activationEpoch')]: linkedNetworkExecutionUpgrade.activationEpoch,
+			}),
+			...(proposals.length > 0 && {
+				[entityFieldAddressKey(EntityType.EthereumNetworkUpgrade, [], '$$proposals')]: proposals,
+			}),
+		},
 	}
 }
-
-
-const coinDecimalsByCoinId = new Map([
-	[CoinId.AAVE, 18],
-	[CoinId.ADA, 6],
-	[CoinId.APT, 8],
-	[CoinId.ARB, 18],
-	[CoinId.AVAX, 18],
-	[CoinId.BCH, 8],
-	[CoinId.BNB, 18],
-	[CoinId.BTC, 8],
-	[CoinId.CELO, 18],
-	[CoinId.DAI, 18],
-	[CoinId.DOGE, 8],
-	[CoinId.DOT, 10],
-	[CoinId.ETH, 18],
-	[CoinId.ETC, 18],
-	[CoinId.FIL, 18],
-	[CoinId.HBAR, 8],
-	[CoinId.LINK, 18],
-	[CoinId.LTC, 8],
-	[CoinId.OP, 18],
-	[CoinId.POL, 18],
-	[CoinId.SEI, 18],
-	[CoinId.SHIB, 18],
-	[CoinId.SOL, 9],
-	[CoinId.STETH, 18],
-	[CoinId.SUI, 9],
-	[CoinId.TON, 9],
-	[CoinId.TRX, 6],
-	[CoinId.UNI, 18],
-	[CoinId.USDC, 6],
-	[CoinId.USDT, 6],
-	[CoinId.WBTC, 8],
-	[CoinId.XDC, 18],
-	[CoinId.XLM, 7],
-	[CoinId.XMR, 12],
-	[CoinId.XRP, 6],
-	[CoinId.ZEC, 8],
-])
 
 
 export default {
@@ -788,21 +754,6 @@ export default {
 			}),
 
 		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.Coin,
-			resolve: {
-					[CoinSelector.CoinId]: async ({ coinId }) => {
-						const decimals = coinDecimalsByCoinId.get(coinId)
-						if (decimals != null)
-							return { decimals }
-
-						throw new Error(`Constants_Internal: Coin ${coinId} decimals not in catalog`)
-					}
-				},
-		})({
-				decimals: (coin) => coin.decimals,
-			}),
-
-		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				[EvmAccountSelector.Address]: async ({ address }) => ({
@@ -816,7 +767,7 @@ export default {
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: async ({ $network, type }) => {
+				[EvmCoinInstanceSelector.NetworkType]: ({ $network, type }) => {
 					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
 					if (
 					type !== CoinInstanceType.NativeCurrency
@@ -833,7 +784,7 @@ export default {
 						caip19: `eip155:${$network.caip2.reference}/slip44:60`,
 					}
 				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $contract, $network, type }) => {
+				[EvmCoinInstanceSelector.NetworkTypeContract]: ({ $contract, $network, type }) => {
 					const representation = ethNativeCoinInstanceRepresentationByChainId[Number($network.caip2.reference)]
 					if (
 						type === CoinInstanceType.Erc20Token
@@ -866,12 +817,21 @@ export default {
 				},
 			},
 		})({
-				coinId: (coinInstance) => coinInstance.coinId,
-				name: (coinInstance) => coinInstance.name,
-				symbol: (coinInstance) => coinInstance.symbol,
-				decimals: (coinInstance) => coinInstance.decimals,
-				representation: (coinInstance) => coinInstance.representation,
-				caip19: (coinInstance) => coinInstance.caip19,
+				NativeCurrency: {
+					coinId: (coinInstance) => coinInstance.coinId,
+					name: (coinInstance) => coinInstance.name,
+					symbol: (coinInstance) => coinInstance.symbol,
+					decimals: (coinInstance) => coinInstance.decimals,
+					representation: (coinInstance) => coinInstance.representation,
+					caip19: (coinInstance) => coinInstance.caip19,
+				},
+				Erc20Token: {
+					coinId: (coinInstance) => coinInstance.coinId,
+					name: (coinInstance) => coinInstance.name,
+					symbol: (coinInstance) => coinInstance.symbol,
+					decimals: (coinInstance) => coinInstance.decimals,
+					caip19: (coinInstance) => coinInstance.caip19,
+				},
 			}),
 
 		defineResolver(Source.Constants_Internal, {
@@ -1520,13 +1480,11 @@ export default {
 
 					return {
 						...relay,
-						name: relay.relayUrl.replace(/^wss:\/\//i, ''),
 					}
 				}
 			},
 		})({
 				relayUrl: (relay) => relay.relayUrl,
-				name: (relay) => relay.name,
 			}),
 
 		defineResolver(Source.Constants_Internal, {
@@ -1700,11 +1658,11 @@ export default {
 									videoId: video.videoId,
 								},
 								[EntityMetaKey.Fields]: {
-									title: video.title,
-									publishedAt: video.publishedAt,
-									publishedAtMs: video.publishedAtMs,
-									thumbnailUrl: video.thumbnailUrl,
-									$author: {
+									[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'title')]: video.title,
+									[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'publishedAt')]: video.publishedAt,
+									[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'publishedAtMs')]: video.publishedAtMs,
+									[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'thumbnailUrl')]: video.thumbnailUrl,
+									[entityFieldAddressKey(EntityType.YoutubeVideo, [], '$author')]: {
 										[EntityMetaKey.Selector]: {
 											channelId: video.channelId,
 										},
@@ -1774,11 +1732,11 @@ export default {
 								fullname: link.fullname,
 							},
 							[EntityMetaKey.Fields]: {
-								title: link.title,
-								permalink: link.permalink,
-								author: link.author,
-								createdAt: link.createdAt,
-								$subreddit: {
+								[entityFieldAddressKey(EntityType.RedditLink, [], 'title')]: link.title,
+								[entityFieldAddressKey(EntityType.RedditLink, [], 'permalink')]: link.permalink,
+								[entityFieldAddressKey(EntityType.RedditLink, [], 'author')]: link.author,
+								[entityFieldAddressKey(EntityType.RedditLink, [], 'createdAt')]: link.createdAt,
+								[entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
 									[EntityMetaKey.Selector]: {
 										name: link.subredditName,
 									},
@@ -1800,7 +1758,7 @@ export default {
 								channelId: channel.channelId,
 							},
 							[EntityMetaKey.Fields]: {
-								title: channel.title,
+								[entityFieldAddressKey(EntityType.YoutubeChannel, [], 'title')]: channel.title,
 							},
 						}))
 					),
@@ -1818,11 +1776,11 @@ export default {
 								videoId: video.videoId,
 							},
 							[EntityMetaKey.Fields]: {
-								title: video.title,
-								publishedAt: video.publishedAt,
-								publishedAtMs: video.publishedAtMs,
-								thumbnailUrl: video.thumbnailUrl,
-								$author: {
+								[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'title')]: video.title,
+								[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'publishedAt')]: video.publishedAt,
+								[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'publishedAtMs')]: video.publishedAtMs,
+								[entityFieldAddressKey(EntityType.YoutubeVideo, [], 'thumbnailUrl')]: video.thumbnailUrl,
+								[entityFieldAddressKey(EntityType.YoutubeVideo, [], '$author')]: {
 									[EntityMetaKey.Selector]: {
 										channelId: video.channelId,
 									},
@@ -1832,7 +1790,10 @@ export default {
 					),
 				},
 			})({
-					$$observedVideos: (entity) => entity,
+					$$observedVideos: {
+						select: (videos) => videos,
+						resolveCount: (videos) => videos.length,
+					},
 				}),
 
 			defineResolver(Source.Constants_Internal, {
@@ -1844,8 +1805,8 @@ export default {
 								playlistId: playlist.playlistId,
 							},
 							[EntityMetaKey.Fields]: {
-								title: playlist.title,
-								$channel: {
+								[entityFieldAddressKey(EntityType.YoutubePlaylist, [], 'title')]: playlist.title,
+								[entityFieldAddressKey(EntityType.YoutubePlaylist, [], '$channel')]: {
 									[EntityMetaKey.Selector]: {
 										channelId: playlist.channelId,
 									},
@@ -1922,21 +1883,17 @@ export default {
 							[EntityMetaKey.Selector]: {
 								coinId,
 							},
-							name: coinId,
-							symbol: coinId,
 						},
 						nativeCoinInstance: (
 							namespace === NetworkNamespace.Evm ?
 								{
 									[EntityMetaKey.Selector]: {
-										$network: {
-											caip2,
-										},
-										type: CoinInstanceType.NativeCurrency,
+									$network: {
+										caip2,
 									},
-									name: coinId,
-									symbol: coinId,
-								}
+									type: CoinInstanceType.NativeCurrency,
+								},
+							}
 							:
 								undefined
 						),
@@ -1949,8 +1906,6 @@ export default {
 									kind: AssetInstanceKind.Native,
 									assetKey: coinId,
 								},
-								coinId,
-								symbol: coinId,
 							},
 						],
 					}
@@ -1968,21 +1923,17 @@ export default {
 							[EntityMetaKey.Selector]: {
 								coinId,
 							},
-							name: coinId,
-							symbol: coinId,
 						},
 						nativeCoinInstance: (
 							namespace === NetworkNamespace.Evm ?
 								{
 									[EntityMetaKey.Selector]: {
-										$network: {
-											caip2: network.caip2,
-										},
-										type: CoinInstanceType.NativeCurrency,
+									$network: {
+										caip2: network.caip2,
 									},
-									name: coinId,
-									symbol: coinId,
-								}
+									type: CoinInstanceType.NativeCurrency,
+								},
+							}
 							:
 								undefined
 						),
@@ -1995,8 +1946,6 @@ export default {
 									kind: AssetInstanceKind.Native,
 									assetKey: coinId,
 								},
-								coinId,
-								symbol: coinId,
 							},
 						],
 					}
@@ -2109,9 +2058,9 @@ export default {
 									coinId: coin.id,
 								},
 								[EntityMetaKey.Fields]: {
-									coinId: coin.id,
-									name: coin.symbol,
-									symbol: coin.symbol,
+									[entityFieldAddressKey(EntityType.Coin, [], 'coinId')]: coin.id,
+									[entityFieldAddressKey(EntityType.Coin, [], 'name')]: coin.symbol,
+									[entityFieldAddressKey(EntityType.Coin, [], 'symbol')]: coin.symbol,
 								},
 							}
 						))
@@ -2403,89 +2352,6 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				[NetworkSelector.Slug]: async ({ slug }) => {
-					const caip2 = networkBySlug[slug].caip2
-					const coinId = nativeAssetCoinIdByNamespace[NetworkNamespace.Evm]
-					return {
-						nativeCoin: {
-							[EntityMetaKey.Selector]: {
-								coinId,
-							},
-							name: 'ETH',
-							symbol: 'ETH',
-						},
-						nativeCoinInstance: {
-							[EntityMetaKey.Selector]: {
-								$network: {
-									caip2,
-								},
-								type: CoinInstanceType.NativeCurrency,
-							},
-							name: 'Ether',
-							symbol: 'ETH',
-						},
-						nativeAssets: [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: {
-										caip2,
-									},
-									kind: AssetInstanceKind.Native,
-									assetKey: coinId,
-								},
-								coinId,
-								symbol: coinId,
-							},
-						],
-					}
-				},
-				[NetworkSelector.Caip2]: async ({ caip2 }) => {
-					const coinId = nativeAssetCoinIdByNamespace[NetworkNamespace.Evm]
-					return {
-						nativeCoin: {
-							[EntityMetaKey.Selector]: {
-								coinId,
-							},
-							name: 'ETH',
-							symbol: 'ETH',
-						},
-						nativeCoinInstance: {
-							[EntityMetaKey.Selector]: {
-								$network: {
-									caip2,
-								},
-								type: CoinInstanceType.NativeCurrency,
-							},
-							name: 'Ether',
-							symbol: 'ETH',
-						},
-						nativeAssets: [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: {
-										caip2,
-									},
-									kind: AssetInstanceKind.Native,
-									assetKey: coinId,
-								},
-								coinId,
-								symbol: coinId,
-							},
-						],
-					}
-				},
-			},
-		})({
-				Evm: {
-					$nativeCoin: (entity) => entity.nativeCoin,
-					$nativeCoinInstance: (entity) => entity.nativeCoinInstance,
-				},
-				$$nativeAssets: (entity) => entity.nativeAssets,
-			}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.Network,
-			resolve: {
-				[NetworkSelector.Slug]: async ({ slug }) => {
 					const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 					const caip2 = networkBySlug[slug].caip2
 					const chainId = Number(caip2.reference)
@@ -2579,9 +2445,40 @@ export default {
 						String(networkExecutionUpgrade.chainId) === networkBySlug[slug].caip2.reference
 						))
 						.map((networkExecutionUpgrade) => ({
-							...networkExecutionUpgrade,
 							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkExecutionUpgrade),
-							$$proposals: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'name')]: networkExecutionUpgrade.name,
+								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'slug')]: networkExecutionUpgrade.slug,
+								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'protocol')]: networkExecutionUpgrade.protocol,
+								...(networkExecutionUpgrade.layer != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'layer')]: networkExecutionUpgrade.layer,
+								}),
+								...(networkExecutionUpgrade.activationBlock != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationBlock')]: networkExecutionUpgrade.activationBlock,
+								}),
+								...(networkExecutionUpgrade.activationTimestampMs != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationTimestampMs')]: networkExecutionUpgrade.activationTimestampMs,
+								}),
+								...(networkExecutionUpgrade.activationEpoch != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationEpoch')]: networkExecutionUpgrade.activationEpoch,
+								}),
+								...(networkExecutionUpgrade.forkHash != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'forkHash')]: networkExecutionUpgrade.forkHash,
+								}),
+								...(networkExecutionUpgrade.linkEthereumOrg != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkEthereumOrg')]: networkExecutionUpgrade.linkEthereumOrg,
+								}),
+								...(networkExecutionUpgrade.linkExecutionDocs != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkExecutionDocs')]: networkExecutionUpgrade.linkExecutionDocs,
+								}),
+								...(networkExecutionUpgrade.linkForkcast != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkForkcast')]: networkExecutionUpgrade.linkForkcast,
+								}),
+								...(networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'executionSpecsPinnedMarkdownFilename')]: networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename,
+								}),
+								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
+							},
 						}))
 				},
 				[NetworkSelector.Caip2]: async ({ caip2 }) => {
@@ -2591,9 +2488,40 @@ export default {
 						String(networkExecutionUpgrade.chainId) === caip2.reference
 						))
 						.map((networkExecutionUpgrade) => ({
-							...networkExecutionUpgrade,
 							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkExecutionUpgrade),
-							$$proposals: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'name')]: networkExecutionUpgrade.name,
+								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'slug')]: networkExecutionUpgrade.slug,
+								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'protocol')]: networkExecutionUpgrade.protocol,
+								...(networkExecutionUpgrade.layer != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'layer')]: networkExecutionUpgrade.layer,
+								}),
+								...(networkExecutionUpgrade.activationBlock != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationBlock')]: networkExecutionUpgrade.activationBlock,
+								}),
+								...(networkExecutionUpgrade.activationTimestampMs != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationTimestampMs')]: networkExecutionUpgrade.activationTimestampMs,
+								}),
+								...(networkExecutionUpgrade.activationEpoch != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'activationEpoch')]: networkExecutionUpgrade.activationEpoch,
+								}),
+								...(networkExecutionUpgrade.forkHash != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'forkHash')]: networkExecutionUpgrade.forkHash,
+								}),
+								...(networkExecutionUpgrade.linkEthereumOrg != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkEthereumOrg')]: networkExecutionUpgrade.linkEthereumOrg,
+								}),
+								...(networkExecutionUpgrade.linkExecutionDocs != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkExecutionDocs')]: networkExecutionUpgrade.linkExecutionDocs,
+								}),
+								...(networkExecutionUpgrade.linkForkcast != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'linkForkcast')]: networkExecutionUpgrade.linkForkcast,
+								}),
+								...(networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename != null && {
+									[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], 'executionSpecsPinnedMarkdownFilename')]: networkExecutionUpgrade.executionSpecsPinnedMarkdownFilename,
+								}),
+								[entityFieldAddressKey(EntityType.EthereumExecutionUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkExecutionUpgrade.proposalIds),
+							},
 						}))
 				}
 			},
@@ -2613,9 +2541,31 @@ export default {
 						String(networkConsensusUpgrade.chainId) === networkBySlug[slug].caip2.reference
 						))
 						.map((networkConsensusUpgrade) => ({
-							...networkConsensusUpgrade,
 							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkConsensusUpgrade),
-							$$proposals: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'name')]: networkConsensusUpgrade.name,
+								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'slug')]: networkConsensusUpgrade.slug,
+								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'protocol')]: networkConsensusUpgrade.protocol,
+								...(networkConsensusUpgrade.activationBlock != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationBlock')]: networkConsensusUpgrade.activationBlock,
+								}),
+								...(networkConsensusUpgrade.activationTimestampMs != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationTimestampMs')]: networkConsensusUpgrade.activationTimestampMs,
+								}),
+								...(networkConsensusUpgrade.activationEpoch != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationEpoch')]: networkConsensusUpgrade.activationEpoch,
+								}),
+								...(networkConsensusUpgrade.linkEthereumOrg != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkEthereumOrg')]: networkConsensusUpgrade.linkEthereumOrg,
+								}),
+								...(networkConsensusUpgrade.linkConsensusDocs != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkConsensusDocs')]: networkConsensusUpgrade.linkConsensusDocs,
+								}),
+								...(networkConsensusUpgrade.linkForkcast != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkForkcast')]: networkConsensusUpgrade.linkForkcast,
+								}),
+								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
+							},
 						}))
 				},
 				[NetworkSelector.Caip2]: async ({ caip2 }) => {
@@ -2625,9 +2575,31 @@ export default {
 						String(networkConsensusUpgrade.chainId) === caip2.reference
 						))
 						.map((networkConsensusUpgrade) => ({
-							...networkConsensusUpgrade,
 							[EntityMetaKey.Selector]: evmNetworkUpgradeSelector(networkConsensusUpgrade),
-							$$proposals: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'name')]: networkConsensusUpgrade.name,
+								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'slug')]: networkConsensusUpgrade.slug,
+								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'protocol')]: networkConsensusUpgrade.protocol,
+								...(networkConsensusUpgrade.activationBlock != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationBlock')]: networkConsensusUpgrade.activationBlock,
+								}),
+								...(networkConsensusUpgrade.activationTimestampMs != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationTimestampMs')]: networkConsensusUpgrade.activationTimestampMs,
+								}),
+								...(networkConsensusUpgrade.activationEpoch != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'activationEpoch')]: networkConsensusUpgrade.activationEpoch,
+								}),
+								...(networkConsensusUpgrade.linkEthereumOrg != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkEthereumOrg')]: networkConsensusUpgrade.linkEthereumOrg,
+								}),
+								...(networkConsensusUpgrade.linkConsensusDocs != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkConsensusDocs')]: networkConsensusUpgrade.linkConsensusDocs,
+								}),
+								...(networkConsensusUpgrade.linkForkcast != null && {
+									[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], 'linkForkcast')]: networkConsensusUpgrade.linkForkcast,
+								}),
+								[entityFieldAddressKey(EntityType.EthereumConsensusUpgrade, [], '$$proposals')]: ethereumProposalRefs(networkConsensusUpgrade.proposalIds),
+							},
 						}))
 				}
 			},
@@ -2810,11 +2782,11 @@ export default {
 								fullname: link.fullname,
 							},
 							[EntityMetaKey.Fields]: {
-								title: link.title,
-								permalink: link.permalink,
-								author: link.author,
-								createdAt: link.createdAt,
-								$subreddit: {
+								[entityFieldAddressKey(EntityType.RedditLink, [], 'title')]: link.title,
+								[entityFieldAddressKey(EntityType.RedditLink, [], 'permalink')]: link.permalink,
+								[entityFieldAddressKey(EntityType.RedditLink, [], 'author')]: link.author,
+								[entityFieldAddressKey(EntityType.RedditLink, [], 'createdAt')]: link.createdAt,
+								[entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
 									[EntityMetaKey.Selector]: {
 										name: link.subredditName,
 									},
@@ -2869,10 +2841,10 @@ export default {
 								fullname: comment.fullname,
 							},
 							[EntityMetaKey.Fields]: {
-								body: comment.body,
-								author: comment.author,
-								createdAt: comment.createdAt,
-								$link: {
+								[entityFieldAddressKey(EntityType.RedditComment, [], 'body')]: comment.body,
+								[entityFieldAddressKey(EntityType.RedditComment, [], 'author')]: comment.author,
+								[entityFieldAddressKey(EntityType.RedditComment, [], 'createdAt')]: comment.createdAt,
+								[entityFieldAddressKey(EntityType.RedditComment, [], '$link')]: {
 									[EntityMetaKey.Selector]: {
 										fullname: comment.linkFullname,
 									},
@@ -2969,14 +2941,16 @@ export default {
 									$network: { caip2 },
 									address,
 								},
-								precompileName: precompile.name,
 							}]
 						})
 				}
 			},
 		})({
 				Evm: {
-					$$precompiles: (entity) => entity,
+					$$precompiles: {
+						select: (precompiles) => precompiles,
+						resolveCount: (precompiles) => precompiles.length,
+					},
 				},
 			}),
 	],

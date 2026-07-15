@@ -4,12 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 
 
@@ -22,7 +20,7 @@
 		selection,
 		title = 'Derivative observations',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -31,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.Market_Derivative_Timestamp>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.Market_Derivative_Timestamp>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -47,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -72,10 +72,10 @@
 					markPrice: true,
 					indexPrice: true,
 					fundingRate: true,
+					timestampMs: true,
 					$market: true,
 					$base: true,
 					$quote: true,
-					timestampMs: true,
 				},
 			})
 		}
@@ -118,22 +118,23 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: marketDerivativeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Market_Derivative_Timestamp> })}
+				{#snippet Item({ item: marketDerivativeTimestamp })}
 					{@const marketDerivativeTimestampFields = { ...marketDerivativeTimestamp[EntityMetaKey.Selector], ...marketDerivativeTimestamp }}
+					{@const selection = select(EntityType.Market_Derivative_Timestamp, marketDerivativeTimestamp[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const marketDerivativeTimestampHrefFields = { ...marketDerivativeTimestamp, ...marketDerivativeTimestamp[EntityMetaKey.Selector] }}
 					<Market_Derivative_TimestampView
-						selection={select(EntityType.Market_Derivative_Timestamp, marketDerivativeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={marketDerivativeTimestampFields}
 						href={
-							(marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.marketKind !== undefined && marketDerivativeTimestampHrefFields.$market.$base !== undefined && marketDerivativeTimestampHrefFields.$market.$base.assetKey !== undefined && marketDerivativeTimestampHrefFields.$market.$quote !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.assetKey !== undefined && marketDerivativeTimestampHrefFields.$market.$marketVenue !== undefined && marketDerivativeTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketDerivativeTimestampHrefFields.$base !== undefined && marketDerivativeTimestampHrefFields.$base.kind !== undefined && marketDerivativeTimestampHrefFields.$quote !== undefined && marketDerivativeTimestampHrefFields.$quote.kind !== undefined && marketDerivativeTimestampHrefFields.timestampMs !== undefined && marketDerivativeTimestampHrefFields.feedKey !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
+							(marketDerivativeTimestampHrefFields.timestampMs !== undefined && marketDerivativeTimestampHrefFields.feedKey !== undefined && marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.marketKind !== undefined && marketDerivativeTimestampHrefFields.$market.$base !== undefined && marketDerivativeTimestampHrefFields.$market.$base.assetKey !== undefined && marketDerivativeTimestampHrefFields.$market.$quote !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.assetKey !== undefined && marketDerivativeTimestampHrefFields.$market.$marketVenue !== undefined && marketDerivativeTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketDerivativeTimestampHrefFields.$base !== undefined && marketDerivativeTimestampHrefFields.$base.kind !== undefined && marketDerivativeTimestampHrefFields.$quote !== undefined && marketDerivativeTimestampHrefFields.$quote.kind !== undefined ? resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
+								timestampMs: String(marketDerivativeTimestampHrefFields.timestampMs ?? ''),
+								feedKey: String(marketDerivativeTimestampHrefFields.feedKey ?? ''),
 								marketKind: String(marketDerivativeTimestampHrefFields.$market.marketKind ?? ''),
 								base: String(marketDerivativeTimestampHrefFields.$market.$base.assetKey ?? ''),
 								quote: String(marketDerivativeTimestampHrefFields.$market.$quote.assetKey ?? ''),
 								marketVenue: String(marketDerivativeTimestampHrefFields.$market.$marketVenue.marketVenueId ?? ''),
 								baseKind: String(marketAssetRouteLabelByKind[String(marketDerivativeTimestampHrefFields.$base.kind)] ?? ''),
 								quoteKind: String(marketAssetRouteLabelByKind[String(marketDerivativeTimestampHrefFields.$quote.kind)] ?? ''),
-								timestampMs: String(marketDerivativeTimestampHrefFields.timestampMs ?? ''),
-								feedKey: String(marketDerivativeTimestampHrefFields.feedKey ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

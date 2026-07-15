@@ -1,7 +1,7 @@
 import { corsFetch, getJson } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { mastodonOrigins } from '$/sources/Mastodon/index.ts'
+import { mastodonRestOrigins } from '$/sources/Mastodon/Rest/constants.ts'
 
 const qs = (o: Record<string, string | undefined>) => {
 	const s = new URLSearchParams()
@@ -31,7 +31,7 @@ export const mastodonGet = async <T>(
 	apiVersion = 'v1'
 ) => (
 	getJson<T>(`${instanceOrigin}/api/${apiVersion}${path}${qs(search ?? {})}`, {
-		origins: mastodonOrigins,
+		origins: mastodonRestOrigins,
 		init: { headers: authHeaders(publicEnv) },
 	})
 )
@@ -44,7 +44,7 @@ export const mastodonFetch = async (
 	apiVersion = 'v1'
 ) => (
 	corsFetch(`${instanceOrigin}/api/${apiVersion}${path}${qs(search ?? {})}`, {
-		origins: mastodonOrigins,
+		origins: mastodonRestOrigins,
 		init: { headers: authHeaders(publicEnv) },
 	})
 )

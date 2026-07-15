@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,8 +27,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.LensPost_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.LensPost_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.LensPost_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.LensPost_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -80,6 +79,11 @@
 			{#snippet Pending()}
 				<LensPostView
 					selection={select(EntityType.LensPost, selection.entitySelector.$post)}
+					href={
+						(selection.entitySelector.$post.id !== undefined ? resolve('/lens/post/[postId=stringSegment]', {
+							postId: String(selection.entitySelector.$post.id ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -89,6 +93,11 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<LensPostView
 					selection={select(EntityType.LensPost, selection.entitySelector.$post)}
+					href={
+						(selection.entitySelector.$post.id !== undefined ? resolve('/lens/post/[postId=stringSegment]', {
+							postId: String(selection.entitySelector.$post.id ?? ''),
+						}) : undefined)
+					}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -122,6 +131,11 @@
 				<dd>
 					<LensPostView
 						selection={select(EntityType.LensPost, selection.entitySelector.$post, {})}
+						href={
+							(selection.entitySelector.$post.id !== undefined ? resolve('/lens/post/[postId=stringSegment]', {
+								postId: String(selection.entitySelector.$post.id ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

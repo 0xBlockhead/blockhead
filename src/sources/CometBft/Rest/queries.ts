@@ -1,9 +1,15 @@
 import { getJson } from '$/lib/http.ts'
-import { cometBftOrigins } from '$/sources/CometBft/index.ts'
 import type {
 	CometBftBlockResponse,
 	CometBftTxResponse,
 } from '$/sources/CometBft/Rest/types.ts'
+
+const cometBftOrigins = [
+	{
+		origin: 'https://cosmos-rpc.publicnode.com',
+		corsEnabled: true,
+	},
+] as const
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 

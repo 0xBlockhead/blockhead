@@ -75,7 +75,12 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				[NetworkSelector.Caip2]: async (entitySelector) => {
-					assertCosmosRegistryNetwork(entitySelector)
+					if (
+						entitySelector.caip2.namespace !== 'cosmos'
+						|| entitySelector.caip2.reference !== 'cosmoshub-4'
+					)
+						return undefined
+
 					const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 					const chain = await getChain({
 						chainName: chainNameForNetwork(entitySelector),
@@ -88,7 +93,8 @@ export default {
 					}
 				},
 				[NetworkSelector.Slug]: async (entitySelector) => {
-					assertCosmosRegistryNetwork(entitySelector)
+					if (entitySelector.slug !== 'cosmos') return undefined
+
 					const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 					const chain = await getChain({
 						chainName: chainNameForNetwork(entitySelector),

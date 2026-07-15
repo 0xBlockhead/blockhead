@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'X posts',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.XPost>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.XPost>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -111,11 +112,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: xPost }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XPost> })}
+				{#snippet Item({ item: xPost })}
 					{@const xPostFields = { ...xPost[EntityMetaKey.Selector], ...xPost }}
+					{@const selection = select(EntityType.XPost, xPost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const xPostHrefFields = { ...xPost, ...xPost[EntityMetaKey.Selector] }}
 					<XPostView
-						selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={xPostFields}
+						href={
+							(xPostHrefFields.id !== undefined ? resolve('/x/post/[postId=stringSegment]', {
+								postId: String(xPostHrefFields.id ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

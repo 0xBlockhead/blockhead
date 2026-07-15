@@ -4,7 +4,7 @@ import {
 	youtubeNetworkSeedChannels,
 	youtubeNetworkSeedPlaylists,
 	youtubeNetworkSeedVideos,
-} from '../../src/constants/Social/YouTube.ts'
+} from '../../src/constants/Social/Youtube.ts'
 import {
 	activityPubNetworkSeedActors,
 } from '../../src/constants/Social/ActivityPub.ts'
@@ -28,7 +28,7 @@ import {
 import { MarketVenueId } from '../../src/constants/MarketVenue.ts'
 import { specificationRealms } from '../../src/constants/SpecificationProposal.ts'
 import { swarmDocsLandingReference } from '../../src/sources/Swarm/Rest/constants.ts'
-import type { E2eRouteFixtureMetadata } from './_generatedRouteFixtureMetadata.ts'
+import type { E2eRouteProbeAtom } from './_generatedRouteFixtureMetadata.ts'
 
 
 const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
@@ -93,206 +93,498 @@ const e2eNostrYouTubeOptionalDetailRoutePaths = {
 	youtubePlaylist: `/youtube/playlist/${encodeURIComponent(YOUTUBE_PROBE_PLAYLIST_ID)}`,
 } as const
 
-const routeFixtureVariantMode = process.env.E2E_ROUTE_VARIANTS
-
-const PROPOSAL_KIND_SLUG_BY_REALM_SLUG: Record<string, string> = {
-	bitcoin: 'bip',
-	'bitcoin-cash': 'chip',
-	'chain-agnostic': 'caip',
-	cosmos: 'adr',
-	dogecoin: 'dip',
-	ens: 'ensip',
-	ethereum: 'eip',
-	filecoin: 'fip',
-	hyperliquid: 'hip',
-	litecoin: 'lip',
-	near: 'nep',
-	polkadot: 'rfc',
-	quilibrium: 'protocol-document',
-	solana: 'simd',
-	zcash: 'zip',
-}
-
-const PROPOSAL_REF_BY_KIND_SLUG: Record<string, string> = {
-	adr: 'adr-001',
-	bip: 'bip-32',
-	caip: 'caip-2',
-	chip: 'chip-1',
-	dip: 'dip-0001',
-	eip: 'eip-1559',
-	ensip: 'ensip-1',
-	fip: 'fip-0001',
-	hip: 'hip-1',
-	lip: 'lip-0002',
-	nep: 'nep-0001',
-	'protocol-document': 'protocol-document-1',
-	rfc: 'rfc-1',
-	simd: 'simd-0001',
-	zip: 'zip-32',
-}
-
 
 /** Default param values for `discoverPathnamesFromRoutes()` — aligned with smoke + resolver probes. */
-export const e2eRouteParamFixtures: Partial<Record<string, string>> = {
-	networkId: '1',
-	networkStackId: 'Ethereum',
-	network: 'eip155:1',
-	caip2Namespace: 'eip155',
-	caip2Reference: '1',
-	caip2: 'eip155:1',
-	chainId: '1',
-	contractId: `1:${USDC_ADDRESS}`,
-	coinId: 'ETH',
-	iso4217: 'USD',
-	ensName: 'vitalik.eth',
-	upgradeSlug: 'Homestead',
-	projectId: 'arbitrum',
-	blockNumber: '18000000',
-	height: '18000000',
-	transactionId: SAMPLE_TX_HASH,
-	address: VITALIK_ADDRESS,
-	caipId: '25',
-	sessionId: 'e2e-probe-session',
-	connectionKey: 'e2e-probe-wallet-connection',
-	source: 'Constants_Internal',
-	sourceId: 'e2e-probe-source',
-	dashboardId: 'e2e-probe-panel-tree',
-	routeId: stringify(bridgeRouteEthMainnetToOptimism),
-	stepIndex: '0',
-	indexInCast: '0',
-	index: '0',
-	fromChainId: '1',
-	toChainId: '10',
-	toCaip2: 'eip155:42161',
-	fromCoinInstanceSlug: 'native',
-	toCoinInstanceSlug: 'native',
-	toolKey: 'across',
-	fromToken: '0x0000000000000000000000000000000000000000',
-	toToken: '0x0000000000000000000000000000000000000000',
-	fromAmount: '1000000000000000',
-	fromAddress: VITALIK_ADDRESS,
-	slippage: '0.005',
-	toAddress: VITALIK_ADDRESS,
-	userId: '3',
-	accountId: '3',
-	palletName: 'System',
-	fid: '3',
-	fname: 'dwr',
-	protocol: 'ethereum',
-	hex: '0xa9059cbb',
-	recordId: 'com.twitter',
-	specificationRealmSlug: 'ethereum',
-	proposalKindSlug: 'eip',
-	proposalRef: 'eip-1559',
-	positionId: '354198',
-	poolId: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
-	vaultId: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
-	owner: VITALIK_ADDRESS,
-	coin: USDC_ADDRESS,
-	spender: USDC_ADDRESS,
-	sourceTxHash: SAMPLE_TX_HASH,
-	createdAt: '1700000000',
-	namespace: 'ipfs',
-	target: 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
-	test: 'test',
-	tokenAccountPubkey: 'E2eTokenAccount1111111111111111111111111111',
-	programId: SOLANA_PROBE_PROGRAM_ID,
-	mintAddress: SOLANA_PROBE_TOKEN_MINT_ADDRESS,
-	marketKey: stringify(ethUsdCatalogMarket),
-	instanceOrigin: 'https://mastodon.social',
-	did: atprotoNetworkSeedActors[0].did,
-	uri: atprotoNetworkSeedPosts[0].uri,
-	epoch: '300000',
-	epochNumber: '300000',
-	slotNumber: '9500000',
-	timestampMs: '0',
-	eventIndex: '0',
-	extrinsicIndex: '0',
-	instructionKind: 'Instruction',
-	indexInTransaction: '0',
-	indexInInstruction: '0',
-	inputIndex: '0',
-	outputIndex: '0',
-	actionIndex: '0',
-	messageIndex: '0',
-	period: '0',
-	validatorId: '0',
-	sampleKey: 'Etherscan_Rest:gastracker:gasoracle',
-	observerKey: 'Voltaire_JsonRpc:txpool_status:ethereum.publicnode.com',
-	observer: 'ethereum.publicnode.com',
-	observationScope: 'nodeLocal',
-	builderPubkey: MEV_PROBE_BUILDER_PUBKEY,
-	relayHost: 'relay.ultrasound.money',
-	slot: '9500000',
-	blockHash: '0x0000000000000000000000000000000000000000000000000000000000000001',
-	direction: 'proposerPayloadDelivered',
-	name: 'ethereum',
-	fullname: 't3_1u8x2f8',
-	contractAddress: '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432',
-	tokenId: '104776',
-	reference: swarmDocsLandingReference,
-	pubkey: NOSTR_PROBE_ARTICLE_PUBKEY,
-	paymentHash: 'e2e-probe-paymentHash',
-	kind: '30023',
-	actionKind: 'spend',
-	assetKey: 'native',
-	categoryId: '9c3f790921eab71fe9b210a9884c81708dc55d9444bba8c54394b827e2cf7f5a',
-	classKind: 'native',
-	classKey: 'native',
-	denom: 'uatom',
-	eventId: NOSTR_PROBE_NOTE_EVENT_ID,
-	formatId: 'default',
-	handle: 'bsky.app',
-	host: 'relay.ultrasound.money',
-	moduleName: 'gov',
-	operatorAddress: COSMOS_PROBE_OPERATOR_ADDRESS,
-	pool: 'sapling',
-	proposalId: '1',
-	relayKey: NOSTR_PROBE_RELAY_URL,
-	identifier: NOSTR_PROBE_ARTICLE_IDENTIFIER,
-	stashAccountId: 'e2e-probe-stash-account',
-	supplyScopeKey: 'circulating',
-	timeIntervalUnit: 'day',
-	timeIntervalValue: '1',
-	videoId: YOUTUBE_PROBE_VIDEO_ID,
-	playlistId: YOUTUBE_PROBE_PLAYLIST_ID,
-	commentId: YOUTUBE_PROBE_COMMENT_ID,
-	feedKey: RSS_PROBE_FEED_URL,
-	guid: RSS_PROBE_ITEM_GUID,
-	txHash: COSMOS_PROBE_TX_HASH,
-	blobIndex: '0',
-	logIndex: '0',
-	indexInLog: '0',
-	transferIndex: '0',
-	userOperationHash: SAMPLE_USER_OPERATION_HASH,
-	coinInstanceSlug: 'native',
-	marketVenueId: MarketVenueId.Binance,
-	marketVenue: MarketVenueId.Binance,
-	baseKind: 'coin',
-	base: CoinId.ETH,
-	quoteKind: 'currency',
-	quote: 'USD',
-	marketKind: MarketKind.Spot,
-	localAccountId: '13179',
-	localStatusId: '116539053870420123',
-	acct: 'Gargron@mastodon.social',
-	activityStreamsUri: ACTIVITY_PUB_PROBE_ACTOR_URI,
-	hash: CAST_HASH_32,
-	postId: LENS_PROBE_POST_ID,
-	conversationId: 'e2e-probe-agent-conversation',
-	turnId: 'e2e-probe-agent-conversation-turn',
-	channelId: 'e2e-probe-state-channel',
-	contactId: 'e2e-probe-room-peer',
-	roomId: 'e2e-probe-room',
-	url: 'https://example.com',
-	walletId: 'eip6963:e2e-probe-wallet',
-}
-
-
-export const e2eRouteRestSegmentFixtures: Record<string, string> = {
-	contentPath: 'readme',
-	uri: encodeURIComponent(atprotoNetworkSeedPosts[0].uri),
-}
+export const e2eRouteProbeAtomValueById = {
+	"/[namespace]/[target]:IpfsResource.ResourceAddress.1.namespace": 'ipfs',
+	"/[namespace]/[target]:IpfsResource.ResourceAddress.1.target": 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
+	"/[namespace]/[target]/path/[...contentPath]:IpfsResource.ResourceAddress.path.1.contentPath": 'readme',
+	"/~/accounts/allowance/[chainId]/[owner]/[coin]/[spender]:EvmActorCoinAllowance.EvmAccountEvmContractSpenderInteropAddress.1.chainId": '1',
+	"/~/accounts/allowance/[chainId]/[owner]/[coin]/[spender]:EvmActorCoinAllowance.EvmAccountEvmContractSpenderInteropAddress.1.coin": USDC_ADDRESS,
+	"/~/accounts/allowance/[chainId]/[owner]/[coin]/[spender]:EvmActorCoinAllowance.EvmAccountEvmContractSpenderInteropAddress.1.owner": VITALIK_ADDRESS,
+	"/~/accounts/allowance/[chainId]/[owner]/[coin]/[spender]:EvmActorCoinAllowance.EvmAccountEvmContractSpenderInteropAddress.1.spender": USDC_ADDRESS,
+	"/~/accounts/balance/[chainId]/[owner]/[coin]:EvmNetworkActorCoinBalance.EvmAccountErc20CoinInstance.1.chainId": '1',
+	"/~/accounts/balance/[chainId]/[owner]/[coin]:EvmNetworkActorCoinBalance.EvmAccountErc20CoinInstance.1.coin": USDC_ADDRESS,
+	"/~/accounts/balance/[chainId]/[owner]/[coin]:EvmNetworkActorCoinBalance.EvmAccountErc20CoinInstance.1.owner": VITALIK_ADDRESS,
+	"/~/accounts/connections/[connectionKey]:BlockheadWalletConnection.ConnectionKey.1.connectionKey": 'e2e-probe-wallet-connection',
+	"/~/accounts/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]:BlockheadBridgeTransaction.AccountSourceTxCreatedAt.1.address": VITALIK_ADDRESS,
+	"/~/accounts/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]:BlockheadBridgeTransaction.AccountSourceTxCreatedAt.1.chainId": '1',
+	"/~/accounts/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]:BlockheadBridgeTransaction.AccountSourceTxCreatedAt.1.createdAt": '0',
+	"/~/accounts/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]:BlockheadBridgeTransaction.AccountSourceTxCreatedAt.1.sourceTxHash": SAMPLE_TX_HASH,
+	"/~/agents/conversation/[conversationId]:BlockheadAgentConversation.Id.1.conversationId": 'e2e-probe-agent-conversation',
+	"/~/agents/conversation/[conversationId]/turn/[turnId]:BlockheadAgentConversationTurn.ConversationTurnId.1.conversationId": 'e2e-probe-agent-conversation',
+	"/~/agents/conversation/[conversationId]/turn/[turnId]:BlockheadAgentConversationTurn.ConversationTurnId.1.turnId": 'e2e-probe-agent-conversation-turn',
+	"/~/dashboard/[dashboardId]:BlockheadPanelTree.Id.1.dashboardId": 'e2e-probe-panel-tree',
+	"/~/manage/source/[sourceId]:BlockheadSource.Id.1.sourceId": 'e2e-probe-source',
+	"/~/multiplayer/contact/[contactId]:BlockheadRoomPeer.Id.1.contactId": 'e2e-probe-room-peer',
+	"/~/multiplayer/room/[roomId]:BlockheadRoom.Id.1.roomId": 'e2e-probe-room',
+	"/~/session/[sessionId]:BlockheadSession.Id.1.sessionId": 'e2e-probe-session',
+	"/account/[address]:EvmAccount.Address.1.address": VITALIK_ADDRESS,
+	"/activitypub/actor/[instanceOrigin]/[localAccountId]:ActivityPubActor.LocalAccountId.1.instanceOrigin": 'https://mastodon.social',
+	"/activitypub/actor/[instanceOrigin]/[localAccountId]:ActivityPubActor.LocalAccountId.1.localAccountId": '13179',
+	"/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMs.1.instanceOrigin": 'https://mastodon.social',
+	"/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMs.1.localAccountId": '13179',
+	"/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMs.1.timestampMs": '0',
+	"/activitypub/note/[instanceOrigin]/[localStatusId]:ActivityPubNote.InstanceOriginLocalStatusId.1.instanceOrigin": 'https://mastodon.social',
+	"/activitypub/note/[instanceOrigin]/[localStatusId]:ActivityPubNote.InstanceOriginLocalStatusId.1.localStatusId": '116539053870420123',
+	"/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs.1.instanceOrigin": 'https://mastodon.social',
+	"/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs.1.localStatusId": '116539053870420123',
+	"/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMs.1.timestampMs": '0',
+	"/atproto/actor/[did]:AtprotoActor.Did.1.did": atprotoNetworkSeedActors[0].did,
+	"/atproto/actor/[did]/observations/[timestampMs]:AtprotoActor_Timestamp.AtprotoActorTimestampMs.1.did": atprotoNetworkSeedActors[0].did,
+	"/atproto/actor/[did]/observations/[timestampMs]:AtprotoActor_Timestamp.AtprotoActorTimestampMs.1.timestampMs": '0',
+	"/atproto/actor/handle/[handle]:AtprotoActor.Handle.1.handle": 'bsky.app',
+	"/atproto/post/[...uri]:AtprotoPost.Uri.1.uri": encodeURIComponent(atprotoNetworkSeedPosts[0].uri),
+	"/atproto/post/[...uri]/observations/[timestampMs]:AtprotoPost_Timestamp.AtprotoPostTimestampMs.1.timestampMs": '0',
+	"/atproto/post/[...uri]/observations/[timestampMs]:AtprotoPost_Timestamp.AtprotoPostTimestampMs.1.uri": encodeURIComponent(atprotoNetworkSeedPosts[0].uri),
+	"/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.fromChainId": '1',
+	"/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.fromCoinInstanceSlug": 'native',
+	"/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.toChainId": '10',
+	"/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.toCoinInstanceSlug": 'native',
+	"/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.toolKey": 'across',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.fromAddress": VITALIK_ADDRESS,
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.fromAmount": '1000000000000000',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.fromChainId": '1',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.fromToken": '0x0000000000000000000000000000000000000000',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.slippage": '0.005',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.toAddress": VITALIK_ADDRESS,
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.toChainId": '10',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.toToken": '0x0000000000000000000000000000000000000000',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.fromAddress": VITALIK_ADDRESS,
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.fromAmount": '1000000000000000',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.fromChainId": '1',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.fromToken": '0x0000000000000000000000000000000000000000',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.slippage": '0.005',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.stepIndex": '0',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.toAddress": VITALIK_ADDRESS,
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.toChainId": '10',
+	"/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.toToken": '0x0000000000000000000000000000000000000000',
+	"/channel/[channelId]:BlockheadStateChannel.Id.1.channelId": 'e2e-probe-state-channel',
+	"/coin-instance/[chainId]/[coinInstanceSlug]:EvmCoinInstance.NetworkType.1.chainId": '1',
+	"/coin-instance/[chainId]/[coinInstanceSlug]:EvmCoinInstance.NetworkType.1.coinInstanceSlug": 'native',
+	"/coin-instance/[chainId]/[coinInstanceSlug]:EvmCoinInstance.NetworkTypeContract.1.chainId": '1',
+	"/coin-instance/[chainId]/[coinInstanceSlug]:EvmCoinInstance.NetworkTypeContract.1.coinInstanceSlug": 'native',
+	"/coin/[coinId]:Coin.CoinId.1.coinId": 'ETH',
+	"/coin/[coinId]/observations/[timestampMs]/[source]:Coin_Timestamp.CoinTimestampMsSource.1.coinId": 'ETH',
+	"/coin/[coinId]/observations/[timestampMs]/[source]:Coin_Timestamp.CoinTimestampMsSource.1.source": 'Constants_Internal',
+	"/coin/[coinId]/observations/[timestampMs]/[source]:Coin_Timestamp.CoinTimestampMsSource.1.timestampMs": '0',
+	"/currency/[iso4217]:Currency.Iso4217.1.iso4217": 'USD',
+	"/currency/[iso4217]/observations/[timestampMs]:Currency_Timestamp.CurrencyTimestampMs.1.iso4217": 'USD',
+	"/currency/[iso4217]/observations/[timestampMs]:Currency_Timestamp.CurrencyTimestampMs.1.timestampMs": '1735689600000',
+	"/ens/name/[ensName]:EnsName.NormalizedName.1.ensName": 'vitalik.eth',
+	"/ens/name/[ensName]/observations/[timestampMs]/[source]:EnsName_Timestamp.NameTimestampMsSource.1.ensName": 'vitalik.eth',
+	"/ens/name/[ensName]/observations/[timestampMs]/[source]:EnsName_Timestamp.NameTimestampMsSource.1.source": 'Constants_Internal',
+	"/ens/name/[ensName]/observations/[timestampMs]/[source]:EnsName_Timestamp.NameTimestampMsSource.1.timestampMs": '0',
+	"/ens/name/[ensName]/record/[recordId]:EnsRecord.NameRecordKey.1.ensName": 'vitalik.eth',
+	"/ens/name/[ensName]/record/[recordId]:EnsRecord.NameRecordKey.1.recordId": 'com.twitter',
+	"/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]:EnsRecord_Timestamp.RecordTimestampMsSource.1.ensName": 'vitalik.eth',
+	"/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]:EnsRecord_Timestamp.RecordTimestampMsSource.1.recordId": 'com.twitter',
+	"/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]:EnsRecord_Timestamp.RecordTimestampMsSource.1.source": 'Constants_Internal',
+	"/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]:EnsRecord_Timestamp.RecordTimestampMsSource.1.timestampMs": '0',
+	"/ens/observations/[timestampMs]/[source]:_GlobalEnsNetwork_Timestamp.HubTimestampMsSource.1.source": 'Constants_Internal',
+	"/ens/observations/[timestampMs]/[source]:_GlobalEnsNetwork_Timestamp.HubTimestampMsSource.1.timestampMs": '0',
+	"/evm/calldata/[hex]:EvmCalldata.Hex.1.hex": '0xa9059cbb',
+	"/evm/error/[hex]:EvmError.Hex.1.hex": '0xa9059cbb',
+	"/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.hex": '0xa9059cbb',
+	"/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.source": 'Constants_Internal',
+	"/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.timestampMs": '0',
+	"/evm/selector/[hex]:EvmSelector.Hex.1.hex": '0xa9059cbb',
+	"/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.hex": '0xa9059cbb',
+	"/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.source": 'Constants_Internal',
+	"/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.timestampMs": '0',
+	"/evm/topic/[hex]:EvmTopic.Hex.1.hex": '0xa9059cbb',
+	"/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.hex": '0xa9059cbb',
+	"/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.source": 'Constants_Internal',
+	"/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.timestampMs": '0',
+	"/farcaster/account/[accountId]:BlockheadFarcasterAccountConnection.Fid.1.accountId": '3',
+	"/farcaster/c/[fname]/[hash]:FarcasterCast.UsernameHashPrefix.1.fname": 'dwr',
+	"/farcaster/c/[fname]/[hash]:FarcasterCast.UsernameHashPrefix.1.hash": CAST_HASH_32,
+	"/farcaster/cast/[fid]/[hash]:FarcasterCast.FidHash.1.fid": '3',
+	"/farcaster/cast/[fid]/[hash]:FarcasterCast.FidHash.1.hash": CAST_HASH_32,
+	"/farcaster/cast/[fid]/[hash]/embed/[indexInCast]:FarcasterCastEmbed.CastIndexInCast.1.fid": '3',
+	"/farcaster/cast/[fid]/[hash]/embed/[indexInCast]:FarcasterCastEmbed.CastIndexInCast.1.hash": CAST_HASH_32,
+	"/farcaster/cast/[fid]/[hash]/embed/[indexInCast]:FarcasterCastEmbed.CastIndexInCast.1.indexInCast": '0',
+	"/farcaster/cast/[fid]/[hash]/observations/[timestampMs]:FarcasterCast_Timestamp.FarcasterCastTimestampMs.1.fid": '3',
+	"/farcaster/cast/[fid]/[hash]/observations/[timestampMs]:FarcasterCast_Timestamp.FarcasterCastTimestampMs.1.hash": CAST_HASH_32,
+	"/farcaster/cast/[fid]/[hash]/observations/[timestampMs]:FarcasterCast_Timestamp.FarcasterCastTimestampMs.1.timestampMs": '0',
+	"/farcaster/channel/[channelId]:FarcasterChannel.Id.1.channelId": 'e2e-probe-state-channel',
+	"/farcaster/channel/[channelId]/observations/[timestampMs]:FarcasterChannel_Timestamp.FarcasterChannelTimestampMs.1.channelId": 'e2e-probe-state-channel',
+	"/farcaster/channel/[channelId]/observations/[timestampMs]:FarcasterChannel_Timestamp.FarcasterChannelTimestampMs.1.timestampMs": '0',
+	"/farcaster/feed/channel/[channelId]:FarcasterFeed.ByChannel.1.channelId": 'e2e-probe-state-channel',
+	"/farcaster/feed/following/[userId]:FarcasterFeed.Following.1.userId": '3',
+	"/farcaster/feed/user/[userId]:FarcasterFeed.ByUser.1.userId": '3',
+	"/farcaster/user/[userId]:FarcasterUser.Fid.1.userId": '3',
+	"/farcaster/user/[userId]/observations/[timestampMs]:FarcasterUser_Timestamp.FarcasterUserTimestampMs.1.timestampMs": '0',
+	"/farcaster/user/[userId]/observations/[timestampMs]:FarcasterUser_Timestamp.FarcasterUserTimestampMs.1.userId": '3',
+	"/farcaster/user/[userId]/verified-address/[protocol]/[address]:FarcasterVerifiedAddress.FidProtocolAddress.1.address": VITALIK_ADDRESS,
+	"/farcaster/user/[userId]/verified-address/[protocol]/[address]:FarcasterVerifiedAddress.FidProtocolAddress.1.protocol": 'ethereum',
+	"/farcaster/user/[userId]/verified-address/[protocol]/[address]:FarcasterVerifiedAddress.FidProtocolAddress.1.userId": '3',
+	"/ipfs/access/observations/[timestampMs]/[source]:_GlobalIpfsAccess_Timestamp.HubTimestampMsSource.1.source": 'Constants_Internal',
+	"/ipfs/access/observations/[timestampMs]/[source]:_GlobalIpfsAccess_Timestamp.HubTimestampMsSource.1.timestampMs": '0',
+	"/lens/account/[address]:LensAccount.Address.1.address": VITALIK_ADDRESS,
+	"/lens/account/[address]/observations/[timestampMs]:LensAccount_Timestamp.LensAccountTimestampMs.1.address": VITALIK_ADDRESS,
+	"/lens/account/[address]/observations/[timestampMs]:LensAccount_Timestamp.LensAccountTimestampMs.1.timestampMs": '0',
+	"/lens/post/[postId]:LensPost.Id.1.postId": LENS_PROBE_POST_ID,
+	"/lens/post/[postId]/observations/[timestampMs]:LensPost_Timestamp.LensPostTimestampMs.1.postId": LENS_PROBE_POST_ID,
+	"/lens/post/[postId]/observations/[timestampMs]:LensPost_Timestamp.LensPostTimestampMs.1.timestampMs": '0',
+	"/market-asset/[kind]/[assetKey]:MarketAsset.KindAssetKey.1.assetKey": 'native',
+	"/market-asset/[kind]/[assetKey]:MarketAsset.KindAssetKey.1.kind": '30023',
+	"/market-venue/[marketVenueId]:MarketVenue.MarketVenueId.1.marketVenueId": MarketVenueId.Binance,
+	"/media/[url]:Media.Url.1.url": 'https://example.com',
+	"/network-stack/[networkStackId]:NetworkStack.NetworkStackId.1.networkStackId": 'Ethereum',
+	"/network/[network]:Network.Caip2.1.network": 'eip155:1',
+	"/network/[network]:Network.Slug.1.network": '0g',
+	"/network/[network]:Network.Slug.10.network": 'near',
+	"/network/[network]:Network.Slug.11.network": 'polkadot',
+	"/network/[network]:Network.Slug.12.network": 'quilibrium',
+	"/network/[network]:Network.Slug.13.network": 'solana',
+	"/network/[network]:Network.Slug.14.network": 'tron',
+	"/network/[network]:Network.Slug.15.network": 'zcash',
+	"/network/[network]:Network.Slug.2.network": 'bittensor',
+	"/network/[network]:Network.Slug.3.network": 'bitcoin',
+	"/network/[network]:Network.Slug.4.network": 'bitcoin-cash',
+	"/network/[network]:Network.Slug.5.network": 'cosmos',
+	"/network/[network]:Network.Slug.6.network": 'filecoin',
+	"/network/[network]:Network.Slug.7.network": 'hyperliquid',
+	"/network/[network]:Network.Slug.8.network": 'lightning',
+	"/network/[network]:Network.Slug.9.network": 'monero',
+	"/network/[network]/account/[accountId]:CosmosAccount.NetworkAddress.1.accountId": '3',
+	"/network/[network]/account/[accountId]:CosmosAccount.NetworkAddress.1.network": 'eip155:1',
+	"/network/[network]/account/[accountId]:EvmNetworkAccount.EvmNetworkEvmAccount.1.accountId": '3',
+	"/network/[network]/account/[accountId]:EvmNetworkAccount.EvmNetworkEvmAccount.1.network": 'eip155:1',
+	"/network/[network]/account/[accountId]:PolkadotAccount.NetworkAccountId.1.accountId": '5GrwvaEF5zXb26Fz9rcQpDWSQVu1csJn3S9qjQg9mT3S7v5F',
+	"/network/[network]/account/[accountId]:PolkadotAccount.NetworkAccountId.1.network": 'polkadot',
+	"/network/[network]/account/[accountId]:SolanaAccount.NetworkPubkey.1.accountId": '3',
+	"/network/[network]/account/[accountId]:SolanaAccount.NetworkPubkey.1.network": 'eip155:1',
+	"/network/[network]/account/[accountId]:TonAccount.NetworkAddress.1.accountId": 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+	"/network/[network]/account/[accountId]:TonAccount.NetworkAddress.1.network": 'ton:-239',
+	"/network/[network]/account/[accountId]/observation/[timestampMs]/[source]:PolkadotAccount_Timestamp.AccountTimestampMsSource.1.accountId": '5GrwvaEF5zXb26Fz9rcQpDWSQVu1csJn3S9qjQg9mT3S7v5F',
+	"/network/[network]/account/[accountId]/observation/[timestampMs]/[source]:PolkadotAccount_Timestamp.AccountTimestampMsSource.1.network": 'polkadot',
+	"/network/[network]/account/[accountId]/observation/[timestampMs]/[source]:PolkadotAccount_Timestamp.AccountTimestampMsSource.1.source": 'SubstrateSidecar_Rest',
+	"/network/[network]/account/[accountId]/observation/[timestampMs]/[source]:PolkadotAccount_Timestamp.AccountTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/address/[address]:UtxoAddress.NetworkAddress.1.address": VITALIK_ADDRESS,
+	"/network/[network]/address/[address]:UtxoAddress.NetworkAddress.1.network": 'eip155:1',
+	"/network/[network]/address/[address]/observations/[timestampMs]/[source]:UtxoAddress_Timestamp.AddressTimestampMsSource.1.address": VITALIK_ADDRESS,
+	"/network/[network]/address/[address]/observations/[timestampMs]/[source]:UtxoAddress_Timestamp.AddressTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/address/[address]/observations/[timestampMs]/[source]:UtxoAddress_Timestamp.AddressTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/address/[address]/observations/[timestampMs]/[source]:UtxoAddress_Timestamp.AddressTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/asset/[kind]/[assetKey]:AssetInstance.NetworkKindAssetKey.1.assetKey": 'ETH',
+	"/network/[network]/asset/[kind]/[assetKey]:AssetInstance.NetworkKindAssetKey.1.kind": 'Native',
+	"/network/[network]/asset/[kind]/[assetKey]:AssetInstance.NetworkKindAssetKey.1.network": 'eip155:1',
+	"/network/[network]/blob/[transactionId]/[indexInTransaction]:EvmBlob.TransactionIndexInTransaction.1.indexInTransaction": '0',
+	"/network/[network]/blob/[transactionId]/[indexInTransaction]:EvmBlob.TransactionIndexInTransaction.1.network": 'eip155:1',
+	"/network/[network]/blob/[transactionId]/[indexInTransaction]:EvmBlob.TransactionIndexInTransaction.1.transactionId": '0x31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca',
+	"/network/[network]/block/[blockNumber]:EvmBlock.EvmNetworkBlockNumber.1.blockNumber": '0',
+	"/network/[network]/block/[blockNumber]:EvmBlock.EvmNetworkBlockNumber.1.network": 'eip155:1',
+	"/network/[network]/block/[blockNumber]:PolkadotBlock.NetworkBlockNumber.1.blockNumber": '0',
+	"/network/[network]/block/[blockNumber]:PolkadotBlock.NetworkBlockNumber.1.network": 'eip155:1',
+	"/network/[network]/block/[blockNumber]:SolanaBlock.Slot.1.blockNumber": '0',
+	"/network/[network]/block/[blockNumber]:SolanaBlock.Slot.1.network": 'eip155:1',
+	"/network/[network]/block/[blockNumber]:UtxoBlock.NetworkHeight.1.blockNumber": '0',
+	"/network/[network]/block/[blockNumber]:UtxoBlock.NetworkHeight.1.network": 'eip155:1',
+	"/network/[network]/block/[blockNumber]/[hash]:PolkadotBlock.NetworkBlockNumberHash.1.blockNumber": '0',
+	"/network/[network]/block/[blockNumber]/[hash]:PolkadotBlock.NetworkBlockNumberHash.1.hash": BITCOIN_GENESIS_BLOCK_HASH,
+	"/network/[network]/block/[blockNumber]/[hash]:PolkadotBlock.NetworkBlockNumberHash.1.network": 'polkadot',
+	"/network/[network]/block/[blockNumber]/[hash]:UtxoBlock.NetworkHeightHash.1.blockNumber": '0',
+	"/network/[network]/block/[blockNumber]/[hash]:UtxoBlock.NetworkHeightHash.1.hash": BITCOIN_GENESIS_BLOCK_HASH,
+	"/network/[network]/block/[blockNumber]/[hash]:UtxoBlock.NetworkHeightHash.1.network": 'eip155:1',
+	"/network/[network]/block/[blockNumber]/[hash]/event/[eventIndex]:PolkadotEvent.BlockIndexInBlock.1.blockNumber": '0',
+	"/network/[network]/block/[blockNumber]/[hash]/event/[eventIndex]:PolkadotEvent.BlockIndexInBlock.1.eventIndex": '0',
+	"/network/[network]/block/[blockNumber]/[hash]/event/[eventIndex]:PolkadotEvent.BlockIndexInBlock.1.hash": BITCOIN_GENESIS_BLOCK_HASH,
+	"/network/[network]/block/[blockNumber]/[hash]/event/[eventIndex]:PolkadotEvent.BlockIndexInBlock.1.network": 'polkadot',
+	"/network/[network]/block/[blockNumber]/[hash]/extrinsic/[extrinsicIndex]:PolkadotExtrinsic.BlockIndexInBlock.1.blockNumber": '0',
+	"/network/[network]/block/[blockNumber]/[hash]/extrinsic/[extrinsicIndex]:PolkadotExtrinsic.BlockIndexInBlock.1.extrinsicIndex": '0',
+	"/network/[network]/block/[blockNumber]/[hash]/extrinsic/[extrinsicIndex]:PolkadotExtrinsic.BlockIndexInBlock.1.hash": BITCOIN_GENESIS_BLOCK_HASH,
+	"/network/[network]/block/[blockNumber]/[hash]/extrinsic/[extrinsicIndex]:PolkadotExtrinsic.BlockIndexInBlock.1.network": 'polkadot',
+	"/network/[network]/bridges/[toCaip2]/[url]:EvmNetworkBridge.FromToUrl.1.network": 'eip155:1',
+	"/network/[network]/bridges/[toCaip2]/[url]:EvmNetworkBridge.FromToUrl.1.toCaip2": 'eip155:42161',
+	"/network/[network]/bridges/[toCaip2]/[url]:EvmNetworkBridge.FromToUrl.1.url": 'https://example.com',
+	"/network/[network]/channels/[channelId]:LightningChannel.NetworkChannelId.1.channelId": 'e2e-probe-state-channel',
+	"/network/[network]/channels/[channelId]:LightningChannel.NetworkChannelId.1.network": 'eip155:1',
+	"/network/[network]/consensus/[upgradeSlug]:EthereumConsensusUpgrade.EvmNetworkSlug.1.network": 'eip155:1',
+	"/network/[network]/consensus/[upgradeSlug]:EthereumConsensusUpgrade.EvmNetworkSlug.1.upgradeSlug": 'bellatrix',
+	"/network/[network]/contract/[address]:EvmContract.EvmNetworkAddress.1.address": VITALIK_ADDRESS,
+	"/network/[network]/contract/[address]:EvmContract.EvmNetworkAddress.1.network": 'eip155:1',
+	"/network/[network]/contract/[address]/verification:EvmContractVerification.EvmContract.1.address": '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+	"/network/[network]/contract/[address]/verification:EvmContractVerification.EvmContract.1.network": 'eip155:1',
+	"/network/[network]/epoch/[epoch]:BeaconEpoch.EvmNetworkEpoch.1.epoch": '300000',
+	"/network/[network]/epoch/[epoch]:BeaconEpoch.EvmNetworkEpoch.1.network": 'eip155:1',
+	"/network/[network]/erc-4337/account-factory/[address]:Erc4337AccountFactory.EvmNetworkAddress.1.address": VITALIK_ADDRESS,
+	"/network/[network]/erc-4337/account-factory/[address]:Erc4337AccountFactory.EvmNetworkAddress.1.network": 'eip155:1',
+	"/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]:Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource.1.address": VITALIK_ADDRESS,
+	"/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]:Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]:Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]:Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/erc-4337/bundler/[address]:Erc4337Bundler.EvmNetworkAddress.1.address": VITALIK_ADDRESS,
+	"/network/[network]/erc-4337/bundler/[address]:Erc4337Bundler.EvmNetworkAddress.1.network": 'eip155:1',
+	"/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]:Erc4337Bundler_Timestamp.BundlerTimestampMsSource.1.address": VITALIK_ADDRESS,
+	"/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]:Erc4337Bundler_Timestamp.BundlerTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]:Erc4337Bundler_Timestamp.BundlerTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]:Erc4337Bundler_Timestamp.BundlerTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/erc-4337/paymaster/[address]:Erc4337Paymaster.EvmNetworkAddress.1.address": VITALIK_ADDRESS,
+	"/network/[network]/erc-4337/paymaster/[address]:Erc4337Paymaster.EvmNetworkAddress.1.network": 'eip155:1',
+	"/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]:Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource.1.address": VITALIK_ADDRESS,
+	"/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]:Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]:Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]:Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/erc-4337/smart-account/[address]:Erc4337SmartAccount.EvmNetworkAddress.1.address": VITALIK_ADDRESS,
+	"/network/[network]/erc-4337/smart-account/[address]:Erc4337SmartAccount.EvmNetworkAddress.1.network": 'eip155:1',
+	"/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]:Erc4337SmartAccount_Timestamp.AccountTimestampMsSource.1.address": VITALIK_ADDRESS,
+	"/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]:Erc4337SmartAccount_Timestamp.AccountTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]:Erc4337SmartAccount_Timestamp.AccountTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]:Erc4337SmartAccount_Timestamp.AccountTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/execution/[upgradeSlug]:EthereumExecutionUpgrade.EvmNetworkSlug.1.network": 'eip155:1',
+	"/network/[network]/execution/[upgradeSlug]:EthereumExecutionUpgrade.EvmNetworkSlug.1.upgradeSlug": 'Homestead',
+	"/network/[network]/fee-market/block/[blockNumber]:EvmNetwork_GasFee_Block.EvmNetworkBlockNumber.1.blockNumber": '0',
+	"/network/[network]/fee-market/block/[blockNumber]:EvmNetwork_GasFee_Block.EvmNetworkBlockNumber.1.network": 'eip155:1',
+	"/network/[network]/finality/[timestampMs]:EthereumBeaconFinality_Timestamp.EvmNetworkTimestampMs.1.network": 'eip155:1',
+	"/network/[network]/finality/[timestampMs]:EthereumBeaconFinality_Timestamp.EvmNetworkTimestampMs.1.timestampMs": '0',
+	"/network/[network]/gas-estimates/[timestampMs]/[source]:EvmNetwork_GasEstimate_Timestamp.NetworkTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/gas-estimates/[timestampMs]/[source]:EvmNetwork_GasEstimate_Timestamp.NetworkTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/gas-estimates/[timestampMs]/[source]:EvmNetwork_GasEstimate_Timestamp.NetworkTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/invoices/[paymentHash]:BlockheadLightningInvoice.NetworkPaymentHash.1.network": 'eip155:1',
+	"/network/[network]/invoices/[paymentHash]:BlockheadLightningInvoice.NetworkPaymentHash.1.paymentHash": 'e2e-probe-paymentHash',
+	"/network/[network]/mempool/[timestampMs]/[source]:EvmNetwork_Txpool_Timestamp.NetworkTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/mempool/[timestampMs]/[source]:EvmNetwork_Txpool_Timestamp.NetworkTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/mempool/[timestampMs]/[source]:EvmNetwork_Txpool_Timestamp.NetworkTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/mev/builder/[builderPubkey]:MevBuilder.EvmNetworkBuilderPubkey.1.builderPubkey": MEV_PROBE_BUILDER_PUBKEY,
+	"/network/[network]/mev/builder/[builderPubkey]:MevBuilder.EvmNetworkBuilderPubkey.1.network": 'eip155:1',
+	"/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]:MevBuilder_Timestamp.BuilderTimestampMsSource.1.builderPubkey": MEV_PROBE_BUILDER_PUBKEY,
+	"/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]:MevBuilder_Timestamp.BuilderTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]:MevBuilder_Timestamp.BuilderTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]:MevBuilder_Timestamp.BuilderTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash.1.blockHash": '0x0000000000000000000000000000000000000000000000000000000000000001',
+	"/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash.1.network": 'eip155:1',
+	"/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash.1.relayHost": 'relay.ultrasound.money',
+	"/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash.1.slot": '9500000',
+	"/network/[network]/mev/relay/[host]:MevRelay.EvmNetworkHost.1.host": 'relay.ultrasound.money',
+	"/network/[network]/mev/relay/[host]:MevRelay.EvmNetworkHost.1.network": 'eip155:1',
+	"/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]:MevRelay_Timestamp.RelayTimestampMsSource.1.host": 'relay.ultrasound.money',
+	"/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]:MevRelay_Timestamp.RelayTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]:MevRelay_Timestamp.RelayTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]:MevRelay_Timestamp.RelayTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/nodes/[pubkey]:LightningNode.NetworkPublicKey.1.network": 'eip155:1',
+	"/network/[network]/nodes/[pubkey]:LightningNode.NetworkPublicKey.1.pubkey": NOSTR_PROBE_ARTICLE_PUBKEY,
+	"/network/[network]/observation/[timestampMs]/[source]:Network_Timestamp.NetworkTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/observation/[timestampMs]/[source]:Network_Timestamp.NetworkTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/observation/[timestampMs]/[source]:Network_Timestamp.NetworkTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/observations/[timestampMs]/[source]:EvmNetwork_Timestamp.NetworkTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/observations/[timestampMs]/[source]:EvmNetwork_Timestamp.NetworkTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/observations/[timestampMs]/[source]:EvmNetwork_Timestamp.NetworkTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/pallet/[palletName]:PolkadotPallet.NetworkPalletName.1.network": 'polkadot',
+	"/network/[network]/pallet/[palletName]:PolkadotPallet.NetworkPalletName.1.palletName": 'System',
+	"/network/[network]/payments/[paymentHash]:BlockheadLightningPayment.NetworkPaymentHash.1.network": 'eip155:1',
+	"/network/[network]/payments/[paymentHash]:BlockheadLightningPayment.NetworkPaymentHash.1.paymentHash": 'e2e-probe-paymentHash',
+	"/network/[network]/program/[programId]:SolanaProgram.NetworkProgramId.1.network": 'eip155:1',
+	"/network/[network]/program/[programId]:SolanaProgram.NetworkProgramId.1.programId": SOLANA_PROBE_PROGRAM_ID,
+	"/network/[network]/rollup/[projectId]:EvmRollup.EvmNetworkProjectId.1.network": 'eip155:1',
+	"/network/[network]/rollup/[projectId]:EvmRollup.EvmNetworkProjectId.1.projectId": 'arbitrum',
+	"/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.network": 'eip155:1',
+	"/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.projectId": 'arbitrum',
+	"/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.source": 'Constants_Internal',
+	"/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.timestampMs": '0',
+	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.1.network": 'zcash',
+	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.1.pool": 'sapling',
+	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.2.network": 'zcash',
+	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.2.pool": 'orchard',
+	"/network/[network]/slot/[slot]:BeaconSlot.EvmNetworkSlot.1.network": 'eip155:1',
+	"/network/[network]/slot/[slot]:BeaconSlot.EvmNetworkSlot.1.slot": '9500000',
+	"/network/[network]/slot/[slot]/attestation/[index]:BeaconAttestation.EvmNetworkSlotIndexInSlot.1.index": '0',
+	"/network/[network]/slot/[slot]/attestation/[index]:BeaconAttestation.EvmNetworkSlotIndexInSlot.1.network": 'eip155:1',
+	"/network/[network]/slot/[slot]/attestation/[index]:BeaconAttestation.EvmNetworkSlotIndexInSlot.1.slot": '9500000',
+	"/network/[network]/slot/[slot]/committee/[index]:BeaconCommittee.EvmNetworkSlotIndexInSlot.1.index": '0',
+	"/network/[network]/slot/[slot]/committee/[index]:BeaconCommittee.EvmNetworkSlotIndexInSlot.1.network": 'eip155:1',
+	"/network/[network]/slot/[slot]/committee/[index]:BeaconCommittee.EvmNetworkSlotIndexInSlot.1.slot": '9500000',
+	"/network/[network]/slot/[slot]/slashing/[kind]/[index]:BeaconSlashing.EvmNetworkSlotKindIndexInSlot.1.index": '0',
+	"/network/[network]/slot/[slot]/slashing/[kind]/[index]:BeaconSlashing.EvmNetworkSlotKindIndexInSlot.1.kind": 'proposer',
+	"/network/[network]/slot/[slot]/slashing/[kind]/[index]:BeaconSlashing.EvmNetworkSlotKindIndexInSlot.1.network": 'eip155:1',
+	"/network/[network]/slot/[slot]/slashing/[kind]/[index]:BeaconSlashing.EvmNetworkSlotKindIndexInSlot.1.slot": '9500000',
+	"/network/[network]/slot/[slot]/withdrawal/[index]:BeaconWithdrawal.EvmNetworkSlotIndexInSlot.1.index": '0',
+	"/network/[network]/slot/[slot]/withdrawal/[index]:BeaconWithdrawal.EvmNetworkSlotIndexInSlot.1.network": 'eip155:1',
+	"/network/[network]/slot/[slot]/withdrawal/[index]:BeaconWithdrawal.EvmNetworkSlotIndexInSlot.1.slot": '9500000',
+	"/network/[network]/sync-committee/[period]:BeaconSyncCommittee.EvmNetworkPeriod.1.network": 'eip155:1',
+	"/network/[network]/sync-committee/[period]:BeaconSyncCommittee.EvmNetworkPeriod.1.period": '0',
+	"/network/[network]/token-account/[tokenAccountPubkey]:SolanaTokenAccount.NetworkTokenAccountPubkey.1.network": 'eip155:1',
+	"/network/[network]/token-account/[tokenAccountPubkey]:SolanaTokenAccount.NetworkTokenAccountPubkey.1.tokenAccountPubkey": 'E2eTokenAccount1111111111111111111111111111',
+	"/network/[network]/token-mint/[mintAddress]:SolanaTokenMint.NetworkMintAddress.1.mintAddress": SOLANA_PROBE_TOKEN_MINT_ADDRESS,
+	"/network/[network]/token-mint/[mintAddress]:SolanaTokenMint.NetworkMintAddress.1.network": 'eip155:1',
+	"/network/[network]/tx/[transactionId]:EvmTransaction.EvmNetworkTxHash.1.network": 'eip155:1',
+	"/network/[network]/tx/[transactionId]:EvmTransaction.EvmNetworkTxHash.1.transactionId": SAMPLE_TX_HASH,
+	"/network/[network]/tx/[transactionId]:SolanaTransaction.NetworkSignature.1.network": 'eip155:1',
+	"/network/[network]/tx/[transactionId]:SolanaTransaction.NetworkSignature.1.transactionId": SAMPLE_TX_HASH,
+	"/network/[network]/tx/[transactionId]:UtxoTransaction.NetworkTxId.1.network": 'eip155:1',
+	"/network/[network]/tx/[transactionId]:UtxoTransaction.NetworkTxId.1.transactionId": SAMPLE_TX_HASH,
+	"/network/[network]/tx/[transactionId]/input/[inputIndex]:UtxoInput.TransactionIndexInTransaction.1.inputIndex": '0',
+	"/network/[network]/tx/[transactionId]/input/[inputIndex]:UtxoInput.TransactionIndexInTransaction.1.network": 'bitcoin',
+	"/network/[network]/tx/[transactionId]/input/[inputIndex]:UtxoInput.TransactionIndexInTransaction.1.transactionId": BITCOIN_TX_ID,
+	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.indexInTransaction": '0',
+	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.instructionKind": 'Instruction',
+	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.network": 'eip155:1',
+	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.transactionId": SAMPLE_TX_HASH,
+	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.indexInInstruction": '0',
+	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.indexInTransaction": '0',
+	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.instructionKind": 'Instruction',
+	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.network": 'eip155:1',
+	"/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.transactionId": SAMPLE_TX_HASH,
+	"/network/[network]/tx/[transactionId]/internal-transfer/[indexInTransaction]:EvmInternalTransfer.TransactionIndexInTransaction.1.indexInTransaction": '0',
+	"/network/[network]/tx/[transactionId]/internal-transfer/[indexInTransaction]:EvmInternalTransfer.TransactionIndexInTransaction.1.network": 'eip155:1',
+	"/network/[network]/tx/[transactionId]/internal-transfer/[indexInTransaction]:EvmInternalTransfer.TransactionIndexInTransaction.1.transactionId": SAMPLE_TX_HASH,
+	"/network/[network]/tx/[transactionId]/log/[indexInTransaction]:EvmLog.TransactionIndexInTransaction.1.indexInTransaction": '0',
+	"/network/[network]/tx/[transactionId]/log/[indexInTransaction]:EvmLog.TransactionIndexInTransaction.1.network": 'eip155:1',
+	"/network/[network]/tx/[transactionId]/log/[indexInTransaction]:EvmLog.TransactionIndexInTransaction.1.transactionId": SAMPLE_TX_HASH,
+	"/network/[network]/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]:EvmTokenTransfer.LogIndexInLog.1.indexInTransaction": '0',
+	"/network/[network]/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]:EvmTokenTransfer.LogIndexInLog.1.network": 'eip155:1',
+	"/network/[network]/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]:EvmTokenTransfer.LogIndexInLog.1.transactionId": SAMPLE_TX_HASH,
+	"/network/[network]/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]:EvmTokenTransfer.LogIndexInLog.1.transferIndex": '0',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]:UtxoOutput.TransactionIndexInTransaction.1.network": 'bitcoin',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]:UtxoOutput.TransactionIndexInTransaction.1.outputIndex": '0',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]:UtxoOutput.TransactionIndexInTransaction.1.transactionId": BITCOIN_TX_ID,
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount:BitcoinCashCashTokenFungibleAmount.UtxoOutput.1.network": 'bitcoin-cash',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount:BitcoinCashCashTokenFungibleAmount.UtxoOutput.1.outputIndex": '0',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/fungible-amount:BitcoinCashCashTokenFungibleAmount.UtxoOutput.1.transactionId": BITCOIN_CASH_CASH_TOKEN_TX_ID,
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft:BitcoinCashCashTokenNft.UtxoOutput.1.network": 'bitcoin-cash',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft:BitcoinCashCashTokenNft.UtxoOutput.1.outputIndex": '0',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft:BitcoinCashCashTokenNft.UtxoOutput.1.transactionId": BITCOIN_CASH_CASH_TOKEN_TX_ID,
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment:BitcoinCashCashTokenCommitment.UtxoOutput.1.network": 'bitcoin-cash',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment:BitcoinCashCashTokenCommitment.UtxoOutput.1.outputIndex": '0',
+	"/network/[network]/tx/[transactionId]/output/[outputIndex]/cash-token/nft/commitment:BitcoinCashCashTokenCommitment.UtxoOutput.1.transactionId": BITCOIN_CASH_CASH_TOKEN_TX_ID,
+	"/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.actionIndex": '0',
+	"/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.actionKind": 'spend',
+	"/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.network": 'zcash',
+	"/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.pool": 'sapling',
+	"/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.transactionId": '7fb6c4d3e2a1908070605040302010ffeeddccbbaa99887766554433221100ff',
+	"/network/[network]/upgrade/[upgradeSlug]:EthereumNetworkUpgrade.EvmNetworkSlug.1.network": 'eip155:1',
+	"/network/[network]/upgrade/[upgradeSlug]:EthereumNetworkUpgrade.EvmNetworkSlug.1.upgradeSlug": 'Homestead',
+	"/network/[network]/user-operation/[userOperationHash]:EvmUserOperation.EvmNetworkHash.1.network": 'eip155:1',
+	"/network/[network]/user-operation/[userOperationHash]:EvmUserOperation.EvmNetworkHash.1.userOperationHash": SAMPLE_USER_OPERATION_HASH,
+	"/network/[network]/validator/[validatorId]:BeaconValidator.NetworkIndexInNetwork.1.network": 'eip155:1',
+	"/network/[network]/validator/[validatorId]:BeaconValidator.NetworkIndexInNetwork.1.validatorId": '0',
+	"/network/[network]/validator/[validatorId]:SolanaValidator.NetworkVotePubkey.1.network": 'eip155:1',
+	"/network/[network]/validator/[validatorId]:SolanaValidator.NetworkVotePubkey.1.validatorId": '0',
+	"/network/[network]/validator/[validatorId]/observations/[slot]/[source]:BeaconValidator_Timestamp.ValidatorSlotSource.1.network": 'eip155:1',
+	"/network/[network]/validator/[validatorId]/observations/[slot]/[source]:BeaconValidator_Timestamp.ValidatorSlotSource.1.slot": '9500000',
+	"/network/[network]/validator/[validatorId]/observations/[slot]/[source]:BeaconValidator_Timestamp.ValidatorSlotSource.1.source": 'Constants_Internal',
+	"/network/[network]/validator/[validatorId]/observations/[slot]/[source]:BeaconValidator_Timestamp.ValidatorSlotSource.1.validatorId": '0',
+	"/nostr/article/[pubkey]/[identifier]:NostrArticle.CanonicalCoordinate.1.identifier": NOSTR_PROBE_ARTICLE_IDENTIFIER,
+	"/nostr/article/[pubkey]/[identifier]:NostrArticle.CanonicalCoordinate.1.pubkey": NOSTR_PROBE_ARTICLE_PUBKEY,
+	"/nostr/note/[eventId]:NostrNote.CanonicalEventId.1.eventId": NOSTR_PROBE_NOTE_EVENT_ID,
+	"/nostr/profile/[pubkey]:NostrProfile.CanonicalPubkey.1.pubkey": NOSTR_PROBE_ARTICLE_PUBKEY,
+	"/nostr/reaction/[eventId]:NostrReaction.CanonicalEventId.1.eventId": 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+	"/nostr/relay/[relayKey]:NostrRelay.RelayUrl.1.relayKey": NOSTR_PROBE_RELAY_URL,
+	"/nostr/relay/[relayKey]/observations/[timestampMs]/[source]:NostrRelay_Timestamp.RelayTimestampMsSource.1.relayKey": NOSTR_PROBE_RELAY_URL,
+	"/nostr/relay/[relayKey]/observations/[timestampMs]/[source]:NostrRelay_Timestamp.RelayTimestampMsSource.1.source": 'Constants_Internal',
+	"/nostr/relay/[relayKey]/observations/[timestampMs]/[source]:NostrRelay_Timestamp.RelayTimestampMsSource.1.timestampMs": '0',
+	"/nostr/repost/[eventId]:NostrRepost.CanonicalEventId.1.eventId": 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+	"/pool/[chainId]/[poolId]:LiquidityPool.EvmNetworkId.1.chainId": '1',
+	"/pool/[chainId]/[poolId]:LiquidityPool.EvmNetworkId.1.poolId": '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+	"/pool/[chainId]/[poolId]/block/[blockNumber]:LiquidityPool_Block.LiquidityPoolBlockNumber.1.blockNumber": '0',
+	"/pool/[chainId]/[poolId]/block/[blockNumber]:LiquidityPool_Block.LiquidityPoolBlockNumber.1.chainId": '1',
+	"/pool/[chainId]/[poolId]/block/[blockNumber]:LiquidityPool_Block.LiquidityPoolBlockNumber.1.poolId": '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+	"/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey.1.chainId": '1',
+	"/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey.1.feedKey": RSS_PROBE_FEED_URL,
+	"/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey.1.poolId": '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+	"/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey.1.timestampMs": '0',
+	"/proposals/[specificationRealmSlug]:SpecificationRealm.Realm.1.specificationRealmSlug": 'ethereum',
+	"/proposals/[specificationRealmSlug]/[proposalKindSlug]:SpecificationProposalKind.RealmCategory.1.proposalKindSlug": 'eip',
+	"/proposals/[specificationRealmSlug]/[proposalKindSlug]:SpecificationProposalKind.RealmCategory.1.specificationRealmSlug": 'ethereum',
+	"/proposals/[specificationRealmSlug]/[proposalKindSlug]/[proposalRef]:SpecificationProposal.RealmCategoryNumber.1.proposalKindSlug": 'eip',
+	"/proposals/[specificationRealmSlug]/[proposalKindSlug]/[proposalRef]:SpecificationProposal.RealmCategoryNumber.1.proposalRef": 'eip-1559',
+	"/proposals/[specificationRealmSlug]/[proposalKindSlug]/[proposalRef]:SpecificationProposal.RealmCategoryNumber.1.specificationRealmSlug": 'ethereum',
+	"/reddit/comment/[fullname]:RedditComment.Fullname.1.fullname": 't1_osbo75d',
+	"/reddit/comment/[fullname]/observations/[timestampMs]/[source]:RedditComment_Timestamp.CommentTimestampMsSource.1.fullname": 't1_osbo75d',
+	"/reddit/comment/[fullname]/observations/[timestampMs]/[source]:RedditComment_Timestamp.CommentTimestampMsSource.1.source": 'Constants_Internal',
+	"/reddit/comment/[fullname]/observations/[timestampMs]/[source]:RedditComment_Timestamp.CommentTimestampMsSource.1.timestampMs": '0',
+	"/reddit/link/[fullname]:RedditLink.Fullname.1.fullname": 't3_1u8x2f8',
+	"/reddit/link/[fullname]/observations/[timestampMs]/[source]:RedditLink_Timestamp.LinkTimestampMsSource.1.fullname": 't3_1u8x2f8',
+	"/reddit/link/[fullname]/observations/[timestampMs]/[source]:RedditLink_Timestamp.LinkTimestampMsSource.1.source": 'Constants_Internal',
+	"/reddit/link/[fullname]/observations/[timestampMs]/[source]:RedditLink_Timestamp.LinkTimestampMsSource.1.timestampMs": '0',
+	"/reddit/r/[name]:RedditSubreddit.Name.1.name": 'ethereum',
+	"/reddit/r/[name]/observations/[timestampMs]/[source]:RedditSubreddit_Timestamp.SubredditTimestampMsSource.1.name": 'ethereum',
+	"/reddit/r/[name]/observations/[timestampMs]/[source]:RedditSubreddit_Timestamp.SubredditTimestampMsSource.1.source": 'Constants_Internal',
+	"/reddit/r/[name]/observations/[timestampMs]/[source]:RedditSubreddit_Timestamp.SubredditTimestampMsSource.1.timestampMs": '0',
+	"/rss/feed/[feedUrl]:RssFeed.FeedUrl.1.feedUrl": RSS_PROBE_FEED_URL,
+	"/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]:RssItem.FeedIdentity.1.feedUrl": RSS_PROBE_FEED_URL,
+	"/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]:RssItem.FeedIdentity.1.itemIdentity": RSS_PROBE_ITEM_GUID,
+	"/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]:RssItem.FeedIdentity.1.itemIdentityKind": 'Guid',
+	"/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.feedUrl": RSS_PROBE_FEED_URL,
+	"/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.itemIdentity": RSS_PROBE_ITEM_GUID,
+	"/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.itemIdentityKind": 'Guid',
+	"/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.source": 'Constants_Internal',
+	"/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.timestampMs": '0',
+	"/rss/feed/[feedUrl]/observations/[timestampMs]/[source]:RssFeed_Timestamp.FeedTimestampMsSource.1.feedUrl": RSS_PROBE_FEED_URL,
+	"/rss/feed/[feedUrl]/observations/[timestampMs]/[source]:RssFeed_Timestamp.FeedTimestampMsSource.1.source": 'Constants_Internal',
+	"/rss/feed/[feedUrl]/observations/[timestampMs]/[source]:RssFeed_Timestamp.FeedTimestampMsSource.1.timestampMs": '0',
+	"/services/agent/[chainId]/[contractAddress]/[tokenId]:EvmNft.EvmContractTokenId.1.chainId": '1',
+	"/services/agent/[chainId]/[contractAddress]/[tokenId]:EvmNft.EvmContractTokenId.1.contractAddress": '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432',
+	"/services/agent/[chainId]/[contractAddress]/[tokenId]:EvmNft.EvmContractTokenId.1.tokenId": '104776',
+	"/swarm/[reference]:SwarmResource.ResourceAddress.1.reference": swarmDocsLandingReference,
+	"/swarm/[reference]/path/[...contentPath]:SwarmResource.ResourceAddress.path.1.contentPath": 'readme',
+	"/swarm/[reference]/path/[...contentPath]:SwarmResource.ResourceAddress.path.1.reference": swarmDocsLandingReference,
+	"/swarm/access/observations/[timestampMs]/[source]:_GlobalSwarmAccess_Timestamp.HubTimestampMsSource.1.source": 'Constants_Internal',
+	"/swarm/access/observations/[timestampMs]/[source]:_GlobalSwarmAccess_Timestamp.HubTimestampMsSource.1.timestampMs": '0',
+	"/url/[url]:Url.Url.1.url": 'https://example.com',
+	"/url/[url]/observations/[timestampMs]/[source]:UrlPreview_Timestamp.UrlTimestampMsSource.1.source": 'Constants_Internal',
+	"/url/[url]/observations/[timestampMs]/[source]:UrlPreview_Timestamp.UrlTimestampMsSource.1.timestampMs": '0',
+	"/url/[url]/observations/[timestampMs]/[source]:UrlPreview_Timestamp.UrlTimestampMsSource.1.url": 'https://example.com',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.base": CoinId.ETH,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.baseKind": 'coin',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.marketKind": MarketKind.Spot,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.marketVenue": MarketVenueId.Binance,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.quote": 'USD',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.quoteKind": 'currency',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.base": CoinId.ETH,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.baseKind": 'coin',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.marketKind": MarketKind.Spot,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.marketVenue": MarketVenueId.Binance,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.quote": 'USD',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.quoteKind": 'currency',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.timeIntervalUnit": 'day',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.timeIntervalValue": '1',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.timestampMs": '0',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.base": CoinId.ETH,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.baseKind": 'coin',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.feedKey": `coingecko:${MarketVenueId.Binance}`,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.marketKind": MarketKind.Perpetual,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.marketVenue": MarketVenueId.Binance,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.quote": 'USD',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.quoteKind": 'currency',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.timestampMs": '0',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.base": CoinId.ETH,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.baseKind": 'coin',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.marketKind": MarketKind.Spot,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.marketVenue": MarketVenueId.Binance,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.quote": 'USD',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.quoteKind": 'currency',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.base": CoinId.ETH,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.baseKind": 'coin',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.feedKey": 'ethereum',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.marketKind": MarketKind.Spot,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.marketVenue": MarketVenueId.Binance,
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.quote": 'USD',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.quoteKind": 'currency',
+	"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.timestampMs": ETHEREUM_MARKET_TIMESTAMP_MS,
+	"/x/post/[postId]:XPost.Id.1.postId": LENS_PROBE_POST_ID,
+	"/x/post/[postId]/observations/[timestampMs]:XPost_Timestamp.XPostTimestampMs.1.postId": LENS_PROBE_POST_ID,
+	"/x/post/[postId]/observations/[timestampMs]:XPost_Timestamp.XPostTimestampMs.1.timestampMs": '0',
+	"/x/user/[userId]:XUser.Id.1.userId": '3',
+	"/x/user/[userId]/observations/[timestampMs]:XUser_Timestamp.XUserTimestampMs.1.timestampMs": '0',
+	"/x/user/[userId]/observations/[timestampMs]:XUser_Timestamp.XUserTimestampMs.1.userId": '3',
+	"/xmtp/conversation/[conversationId]:XmtpConversation.Id.1.conversationId": 'e2e-probe-conversation',
+	"/youtube/channel/[channelId]:YoutubeChannel.ChannelId.1.channelId": 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+	"/youtube/channel/[channelId]/observations/[timestampMs]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMs.1.channelId": 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+	"/youtube/channel/[channelId]/observations/[timestampMs]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMs.1.timestampMs": '0',
+	"/youtube/comment/[videoId]/[commentId]:YoutubeComment.VideoIdCommentId.1.commentId": YOUTUBE_PROBE_COMMENT_ID,
+	"/youtube/comment/[videoId]/[commentId]:YoutubeComment.VideoIdCommentId.1.videoId": YOUTUBE_PROBE_VIDEO_ID,
+	"/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]:YoutubeComment_Timestamp.YoutubeCommentTimestampMs.1.commentId": YOUTUBE_PROBE_COMMENT_ID,
+	"/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]:YoutubeComment_Timestamp.YoutubeCommentTimestampMs.1.timestampMs": '0',
+	"/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]:YoutubeComment_Timestamp.YoutubeCommentTimestampMs.1.videoId": YOUTUBE_PROBE_VIDEO_ID,
+	"/youtube/playlist/[playlistId]:YoutubePlaylist.PlaylistId.1.playlistId": YOUTUBE_PROBE_PLAYLIST_ID,
+	"/youtube/playlist/[playlistId]/observations/[timestampMs]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMs.1.playlistId": YOUTUBE_PROBE_PLAYLIST_ID,
+	"/youtube/playlist/[playlistId]/observations/[timestampMs]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMs.1.timestampMs": '0',
+	"/youtube/video/[videoId]:YoutubeVideo.VideoId.1.videoId": YOUTUBE_PROBE_VIDEO_ID,
+	"/youtube/video/[videoId]/observations/[timestampMs]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMs.1.timestampMs": '0',
+	"/youtube/video/[videoId]/observations/[timestampMs]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMs.1.videoId": YOUTUBE_PROBE_VIDEO_ID,
+} as const satisfies Record<E2eRouteProbeAtom, string>
 
 
 /**
@@ -305,145 +597,77 @@ export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
 ])
 
 
-export const e2eRouteParamFixtureForMetadata = (
-	routeId: string,
-	routeFixtureMetadata: E2eRouteFixtureMetadata | undefined,
-	paramKey: string
-) => {
-	const fixture = (
-		routeFixtureMetadata?.fixture?.[paramKey]
-		?? (
-			paramKey === 'transactionId'
-			&& routeId.includes('/cash-token/') ?
-				BITCOIN_CASH_CASH_TOKEN_TX_ID
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'transactionId'
-			&& routeId.startsWith('/network/[network=networkCaip2OrNetworkSlug]/')
-			&& routeId.includes('/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/')
-			&& /\/(?:input|inputs|output|outputs)\b/.test(routeId) ?
-				BITCOIN_TX_ID
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'network'
-			&& routeId.startsWith('/network/[network=networkCaip2OrNetworkSlug]/')
-			&& /\/tx\/\[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId\]\/(?:input|inputs|output|outputs)\b/.test(routeId) ?
-				'bitcoin'
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'blockNumber'
-			&& routeId.includes('/block/[blockNumber=nonNegativeBigInt]') ?
-				'0'
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'hash'
-			&& routeId.includes('/block/[blockNumber=nonNegativeBigInt]/[hash]') ?
-				BITCOIN_GENESIS_BLOCK_HASH
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'marketKind'
-			&& routeId.includes('/derivatives/') ?
-				MarketKind.Perpetual
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'feedKey'
-			&& routeId.includes('/derivatives/') ?
-				`coingecko:${MarketVenueId.Binance}`
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'feedKey'
-			&& routeId.includes('/price/quotes/') ?
-				'ethereum'
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'timestampMs'
-			&& routeId.includes('/price/quotes/') ?
-				ETHEREUM_MARKET_TIMESTAMP_MS
-			:
-				undefined
-		)
-		?? (
-			paramKey === 'createdAt'
-			&& routeId.includes('/accounts/transaction/') ?
-				'0'
-			:
-				undefined
-		)
-		?? e2eRouteParamFixtures[paramKey]
-	)
-	if (fixture == null)
-		throw new Error(`Missing E2E route fixture for ${routeId} param ${paramKey}`)
-
-	return fixture
-}
-
-export const e2eRouteParamFixtureVariantsForMetadata = (
-	routeId: string,
-	routeFixtureMetadata: E2eRouteFixtureMetadata | undefined,
-	paramKey: string,
-	selectedParams: Readonly<Record<string, string>>
-) => {
-	if (routeFixtureVariantMode !== 'all')
-		return [
-			e2eRouteParamFixtureForMetadata(
-				routeId,
-				routeFixtureMetadata,
-				paramKey
-			),
-		]
-
-	const metadataVariants = [
-		...new Set(routeFixtureMetadata?.variants?.flatMap((variant) => (
-			variant[paramKey] == null ? [] : [variant[paramKey]]
-		)) ?? []),
-	]
-	if (metadataVariants.length > 0)
-		return metadataVariants
-
-	if (paramKey === 'specificationRealmSlug')
-		return specificationRealms.map((realm) => realm.slug)
-
-	if (paramKey === 'proposalKindSlug' && selectedParams.specificationRealmSlug)
-		return [
-			PROPOSAL_KIND_SLUG_BY_REALM_SLUG[selectedParams.specificationRealmSlug]
-			?? e2eRouteParamFixtureForMetadata(
-				routeId,
-				routeFixtureMetadata,
-				paramKey
-			),
-		]
-
-	if (paramKey === 'proposalRef' && selectedParams.proposalKindSlug)
-		return [
-			PROPOSAL_REF_BY_KIND_SLUG[selectedParams.proposalKindSlug]
-			?? e2eRouteParamFixtureForMetadata(
-				routeId,
-				routeFixtureMetadata,
-				paramKey
-			),
-		]
-
-	return [
-		e2eRouteParamFixtureForMetadata(
-			routeId,
-			routeFixtureMetadata,
-			paramKey
-		),
-	]
-}
+export const e2eDomQualityProbeOverlays = {
+	'/network/eip155:1': {
+		entityType: 'Network',
+		required: ['Ethereum Mainnet'],
+		requiredDt: [
+			'Name',
+			'Namespace',
+			'Reference',
+		],
+		minDt: 4,
+		minLinks: 8,
+	},
+	'/proposals/ethereum/eip/eip-4345': {
+		entityType: 'SpecificationProposal',
+		required: [
+			'Abstract',
+			'Specification',
+		],
+		requiredDt: [
+			'Category',
+			'Status',
+		],
+		minDt: 4,
+		discoveryOptional: true,
+	},
+	'/youtube/videos': {
+		routeTitle: 'YouTube Videos',
+		minLinks: 3,
+		minEntityRows: 2,
+	},
+	'/coins': {
+		routeTitle: 'Coins',
+		minLinks: 8,
+		minEntityRows: 5,
+	},
+	'/market-venues': {
+		routeTitle: 'Market venues',
+		minLinks: 1,
+	},
+	'/coin-instance/1/native': {
+		required: [
+			'ETH',
+			'Ether',
+			'NativeCurrency',
+		],
+		requiredDt: [
+			'Symbol',
+			'Name',
+			'Coin ID',
+			'Type',
+		],
+		minDt: 4,
+		minLinks: 1,
+	},
+	'/evm/topic/0xa9059cbb': {
+		required: ['0xa9059cbb'],
+		requiredDt: [
+			'Topic',
+			'Signatures',
+		],
+		minDt: 2,
+		minLinks: 1,
+	},
+} as const satisfies Readonly<Record<string, {
+	entityType?: 'Network' | 'SpecificationProposal'
+	routeTitle?: string
+	required?: readonly string[]
+	forbidden?: readonly string[]
+	requiredDt?: readonly string[]
+	minDt?: number
+	minLinks?: number
+	minEntityRows?: number
+	discoveryOptional?: boolean
+}>>

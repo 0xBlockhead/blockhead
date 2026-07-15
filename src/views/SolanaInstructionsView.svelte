@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Instructions',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.SolanaInstruction>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.SolanaInstruction>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -113,24 +114,36 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: solanaInstruction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaInstruction> })}
+				{#snippet Item({ item: solanaInstruction })}
 					{@const solanaInstructionFields = { ...solanaInstruction[EntityMetaKey.Selector], ...solanaInstruction }}
+					{@const selection = select(EntityType.SolanaInstruction, solanaInstruction[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const solanaInstructionHrefFields = { ...solanaInstruction, ...solanaInstruction[EntityMetaKey.Selector] }}
 					<SolanaInstructionView
-						selection={select(EntityType.SolanaInstruction, solanaInstruction[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={solanaInstructionFields}
 						href={
-							(solanaInstruction[EntityMetaKey.Selector].instructionKind !== undefined && solanaInstruction[EntityMetaKey.Selector].instructionKind === 'Instruction' && solanaInstructionHrefFields.$transaction !== undefined && solanaInstructionHrefFields.$transaction.$network !== undefined && solanaInstructionHrefFields.$transaction.$network.slug !== undefined && solanaInstructionHrefFields.$transaction.signature !== undefined && solanaInstructionHrefFields.instructionKind !== undefined && solanaInstructionHrefFields.indexInTransaction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]', {
-								network: String(solanaInstructionHrefFields.$transaction.$network.slug ?? ''),
-								transactionId: String(solanaInstructionHrefFields.$transaction.signature ?? ''),
+							(solanaInstruction[EntityMetaKey.Selector].instructionKind === 'Instruction' && solanaInstructionHrefFields.instructionKind !== undefined && solanaInstructionHrefFields.indexInTransaction !== undefined && solanaInstructionHrefFields.$transaction !== undefined && solanaInstructionHrefFields.$transaction.signature !== undefined && solanaInstructionHrefFields.$transaction.$network !== undefined && solanaInstructionHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]', {
 								instructionKind: String(solanaInstructionHrefFields.instructionKind ?? ''),
 								indexInTransaction: String(solanaInstructionHrefFields.indexInTransaction ?? ''),
-							}) : solanaInstruction[EntityMetaKey.Selector].instructionKind !== undefined && solanaInstruction[EntityMetaKey.Selector].instructionKind === 'InnerInstruction' && solanaInstructionHrefFields.$transaction !== undefined && solanaInstructionHrefFields.$transaction.$network !== undefined && solanaInstructionHrefFields.$transaction.$network.slug !== undefined && solanaInstructionHrefFields.$transaction.signature !== undefined && solanaInstructionHrefFields.instructionKind !== undefined && solanaInstructionHrefFields.indexInTransaction !== undefined && solanaInstructionHrefFields.indexInInstruction !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/inner/[indexInInstruction=nonNegativeInteger]', {
-								network: String(solanaInstructionHrefFields.$transaction.$network.slug ?? ''),
 								transactionId: String(solanaInstructionHrefFields.$transaction.signature ?? ''),
+								network: String(caip2StringFromValue(solanaInstructionHrefFields.$transaction.$network.caip2) ?? ''),
+							}) : solanaInstruction[EntityMetaKey.Selector].instructionKind === 'Instruction' && solanaInstructionHrefFields.instructionKind !== undefined && solanaInstructionHrefFields.indexInTransaction !== undefined && solanaInstructionHrefFields.$transaction !== undefined && solanaInstructionHrefFields.$transaction.signature !== undefined && solanaInstructionHrefFields.$transaction.$network !== undefined && solanaInstructionHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]', {
+								instructionKind: String(solanaInstructionHrefFields.instructionKind ?? ''),
+								indexInTransaction: String(solanaInstructionHrefFields.indexInTransaction ?? ''),
+								transactionId: String(solanaInstructionHrefFields.$transaction.signature ?? ''),
+								network: String(solanaInstructionHrefFields.$transaction.$network.slug ?? ''),
+							}) : solanaInstruction[EntityMetaKey.Selector].instructionKind === 'InnerInstruction' && solanaInstructionHrefFields.instructionKind !== undefined && solanaInstructionHrefFields.indexInTransaction !== undefined && solanaInstructionHrefFields.indexInInstruction !== undefined && solanaInstructionHrefFields.$transaction !== undefined && solanaInstructionHrefFields.$transaction.signature !== undefined && solanaInstructionHrefFields.$transaction.$network !== undefined && solanaInstructionHrefFields.$transaction.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/inner/[indexInInstruction=nonNegativeInteger]', {
 								instructionKind: String(solanaInstructionHrefFields.instructionKind ?? ''),
 								indexInTransaction: String(solanaInstructionHrefFields.indexInTransaction ?? ''),
 								indexInInstruction: String(solanaInstructionHrefFields.indexInInstruction ?? ''),
+								transactionId: String(solanaInstructionHrefFields.$transaction.signature ?? ''),
+								network: String(caip2StringFromValue(solanaInstructionHrefFields.$transaction.$network.caip2) ?? ''),
+							}) : solanaInstruction[EntityMetaKey.Selector].instructionKind === 'InnerInstruction' && solanaInstructionHrefFields.instructionKind !== undefined && solanaInstructionHrefFields.indexInTransaction !== undefined && solanaInstructionHrefFields.indexInInstruction !== undefined && solanaInstructionHrefFields.$transaction !== undefined && solanaInstructionHrefFields.$transaction.signature !== undefined && solanaInstructionHrefFields.$transaction.$network !== undefined && solanaInstructionHrefFields.$transaction.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/inner/[indexInInstruction=nonNegativeInteger]', {
+								instructionKind: String(solanaInstructionHrefFields.instructionKind ?? ''),
+								indexInTransaction: String(solanaInstructionHrefFields.indexInTransaction ?? ''),
+								indexInInstruction: String(solanaInstructionHrefFields.indexInInstruction ?? ''),
+								transactionId: String(solanaInstructionHrefFields.$transaction.signature ?? ''),
+								network: String(solanaInstructionHrefFields.$transaction.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Summary}

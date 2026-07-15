@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -26,8 +26,8 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			selection: EntityProxyResource<typeof schema, EntityType.NostrRelay_Timestamp>
-			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.NostrRelay_Timestamp>>
+			selection: RegisteredEntityProxyResource<EntityType.NostrRelay_Timestamp>
+			prefetched?: Partial<RegisteredEntityProxyData<EntityType.NostrRelay_Timestamp>>
 			title?: string
 			href?: string
 			layout?: EntityLayout
@@ -65,7 +65,13 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined && pendingEntity.$relay !== undefined && pendingEntity.$relay.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+			relayKey: String(pendingEntity.$relay.relayUrl ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -737,6 +743,41 @@
 				resource={
 					selection({
 						fields: {
+							contact: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const contact = pendingEntity.contact}
+					{#if contact !== undefined && contact !== null}
+						<div>
+							<dt>Contact</dt>
+							<dd>
+								{String((contact) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const contact = resolvedEntity.contact}
+					{#if contact !== undefined && contact !== null}
+						<div>
+							<dt>Contact</dt>
+							<dd>
+								{String((contact) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
 							error: true,
 						},
 					})
@@ -773,6 +814,11 @@
 				<dd>
 					<NostrRelayView
 						selection={select(EntityType.NostrRelay, selection.entitySelector.$relay, {})}
+						href={
+							(selection.entitySelector.$relay.relayUrl !== undefined ? resolve('/nostr/relay/[relayKey=stringSegment]', {
+								relayKey: String(selection.entitySelector.$relay.relayUrl ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

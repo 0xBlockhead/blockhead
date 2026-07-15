@@ -4,12 +4,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'EVM network gas fee blocks',
 		typeAnnotationParagraphs = [],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -30,7 +29,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.EvmNetwork_GasFee_Block>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.EvmNetwork_GasFee_Block>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -46,6 +45,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -112,16 +113,20 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: evmNetworkGasFeeBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetwork_GasFee_Block> })}
+				{#snippet Item({ item: evmNetworkGasFeeBlock })}
 					{@const evmNetworkGasFeeBlockFields = { ...evmNetworkGasFeeBlock[EntityMetaKey.Selector], ...evmNetworkGasFeeBlock }}
+					{@const selection = select(EntityType.EvmNetwork_GasFee_Block, evmNetworkGasFeeBlock[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
 					{@const evmNetworkGasFeeBlockHrefFields = { ...evmNetworkGasFeeBlock, ...evmNetworkGasFeeBlock[EntityMetaKey.Selector] }}
 					<EvmNetwork_GasFee_BlockView
-						selection={select(EntityType.EvmNetwork_GasFee_Block, evmNetworkGasFeeBlock[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={evmNetworkGasFeeBlockFields}
 						href={
-							(evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.slug !== undefined && evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
-								network: String(evmNetworkGasFeeBlockHrefFields.$network.slug ?? ''),
+							(evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined && evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.caip2 !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
 								blockNumber: String(evmNetworkGasFeeBlockHrefFields.blockNumber ?? ''),
+								network: String(caip2StringFromValue(evmNetworkGasFeeBlockHrefFields.$network.caip2) ?? ''),
+							}) : evmNetworkGasFeeBlockHrefFields.blockNumber !== undefined && evmNetworkGasFeeBlockHrefFields.$network !== undefined && evmNetworkGasFeeBlockHrefFields.$network.slug !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
+								blockNumber: String(evmNetworkGasFeeBlockHrefFields.blockNumber ?? ''),
+								network: String(evmNetworkGasFeeBlockHrefFields.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

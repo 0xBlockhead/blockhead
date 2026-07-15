@@ -19,7 +19,7 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.BitcoinCashCashTokenCommitment, {
-		$output: data.selector.$output,
+		$output: data.selector,
 	}, {
 		sources: [
 			Source.BitcoinCashNode_JsonRpc,

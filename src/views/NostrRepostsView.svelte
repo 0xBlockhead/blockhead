@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import type { RegisteredEntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -20,7 +19,7 @@
 		selection,
 		title = 'Nostr reposts',
 		typeAnnotationParagraphs = ['A Nostr repost is a kind-6 or kind-16 event keyed by event id and linked to the reposted note or article.'],
-		placeholderText,
+		placeholderText = undefined,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -29,7 +28,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NostrRepost>
+			selection: RegisteredEntityProxyEntitiesResource<EntityType.NostrRepost>
 			title?: string
 			typeAnnotationParagraphs?: string[]
 			placeholderText?: string
@@ -45,6 +44,8 @@
 			| 'CollapsibleProps'
 		>
 	> = $props()
+
+	const collectionSelection = $derived(selection)
 
 
 	// Components
@@ -110,11 +111,18 @@
 					{/if}
 				{/snippet}
 
-				{#snippet Item({ item: nostrRepost }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrRepost> })}
+				{#snippet Item({ item: nostrRepost })}
 					{@const nostrRepostFields = { ...nostrRepost[EntityMetaKey.Selector], ...nostrRepost }}
+					{@const selection = select(EntityType.NostrRepost, nostrRepost[EntityMetaKey.Selector], { sources: collectionSelection.sources })}
+					{@const nostrRepostHrefFields = { ...nostrRepost, ...nostrRepost[EntityMetaKey.Selector] }}
 					<NostrRepostView
-						selection={select(EntityType.NostrRepost, nostrRepost[EntityMetaKey.Selector], { sources: selection.sources })}
+						selection={selection}
 						prefetched={nostrRepostFields}
+						href={
+							(nostrRepostHrefFields.eventId !== undefined ? resolve('/nostr/repost/[eventId=stringSegment]', {
+								eventId: String(nostrRepostHrefFields.eventId ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
